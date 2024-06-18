@@ -34,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.nio.file.Path;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
@@ -368,11 +369,8 @@ public class IconEditor extends PCARDFrame {
         int id = 0;
         try {
             id = Integer.parseInt(this.idfld.getText());
-        } catch (Exception e2) {
-        }
 
-        // 名前とidを反映
-        {
+            // 名前とidを反映
             RsrcClass iconres;
 
             if (this.orgrsrcid == id) {
@@ -388,16 +386,17 @@ public class IconEditor extends PCARDFrame {
                 iconres = new RsrcClass(0, type, "", prefix + id + ".png", "0", "0", null);
             }
 
-            {
-                iconres.name = this.namefld.getText();
-                if (id != 0 && iconres.id != id) {
-                    if (iconres.id != 0) {
-                        this.rsrc.deleteResource(type, iconres.id);
-                    }
-                    iconres.id = id;
-                    this.rsrc.addResource(iconres);
+            iconres.name = this.namefld.getText();
+            if (id != 0 && iconres.id != id) {
+                if (iconres.id != 0) {
+                    this.rsrc.deleteResource(type, iconres.id);
                 }
+                iconres.id = id;
+                this.rsrc.addResource(iconres);
             }
+
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
 
         String fileName = this.rsrc.getFileName1(id, type);
@@ -410,15 +409,15 @@ public class IconEditor extends PCARDFrame {
                 res.filename = fileName;
             }
         }
-        String filepath = fileName;
+        Path filepath = Path.of(fileName);
         if (this.rsrc.ownerstack.file != null) {
-            filepath = this.rsrc.ownerstack.file.getParent() + File.separatorChar + fileName;
+            filepath = this.rsrc.ownerstack.file.getParent().resolve(fileName);
         }
 
 
         if (this.mainImg != null) {
             try {
-                ImageIO.write(this.mainImg, "png", new File(filepath));
+                ImageIO.write(this.mainImg, "png", filepath.toFile());
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -793,7 +792,7 @@ class IEMenu {
         if (System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
             s = InputEvent.META_DOWN_MASK;
         }
-        int s_shift = s + InputEvent.SHIFT_MASK;
+        int s_shift = s + InputEvent.SHIFT_DOWN_MASK;
 
         // Fileメニュー
         m = new JMenu(PCARD.pc.intl.getText("File"));

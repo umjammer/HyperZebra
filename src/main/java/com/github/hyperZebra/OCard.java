@@ -773,7 +773,7 @@ public class OCard extends OCardBase {
         // ピクチャ読み込み(pbm)
         if (cd.bitmapName != null) {
             try {
-                Path path = Paths.get(cd.stack.file.getParent(), cd.bitmapName);
+                Path path = cd.stack.file.getParent().resolve(cd.bitmapName);
                 cd.pict = ImageIO.read(Files.newInputStream(path));
                 if (cd.pict == null) {
                     // 読み込まれるまで待つ

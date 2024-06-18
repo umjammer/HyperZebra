@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -75,17 +77,17 @@ public class Rsrc {
     public String getFilePathAll(int id, String type) {
         RsrcClass r = rsrcIdMap.get(type + id);
         if (r != null) {
-            String parentpath = "";
             if (this.ownerstack.file != null) {
-                parentpath = (ownerstack.file.getParent() + File.separatorChar);
+                return ownerstack.file.getParent().resolve(r.filename).toString();
+            } else {
+                return r.filename;
             }
-            return parentpath + r.filename;
         }
         for (int i = ownerstack.usingStacks.size() - 1; i >= 0; i--) {
             r = ownerstack.usingStacks.get(i).rsrc.rsrcIdMap.get(type + id);
             if (r != null) {
-                String parentpath = (ownerstack.usingStacks.get(i).file.getParent() + File.separatorChar);
-                return parentpath + r.filename;
+                Path parentpath = ownerstack.usingStacks.get(i).file.getParent();
+                return parentpath.resolve(r.filename).toString();
             }
         }
         return null;
@@ -449,12 +451,12 @@ public class Rsrc {
         ownerstack.changed = true;
     }
 
-    public boolean deleteResource(String type, int id) {
+    public boolean deleteResource(String type, int id) throws IOException {
         RsrcClass r = rsrcIdMap.get(type + id);
         if (r == null) return false;
-        String FilePath = this.ownerstack.file.getParent() + File.separatorChar + r.filename;
+        Path FilePath = this.ownerstack.file.getParent().resolve(r.filename);
         // (new File(FilePath)).delete();
-        (new File(FilePath)).renameTo(new File("resource_trash" + File.separatorChar + r.filename));
+        Files.move(FilePath, Path.of("resource_trash", r.filename));
         if (null == rsrcIdMap.remove(type + r.id)) {
             System.out.println("delete resource error");
         }
@@ -495,8 +497,8 @@ public class Rsrc {
             while (it.hasNext()) {
                 rsrc = it.next();
                 if (rsrc.type.equals(type)) {
-                    if ((rsrcstack.file.getParent() + File.separatorChar + rsrc.filename)
-                            .equals(getFilePathAll(rsrc.id, type))) {
+                    if ((rsrcstack.file.getParent().resolve(rsrc.filename)
+                            .equals(Path.of(getFilePathAll(rsrc.id, type))))) {
                         i++;
                     }
                 }

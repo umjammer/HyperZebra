@@ -74,7 +74,7 @@ public class VEffect {
                 case 3 -> start + 500;
                 case 4 -> start + 1000;
                 case 5 -> start + 2000;
-                default -> end;
+                default -> -1;
             };
             if (effect == 1) { // barn door open
                 while (now < end) {

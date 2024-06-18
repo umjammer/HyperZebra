@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.Serial;
+import java.nio.file.Path;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -22,9 +23,6 @@ import javax.swing.SwingUtilities;
 
 public class GDialog extends JDialog implements ActionListener {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
     static String clicked = "";
@@ -51,7 +49,7 @@ public class GDialog extends JDialog implements ActionListener {
         JTextArea area = new JTextArea(text2.toString());
         String[] texts = text2.toString().split("\n");
         area.setSize(380, 18 + 18 * texts.length);
-        // area.setPreferredSize(new Dimension(380, 18+18*texts.length));
+//        area.setPreferredSize(new Dimension(380, 18+18*texts.length));
         area.setMargin(new Insets(16, 16, 2, 16));
         area.setLineWrap(true);
         area.setOpaque(false);
@@ -229,9 +227,9 @@ class GUxAnswer extends JDialog implements ActionListener {
         // アイコン読み込み
         String fileName = PCARD.pc.stack.rsrc.getFilePathAll(icons[0], "icon");
         if (fileName != null) {
-            String path = (PCARD.pc.stack.file.getParent() + File.separatorChar + fileName);
+            Path path = (PCARD.pc.stack.file.getParent().resolve(fileName));
 
-            JLabel label = new JLabel(new ImageIcon(path));
+            JLabel label = new JLabel(new ImageIcon(path.toString()));
             topPanel2.add(label);
         }
 

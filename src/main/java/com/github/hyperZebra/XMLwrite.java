@@ -1,10 +1,11 @@
 package com.github.hyperZebra;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -24,9 +25,9 @@ public class XMLwrite {
 
     public void saveStackNow() {
         if (stack.cantModify) return;
-        String fname = stack.file.getName();
+        Path fname = stack.file;
         if (fname.endsWith(".xml")
-                && stack.file.exists() && !stack.file.canWrite()) return;
+                && Files.exists(stack.file) && !Files.isWritable(stack.file)) return;
 
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
 
@@ -75,20 +76,16 @@ public class XMLwrite {
 
             writer.close();
 
-            File file = stack.file;
-            if (!stack.file.getName().substring(fname.length() - 4).equals(".xml")) {
-                file = new File(stack.file.getParent() + File.separatorChar + "_stack.xml");
+            Path file = stack.file;
+            if (!stack.file.getFileName().toString().substring((int) (Files.size(fname) - 4)).equals(".xml")) {
+                file = stack.file.getParent().resolve("_stack.xml");
             }
-            if (!file.exists() || file.canWrite()) {
-                try {
-                    FileOutputStream stream = new FileOutputStream(file);
-                    stream.write(stringWriter.toString().getBytes(StandardCharsets.UTF_8));
-                    stream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            if (!Files.exists(file) || Files.isWritable(file)) {
+                OutputStream stream = Files.newOutputStream(file);
+                stream.write(stringWriter.toString().getBytes(StandardCharsets.UTF_8));
+                stream.close();
             }
-        } catch (XMLStreamException e) {
+        } catch (XMLStreamException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -101,7 +98,7 @@ public class XMLwrite {
             setName("saveXMLThread");
             setPriority(MIN_PRIORITY);
 
-            if (!stack.file.exists()) {
+            if (!Files.exists(stack.file)) {
                 // xmlファイルがないときは即作成
                 saveStackNow();
             }

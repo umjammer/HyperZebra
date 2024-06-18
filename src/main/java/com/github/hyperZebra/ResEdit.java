@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.io.Serial;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -213,8 +215,8 @@ class ResTypeEditor extends JFrame {
                 OStack rsrcstack = pc.stack.usingStacks.get(j);
                 for (RsrcClass rsrc : rsrcstack.rsrc.rsrcIdMap.values()) {
                     if (rsrc.type.equals(type)) {
-                        String path1 = (rsrcstack.file.getParent() + File.separatorChar + rsrc.filename);
-                        String path2 = pc.stack.rsrc.getFilePathAll(rsrc.id, type);
+                        Path path1 = rsrcstack.file.getParent().resolve(rsrc.filename);
+                        Path path2 = Path.of(pc.stack.rsrc.getFilePathAll(rsrc.id, type));
                         if (path1.equals(path2)) {
                             rsrcAry[i] = rsrc;
                             i++;
@@ -591,9 +593,9 @@ class IconTypeEditor extends ResTypeEditor {
                         if (r != null) {
                             String srcFilePath = pcard.stack.rsrc.getFilePathAll(editor.selectedId[0], type);
                             String newFileName = new File(srcFilePath).getName();
-                            String newFilePath = editor.pcard.stack.file.getParent() + File.separatorChar + newFileName;
+                            Path newFilePath = editor.pcard.stack.file.getParent().resolve(newFileName);
                             try (FileChannel srcChannel = new FileInputStream(srcFilePath).getChannel();
-                                 FileChannel destChannel = new FileOutputStream(newFilePath).getChannel()) {
+                                 FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                 srcChannel.transferTo(0, srcChannel.size(), destChannel);
                             } catch (Exception e1) {
                                 e1.printStackTrace();
@@ -794,10 +796,10 @@ class IconTypeEditor extends ResTypeEditor {
                                     case "cursor" -> newFileName = "CURS_" + iconid + ext;
                                     default -> System.out.println("unknown resource type");
                                 }
-                                String newFilePath = pcard.stack.file.getParent() + File.separatorChar + newFileName;
+                                Path newFilePath = pcard.stack.file.getParent().resolve(newFileName);
                                 try (
                                         FileChannel srcChannel = new FileInputStream(path).getChannel();
-                                        FileChannel destChannel = new FileOutputStream(newFilePath).getChannel()) {
+                                        FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                     srcChannel.transferTo(0, srcChannel.size(), destChannel);
                                 }
                             } else {
@@ -867,7 +869,11 @@ class OtherTypeEditor extends ResTypeEditor {
             RsrcClass rsrc = rsrcAry[i];
             tabledata[i][0] = Integer.toString(rsrc.id);
             tabledata[i][1] = rsrc.name;
-            tabledata[i][2] = Long.toString(new File(pc.stack.file.getParent() + File.separatorChar + rsrc.filename).length());
+            try {
+                tabledata[i][2] = Long.toString(Files.size(pc.stack.file.getParent().resolve(rsrc.filename)));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
 
         String[] columnNames = {"ID", "Name", "Size"};
@@ -1001,8 +1007,8 @@ class REMenuListener implements ActionListener {
                 }
                 // ファイルを作成
                 if (editor.pcard.stack.file == null) return;
-                String newFilePath = editor.pcard.stack.file.getParent() + File.separatorChar + newFileName;
-                File newFile = new File(newFilePath);
+                Path newFilePath = editor.pcard.stack.file.getParent().resolve(newFileName);
+                File newFile = newFilePath.toFile();
                 if (editor.type.equals("icon") || editor.type.equals("cicn")
                         || editor.type.equals("picture") || editor.type.equals("cursor")) {
                     BufferedImage bi = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
@@ -1052,10 +1058,10 @@ class REMenuListener implements ActionListener {
             }
             case "View File" -> {
                 if (editor.selectedId[0] != 0) {
-                    String parentPath = editor.pcard.stack.file.getParent();
+                    Path parentPath = editor.pcard.stack.file.getParent();
                     StringBuilder filename = new StringBuilder();
                     for (int i = 0; i < editor.selectedId.length; i++) {
-                        if (filename.length() > 0) filename.append(":");
+                        if (!filename.isEmpty()) filename.append(":");
                         filename.append(parentPath).append(File.separatorChar).append(editor.pcard.stack.rsrc.getFileName1(editor.selectedId[i], editor.type));
                     }
                 /*boolean isBundle = false;
@@ -1113,10 +1119,10 @@ class REMenuListener implements ActionListener {
                         RsrcClass rsrc;
                         rsrc = editor.pcard.stack.rsrc.getResource1(editor.selectedId[i], editor.type);
 
-                        String FilePath = editor.pcard.stack.file.getParent() + File.separatorChar + rsrc.filename;
+                        Path FilePath = editor.pcard.stack.file.getParent().resolve(rsrc.filename);
                         String destFilePath = "resource_trash" + File.separatorChar + rsrc.filename;
                         try {
-                            try (FileChannel srcChannel = new FileInputStream(FilePath).getChannel(); FileChannel destChannel = new FileOutputStream(destFilePath).getChannel()) {
+                            try (FileChannel srcChannel = new FileInputStream(FilePath.toFile()).getChannel(); FileChannel destChannel = new FileOutputStream(destFilePath).getChannel()) {
                                 srcChannel.transferTo(0, srcChannel.size(), destChannel);
                             }
                         } catch (IOException e2) {
@@ -1249,8 +1255,8 @@ class REMenuListener implements ActionListener {
                                             default -> typeStr + "_";
                                         };
                                         newFileName = typePrefix + id + ext;
-                                        String newFilePath = editor.pcard.stack.file.getParent() + File.separatorChar + newFileName;
-                                        try (FileChannel srcChannel = new FileInputStream(srcFilePath).getChannel(); FileChannel destChannel = new FileOutputStream(newFilePath).getChannel()) {
+                                        Path newFilePath = editor.pcard.stack.file.getParent().resolve(newFileName);
+                                        try (FileChannel srcChannel = new FileInputStream(srcFilePath).getChannel(); FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                             srcChannel.transferTo(0, srcChannel.size(), destChannel);
                                         }
                                     } else {
@@ -1286,8 +1292,8 @@ class REMenuListener implements ActionListener {
                             name = "";
                         }
                         // ファイルを作成
-                        String newFilePath = editor.pcard.stack.file.getParent() + File.separatorChar + newFileName;
-                        File newFile = new File(newFilePath);
+                        Path newFilePath = editor.pcard.stack.file.getParent().resolve(newFileName);
+                        File newFile = newFilePath.toFile();
                         if (editor.type.equals("icon")) {
                             try {
                                 ImageIO.write((RenderedImage) img, "png", newFile);
@@ -1314,7 +1320,11 @@ class REMenuListener implements ActionListener {
             // 削除
             int number = editor.selectedId.length;
             for (int i = 0; i < number; i++) {
-                editor.pcard.stack.rsrc.deleteResource(editor.type, editor.selectedId[i]);
+                try {
+                    editor.pcard.stack.rsrc.deleteResource(editor.type, editor.selectedId[i]);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
             // 選択解除
             if (editor.type.equals("icon")) {

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import javax.imageio.ImageIO;
@@ -612,9 +613,9 @@ label:
 
             // ファイルに保存(これに時間がかかる)
             String filename = "BMAP_" + bitmapId + ".png";
-            File file = new File(PCARDFrame.pc.stack.file.getParent() + File.separatorChar + filename);
+            Path file = PCARDFrame.pc.stack.file.getParent().resolve(filename);
             try {
-                ImageIO.write(mainBi, "png", file);
+                ImageIO.write(mainBi, "png", file.toFile());
             } catch (IOException e) {
                 e.printStackTrace();
             }

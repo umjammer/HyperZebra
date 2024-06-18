@@ -9,10 +9,12 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -279,7 +281,7 @@ public class HCConvert {
             return false;
         }
         stack.path = newdir.resolve("_stack.xml").toString();
-        stack.file = new File(stack.path);
+        stack.file = Path.of(stack.path);
 
         return true;
     }
@@ -290,8 +292,8 @@ public class HCConvert {
         String os = System.getProperty("os.name");
         if (os != null && os.startsWith("Mac OS X")) {
         } else {
-            /*new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("Converting from HyperCard Stack is need to run on MacOSX."),
-                    null,"OK",null,null);*/
+//            new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("Converting from HyperCard Stack is need to run on MacOSX."),
+//                    null, "OK", null, null);
             return null;
         }
 
@@ -315,22 +317,22 @@ public class HCConvert {
                     // コピーを作るとリソースフォークが失われてしまう
 
                     // 日本語パス対策でテンポラリにスタックのコピーを作る
-                    /*srcpath = System.getProperty("java.io.tmpdir")+File.separatorChar+"hyperzebra_stack";
-
-                    try {
-                        FileChannel srcChannel = new FileInputStream(path).getChannel();
-                        FileChannel destChannel = new FileOutputStream(srcpath).getChannel();
-                        try {
-                            srcChannel.transferTo(0, srcChannel.size(), destChannel);
-                        } finally {
-                            srcChannel.close();
-                            destChannel.close();
-                        }
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
+//                    srcpath = System.getProperty("java.io.tmpdir") + File.separatorChar + "hyperzebra_stack";
+//
+//                    try {
+//                        FileChannel srcChannel = new FileInputStream(path).getChannel();
+//                        FileChannel destChannel = new FileOutputStream(srcpath).getChannel();
+//                        try {
+//                            srcChannel.transferTo(0, srcChannel.size(), destChannel);
+//                        } finally {
+//                            srcChannel.close();
+//                            destChannel.close();
+//                        }
+//                    } catch (FileNotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
 
                 // 日本語パス対策でテンポラリにtarアーカイブを作る
@@ -389,7 +391,6 @@ public class HCConvert {
         return null;
     }
 
-
     static public String getConvertPath(String inPath) {
         byte[] sjisByte = null;
         try {
@@ -403,7 +404,6 @@ public class HCConvert {
 
         return sjisPath;
     }
-
 
     public static boolean readFromTar(File tarFile, OStack stack) {
         // System.out.println("readFromTar...");

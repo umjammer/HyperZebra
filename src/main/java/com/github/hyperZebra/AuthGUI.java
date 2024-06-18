@@ -1,5 +1,6 @@
 package com.github.hyperZebra;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
@@ -22,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,7 +36,7 @@ class AuthTool {
 
     static authtoolInterface tool;
 
-    // static boolean editBackground;はPaintToolのものを流用する
+//    static boolean editBackground; // はPaintToolのものを流用する
 }
 
 
@@ -74,21 +77,21 @@ class FieldTool implements authtoolInterface {
 class ButtonGUI implements MouseListener, MouseMotionListener {
 
     static ButtonGUI gui = new ButtonGUI();
-    int startx;
-    int starty;
-    int offsetx;
-    int offsety;
-    int lastx;
-    int lasty;
+    int startX;
+    int startY;
+    int offsetX;
+    int offsetY;
+    int lastX;
+    int lastY;
     boolean sizeChange;
-    boolean sizeleft;
-    boolean sizetop;
+    boolean sizeLeft;
+    boolean sizeTop;
     Component target;
     OButton tgtOBtn;
     boolean newButton;
-    MyButtonDropListener droplistener = new MyButtonDropListener();
+    MyButtonDropListener dropListener = new MyButtonDropListener();
     boolean isMouseDown;
-    DropTarget mainpanedrop;
+    DropTarget mainPaneDrop;
     LineBorder lineBorder = new LineBorder(Color.BLACK);
 
     public void addListenerToParts() {
@@ -107,7 +110,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             btn.addListener(this);
             btn.addMotionListener(this);
             if (btn.getComponent() != null) {
-                btn.drop = new DropTarget(btn.getComponent(), droplistener);
+                btn.drop = new DropTarget(btn.getComponent(), dropListener);
             }
             if (btn.style == 1 || btn.style == 2) {
                 btn.btn.setBorder(lineBorder);
@@ -128,7 +131,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             btn.addListener(this);
             btn.addMotionListener(this);
             if (btn.btn != null) {
-                btn.drop = new DropTarget(btn.btn, droplistener);
+                btn.drop = new DropTarget(btn.btn, dropListener);
             }
             if (btn.style == 1 || btn.style == 2) {
                 btn.btn.setBorder(lineBorder);
@@ -142,7 +145,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             PCARDFrame.pc.stack.curCard.bg.fldList.get(i).addListener(this);
             PCARDFrame.pc.stack.curCard.bg.fldList.get(i).addMotionListener(this);
         }
-        mainpanedrop = new DropTarget(PCARDFrame.pc.mainPane, droplistener);
+        mainPaneDrop = new DropTarget(PCARDFrame.pc.mainPane, dropListener);
     }
 
     public void removeListenerFromParts() {
@@ -151,7 +154,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             btn.removeListener(this);
             btn.removeMotionListener(this);
             if (btn.drop != null) {
-                btn.drop.removeDropTargetListener(ButtonGUI.gui.droplistener);
+                btn.drop.removeDropTargetListener(ButtonGUI.gui.dropListener);
                 btn.drop = null;
             }
         }
@@ -160,7 +163,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             btn.removeListener(this);
             btn.removeMotionListener(this);
             if (btn.drop != null) {
-                btn.drop.removeDropTargetListener(ButtonGUI.gui.droplistener);
+                btn.drop.removeDropTargetListener(ButtonGUI.gui.dropListener);
                 btn.drop = null;
             }
         }
@@ -172,9 +175,9 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             PCARDFrame.pc.stack.curCard.bg.fldList.get(i).removeListener(this);
             PCARDFrame.pc.stack.curCard.bg.fldList.get(i).removeMotionListener(this);
         }
-        if (mainpanedrop != null) {
-            mainpanedrop.removeDropTargetListener(ButtonGUI.gui.droplistener);
-            mainpanedrop = null;
+        if (mainPaneDrop != null) {
+            mainPaneDrop.removeDropTargetListener(ButtonGUI.gui.dropListener);
+            mainPaneDrop = null;
         }
     }
 
@@ -243,11 +246,10 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                     break;
                 }
             }
-            OButton obtn = null;
-            obtn = new OButton(cdbase, newid);
+            OButton obtn = new OButton(cdbase, newid);
             ((OCardBase) obtn.parent).partsList.add(obtn);
             ((OCardBase) obtn.parent).btnList.add(obtn);
-            if (obtn != null) {
+            {
                 OButton obtn2 = null;
                 Component target = (Component) e.getSource();
                 if (target.getClass() == MyButton.class) obtn2 = ((MyButton) target).btnData;
@@ -314,8 +316,8 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 if ((x < target.getX() + 8 || x > target.getX() + target.getWidth() - 8) &&
                         (y < target.getY() + 8 || y > target.getY() + target.getHeight() - 8)) {
                     sizeChange = true;
-                    sizeleft = (x < target.getX() + 8);
-                    sizetop = (y < target.getY() + 8);
+                    sizeLeft = (x < target.getX() + 8);
+                    sizeTop = (y < target.getY() + 8);
                 } else {
                     sizeChange = false;
                 }
@@ -323,12 +325,12 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
         } else {
             target = null;
         }
-        startx = x; // 最初の位置を記憶
-        starty = y;
-        offsetx = e.getX(); // ポインタと部品のオフセットを記憶
-        offsety = e.getY();
-        lastx = x; // サイズの変更用に前回の位置を記憶
-        lasty = y;
+        startX = x; // 最初の位置を記憶
+        startY = y;
+        offsetX = e.getX(); // ポインタと部品のオフセットを記憶
+        offsetY = e.getY();
+        lastX = x; // サイズの変更用に前回の位置を記憶
+        lastY = y;
 
         isMouseDown = true;
 
@@ -341,13 +343,13 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        /*Rectangle r = ((Component)e.getSource()).getBounds();
-        int x = e.getX()+r.x;
-        int y = e.getY()+r.y;
-        if((Component)e.getSource() == PCARDFrame.pc.getRootPane()){
-            x -= PCARDFrame.pc.toolbar.getTWidth();
-            y -= PCARDFrame.pc.toolbar.getTHeight()+PCARDFrame.pc.getInsets().top+PCARDFrame.pc.getJMenuBar().getHeight();
-        }*/
+//        Rectangle r = ((Component) e.getSource()).getBounds();
+//        int x = e.getX() + r.x;
+//        int y = e.getY() + r.y;
+//        if ((Component) e.getSource() == PCARDFrame.pc.getRootPane()) {
+//            x -= PCARDFrame.pc.toolbar.getTWidth();
+//            y -= PCARDFrame.pc.toolbar.getTHeight() + PCARDFrame.pc.getInsets().top + PCARDFrame.pc.getJMenuBar().getHeight();
+//        }
 
         isMouseDown = false;
 
@@ -418,13 +420,13 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                     Rectangle newr = target.getBounds();
                     if (!sizeChange) {
                         // 移動
-                        newr.x = x - offsetx;
-                        newr.y = y - offsety;
+                        newr.x = x - offsetX;
+                        newr.y = y - offsetY;
                         if (GUI.key[11] > 1) { // SHIFT
-                            if (Math.abs(x - startx) < Math.abs(y - starty)) {
-                                newr.x = startx - offsetx;
+                            if (Math.abs(x - startX) < Math.abs(y - startY)) {
+                                newr.x = startX - offsetX;
                             } else {
-                                newr.y = starty - offsety;
+                                newr.y = startY - offsetY;
                             }
                         }
                         target.setBounds(newr);
@@ -433,17 +435,17 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                         }
                     } else {
                         // サイズ変更
-                        if (sizeleft) {
-                            newr.x += x - lastx;
-                            newr.width -= x - lastx;
+                        if (sizeLeft) {
+                            newr.x += x - lastX;
+                            newr.width -= x - lastX;
                         } else {
-                            newr.width += x - lastx;
+                            newr.width += x - lastX;
                         }
-                        if (sizetop) {
-                            newr.height -= y - lasty;
-                            newr.y += y - lasty;
+                        if (sizeTop) {
+                            newr.height -= y - lastY;
+                            newr.y += y - lastY;
                         } else {
-                            newr.height += y - lasty;
+                            newr.height += y - lastY;
                         }
                         target.setBounds(newr);
                         if (target instanceof MyButton) {
@@ -464,49 +466,48 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                     }
                 }
 
-                lasty += (y - lasty);
-                lastx += (x - lastx);
+                lastY += (y - lastY);
+                lastX += (x - lastX);
             }
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        /*Rectangle r = ((Component)e.getSource()).getBounds();
-        int x = e.getX()+r.x;
-        int y = e.getY()+r.y;
-        if((Component)e.getSource() == PCARD.pc.getRootPane()){
-            x -= PCARD.pc.stack.toolbar.getTWidth();
-            y -= PCARD.pc.stack.toolbar.getTHeight()+PCARD.pc.getInsets().top;
-        }
-
-        if(target != null){
-            Rectangle newr = target.getBounds();
-            if(!sizeChange){
-                // 移動
-                newr.x = x-offsetx;
-                newr.y = y-offsety;
-                if((e.getModifiersEx()&InputEvent.SHIFT_DOWN_MASK)>0){
-                    if(Math.abs(x-startx)<Math.abs(y-starty)){
-                        newr.x = startx-offsetx;
-                    }else{
-                        newr.y = starty-offsety;
-                    }
-                }
-                target.setBounds(newr);
-                target.setEnabled(false);
-            }
-            else{
-                // サイズ変更
-                newr.width += x - lastx;
-                newr.height += y - lasty;
-                target.setBounds(newr);
-                target.setEnabled(false);
-            }
-        }
-
-        lasty += (y-lasty);
-        lastx += (x-lastx);*/
+//        Rectangle r = ((Component) e.getSource()).getBounds();
+//        int x = e.getX() + r.x;
+//        int y = e.getY() + r.y;
+//        if ((Component) e.getSource() == PCARD.pc.getRootPane()) {
+//            x -= PCARD.pc.stack.toolbar.getTWidth();
+//            y -= PCARD.pc.stack.toolbar.getTHeight() + PCARD.pc.getInsets().top;
+//        }
+//
+//        if (target != null) {
+//            Rectangle newr = target.getBounds();
+//            if (!sizeChange) {
+//                // 移動
+//                newr.x = x - offsetX;
+//                newr.y = y - offsetY;
+//                if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) > 0) {
+//                    if (Math.abs(x - startX) < Math.abs(y - startY)) {
+//                        newr.x = startX - offsetX;
+//                    } else {
+//                        newr.y = startY - offsetY;
+//                    }
+//                }
+//                target.setBounds(newr);
+//                target.setEnabled(false);
+//            } else {
+//                // サイズ変更
+//                newr.width += x - lastX;
+//                newr.height += y - lastY;
+//                target.setBounds(newr);
+//                target.setEnabled(false);
+//            }
+//        }
+//
+//        lastY += (y - lastY);
+//        lastX += (x - lastX);
     }
 
     @Override
@@ -600,14 +601,14 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
         int i = (int) ((System.currentTimeMillis() & 0xFFFF) / 40) % 16;
         g.setColor(new Color(162 + i * 2, 182 + i * 2, 220 + i * 2));
         g.draw(r2);
-        // //float dash[] = {2.0f, 2.0f};
-        // //g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0));
-        // g.setColor(new Color(140-i*4,170-i*4,210-i*4));
-        // r2.x++;
-        // r2.y++;
-        // if(r2.width>1) r2.width-=2;
-        // if(r2.height>1) r2.height-=2;
-        // g.draw(r2);
+////        float dash[] = {2.0f, 2.0f};
+////        g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0));
+//        g.setColor(new Color(140 - i * 4, 170 - i * 4, 210 - i * 4));
+//        r2.x++;
+//        r2.y++;
+//        if (r2.width > 1) r2.width -= 2;
+//        if (r2.height > 1) r2.height -= 2;
+//        g.draw(r2);
     }
 }
 
@@ -624,29 +625,29 @@ class MyButtonDropListener extends DropTargetAdapter {
                 List<File> fileList =
                         (List<File>) (transfer.getTransferData(DataFlavor.javaFileListFlavor));
                 for (File file : fileList) {
-                    String path = file.toString();
+                    Path path = file.toPath();
                     String ext = "";
                     BufferedImage bi = null;
                     try {
                         ext = ".ppm";
-                        bi = javax.imageio.ImageIO.read(new File(path));
+                        bi = javax.imageio.ImageIO.read(path.toFile());
                         if (bi == null) {
-                            if (path.lastIndexOf(".") >= 0) {
-                                ext = path.substring(path.lastIndexOf("."));
+                            if (path.getFileName().toString().lastIndexOf(".") >= 0) {
+                                ext = path.getFileName().toString().substring(path.getFileName().toString().lastIndexOf("."));
                             } else {
                                 ext = "";
                             }
-                            bi = javax.imageio.ImageIO.read(new File(path));
+                            bi = javax.imageio.ImageIO.read(path.toFile());
                         }
                         if (bi == null) {
                             ext = ".pict";
-                            bi = javax.imageio.ImageIO.read(new File(path));
+                            bi = javax.imageio.ImageIO.read(path.toFile());
                         }
                     } catch (IOException e2) {
                         e2.printStackTrace();
                     }
                     if (bi != null) {
-                        String name = new File(path).getName();
+                        String name = path.getFileName().toString();
                         Pattern p = Pattern.compile("([0-9]{1,6})([^0-9])");
                         Matcher m = p.matcher(name);
                         int baseid = 1000;
@@ -656,15 +657,16 @@ class MyButtonDropListener extends DropTargetAdapter {
                         int iconid = PCARDFrame.pc.stack.rsrc.getNewResourceId("icon", baseid);
                         // ファイルをコピー
                         String newFileName = "ICON_" + iconid + ext;
-                        String newFilePath = PCARDFrame.pc.stack.file.getParent() + File.separatorChar + newFileName;
-                        try (FileChannel srcChannel = new FileInputStream(path).getChannel(); FileChannel destChannel = new FileOutputStream(newFilePath).getChannel()) {
+                        Path newFilePath = PCARDFrame.pc.stack.file.getParent().resolve(newFileName);
+                        try (FileChannel srcChannel = new FileInputStream(path.toFile()).getChannel();
+                             FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                             srcChannel.transferTo(0, srcChannel.size(), destChannel);
                         }
                         // リソースに追加
                         PCARDFrame.pc.stack.rsrc.addResource(iconid, "icon", name, newFileName);
                         // ボタンのアイコンに設定
-                        /*Component component = ((DropTarget)e.getSource()).getComponent();
-                        OButton obtn = ((MyButton)component).btnData;*/
+//                        Component component = ((DropTarget) e.getSource()).getComponent();
+//                        OButton obtn = ((MyButton) component).btnData;
                         OCardBase cdbase = PCARDFrame.pc.stack.curCard;
                         if (PaintTool.editBackground) {
                             cdbase = PCARDFrame.pc.stack.curCard.bg;
@@ -681,7 +683,7 @@ class MyButtonDropListener extends DropTargetAdapter {
                             obtn.width = bi.getWidth();
                         }
                         int offset = 0;
-                        // if(obtn.showName) offset = 12;
+//                        if(obtn.showName) offset = 12;
                         if (obtn.height < bi.getHeight() + offset) {
                             obtn.top -= (bi.getHeight() + offset - obtn.height) / 2;
                             obtn.height = bi.getHeight() + offset;
@@ -959,13 +961,13 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        /*Rectangle r = ((Component)e.getSource()).getBounds();
-        int x = e.getX()+r.x;
-        int y = e.getY()+r.y;
-        if((Component)e.getSource() == PCARD.pc.getRootPane()){
-            x -= PCARD.pc.toolbar.getTWidth();
-            y -= PCARD.pc.toolbar.getTHeight()+PCARD.pc.getInsets().top+PCARD.pc.getJMenuBar().getHeight();
-        }*/
+//        Rectangle r = ((Component) e.getSource()).getBounds();
+//        int x = e.getX() + r.x;
+//        int y = e.getY() + r.y;
+//        if ((Component) e.getSource() == PCARD.pc.getRootPane()) {
+//            x -= PCARD.pc.toolbar.getTWidth();
+//            y -= PCARD.pc.toolbar.getTHeight() + PCARD.pc.getInsets().top + PCARD.pc.getJMenuBar().getHeight();
+//        }
 
         isMouseDown = false;
 
@@ -1073,39 +1075,38 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        /*Rectangle r = ((Component)e.getSource()).getBounds();
-        int x = e.getX()+r.x;
-        int y = e.getY()+r.y;
-        if((Component)e.getSource() == PCARD.pc.getRootPane()){
-            x -= PCARD.pc.stack.toolbar.getTWidth();
-            y -= PCARD.pc.stack.toolbar.getTHeight()+PCARD.pc.getInsets().top;
-        }
-
-        if(target != null){
-            Rectangle newr = target.getBounds();
-            if(!sizeChange){
-                // 移動
-                newr.x = x-offsetx;
-                newr.y = y-offsety;
-                if((e.getModifiersEx()&InputEvent.SHIFT_DOWN_MASK)>0){
-                    if(Math.abs(x-startx)<Math.abs(y-starty)){
-                        newr.x = startx-offsetx;
-                    }else{
-                        newr.y = starty-offsety;
-                    }
-                }
-                target.setBounds(newr);
-            }
-            else{
-                // サイズ変更
-                newr.width += x - lastx;
-                newr.height += y - lasty;
-                target.setBounds(newr);
-            }
-        }
-
-        lasty += (y-lasty);
-        lastx += (x-lastx);*/
+//        Rectangle r = ((Component) e.getSource()).getBounds();
+//        int x = e.getX() + r.x;
+//        int y = e.getY() + r.y;
+//        if ((Component) e.getSource() == PCARD.pc.getRootPane()) {
+//            x -= PCARD.pc.stack.toolbar.getTWidth();
+//            y -= PCARD.pc.stack.toolbar.getTHeight() + PCARD.pc.getInsets().top;
+//        }
+//
+//        if (target != null) {
+//            Rectangle newr = target.getBounds();
+//            if (!sizeChange) {
+//                // 移動
+//                newr.x = x - offsetX;
+//                newr.y = y - offsetY;
+//                if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) > 0) {
+//                    if (Math.abs(x - startX) < Math.abs(y - startY)) {
+//                        newr.x = startX - offsetX;
+//                    } else {
+//                        newr.y = startY - offsetY;
+//                    }
+//                }
+//                target.setBounds(newr);
+//            } else {
+//                // サイズ変更
+//                newr.width += x - lastX;
+//                newr.height += y - lastY;
+//                target.setBounds(newr);
+//            }
+//        }
+//
+//        lastY += (y - lastY);
+//        lastX += (x - lastX);
     }
 
     @Override
@@ -1205,60 +1206,57 @@ class MyFieldDropListener extends DropTargetAdapter {
             Transferable transfer = e.getTransferable();
             if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                 e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-                /*@SuppressWarnings("unchecked")
-                List<File> fileList =
-                    (List<File>) (transfer.getTransferData(DataFlavor.javaFileListFlavor));
-                String path = fileList.get(0).toString();
-                String ext = "";
-                BufferedImage bi = null;
-                try{
-                    ext = ".ppm";
-                    bi = PictureFile.loadPbm(path);
-                    if(bi==null){
-                        if(path.lastIndexOf(".")>=0){
-                            ext = path.substring(path.lastIndexOf("."), path.length());
-                        }
-                        else{
-                            ext = "";
-                        }
-                        bi = javax.imageio.ImageIO.read(new File(path));
-                    }
-                    if(bi==null){
-                        ext = ".pict";
-                        bi = PictureFile.loadPICT(path);
-                    }
-                } catch (IOException e2) {
-                    e2.printStackTrace();
-                }
-                if(bi!=null){
-                    String name = new File(path).getName();
-                    Pattern p = Pattern.compile("([0-9]{1,6})([^0-9])");
-                    Matcher m = p.matcher(name);
-                    int baseid = 1000;
-                    if(m.find()){
-                        baseid = Integer.valueOf(m.group(1));
-                    }
-                    int rsrcid = PCARD.pc.stack.rsrc.getNewResourceId("pictfont", baseid);
-                    // ファイルをコピー
-                    String newFileName = "PICTFONT_"+rsrcid+ext;
-                    String newFilePath = PCARD.pc.stack.file.getParent()+File.separatorChar+newFileName;
-                    FileChannel srcChannel = new FileInputStream(path).getChannel();
-                    FileChannel destChannel = new FileOutputStream(newFilePath).getChannel();
-                    try {
-                        srcChannel.transferTo(0, srcChannel.size(), destChannel);
-                    } finally {
-                        srcChannel.close();
-                        destChannel.close();
-                    }
-                    // リソースに追加
-                    PCARD.pc.stack.rsrc.addResource(rsrcid, "pictfont", name, newFileName);
-                    // フィールドのフォントに設定
-                    Component component = ((DropTarget)e.getSource()).getComponent();
-                    OField ofld = ((MyTextArea)component).fldData;
-                    ofld.fontPict = bi;
-                    ofld.textFont = name;
-                }
-                else*/
+//                @SuppressWarnings("unchecked")
+//                List<File> fileList = (List<File>) (transfer.getTransferData(DataFlavor.javaFileListFlavor));
+//                String path = fileList.get(0).toString();
+//                String ext = "";
+//                BufferedImage bi = null;
+//                try {
+//                    ext = ".ppm";
+//                    bi = PictureFile.loadPbm(path);
+//                    if (bi == null) {
+//                        if (path.lastIndexOf(".") >= 0) {
+//                            ext = path.substring(path.lastIndexOf("."), path.length());
+//                        } else {
+//                            ext = "";
+//                        }
+//                        bi = javax.imageio.ImageIO.read(new File(path));
+//                    }
+//                    if (bi == null) {
+//                        ext = ".pict";
+//                        bi = PictureFile.loadPICT(path);
+//                    }
+//                } catch (IOException e2) {
+//                    e2.printStackTrace();
+//                }
+//                if (bi != null) {
+//                    String name = new File(path).getName();
+//                    Pattern p = Pattern.compile("([0-9]{1,6})([^0-9])");
+//                    Matcher m = p.matcher(name);
+//                    int baseid = 1000;
+//                    if (m.find()) {
+//                        baseid = Integer.valueOf(m.group(1));
+//                    }
+//                    int rsrcid = PCARD.pc.stack.rsrc.getNewResourceId("pictfont", baseid);
+//                    // ファイルをコピー
+//                    String newFileName = "PICTFONT_" + rsrcid + ext;
+//                    String newFilePath = PCARD.pc.stack.file.getParent() + File.separatorChar + newFileName;
+//                    FileChannel srcChannel = new FileInputStream(path).getChannel();
+//                    FileChannel destChannel = new FileOutputStream(newFilePath).getChannel();
+//                    try {
+//                        srcChannel.transferTo(0, srcChannel.size(), destChannel);
+//                    } finally {
+//                        srcChannel.close();
+//                        destChannel.close();
+//                    }
+//                    // リソースに追加
+//                    PCARD.pc.stack.rsrc.addResource(rsrcid, "pictfont", name, newFileName);
+//                    // フィールドのフォントに設定
+//                    Component component = ((DropTarget) e.getSource()).getComponent();
+//                    OField ofld = ((MyTextArea) component).fldData;
+//                    ofld.fontPict = bi;
+//                    ofld.textFont = name;
+//                } else
                 {
                     new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("Could't open the file."), null, "OK", null, null);
                 }

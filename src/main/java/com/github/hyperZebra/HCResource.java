@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFileFormat;
@@ -1262,8 +1263,8 @@ public class HCResource {
 
         String path = type + "_" + platform + "_" + id + "_" + name + ".data";
         try {
-            File file = new File(stack.file.getParent() + File.separatorChar + path);
-            FileOutputStream stream = new FileOutputStream(file);
+            Path file = stack.file.getParent().resolve(path);
+            FileOutputStream stream = new FileOutputStream(file.toFile());
             stream.write(b);
             stream.close();
         } catch (IOException e) {

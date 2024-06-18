@@ -92,7 +92,7 @@ public class OObject {
     public String getLongName() {
         if (objectType.equals("stack")) {
             // スタックの場合は Stack "スタックのパス"になる
-            String path = ((OStack) this).file.getAbsolutePath();
+            String path = ((OStack) this).file.toAbsolutePath().toString();
             for (int i = 0; i < path.length(); i++) {
                 if (path.charAt(i) == File.separatorChar) path = path.substring(0, i) + ":" + path.substring(i + 1);
             }

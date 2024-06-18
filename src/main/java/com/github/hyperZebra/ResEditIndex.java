@@ -20,7 +20,7 @@ public class ResEditIndex extends JFrame {
     @Serial
     private static final long serialVersionUID = -766099048104505721L;
 
-    private JScrollPane scrollpane;
+    private JScrollPane scrollPane;
     ResEdit TypeIndexEditor;
     OStack stack;
 
@@ -41,8 +41,8 @@ public class ResEditIndex extends JFrame {
         // table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
         // スクロール
-        scrollpane = new JScrollPane(table);
-        add(scrollpane);
+        scrollPane = new JScrollPane(table);
+        add(scrollPane);
 
         setTable(stack.rsrc);
 
@@ -103,16 +103,16 @@ public class ResEditIndex extends JFrame {
             }
         });
 
-        Rectangle rect = scrollpane.getBounds();
-        int scroll = scrollpane.getVerticalScrollBar().getValue();
-        remove(scrollpane);
-        scrollpane = new JScrollPane(table);
-        add(scrollpane);
-        scrollpane.getVerticalScrollBar().setValue(scroll);
-        /*scrollpane.removeAll();
-        scrollpane.add(table);
-        scrollpane.setViewportView(table);*/
-        scrollpane.setBounds(rect);
+        Rectangle rect = scrollPane.getBounds();
+        int scroll = scrollPane.getVerticalScrollBar().getValue();
+        remove(scrollPane);
+        scrollPane = new JScrollPane(table);
+        add(scrollPane);
+        scrollPane.getVerticalScrollBar().setValue(scroll);
+        /*scrollPane.removeAll();
+        scrollPane.add(table);
+        scrollPane.setViewportView(table);*/
+        scrollPane.setBounds(rect);
         // repaint();
     }
 }

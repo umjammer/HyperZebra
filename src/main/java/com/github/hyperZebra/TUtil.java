@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -416,7 +418,11 @@ public class TUtil {
             // スタックサイズは調べられないみたいなので固定
             result.theResult = Integer.toString(128000);
         } else if (0 == message.compareTo("diskspace")) {
-            result.theResult = Integer.toString((int) PCARD.pc.stack.file.getFreeSpace());
+            try {
+                result.theResult = Integer.toString((int) Files.getFileStore(PCARD.pc.stack.file).getUsableSpace());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else if (0 == message.compareTo("screenrect")) {
             Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
             result.theResult = "0,0," + d.width + "," + d.height;
@@ -708,19 +714,15 @@ public class TUtil {
                 bi = PCARD.pc.stack.rsrc.getImage(rsrcid, "picture");
             } else if (typeStr.equalsIgnoreCase("file")) {
                 // ファイルを探す
-                File file = new File(PCARD.pc.stack.file.getParent());
-                String path = (file.getParent() + File.separatorChar + params[0]);
                 try {
-                    bi = ImageIO.read(new File(path));
-                } catch (IOException e) {
-
-                }
-                if (bi == null) {
-                    try {
+                    Path file = PCARD.pc.stack.file.getParent();
+                    Path path = file.getParent().resolve(params[0]);
+                    bi = ImageIO.read(path.toFile());
+                    if (bi == null) {
                         bi = ImageIO.read(new File(params[0]));
-                    } catch (IOException e) {
-
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
             if (bi != null) {
@@ -1053,7 +1055,7 @@ public class TUtil {
                 return col.getRed() * 256 + "," + col.getGreen() * 256 + "," + col.getBlue() * 256;
             } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
         } else if (0 == prpty.compareTo("size")) {
-            File parent = new File(PCARD.pc.stack.file.getParent());
+            File parent = PCARD.pc.stack.file.getParent().toFile();
             int size = 0;
             File[] files = parent.listFiles();
             if (files != null) {

@@ -1491,8 +1491,8 @@ class SEMenu {
         if (System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
             s = InputEvent.META_DOWN_MASK;
         }
-        int s_opt = s + InputEvent.ALT_MASK;
-        int s_shift = s + InputEvent.SHIFT_MASK;
+        int s_opt = s + InputEvent.ALT_DOWN_MASK;
+        int s_shift = s + InputEvent.SHIFT_DOWN_MASK;
 
         // Fileメニュー
         m = new JMenu(PCARD.pc.intl.getText("File"));

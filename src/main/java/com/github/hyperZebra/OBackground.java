@@ -615,7 +615,7 @@ public class OBackground extends OCardBase {
         // ピクチャ読み込み(pbm)
         if (bg.bitmapName != null) {
             try {
-                Path path = Paths.get(bg.stack.file.getParent(), bg.bitmapName);
+                Path path = bg.stack.file.getParent().resolve(bg.bitmapName);
                 bg.pict = javax.imageio.ImageIO.read(Files.newInputStream(path));
                 if (bg.pict == null) {// 読み込まれるまで待つ
                     for (int i = 0; HCData.threadList != null && i < HCData.threadList.size(); i++) {

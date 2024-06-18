@@ -24,7 +24,6 @@ public class TMP3 extends Thread {
     private boolean pause_flag = false;
     private boolean playing_flag = false;
 
-
     public TMP3(String filename, String title) {
         name = "";
         try {
@@ -134,7 +133,7 @@ public class TMP3 extends Thread {
         }
     }
 
-    private void rawplay(/*AudioFormat targetFormat, AudioInputStream din*/)
+    private void rawplay(/* AudioFormat targetFormat, AudioInputStream din */)
             throws IOException {
         byte[] data = new byte[8192];
 
@@ -146,11 +145,11 @@ public class TMP3 extends Thread {
         if (line != null) {
             // Start
             line.start();
-            int nBytesRead = 0/*, nBytesWritten = 0*/;
+            int nBytesRead = 0 /*, nBytesWritten = 0 */;
             while (nBytesRead != -1 && !end_flag && !pause_flag) {
                 nBytesRead = din.read(data, 0, data.length);
                 if (nBytesRead != -1)
-                    /*nBytesWritten =*/ line.write(data, 0, nBytesRead);
+                    /* nBytesWritten = */ line.write(data, 0, nBytesRead);
             }
             line.drain();// 再生が終わるまで待つ
             line.stop();

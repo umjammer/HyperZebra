@@ -22,7 +22,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serial;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -161,7 +165,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         pc.setLayout(new BorderLayout());
         pc.mainPane = new MyPanel(pc);
         pc.mainPane.setDoubleBuffered(useDoubleBuffer);
-        // pc.setContentPane(pc.mainPane/*, BorderLayout.CENTER*/);// こうするとツールバーがおかしくなる
+//        pc.setContentPane(pc.mainPane /*, BorderLayout.CENTER */); // こうするとツールバーがおかしくなる
         pc.add(pc.mainPane, BorderLayout.CENTER);
 
         Cursor cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
@@ -230,7 +234,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         pc.paidle.start();
     }
 
-    static void successOpenFile() {
+    static void successOpenFile() throws IOException {
         PCARD.lockedScreen = true;
 
         if (pc.drop != null) {
@@ -246,22 +250,10 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         }
 
         // まず読み込み
-        File recentFile = new File("resource_trash" + File.separatorChar + "recent.txt");
+        Path recentFile = Path.of("resource_trash", "recent.txt");
         String[] recents = new String[1];
-        if (recentFile.exists()) {
-            FileInputStream fis = null;
-            try {
-                fis = new FileInputStream(recentFile);
-                int length = (int) recentFile.length();
-                byte[] b = new byte[length];
-                fis.read(b);
-                String recentStr = new String(b);
-                recentStr = " \n" + recentStr;
-                recents = recentStr.split("\n");
-                fis.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (Files.exists(recentFile)) {
+            recents = Files.readAllLines(recentFile).toArray(String[]::new);
         }
 
         // 最初の行に追加
@@ -274,9 +266,12 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
 
         // ファイルに書き出し
         {
-            FileOutputStream fos = null;
+            OutputStream fos = null;
             try {
-                fos = new FileOutputStream(recentFile); // TODO directory
+                if (!Files.exists(recentFile.getParent())) {
+                    Files.createDirectories(recentFile.getParent());
+                }
+                fos = Files.newOutputStream(recentFile); // TODO directory
                 for (int i = 0; i < recents.length; i++) {
                     if (i == 0 || !recents[i].equals(path)) {
                         fos.write(recents[i].getBytes());

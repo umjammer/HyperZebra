@@ -25,6 +25,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.JScrollPane;
@@ -107,8 +108,8 @@ public class PaintTool {
 
     public static void mouseDown(int x, int y) {
         /*if(GUI.key[12]>0 && owner.bit>1 && owner.tool!=null&&owner.tool.getClass() == PencilTool.class) {
-            lastx[0] = x;
-            lasty[0] = y;
+            lastX[0] = x;
+            lastY[0] = y;
             return;
         }*/
         if (GUI.key[' '] > 0) { // space
@@ -336,9 +337,9 @@ public class PaintTool {
                 PCARDFrame.pc.stack.curCard.bitmapName = "BMAP_" + PCARDFrame.pc.stack.curCard.id + ".png";
                 PCARDFrame.pc.stack.curCard.changed = true;
             }
-            File file = new File(PCARDFrame.pc.stack.file.getParent() + File.separatorChar + PCARDFrame.pc.stack.curCard.bitmapName);
+            Path file = PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.curCard.bitmapName);
             try {
-                ImageIO.write(PCARDFrame.pc.stack.curCard.pict, "PNG", file);
+                ImageIO.write(PCARDFrame.pc.stack.curCard.pict, "PNG", file.toFile());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -354,9 +355,9 @@ public class PaintTool {
                 PCARDFrame.pc.stack.curCard.bg.bitmapName = "BMAP_" + PCARDFrame.pc.stack.curCard.bg.id + ".png";
                 PCARDFrame.pc.stack.curCard.bg.changed = true;
             }
-            File file2 = new File(PCARDFrame.pc.stack.file.getParent() + File.separatorChar + PCARDFrame.pc.stack.curCard.bg.bitmapName);
+            Path file2 = PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.curCard.bg.bitmapName);
             try {
-                ImageIO.write(PCARDFrame.pc.stack.curCard.bg.pict, "PNG", file2);
+                ImageIO.write(PCARDFrame.pc.stack.curCard.bg.pict, "PNG", file2.toFile());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -747,7 +748,7 @@ class BrushTool implements toolTabletInterface {
 
     @Override
     public boolean penStillDown(float x, float y, float pressure, boolean eraser) {
-        /*if(PaintTool.antialias && pressure==0.5f && Math.pow(x-PaintTool.lastx[0],2) + Math.pow(y-PaintTool.lasty[0],2) < PaintTool.brushSize*15){
+        /*if(PaintTool.antialias && pressure==0.5f && Math.pow(x-PaintTool.lastX[0],2) + Math.pow(y-PaintTool.lastY[0],2) < PaintTool.brushSize*15){
             if(PaintTool.owner.bit==1&&PaintTool.lastTime+500>=System.currentTimeMillis()){
                 return false;// 短いラインは引かないことでアンチエイリアス時にきれいにする
             }
@@ -3262,10 +3263,10 @@ class SmartSelectTool implements toolSelectInterface {
             /*if(tmpRect==null){
                 tmpRect = getSelectedRect();
             }
-            Rectangle rect = new Rectangle(movePoint.x-(int)Math.abs(x - PaintTool.lastx[0])-1,
-                    movePoint.y-(int)Math.abs(y - PaintTool.lasty[0])-1,
-                    (int)Math.abs(x - PaintTool.lastx[0])*2+2,
-                    (int)Math.abs(y - PaintTool.lasty[0])*3+2);
+            Rectangle rect = new Rectangle(movePoint.x-(int)Math.abs(x - PaintTool.lastX[0])-1,
+                    movePoint.y-(int)Math.abs(y - PaintTool.lastY[0])-1,
+                    (int)Math.abs(x - PaintTool.lastX[0])*2+2,
+                    (int)Math.abs(y - PaintTool.lastY[0])*3+2);
             rect.width+=tmpRect.width;
             rect.height+=tmpRect.height;
 
@@ -3445,8 +3446,8 @@ class TypeTool implements toolInterface {
     public boolean mouseStillDown(int x, int y) {
         if (type == true) {
             // 移動
-            // typeRect.x += x - PaintTool.lastx[0];
-            // typeRect.y += y - PaintTool.lasty[0];
+            // typeRect.x += x - PaintTool.lastX[0];
+            // typeRect.y += y - PaintTool.lastY[0];
 
             // 表画面に反映
             Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
@@ -3600,10 +3601,10 @@ class PaintIdle extends Thread {
             in_stroke = true;
         }
         tool.penStillDown(event.getFloatX(), event.getFloatY(), event.getPressure(), eraser);
-        PaintTool.lastx[1] = PaintTool.lastx[0];
-        PaintTool.lasty[1] = PaintTool.lasty[0];
-        PaintTool.lastx[0] = event.getFloatX();
-        PaintTool.lasty[0] = event.getFloatY();
+        PaintTool.lastX[1] = PaintTool.lastX[0];
+        PaintTool.lastY[1] = PaintTool.lastY[0];
+        PaintTool.lastX[0] = event.getFloatX();
+        PaintTool.lastY[0] = event.getFloatY();
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -1640,13 +1641,13 @@ label:
                                 if (next + 1 == sList.size()) { // 行末にelse
                                     iftype = 1;
                                     next = 0;
-                                    // System.out.println("iftype=1;next=0;");
+//                                    System.out.println("iftype=1;next=0;");
                                     if (line + 1 <= end) {
                                         // line++;
                                         // str=scriptList.get(line);
                                     }
-                                /*sList.clear();
-                                tList.clear();*/
+//                                    sList.clear();
+//                                    tList.clear();
                                     sList = new ArrayList<>();
                                     tList = new ArrayList<>();
                                     resolution(scriptList.get(line), sList, tList, false);
@@ -1654,7 +1655,7 @@ label:
                                 } else if (sList.get(next + 1).equalsIgnoreCase("if") &&
                                         sList.get(sList.size() - 1).equalsIgnoreCase("then")) { // else if 〜 then
                                     iftype = 1;
-                                    // System.out.println("iftype=1;");
+//                                    System.out.println("iftype=1;");
                                     elseiftype = 1;
                                     prm = combine(next + 2, sList.size() - 1, sList, tList);
                                     doif = false;
@@ -1663,7 +1664,7 @@ label:
                                     }
                                 } else {
                                     iftype = 2;
-                                    // System.out.println("iftype=2;");
+//                                    System.out.println("iftype=2;");
                                     doif = true;
                                     // ####next++;
                                 }
@@ -1717,44 +1718,44 @@ label:
                     case "end" -> throw new xTalkException("endが不正な位置にあります");
                     default -> {
                         // 通常文の実行
-                        if (TTalk.stop == true) {
+                        if (TTalk.stop) {
                             throw new xTalkException("user abort.");
                         }
                         if (TTalk.tracemode == 1 && object != null) {
                             ScriptEditor.openScriptEditor(PCARD.pc, object, line);
                         }
-                    /*if(object==null || scriptList != object.scriptList){
-                        // System.out.println(">> "+str);
-                        result = doScriptLine(str, object, target, memData);
-                    }else{
-                        if( object.stringList==null || object.stringList[line] == null){
-                            // 分解
-                            // object.stringList[line] = new ArrayList<String>();
-                            // object.typeList[line]  = new ArrayList<wordType>();
-                            // fullresolution(str, object.stringList[line], object.typeList[line], true);
-                        }
-                        // System.out.println(">> "+str);
-
-                        ArrayList<String> stringList = new ArrayList<String>(object.stringList[line]);
-
-                        wordType[] typeAry = new wordType[object.typeList[line].size()];
-                        for(int i=0; i<object.typeList[line].size(); i++){ // リストより配列に移す
-                            typeAry[i] = object.typeList[line].get(i);
-                        }
-
-                        // 実行
-                        result = CommandExec(stringList, typeAry, object, target, memData);
-                    }*/
+//                        if (object == null || scriptList != object.scriptList) {
+//                            // System.out.println(">> "+str);
+//                            result = doScriptLine(str, object, target, memData);
+//                        } else {
+//                            if (object.stringList == null || object.stringList[line] == null) {
+//                                // 分解
+//                                // object.stringList[line] = new ArrayList<String>();
+//                                // object.typeList[line]  = new ArrayList<wordType>();
+//                                // fullresolution(str, object.stringList[line], object.typeList[line], true);
+//                            }
+//                            // System.out.println(">> "+str);
+//
+//                            ArrayList<String> stringList = new ArrayList<String>(object.stringList[line]);
+//
+//                            wordType[] typeAry = new wordType[object.typeList[line].size()];
+//                            for (int i = 0; i < object.typeList[line].size(); i++) { // リストより配列に移す
+//                                typeAry[i] = object.typeList[line].get(i);
+//                            }
+//
+//                            // 実行
+//                            result = CommandExec(stringList, typeAry, object, target, memData);
+//                        }
 
 
                         ArrayList<String> stringList = new ArrayList<>(sList);
 
                         wordType[] typeAry = new wordType[tList.size()];
                         tList.toArray(typeAry);
-                    /*wordType[] typeAry = new wordType[tList.size()];
-                    for(int i=0; i<tList.size(); i++){ // リストより配列に移す
-                        typeAry[i] = tList.get(i);
-                    }*/
+//                        wordType[] typeAry = new wordType[tList.size()];
+//                        for (int i = 0; i < tList.size(); i++) { // リストより配列に移す
+//                            typeAry[i] = tList.get(i);
+//                        }
 
                         // 実行
                         result = CommandExec(stringList, typeAry, object, target, memData, line);
@@ -1764,6 +1765,8 @@ label:
                 line++;
             }
         } catch (xTalkException e) {
+            e.printStackTrace();
+
             // スクリプトエラー発生時の処理
             String str = "";
             if (line < scriptList.size()) str = scriptList.get(line);
@@ -1771,7 +1774,6 @@ label:
             System.out.println("Error occurred at:" + str);
 
             if (mode == 1) { // 内部呼び出しなので、ここではダイアログを出さず上位の呼び出し元に投げる
-                e.printStackTrace();
                 throw new xTalkException(e.getMessage());
             }
 
@@ -1781,17 +1783,15 @@ label:
 
             lastErrorTime = System.currentTimeMillis();
 
-            if (TTalk.stop == true) { // cmd+.による強制停止 または エラーによる停止
+            if (TTalk.stop) { // cmd+.による強制停止 または エラーによる停止
                 throw new xTalkException(e.getMessage());
             }
-
-            e.printStackTrace();
 
             if (lockErrorDialogs) {
                 throw new xTalkException(e.getMessage());
             }
 
-            java.awt.Toolkit.getDefaultToolkit().beep();
+            Toolkit.getDefaultToolkit().beep();
 
             if (object != null && object.scriptList != null && !object.scriptList.isEmpty()) {
                 Object[] options = {"OK", "Open Script"};
@@ -1811,11 +1811,11 @@ label:
                 JOptionPane.showOptionDialog(PCARD.pc,
                         "Script Error: ",
                         "Exit Options",
-                        JOptionPane.YES_OPTION,
+                        JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE, null, options, options[0]);
             }
 
-            TTalk.stop = true;// 無駄なダイアログを発生させない
+            TTalk.stop = true; // 無駄なダイアログを発生させない
 
             throw new xTalkException(e.getMessage());
         }
@@ -2637,7 +2637,7 @@ label:
                         chooser.addChoosableFileFilter(new AnswerFileFilter(type));
                     }
                     if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
-                        chooser.setCurrentDirectory(new File(new File(PCARD.pc.stack.file.getParent()).getParent()));
+                        chooser.setCurrentDirectory(PCARD.pc.stack.file.getParent().getParent().toFile());
                     }
                     chooser.setDialogTitle(answerStr);
                     chooser.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -3065,13 +3065,13 @@ label:
                     ResEdit.nulleditor.child.pcard.stack.rsrc.addResource(
                             ResEdit.nulleditor.child.rsrcAry.length + 1, "icon", new File(stringList.get(2)).getName(), stringList.get(2));
                     ResEdit.nulleditor.child.open(ResEdit.nulleditor.child.pcard, 0);
-                /*Rsrc.RsrcClass[] newAry = new Rsrc.RsrcClass[ResEdit.nulleditor.child.rsrcAry.length+1];
-                for(int i=0; i<newAry.length-1; i++){
-                    newAry[i] = ResEdit.nulleditor.child.rsrcAry[i];
-                }
-                newAry[newAry.length-1] = ResEdit.nulleditor.child.pcard.stack.rsrc.
-                    new RsrcClass(newAry.length, "icon", stringList.get(2), stringList.get(2), "0", "0", null);
-                ResEdit.nulleditor.child.rsrcAry = newAry;*/
+//                    Rsrc.RsrcClass[] newAry = new Rsrc.RsrcClass[ResEdit.nulleditor.child.rsrcAry.length + 1];
+//                    for (int i = 0; i < newAry.length - 1; i++) {
+//                        newAry[i] = ResEdit.nulleditor.child.rsrcAry[i];
+//                    }
+//                    newAry[newAry.length - 1] = ResEdit.nulleditor.child.pcard.stack.rsrc.
+//                            new RsrcClass(newAry.length, "icon", stringList.get(2), stringList.get(2), "0", "0", null);
+//                    ResEdit.nulleditor.child.rsrcAry = newAry;
                 } else {
                     // script
                     while (0 != stringList.get(next).compareToIgnoreCase("of")) {
@@ -3283,9 +3283,9 @@ label:
                                 int savey = pointerInfo.getLocation().y;
                                 rb.mouseMove(x, y);
                                 rb.delay(10);
-                                rb.mousePress(InputEvent.BUTTON1_MASK);
+                                rb.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                                 rb.delay(20);
-                                rb.mouseRelease(InputEvent.BUTTON1_MASK);
+                                rb.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                                 rb.delay(20);
                                 rb.mouseMove(savex, savey);
                             }
@@ -3381,10 +3381,10 @@ label:
                     ex += PCARD.pc.getX();
                     ey += PCARD.pc.getY() + PCARD.pc.getInsets().top;
                     if (rb != null) {
-                    /*BufferedImage bi = new BufferedImage(16,16, BufferedImage.TYPE_INT_ARGB);
-                    Toolkit kit = Toolkit.getDefaultToolkit();
-                    Cursor cr = kit.createCustomCursor(bi, new Point(0, 0), "none-cursor");
-                    PCARD.pc.setCursor(cr);*/
+//                        BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+//                        Toolkit kit = Toolkit.getDefaultToolkit();
+//                        Cursor cr = kit.createCustomCursor(bi, new Point(0, 0), "none-cursor");
+//                        PCARD.pc.setCursor(cr);
 
                         if (withKey.contains("control")) rb.keyPress(KeyEvent.VK_CONTROL);
                         if (withKey.contains("shift")) rb.keyPress(KeyEvent.VK_SHIFT);
@@ -3397,7 +3397,7 @@ label:
                             int savey = pointerInfo.getLocation().y;
                             rb.mouseMove(sx, sy);
                             rb.delay(10);
-                            rb.mousePress(InputEvent.BUTTON1_MASK);
+                            rb.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             rb.delay(20);
                             if (dragspeed > 0) {
                                 double start = new Date().getTime();
@@ -3416,7 +3416,7 @@ label:
                             }
                             rb.mouseMove(ex, ey);
                             rb.delay(20);
-                            rb.mouseRelease(InputEvent.BUTTON1_MASK);
+                            rb.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             rb.delay(20);
                             rb.mouseMove(savex, savey);
                         }
@@ -3425,7 +3425,7 @@ label:
                         if (withKey.contains("option") || withKey.contains("alt")) rb.keyRelease(KeyEvent.VK_ALT);
                         if (withKey.contains("command") || withKey.contains("cmd")) rb.keyRelease(KeyEvent.VK_META);
 
-                        /*PCARD.pc.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));*/
+//                        PCARD.pc.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                     }
                 }
             }
@@ -3483,7 +3483,7 @@ label:
                         doStr.append(" ").append(stringList.get(next));
                     }
                     doScriptLine(doStr.toString(), object, target, memData, 0);
-                    // doScript(object, target, "", doStr, memData,1);
+//                    doScript(object, target, "", doStr, memData,1);
                 }
             }
             case "sort" -> {
@@ -4618,23 +4618,23 @@ label:
         // リストに入った単語を解釈/演算していく
         // 単語数が減るときは左側を残して右側をwordType.NOPにする
 
-        /*String hintstr="";
-        for(int i=start; i<=end; i++) {
-            hintstr += stringList.get(i) +" ";
-        }
-        System.out.println("  "+hintstr);
-        String hintstr2="";
-        for(int i=start; i<=end; i++) {
-            if(typeList.get(i)==wordType.X) hintstr2 += "value ";
-            if(typeList.get(i)==wordType.STRING) hintstr2 += "STRING ";
-            if(typeList.get(i)==wordType.LFUNC) hintstr2 += "LFUNC ";
-            if(typeList.get(i)==wordType.LBRACKET) hintstr2 += "LBRACKET ";
-            if(typeList.get(i)==wordType.RBRACKET) hintstr2 += "RBRACKET ";
-            if(typeList.get(i)==wordType.OPERATOR) hintstr2 += "OP ";
-        }
-        System.out.println(hintstr2);*/
+//        String hintstr = "";
+//        for (int i = start; i <= end; i++) {
+//            hintstr += stringList.get(i) + " ";
+//        }
+//        System.out.println("  " + hintstr);
+//        String hintstr2 = "";
+//        for (int i = start; i <= end; i++) {
+//            if (typeList.get(i) == wordType.X) hintstr2 += "value ";
+//            if (typeList.get(i) == wordType.STRING) hintstr2 += "STRING ";
+//            if (typeList.get(i) == wordType.LFUNC) hintstr2 += "LFUNC ";
+//            if (typeList.get(i) == wordType.LBRACKET) hintstr2 += "LBRACKET ";
+//            if (typeList.get(i) == wordType.RBRACKET) hintstr2 += "RBRACKET ";
+//            if (typeList.get(i) == wordType.OPERATOR) hintstr2 += "OP ";
+//        }
+//        System.out.println(hintstr2);
 
-        // long timestart = System.currentTimeMillis();
+//        long timestart = System.currentTimeMillis();
 
         for (int i = end; i >= start; i--) {
             if (typeAry[i] == wordType.NOP) {
@@ -4642,14 +4642,14 @@ label:
             } else break;
         }
         if (start == end) {
-            if (typeAry[start] == wordType.STRING /*||
-                stringList.get(start).length()>=1 && Character.isDigit(stringList.get(start).charAt(0))*/) {
+            if (typeAry[start] == wordType.STRING
+//                    || stringList.get(start).length()>=1 && Character.isDigit(stringList.get(start).charAt(0))
+            ) {
                 return stringList.get(start);
             }
         }
 
         // あらかじめtoLowerCaseとinternをしているため、==で比較できる
-
 
         // 1.括弧
         for (int i = start; i <= end; i++) {
@@ -4676,22 +4676,21 @@ label:
                 }
                 if (j > end)
                     throw new xTalkException("対応する括弧がありません");
+//            } else if (typeAry[i] == wordType.RBRACKET) {
+//                // 関数の場合にここに入ってしまうので暫定対応
+//                int j;
+//                for (j = start; j <= end; j++) {
+//                    if (typeAry[j] == wordType.LFUNC) break;
+//                }
+//                if (j > end)
+//                    throw new xTalkException("対応する括弧がありません");
             }
-            /*else if(typeAry[i]==wordType.RBRACKET) {
-                // 関数の場合にここに入ってしまうので暫定対応
-                int j;
-                for(j=start; j<=end; j++){
-                    if(typeAry[j]==wordType.LFUNC) break;
-                }
-                if(j>end)
-                    throw new xTalkException("対応する括弧がありません");
-            }*/
         }
 
         // 括弧付きでの関数コール
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.LFUNC) {
-                if (i > start /*&& typeAry[i-1]==wordType.X*/) {
+                if (i > start /* && typeAry[i-1]==wordType.X */) {
                     int j = i + 1;
                     int nest = 1;
                     for (; j <= end; j++) {
@@ -4750,8 +4749,8 @@ label:
         // HyperTalk定数
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.CONST) {
-                String str = stringList.get(i)/*.toLowerCase()*/;
-                /*if(constantSet.contains(str)) */
+                String str = stringList.get(i) /* .toLowerCase() */;
+                /* if(constantSet.contains(str)) */
                 {
                     switch (str) {
                         case "down" -> {
@@ -4873,21 +4872,16 @@ label:
             // for(int i=start; i<=end; i++) {   // a of the x とかがあるので後ろから見る
             if (typeAry[i] == wordType.PROPERTY) {
                 if (stringList.get(i).equals("the") &&
-                        (
-                                (i + 1 <= end && 0 != stringList.get(i + 1).compareToIgnoreCase("target")) &&
-                                        (i + 2 > end || 0 != stringList.get(i + 2).compareToIgnoreCase("of")) &&
-                                        (
-                                                (
-                                                        (0 == stringList.get(i + 1).compareToIgnoreCase("short") ||
-                                                                0 == stringList.get(i + 1).compareToIgnoreCase("long")) &&
-                                                                (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
-                                                ) ||
-                                                        (
-                                                                (0 != stringList.get(i + 1).compareToIgnoreCase("short") &&
-                                                                        0 != stringList.get(i + 1).compareToIgnoreCase("long")) &&
-                                                                        (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
-                                                        )
-                                        )
+                        ((i + 1 <= end && 0 != stringList.get(i + 1).compareToIgnoreCase("target")) &&
+                                (i + 2 > end || 0 != stringList.get(i + 2).compareToIgnoreCase("of")) &&
+                                        (((0 == stringList.get(i + 1).compareToIgnoreCase("short") ||
+                                                0 == stringList.get(i + 1).compareToIgnoreCase("long")) &&
+                                                (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
+                                        ) || (
+                                                (0 != stringList.get(i + 1).compareToIgnoreCase("short") &&
+                                                        0 != stringList.get(i + 1).compareToIgnoreCase("long")) &&
+                                                        (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
+                                        ))
                         )) {
                     if (i > end - 1) throw new xTalkException("theの後にプロパティ名がありません");
                     String str = stringList.get(i + 1);
@@ -4917,10 +4911,10 @@ label:
                     } catch (xTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
-                        //
-                        // String objstr="";
-                        // for(int k=i+2;k<i+2+objres.cnt;k++) objstr += stringList.get(k);
-                        //
+
+//                        String objstr = "";
+//                        for (int k = i + 2; k < i + 2 + objres.cnt; k++) objstr += stringList.get(k);
+
                         int offset = 0;
                         if (i > start && (0 == stringList.get(i - 1).compareToIgnoreCase("short") || 0 == stringList.get(i - 1).compareToIgnoreCase("long"))) {
                             str = stringList.get(i - 1) + " " + str;
@@ -4933,7 +4927,7 @@ label:
                         }
                         stringList.set(i, TUtil.getProperty(str, objres.obj, target, memData));
                         typeAry[i] = wordType.STRING;
-                        // for(int j=i+1; j<i+2+objres.cnt && j<=end; j++){
+//                        for (int j = i + 1; j < i + 2 + objres.cnt && j <= end; j++) {
                         for (int j = i + 1; j <= i + 1 + offset + objres.cnt && j <= end; j++) {
                             typeAry[j] = wordType.NOP;
                         }
@@ -4999,7 +4993,7 @@ label:
                     stringList.set(i, getChunk(str, chunkStart, chunkEnd, value));
                     typeAry[i] = wordType.STRING;
                     for (int m = i + 1; m <= k - 1; m++) {
-                        // stringList.set(m,"");
+//                        stringList.set(m, "");
                         typeAry[m] = wordType.NOP;
                     }
                 }
@@ -5009,7 +5003,7 @@ label:
         // チャンク式2(any,last)
         for (int i = end; i >= start + 1; i--) {
             if (typeAry[i] == wordType.CHUNK) {
-                String str = stringList.get(i)/*.toLowerCase()*/;
+                String str = stringList.get(i)/*.toLowerCase() */;
                 if (str.equals("char") || str.equals("character") ||
                         str.equals("item") || str.equals("word") ||
                         str.equals("line")) {
@@ -5094,9 +5088,10 @@ label:
                         // parent
                         OObject parent = PCARD.pc.stack.curCard;
                         int endoff = 0;
-                        // if(object.objectType.equals("card")) parent = object;
-                        // else if(object.parent!=null && object.parent.objectType.equals("card")) parent = object.parent;
-                        // else if(object.objectType.equals("background")) parent = ((OBackground)object).viewCard;
+//                        if (object.objectType.equals("card")) parent = object;
+//                        else if (object.parent != null && object.parent.objectType.equals("card"))
+//                            parent = object.parent;
+//                        else if (object.objectType.equals("background")) parent = ((OBackground) object).viewCard;
                         if (0 == stringList.get(i + 1 - offset).compareToIgnoreCase("of") ||
                                 0 == stringList.get(i + 1 - offset).compareToIgnoreCase("in")) {
                             ObjResult oResult = getObjectfromList(stringList, typeAry, (i + 1 - offset) + 1, object, target);
@@ -5278,158 +5273,144 @@ label:
             }
         }
 
-        /* item random of 2 of x がいけるようにするために前に移動させてみた
-        // プロパティ(or関数)
-        for(int i=start; i<=end; i++) {
-            if(typeAry[i]==wordType.X) {
-                if(0==stringList.get(i).compareToIgnoreCase("the") &&
-                    (
-                        (0!=stringList.get(i+1).compareToIgnoreCase("target")) &&
-                        (i+2>end || 0!=stringList.get(i+2).compareToIgnoreCase("of")) ||
-                        (
-                            (0==stringList.get(i+1).compareToIgnoreCase("short") ||
-                            0==stringList.get(i+1).compareToIgnoreCase("long")) &&
-                            (i+3>end || 0!=stringList.get(i+3).compareToIgnoreCase("of"))
-                        )
-                    ))
-                {
-                    if(i>end-1) throw new xTalkException("theの後にプロパティ名がありません");
-                    String str=stringList.get(i+1);
-                    if(str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")){
-                        str += " "+stringList.get(i+2);
-                        typeAry[i+2] = wordType.NOP;
-                    }
-                    stringList.set(i,TUtil.getProperty(str,null));
-                    typeAry[i] = wordType.STRING;
-                    typeAry[i+1] = wordType.NOP;
-                }
-                else if(i<=end-1 && 0==stringList.get(i+1).compareToIgnoreCase("of") && typeAry[i+1]==wordType.X) {
-                    if(i+1>end-1) throw new xTalkException("ofの後にオブジェクト名がありません");
-                    String str=stringList.get(i);
-                    ObjResult objres=null;
-                    objres = getObjectfromList(stringList, typeAry, i+2, object, target);
-                    if(objres!=null && objres.obj!=null){
-                        //
-                        String objstr="";
-                        for(int k=i+2;k<i+2+objres.cnt;k++) objstr += stringList.get(k);
-                        //
-                        int offset = 0;
-                        if(i>start && (0==stringList.get(i-1).compareToIgnoreCase("short") || 0==stringList.get(i-1).compareToIgnoreCase("long"))){
-                            str = stringList.get(i-1)+" "+str;
-                            i--;
-                            offset++;
-                        }
-                        if(i>start && 0==stringList.get(i-1).compareToIgnoreCase("the")){
-                            i--;
-                            offset++;
-                        }
-                        stringList.set(i,TUtil.getProperty(str,objres.obj));
-                        typeAry[i] = wordType.STRING;
-                        // for(int j=i+1; j<i+2+objres.cnt && j<=end; j++){
-                        for(int j=i+1; j<=i+1+offset+objres.cnt && j<=end; j++){
-                            typeAry[j] = wordType.NOP;
-                        }
-                    }
-                    else {
-                        // ofを使用したnumber of/関数呼び出し
-                        if(0==str.compareToIgnoreCase("number")){
-                            // number of
-                            ObjResult objres2=null;
-                            int next=i+2;
-                            if(i+4>end-1){
-
-                            }
-                            else {
-                                next=i+3;
-                                if(0!=stringList.get(next).compareToIgnoreCase("of")) next++;
-                                objres2 = getObjectfromList(stringList, typeAry, next+1, object, target);
-                                if(objres2.obj==null){
-                                    objres2.obj = PCARD.pc.stack.curCard;
-                                    objres2.cnt = 0;
-                                    next = i+2;
-                                }
-                            }
-                            if(0==stringList.get(i+2).compareToIgnoreCase("cds") || 0==stringList.get(i+2).compareToIgnoreCase("cards")) {
-                                if(objres2!=null && objres2.obj.objectType == "stack"){
-                                    OStack st = (OStack)objres2.obj;
-                                    stringList.set(i,Integer.toString(st.cardIdList.size()));
-                                    typeAry[i] = wordType.STRING;
-                                }
-                                else if(objres2!=null && objres2.obj.objectType == "background"){
-                                    OBackground bg = (OBackground)objres2.obj;
-                                    int cnt=0;
-                                    for(int j=0; j<bg.stack.cardIdList.size(); j++){
-                                        if(OCard.getOCard(bg.stack, bg.stack.cardIdList.get(j), true).bgid == bg.id){
-                                            cnt++;
-                                        }
-                                    }
-                                    stringList.set(i,Integer.toString(cnt));
-                                    typeAry[i] = wordType.STRING;
-                                }
-                                else throw new xTalkException("ここにはバックグラウンドかスタックを指定してください");
-                            }
-                            else if(0==stringList.get(i+2).compareToIgnoreCase("btns") || 0==stringList.get(i+2).compareToIgnoreCase("buttons") ||
-                                0==stringList.get(i+3).compareToIgnoreCase("btns") || 0==stringList.get(i+3).compareToIgnoreCase("buttons")) {
-                                if(objres2==null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")){
-                                    OCardBase cdbs;
-                                    if(objres2==null) cdbs = (OCardBase)PCARD.pc.stack.curCard;
-                                    else cdbs = (OCardBase)objres2.obj;
-                                    stringList.set(i,Integer.toString(cdbs.btnList.size()));
-                                    typeAry[i] = wordType.STRING;
-                                }
-                                else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
-                            }
-                            else if(0==stringList.get(i+2).compareToIgnoreCase("flds") || 0==stringList.get(i+2).compareToIgnoreCase("fields") ||
-                                    0==stringList.get(i+3).compareToIgnoreCase("flds") || 0==stringList.get(i+3).compareToIgnoreCase("fields")) {
-                                if(objres2==null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")){
-                                    OCardBase cdbs;
-                                    if(objres2==null) cdbs = (OCardBase)PCARD.pc.stack.curCard;
-                                    else cdbs = (OCardBase)objres2.obj;
-                                    stringList.set(i,Integer.toString(cdbs.fldList.size()));
-                                    typeAry[i] = wordType.STRING;
-                                }
-                                else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
-                            }
-                            else if(0==stringList.get(i+2).compareToIgnoreCase("parts") ||
-                                    0==stringList.get(i+3).compareToIgnoreCase("parts") ) {
-                                if(objres2==null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")){
-                                    OCardBase cdbs;
-                                    if(objres2==null) cdbs = (OCardBase)PCARD.pc.stack.curCard;
-                                    else cdbs = (OCardBase)objres2.obj;
-                                    stringList.set(i,Integer.toString(cdbs.btnList.size()+cdbs.fldList.size()));
-                                    typeAry[i] = wordType.STRING;
-                                }
-                                else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
-                            }
-                            int cnt=0;
-                            if(objres2!=null) cnt += objres2.cnt;
-                            for(int j=i+1; j<=next+cnt && j<=end; j++){
-                                typeAry[j] = wordType.NOP;
-                            }
-                        }
-                        else {
-                            // 関数呼び出し
-                            String[] paramAry = new String[1];
-                            paramAry[0] = stringList.get(i+2);
-                            Result funcres = TUtil.CallSystemMessage(str, paramAry, memData, true);
-                            int offset=0;
-                            if(funcres!=null && funcres.theResult!=null) {
-                                if(i-1 >= start && stringList.get(i-1).equalsIgnoreCase("the")){
-                                    i--;
-                                    offset++;
-                                }
-                                stringList.set(i,funcres.theResult);
-                                typeAry[i] = wordType.STRING;
-                            }
-                            else throw new xTalkException("この関数が分かりません");
-                            for(int j=i+1; j<=i+2+offset && j<=end; j++){
-                                typeAry[j] = wordType.NOP;
-                            }
-                        }
-                    }
-                }
-            }
-        }*/
+//        // item random of 2 of x がいけるようにするために前に移動させてみた
+//        // プロパティ(or関数)
+//        for (int i = start; i <= end; i++) {
+//            if (typeAry[i] == wordType.X) {
+//                if (0 == stringList.get(i).compareToIgnoreCase("the") &&
+//                        (
+//                                (0 != stringList.get(i + 1).compareToIgnoreCase("target")) &&
+//                                        (i + 2 > end || 0 != stringList.get(i + 2).compareToIgnoreCase("of")) ||
+//                                        (
+//                                                (0 == stringList.get(i + 1).compareToIgnoreCase("short") ||
+//                                                        0 == stringList.get(i + 1).compareToIgnoreCase("long")) &&
+//                                                        (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
+//                                        )
+//                        )) {
+//                    if (i > end - 1) throw new xTalkException("theの後にプロパティ名がありません");
+//                    String str = stringList.get(i + 1);
+//                    if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
+//                        str += " " + stringList.get(i + 2);
+//                        typeAry[i + 2] = wordType.NOP;
+//                    }
+//                    stringList.set(i, TUtil.getProperty(str, null));
+//                    typeAry[i] = wordType.STRING;
+//                    typeAry[i + 1] = wordType.NOP;
+//                } else if (i <= end - 1 && 0 == stringList.get(i + 1).compareToIgnoreCase("of") && typeAry[i + 1] == wordType.X) {
+//                    if (i + 1 > end - 1) throw new xTalkException("ofの後にオブジェクト名がありません");
+//                    String str = stringList.get(i);
+//                    ObjResult objres = null;
+//                    objres = getObjectfromList(stringList, typeAry, i + 2, object, target);
+//                    if (objres != null && objres.obj != null) {
+//                        //
+//                        String objstr = "";
+//                        for (int k = i + 2; k < i + 2 + objres.cnt; k++) objstr += stringList.get(k);
+//                        //
+//                        int offset = 0;
+//                        if (i > start && (0 == stringList.get(i - 1).compareToIgnoreCase("short") || 0 == stringList.get(i - 1).compareToIgnoreCase("long"))) {
+//                            str = stringList.get(i - 1) + " " + str;
+//                            i--;
+//                            offset++;
+//                        }
+//                        if (i > start && 0 == stringList.get(i - 1).compareToIgnoreCase("the")) {
+//                            i--;
+//                            offset++;
+//                        }
+//                        stringList.set(i, TUtil.getProperty(str, objres.obj));
+//                        typeAry[i] = wordType.STRING;
+//                        // for(int j=i+1; j<i+2+objres.cnt && j<=end; j++){
+//                        for (int j = i + 1; j <= i + 1 + offset + objres.cnt && j <= end; j++) {
+//                            typeAry[j] = wordType.NOP;
+//                        }
+//                    } else {
+//                        // ofを使用したnumber of/関数呼び出し
+//                        if (0 == str.compareToIgnoreCase("number")) {
+//                            // number of
+//                            ObjResult objres2 = null;
+//                            int next = i + 2;
+//                            if (i + 4 > end - 1) {
+//
+//                            } else {
+//                                next = i + 3;
+//                                if (0 != stringList.get(next).compareToIgnoreCase("of")) next++;
+//                                objres2 = getObjectfromList(stringList, typeAry, next + 1, object, target);
+//                                if (objres2.obj == null) {
+//                                    objres2.obj = PCARD.pc.stack.curCard;
+//                                    objres2.cnt = 0;
+//                                    next = i + 2;
+//                                }
+//                            }
+//                            if (0 == stringList.get(i + 2).compareToIgnoreCase("cds") || 0 == stringList.get(i + 2).compareToIgnoreCase("cards")) {
+//                                if (objres2 != null && objres2.obj.objectType == "stack") {
+//                                    OStack st = (OStack) objres2.obj;
+//                                    stringList.set(i, Integer.toString(st.cardIdList.size()));
+//                                    typeAry[i] = wordType.STRING;
+//                                } else if (objres2 != null && objres2.obj.objectType == "background") {
+//                                    OBackground bg = (OBackground) objres2.obj;
+//                                    int cnt = 0;
+//                                    for (int j = 0; j < bg.stack.cardIdList.size(); j++) {
+//                                        if (OCard.getOCard(bg.stack, bg.stack.cardIdList.get(j), true).bgid == bg.id) {
+//                                            cnt++;
+//                                        }
+//                                    }
+//                                    stringList.set(i, Integer.toString(cnt));
+//                                    typeAry[i] = wordType.STRING;
+//                                } else throw new xTalkException("ここにはバックグラウンドかスタックを指定してください");
+//                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
+//                                    0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
+//                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
+//                                    OCardBase cdbs;
+//                                    if (objres2 == null) cdbs = (OCardBase) PCARD.pc.stack.curCard;
+//                                    else cdbs = (OCardBase) objres2.obj;
+//                                    stringList.set(i, Integer.toString(cdbs.btnList.size()));
+//                                    typeAry[i] = wordType.STRING;
+//                                } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+//                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("flds") || 0 == stringList.get(i + 2).compareToIgnoreCase("fields") ||
+//                                    0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
+//                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
+//                                    OCardBase cdbs;
+//                                    if (objres2 == null) cdbs = (OCardBase) PCARD.pc.stack.curCard;
+//                                    else cdbs = (OCardBase) objres2.obj;
+//                                    stringList.set(i, Integer.toString(cdbs.fldList.size()));
+//                                    typeAry[i] = wordType.STRING;
+//                                } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+//                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("parts") ||
+//                                    0 == stringList.get(i + 3).compareToIgnoreCase("parts")) {
+//                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
+//                                    OCardBase cdbs;
+//                                    if (objres2 == null) cdbs = (OCardBase) PCARD.pc.stack.curCard;
+//                                    else cdbs = (OCardBase) objres2.obj;
+//                                    stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
+//                                    typeAry[i] = wordType.STRING;
+//                                } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+//                            }
+//                            int cnt = 0;
+//                            if (objres2 != null) cnt += objres2.cnt;
+//                            for (int j = i + 1; j <= next + cnt && j <= end; j++) {
+//                                typeAry[j] = wordType.NOP;
+//                            }
+//                        } else {
+//                            // 関数呼び出し
+//                            String[] paramAry = new String[1];
+//                            paramAry[0] = stringList.get(i + 2);
+//                            Result funcres = TUtil.CallSystemMessage(str, paramAry, memData, true);
+//                            int offset = 0;
+//                            if (funcres != null && funcres.theResult != null) {
+//                                if (i - 1 >= start && stringList.get(i - 1).equalsIgnoreCase("the")) {
+//                                    i--;
+//                                    offset++;
+//                                }
+//                                stringList.set(i, funcres.theResult);
+//                                typeAry[i] = wordType.STRING;
+//                            } else throw new xTalkException("この関数が分かりません");
+//                            for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
+//                                typeAry[j] = wordType.NOP;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         // 2a.there is a
         for (int i = start; i <= end; i++) {
@@ -5554,93 +5535,92 @@ label:
                         typeAry[i + 1] = wordType.NOP;
                     }
                 }
-                /*else if(stringList.get(i)=="is" &&
-                        i+1 <= end && typeAry[i+1]==wordType.OPERATOR &&
-                        stringList.get(i+1)=="within" )
-                {
-                    String str1 = "";
-                    int j=i-1;
-                    for(;j>=start;j--){
-                        if(typeAry[j]==wordType.STRING || typeAry[j]==wordType.X){
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
-                            break;
-                        }
-                    }
-                    Point p = null;
-                    try{
-                        String[] strAry = str1.split(",");
-                        p = new Point(Integer.valueOf(strAry[0]),
-                            Integer.valueOf(strAry[1]));
-                    }
-                    catch (Exception err){
-                        throw new xTalkException("within演算子のポイントの指定が不正です。"+err);
-                    }
-
-                    Rectangle r = null;
-                    try{
-                        String[] strAry = stringList.get(i+2).split(",");
-                        r = new Rectangle(Integer.valueOf(strAry[0]),
-                            Integer.valueOf(strAry[1]),
-                            Integer.valueOf(strAry[2]),
-                            Integer.valueOf(strAry[3]));
-                    }
-                    catch (Exception err){
-                        throw new xTalkException("within演算子の矩形領域の指定が不正です。"+err);
-                    }
-
-                    typeAry[j] = wordType.STRING;
-                    if(r.contains(p)){stringList.set(j,"true");}
-                    else {stringList.set(j,"false");}
-
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i+1] = wordType.NOP;
-                    typeAry[i+2] = wordType.NOP;
-                }
-                else if(stringList.get(i)=="is" &&
-                        i+1 <= end && typeAry[i+1]==wordType.OPERATOR_SUB &&
-                        0==stringList.get(i+1).compareToIgnoreCase("not")&&
-                        i+2 <= end && typeAry[i+2]==wordType.OPERATOR &&
-                        0==stringList.get(i+2).compareToIgnoreCase("within") )
-                {
-                    String str1 = "";
-                    int j=i-1;
-                    for(;j>=start;j--){
-                        if(typeAry[j]==wordType.STRING || typeAry[j]==wordType.X){
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
-                            break;
-                        }
-                    }
-                    Point p = null;
-                    try{
-                        String[] strAry = str1.split(",");
-                        p = new Point(Integer.valueOf(strAry[0]),
-                            Integer.valueOf(strAry[1]));
-                    }
-                    catch (Exception err){
-                        throw new xTalkException("within演算子のポイントの指定が不正です。"+err);
-                    }
-
-                    Rectangle r = null;
-                    try{
-                        String[] strAry = stringList.get(i+3).split(",");
-                        r = new Rectangle(Integer.valueOf(strAry[0]),
-                            Integer.valueOf(strAry[1]),
-                            Integer.valueOf(strAry[2]),
-                            Integer.valueOf(strAry[3]));
-                    }
-                    catch (Exception err){
-                        throw new xTalkException("within演算子の矩形領域の指定が不正です。"+err);
-                    }
-
-                    typeAry[j] = wordType.STRING;
-                    if( !r.contains(p) ){stringList.set(j,"true");}
-                    else {stringList.set(j,"false");}
-
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i+1] = wordType.NOP;
-                    typeAry[i+2] = wordType.NOP;
-                    typeAry[i+3] = wordType.NOP;
-                }*/
+//                else if (stringList.get(i) == "is" &&
+//                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR &&
+//                        stringList.get(i + 1) == "within") {
+//                    String str1 = "";
+//                    int j = i - 1;
+//                    for (; j >= start; j--) {
+//                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+//                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+//                            break;
+//                        }
+//                    }
+//                    Point p = null;
+//                    try {
+//                        String[] strAry = str1.split(",");
+//                        p = new Point(Integer.valueOf(strAry[0]),
+//                                Integer.valueOf(strAry[1]));
+//                    } catch (Exception err) {
+//                        throw new xTalkException("within演算子のポイントの指定が不正です。" + err);
+//                    }
+//
+//                    Rectangle r = null;
+//                    try {
+//                        String[] strAry = stringList.get(i + 2).split(",");
+//                        r = new Rectangle(Integer.valueOf(strAry[0]),
+//                                Integer.valueOf(strAry[1]),
+//                                Integer.valueOf(strAry[2]),
+//                                Integer.valueOf(strAry[3]));
+//                    } catch (Exception err) {
+//                        throw new xTalkException("within演算子の矩形領域の指定が不正です。" + err);
+//                    }
+//
+//                    typeAry[j] = wordType.STRING;
+//                    if (r.contains(p)) {
+//                        stringList.set(j, "true");
+//                    } else {
+//                        stringList.set(j, "false");
+//                    }
+//
+//                    typeAry[i] = wordType.NOP;
+//                    typeAry[i + 1] = wordType.NOP;
+//                    typeAry[i + 2] = wordType.NOP;
+//                } else if (stringList.get(i) == "is" &&
+//                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR_SUB &&
+//                        0 == stringList.get(i + 1).compareToIgnoreCase("not") &&
+//                        i + 2 <= end && typeAry[i + 2] == wordType.OPERATOR &&
+//                        0 == stringList.get(i + 2).compareToIgnoreCase("within")) {
+//                    String str1 = "";
+//                    int j = i - 1;
+//                    for (; j >= start; j--) {
+//                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+//                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+//                            break;
+//                        }
+//                    }
+//                    Point p = null;
+//                    try {
+//                        String[] strAry = str1.split(",");
+//                        p = new Point(Integer.valueOf(strAry[0]),
+//                                Integer.valueOf(strAry[1]));
+//                    } catch (Exception err) {
+//                        throw new xTalkException("within演算子のポイントの指定が不正です。" + err);
+//                    }
+//
+//                    Rectangle r = null;
+//                    try {
+//                        String[] strAry = stringList.get(i + 3).split(",");
+//                        r = new Rectangle(Integer.valueOf(strAry[0]),
+//                                Integer.valueOf(strAry[1]),
+//                                Integer.valueOf(strAry[2]),
+//                                Integer.valueOf(strAry[3]));
+//                    } catch (Exception err) {
+//                        throw new xTalkException("within演算子の矩形領域の指定が不正です。" + err);
+//                    }
+//
+//                    typeAry[j] = wordType.STRING;
+//                    if (!r.contains(p)) {
+//                        stringList.set(j, "true");
+//                    } else {
+//                        stringList.set(j, "false");
+//                    }
+//
+//                    typeAry[i] = wordType.NOP;
+//                    typeAry[i + 1] = wordType.NOP;
+//                    typeAry[i + 2] = wordType.NOP;
+//                    typeAry[i + 3] = wordType.NOP;
+//                }
             }
         }
 
@@ -5699,7 +5679,7 @@ label:
                         if (str2.isEmpty()) str2 = "0";
                         if (str1.equals("∞") || str2.equals("∞")) {
                             stringList.set(j, "Infinity");
-                        } else if (str1.equals("�") || str2.equals("�")) {
+                        } else if (str1.equals("♾") || str2.equals("♾")) {
                             stringList.set(j, "Infinity");
                         } else {
                             if (0 == stringList.get(i).compareTo("*"))
@@ -5745,7 +5725,7 @@ label:
                         if (str2.isEmpty()) str2 = "0";
                         if (str1.equals("∞") || str2.equals("∞")) {
                             stringList.set(j, "Infinity");
-                        } else if (str1.equals("�") || str2.equals("�")) {
+                        } else if (str1.equals("♾") || str2.equals("♾")) {
                             stringList.set(j, "Infinity");
                         } else {
                             if (0 == stringList.get(i).compareTo("+"))

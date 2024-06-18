@@ -208,12 +208,12 @@ public class AuthDialog extends JDialog {
             }
 
             // パネルを追加する
-            /*{
-                JPanel emptyPanel = new JPanel();
-                authDialog.getContentPane().add(emptyPanel);
-
-                emptyPanel.setPreferredSize(new Dimension(w, 8));
-            }*/
+//            {
+//                JPanel emptyPanel = new JPanel();
+//                authDialog.getContentPane().add(emptyPanel);
+//
+//                emptyPanel.setPreferredSize(new Dimension(w, 8));
+//            }
 
             // パネルを追加する
             {
@@ -241,14 +241,14 @@ public class AuthDialog extends JDialog {
                 jbtn = new JButton(PCARD.pc.intl.getDialogText("Icon…"));
                 jbtn.addActionListener(btnlistener);
                 buttonPanel.add(jbtn);
-                /*jbtn = new JButton(PCARD.pc.intl.getDialogText("LinkTo…"));
-                jbtn.addActionListener(btnlistener);
-                jbtn.setEnabled(false);
-                buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Effect…"));
-                jbtn.addActionListener(btnlistener);
-                jbtn.setEnabled(false);
-                buttonPanel.add(jbtn);*/
+//                jbtn = new JButton(PCARD.pc.intl.getDialogText("LinkTo…"));
+//                jbtn.addActionListener(btnlistener);
+//                jbtn.setEnabled(false);
+//                buttonPanel.add(jbtn);
+//                jbtn = new JButton(PCARD.pc.intl.getDialogText("Effect…"));
+//                jbtn.addActionListener(btnlistener);
+//                jbtn.setEnabled(false);
+//                buttonPanel.add(jbtn);
                 jbtn = new JButton(PCARD.pc.intl.getDialogText("Script…"));
                 jbtn.addActionListener(btnlistener);
                 buttonPanel.add(jbtn);
@@ -319,7 +319,7 @@ public class AuthDialog extends JDialog {
                 label = new JLabel(PCARD.pc.intl.getDialogText("Style:"));
                 stylePanel.add(label);
                 popup = new JComboBox<Object>(new String[] {
-                        // PCARD.pc.intl.getDialogText("Standard"),
+//                        PCARD.pc.intl.getDialogText("Standard"),
                         PCARD.pc.intl.getDialogText("Transparent"),
                         PCARD.pc.intl.getDialogText("Opaque"),
                         PCARD.pc.intl.getDialogText("Rectangle"),
@@ -356,7 +356,7 @@ public class AuthDialog extends JDialog {
                 check.setSelected(ofld.autoSelect);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                // check = new JCheckBox(PCARD.pc.intl.getDialogText("Multiple lines"));
+//                check = new JCheckBox(PCARD.pc.intl.getDialogText("Multiple lines"));
                 multiplelinesbtn.setEnabled(ofld.autoSelect);
                 multiplelinesbtn.setSelected(ofld.multipleLines);
                 multiplelinesbtn.addActionListener(fldlistener);
@@ -365,7 +365,7 @@ public class AuthDialog extends JDialog {
                 check.setSelected(ofld.wideMargins);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                // check = new JCheckBox(PCARD.pc.intl.getDialogText("Fixed line height"));
+//                check = new JCheckBox(PCARD.pc.intl.getDialogText("Fixed line height"));
                 fixedlineheightbtn.setSelected(ofld.fixedLineHeight);
                 fixedlineheightbtn.addActionListener(fldlistener);
                 propPanel.add(fixedlineheightbtn);
@@ -392,12 +392,12 @@ public class AuthDialog extends JDialog {
             }
 
             // パネルを追加する
-            /*{
-                JPanel emptyPanel = new JPanel();
-                authDialog.getContentPane().add(emptyPanel);
-
-                emptyPanel.setPreferredSize(new Dimension(w, 8));
-            }*/
+//            {
+//                JPanel emptyPanel = new JPanel();
+//                authDialog.getContentPane().add(emptyPanel);
+//
+//                emptyPanel.setPreferredSize(new Dimension(w, 8));
+//            }
             // パネルを追加する
             {
                 JPanel colorPanel = new JPanel();
@@ -615,7 +615,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
                 authDialog.getContentPane().add(infoPanel);
 
-                JTextArea area = new JTextArea(PCARD.pc.intl.getDialogText("Stack Path: ") + ostack.file.getPath());
+                JTextArea area = new JTextArea(PCARD.pc.intl.getDialogText("Stack Path: ") + ostack.file);
                 area.setPreferredSize(new Dimension(w, 64));
                 area.setLineWrap(true);
                 infoPanel.add(area);

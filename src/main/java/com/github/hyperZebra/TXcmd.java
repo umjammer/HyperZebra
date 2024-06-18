@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageTypeSpecifier;
@@ -35,6 +36,8 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 import javax.swing.JPanel;
+
+import com.github.hyperZebra.Rsrc.addcolorClass;
 
 
 public class TXcmd {
@@ -1154,7 +1157,7 @@ public class TXcmd {
 
         static void colorCard(String effect, int time) {
             // addcolorClassを探す
-            ArrayList<Rsrc.addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
+            List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
             Rsrc.addcolorClass accd = null;
             for (Rsrc.addcolorClass addcolorClass : cdList) {
                 if (PCARD.pc.stack.curCard.id == addcolorClass.id) {

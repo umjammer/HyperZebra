@@ -298,13 +298,13 @@ class PatButton extends JButton {
         for (int i = 0; i < patterns.length; i++) {
             if (PCARDFrame.pc.stack.Pattern[i] != null) {
                 try {
-                    patterns[i] = ImageIO.read(new File(PCARDFrame.pc.stack.file.getParent() + File.separatorChar + PCARDFrame.pc.stack.Pattern[i]));
+                    patterns[i] = ImageIO.read(PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.Pattern[i]).toFile());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 if (patterns[i] == null && !PCARDFrame.pc.stack.Pattern[i].isEmpty()) {
                     try {
-                        patterns[i] = ImageIO.read(new File(PCARDFrame.pc.stack.file.getParent() + File.separatorChar + PCARDFrame.pc.stack.Pattern[i]));
+                        patterns[i] = ImageIO.read(PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.Pattern[i]).toFile());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

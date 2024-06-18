@@ -21,6 +21,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -1133,10 +1135,10 @@ class GMenuBrowse implements ActionListener {
                                         ext = srcfname.substring(srcfname.lastIndexOf("."));
                                     }
                                     String newFileName = "ICON_" + btn.icon + ext;
-                                    String newFilePath = PCARDFrame.pc.stack.file.getParent() + File.separatorChar + newFileName;
+                                    Path newFilePath = PCARDFrame.pc.stack.file.getParent().resolve(newFileName);
                                     try (
                                             FileChannel srcChannel = new FileInputStream(iconpath).getChannel();
-                                            FileChannel destChannel = new FileOutputStream(newFilePath).getChannel()) {
+                                            FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                         srcChannel.transferTo(0, srcChannel.size(), destChannel);
                                     }
                                     // リソースに追加
@@ -1343,7 +1345,7 @@ class GMenuBrowse implements ActionListener {
 
             JFileChooser chooser = new JFileChooser();
             if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
-                chooser.setCurrentDirectory(new File(new File(PCARD.pc.stack.file.getParent()).getParent()));
+                chooser.setCurrentDirectory(PCARD.pc.stack.file.getParent().getParent().toFile());
             }
             chooser.setDialogTitle(PCARD.pc.intl.getDialogText("Open Stack"));
             chooser.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -1371,7 +1373,7 @@ class GMenuBrowse implements ActionListener {
             // MacOSXの標準ファイルダイアログが無用な上書き確認などするので自作する
             JFileChooser chooser = new JFileChooser();
             if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
-                chooser.setCurrentDirectory(new File(new File(PCARD.pc.stack.file.getParent()).getParent()));
+                chooser.setCurrentDirectory(PCARD.pc.stack.file.getParent().getParent().toFile());
             }
             chooser.setDialogTitle(PCARD.pc.intl.getDialogText("New Stack"));
             chooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -1402,144 +1404,143 @@ class GMenuBrowse implements ActionListener {
 
             int selected = chooser.showSaveDialog(PCARD.pc);
             if (selected == JFileChooser.APPROVE_OPTION) {
-                // 進捗表示を開始
-                PCARD.pc.stack.barDialog = new JDialog(PCARD.pc);
-                PCARD.pc.stack.barDialog.setUndecorated(true);
-                PCARD.pc.stack.barDialog.getContentPane().setLayout(new BorderLayout());
-                PCARD.pc.stack.bar = new JProgressBar();
-                PCARD.pc.stack.bar.setStringPainted(true);
-                PCARD.pc.stack.bar.setSize(new Dimension(PCARD.pc.getWidth(), 20));
-                PCARD.pc.stack.bar.setString("");
-                PCARD.pc.stack.bar.setValue(0);
-                PCARD.pc.stack.barOffset = 0;
-                PCARD.pc.stack.barDialog.add("Center", PCARD.pc.stack.bar);
-                PCARD.pc.stack.barDialog.setBounds(PCARD.pc.getBounds());
-                PCARD.pc.stack.barDialog.setVisible(true);
-                PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
-                PCARD.pc.stack.bar.setString("Make a new stack");
+                try {
+                    // 進捗表示を開始
+                    PCARD.pc.stack.barDialog = new JDialog(PCARD.pc);
+                    PCARD.pc.stack.barDialog.setUndecorated(true);
+                    PCARD.pc.stack.barDialog.getContentPane().setLayout(new BorderLayout());
+                    PCARD.pc.stack.bar = new JProgressBar();
+                    PCARD.pc.stack.bar.setStringPainted(true);
+                    PCARD.pc.stack.bar.setSize(new Dimension(PCARD.pc.getWidth(), 20));
+                    PCARD.pc.stack.bar.setString("");
+                    PCARD.pc.stack.bar.setValue(0);
+                    PCARD.pc.stack.barOffset = 0;
+                    PCARD.pc.stack.barDialog.add("Center", PCARD.pc.stack.bar);
+                    PCARD.pc.stack.barDialog.setBounds(PCARD.pc.getBounds());
+                    PCARD.pc.stack.barDialog.setVisible(true);
+                    PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
+                    PCARD.pc.stack.bar.setString("Make a new stack");
 
-                String path = chooser.getSelectedFile().getPath();
+                    String path = chooser.getSelectedFile().getPath();
 
-                // 拡張子 hzb を付ける
-                int n = path.lastIndexOf('.');
-                if (n > 0) {
-                    String ext = path.substring(n);
-                    if (!ext.equalsIgnoreCase(".hzb")) {
+                    // 拡張子 hzb を付ける
+                    int n = path.lastIndexOf('.');
+                    if (n > 0) {
+                        String ext = path.substring(n);
+                        if (!ext.equalsIgnoreCase(".hzb")) {
+                            path += ".hzb";
+                        }
+                    } else {
                         path += ".hzb";
                     }
-                } else {
-                    path += ".hzb";
-                }
 
-                File f = new File(path);
-                if (f.exists()) {
-                    // 上書き確認
-                    new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("This file name already exists. If you continue, the existing file will be replaced."),
-                            null, PCARDFrame.pc.intl.getDialogText("Cancel"), "OK", null);
-                    if (GDialog.clicked.equals(PCARDFrame.pc.intl.getDialogText("Cancel"))) {
-                        PCARD.pc.stack.barDialog.remove(PCARD.pc.stack.bar);
-                        PCARD.pc.stack.barDialog.dispose();
-                        return;
-                    }
-                    int j = 1;
-                    String renameStr;
-                    while (true) {
-                        renameStr = System.getProperty("java.io.tmpdir") + File.separatorChar + PCARD.AppName + "_renamed" + j;
-                        if (!new File(renameStr).exists()) {
-                            break;
+                    Path f = Path.of(path);
+                    if (Files.exists(f)) {
+                        // 上書き確認
+                        new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("This file name already exists. If you continue, the existing file will be replaced."),
+                                null, PCARDFrame.pc.intl.getDialogText("Cancel"), "OK", null);
+                        if (GDialog.clicked.equals(PCARDFrame.pc.intl.getDialogText("Cancel"))) {
+                            PCARD.pc.stack.barDialog.remove(PCARD.pc.stack.bar);
+                            PCARD.pc.stack.barDialog.dispose();
+                            return;
                         }
-                        j++;
+                        int j = 1;
+                        Path renameStr;
+                        while (true) {
+                            renameStr = Path.of(System.getProperty("java.io.tmpdir"), PCARD.AppName + "_renamed" + j);
+                            if (!Files.exists(renameStr)) {
+                                break;
+                            }
+                            j++;
+                        }
+                        Files.move(f, renameStr);
                     }
-                    f.renameTo(new File(renameStr));
-                }
 
-                PCARD.pc.setTitle("");
+                    PCARD.pc.setTitle("");
 
-                if (f.mkdir()) { // ディレクトリ作成
-                    PCARD.pc.stack.bar.setValue(10);
-                    PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
+                    Files.createDirectory(f); // ディレクトリ作成
+                    if (Files.exists(f)) {
+                        PCARD.pc.stack.bar.setValue(10);
+                        PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
 
-                    String xmlFilePath = f.getPath() + File.separatorChar + "_stack.xml";
-                    File xmlFile = new File(xmlFilePath);
+                        Path xmlFilePath = f.getParent().resolve("_stack.xml");
 
-                    // スタックのインスタンスを作成
-                    OStack newStack = new OStack(PCARD.pc);
-                    newStack.file = xmlFile;
-                    newStack.rsrc = new Rsrc(newStack);
-                    newStack.scriptList = new ArrayList<>();
-                    newStack.width = 640;
-                    newStack.height = 480;
+                        // スタックのインスタンスを作成
+                        OStack newStack = new OStack(PCARD.pc);
+                        newStack.file = xmlFilePath;
+                        newStack.rsrc = new Rsrc(newStack);
+                        newStack.scriptList = new ArrayList<>();
+                        newStack.width = 640;
+                        newStack.height = 480;
 
-                    // カードとバックグラウンドのインスタンスを作成
-                    OCard cd = new OCard(newStack);
-                    OBackground bg = new OBackground(newStack);
+                        // カードとバックグラウンドのインスタンスを作成
+                        OCard cd = new OCard(newStack);
+                        OBackground bg = new OBackground(newStack);
 
-                    cd.id = (int) (Math.random() * 9000 + 1000);
-                    bg.id = (int) (Math.random() * 1000 + cd.id + 1);
-                    cd.bgid = bg.id;
+                        cd.id = (int) (Math.random() * 9000 + 1000);
+                        bg.id = (int) (Math.random() * 1000 + cd.id + 1);
+                        cd.bgid = bg.id;
 
-                    newStack.AddNewCard(cd.id);
-                    // newStack.cdCacheList.add(cd);
-                    newStack.AddNewBg(bg);
-                    newStack.firstCard = cd.id;
-                    newStack.firstBg = bg.id;
+                        newStack.AddNewCard(cd.id);
+                        // newStack.cdCacheList.add(cd);
+                        newStack.AddNewBg(bg);
+                        newStack.firstCard = cd.id;
+                        newStack.firstBg = bg.id;
 
-                    newStack.createdByVersion = PCARD.longVersion;
-                    newStack.lastCompactedVersion = PCARD.longVersion;
-                    newStack.firstEditedVersion = PCARD.longVersion;
-                    newStack.userLevel = 5;
+                        newStack.createdByVersion = PCARD.longVersion;
+                        newStack.lastCompactedVersion = PCARD.longVersion;
+                        newStack.firstEditedVersion = PCARD.longVersion;
+                        newStack.userLevel = 5;
 
-                    for (int i = 0; i < 40; i++) {
-                        newStack.Pattern[i] = "PAT_" + (i + 1) + ".png";
+                        for (int i = 0; i < 40; i++) {
+                            newStack.Pattern[i] = "PAT_" + (i + 1) + ".png";
 
-                        File ifile = new File("." + File.separatorChar + "resource" + File.separatorChar + "PAT_" + (i + 1) + ".png");
-                        File ofile = new File(f.getPath() + File.separatorChar + "PAT_" + (i + 1) + ".png");
+                            Path ifile = Path.of(".", "resource", "PAT_" + (i + 1) + ".png");
+                            Path ofile = f.getParent().resolve("PAT_" + (i + 1) + ".png");
+                            BufferedImage bi = ImageIO.read(ifile.toFile());
+                            ImageIO.write(bi, "png", ofile.toFile());
+                        }
+
+                        PCARD.pc.stack.bar.setValue(30);
+                        PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
+
+                        int fontid = 0;
+                        String fontname = "Chicago";
+                        if (Locale.getDefault().equals(Locale.JAPANESE)) {
+                            ResourceBundle rb = ResourceBundle.getBundle("message");
+                            fontid = Integer.parseInt(rb.getString("menu.fontid"));
+                            fontname = rb.getString("menu.fontname");
+                        }
+                        OStack.fontClass fontClass = new fontClass(fontid, fontname);
+                        newStack.fontList.add(fontClass);
+
+                        PCARD.pc.stack.bar.setValue(50);
+                        PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
+
+                        // XML書き込み
+                        XMLwrite xmlWrite = new XMLwrite(newStack);
+                        xmlWrite.saveStackNow();
                         try {
-                            BufferedImage bi = ImageIO.read(ifile);
-                            ImageIO.write(bi, "png", ofile);
-                        } catch (IOException e) {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                        newStack.clean();
+
+                        PCARD.pc.stack.bar.setValue(80);
+                        PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
+
+                        PCARD.pc.stack.barDialog.remove(PCARD.pc.stack.bar);
+                        PCARD.pc.stack.barDialog.dispose();
+
+                        // XMLを開く
+                        TTalk.CallMessage("open stack \"" + f + "\"", "", null, false, true);
+                    } else {
+                        new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Can't create a new folder."),
+                                null, "OK", null, null);
                     }
-
-                    PCARD.pc.stack.bar.setValue(30);
-                    PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
-
-                    int fontid = 0;
-                    String fontname = "Chicago";
-                    if (Locale.getDefault().equals(Locale.JAPANESE)) {
-                        ResourceBundle rb = ResourceBundle.getBundle("message");
-                        fontid = Integer.parseInt(rb.getString("menu.fontid"));
-                        fontname = rb.getString("menu.fontname");
-                    }
-                    OStack.fontClass fontClass = new fontClass(fontid, fontname);
-                    newStack.fontList.add(fontClass);
-
-                    PCARD.pc.stack.bar.setValue(50);
-                    PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
-
-                    // XML書き込み
-                    XMLwrite xmlWrite = new XMLwrite(newStack);
-                    xmlWrite.saveStackNow();
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    newStack.clean();
-
-                    PCARD.pc.stack.bar.setValue(80);
-                    PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
-
-                    PCARD.pc.stack.barDialog.remove(PCARD.pc.stack.bar);
-                    PCARD.pc.stack.barDialog.dispose();
-
-                    // XMLを開く
-                    TTalk.CallMessage("open stack \"" + f.getPath() + "\"", "", null, false, true);
-
-                } else {
-                    new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Can't create a new folder."),
-                            null, "OK", null, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         } else if (cmd.equalsIgnoreCase("New Card")) {

@@ -13,8 +13,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +31,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import vavi.util.Debug;
+
 
 public class OStack extends OObject {
 
@@ -37,7 +42,7 @@ public class OStack extends OObject {
 
     Charset charset = StandardCharsets.UTF_8;// 文字コード
     String path = "";// スタックファイルのパス
-    File file;
+    Path file;
     OCard curCard;
     GButton GUI_btn;
     GRadio GUI_radio;
@@ -320,8 +325,8 @@ public class OStack extends OObject {
 
             PCARD.lockedScreen = false;
             mainPane.repaint();
-            // TTalk.talk = new TTalk();
-            // TTalk.talk.start();
+//            TTalk.talk = new TTalk();
+//            TTalk.talk.start();
             TTalk.CallMessage("startUp", curCard);
             TTalk.CallMessage("openStack", curCard);
             TTalk.CallMessage("openBackground", curCard);
@@ -339,22 +344,20 @@ public class OStack extends OObject {
         PCARD.pc.stack.pcard.setBounds(r.x, r.y, width + PCARD.pc.toolbar.getTWidth(), height + PCARD.pc.toolbar.getTHeight() + pcard.getInsets().top);
     }
 
-
     static void openStackFile(String inpath, boolean isUsingOnly) {
-        /*this.scriptList = new ArrayList<String>();
-
-        if(PCARD.pc.stack.curCard!=null){
-            if(PCARD.pc.stack.curCard.bg!=null) {
-                PCARD.pc.stack.curCard.bg.removeData();
-                PCARD.pc.stack.curCard.bg = null;
-            }
-            PCARD.pc.stack.curCard.removeData();
-            PCARD.pc.stack.curCard = null;
-        }
-        */
+//        this.scriptList = new ArrayList<String>();
+//
+//        if (PCARD.pc.stack.curCard != null) {
+//            if (PCARD.pc.stack.curCard.bg != null) {
+//                PCARD.pc.stack.curCard.bg.removeData();
+//                PCARD.pc.stack.curCard.bg = null;
+//            }
+//            PCARD.pc.stack.curCard.removeData();
+//            PCARD.pc.stack.curCard = null;
+//        }
 
         BufferedImage bi = null;
-        if (isUsingOnly == false) {
+        if (!isUsingOnly) {
             // 画像ファイルかどうか
             try {
                 bi = javax.imageio.ImageIO.read(new File(inpath));
@@ -365,9 +368,9 @@ public class OStack extends OObject {
 
         if (bi != null) {
             TTalk.CallMessage("edit picture \"" + inpath + "\"", "", null, false, true);
-        } else if (isUsingOnly == false) {
+        } else if (!isUsingOnly) {
             TTalk.CallMessage("open stack \"" + inpath + "\"", "", null, false, true);
-        } else if (isUsingOnly == true) {
+        } else if (isUsingOnly) {
             TTalk.CallMessage("start using stack \"" + inpath + "\"", "", null, false, true);
         }
     }
@@ -375,73 +378,62 @@ public class OStack extends OObject {
     boolean openStackFileInThread(String inpath, boolean isUsingOnly) {
 
         path = inpath;
-        file = new File(path);
-        if (!file.exists()) {
+        file = Path.of(path);
+        if (!Files.exists(file)) {
             PCARD.failureOpenFile(inpath);
             return false;
         }
 
         this.scriptList = new ArrayList<>();
 
-        {
-            FileInputStream fstream = null;
-            try {
-                fstream = new FileInputStream(path);
-            } catch (FileNotFoundException e) {
+        try {
+            InputStream fstream = Files.newInputStream(file);
+            // HCスタックとして読んでみる
+            int size = 0;
+            StringBuilder STAKstr = new StringBuilder();
+            for (int i = 0; i < 4; i++) {
+                size = size << 8;
+                size += (byte) fstream.read();
             }
-            if (fstream != null) {
-                // HCスタックとして読んでみる
-                int size = 0;
-                StringBuilder STAKstr = new StringBuilder();
-                try {
-                    for (int i = 0; i < 4; i++) {
-                        size = size << 8;
-                        size += (byte) fstream.read();
-                    }
-                    for (int i = 0; i < 4; i++) {
-                        STAKstr.append((char) fstream.read());
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (STAKstr.toString().equals("STAK")) {
-                    // これはきっとHyperCardスタックファイル
-                    if (true == HCConvert.openHCStack(path, this)) {
-                        if (!PCARD.pc.stack.cdCacheList.isEmpty()) {
-                            PCARD.successOpenFile();
-                            return true;
-                        }
-                    }
-                } else if (true/*path.substring(path.length()-4).equals(".bin")*/) {
-                    // MacBinary形式では？
-                    if (true == HCConvert.openMacBinaryStack(path, this)) {
-                        if (!this.cdCacheList.isEmpty()) {
-                            PCARD.successOpenFile();
-                            return true;
-                        }
-                    }
-                }
+            for (int i = 0; i < 4; i++) {
+                STAKstr.append((char) fstream.read());
             }
-            // XML形式として読む
-            if (System.getProperty("java.version").startsWith("1.5")) {
-                new GDialog(PCARD.pc, PCARDFrame.pc.intl.getDialogText("This version of Java Runtime is not supported streaming API for XML."),
-                        null, "OK", null, null);
-            } else {
-                if (new File(path).isDirectory()) {
-                    path += File.separatorChar + "_stack.xml";
-                    if (!new File(path).exists()) {
-                        path = inpath + File.separatorChar + "toc.xml";
+            if (STAKstr.toString().equals("STAK")) {
+                // これはきっとHyperCardスタックファイル
+Debug.println(file + " is HyperCard stack file");
+                if (HCConvert.openHCStack(path, this)) {
+                    if (!PCARD.pc.stack.cdCacheList.isEmpty()) {
+                        PCARD.successOpenFile();
+                        return true;
                     }
                 }
-
-                if (XMLRead.readToc(path, this)) {
+            } else if (true /* path.substring(path.length()-4).equals(".bin") */) {
+                // MacBinary形式では？
+Debug.println(file + " is MacBinary type?");
+                if (HCConvert.openMacBinaryStack(path, this)) {
                     if (!this.cdCacheList.isEmpty()) {
-                        file = new File(path);
                         PCARD.successOpenFile();
                         return true;
                     }
                 }
             }
+            // XML形式として読む
+            if (new File(path).isDirectory()) {
+                path += File.separatorChar + "_stack.xml";
+                if (!new File(path).exists()) {
+                    path = inpath + File.separatorChar + "toc.xml";
+                }
+            }
+
+            if (XMLRead.readToc(path, this)) {
+                if (!this.cdCacheList.isEmpty()) {
+                    file = Path.of(path);
+                    PCARD.successOpenFile();
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
 
         name = "";
