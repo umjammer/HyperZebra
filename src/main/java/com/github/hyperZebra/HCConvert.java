@@ -433,7 +433,7 @@ public class HCConvert {
                         System.out.println("Error occured at reading resouce fork from tar file.");
                     }
                     stack.barOffset += 25;
-                } else {
+                } else if (!name.contains("PaxHeader")) {
                     // データフォーク
                     if (!HCData.readDataFork(dis, stack)) {
                         System.out.println("Error occured at reading data fork from tar file.");

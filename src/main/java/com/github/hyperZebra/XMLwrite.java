@@ -26,7 +26,7 @@ public class XMLwrite {
     public void saveStackNow() {
         if (stack.cantModify) return;
         Path fname = stack.file;
-        if (fname.endsWith(".xml")
+        if (fname.getFileName().toString().endsWith(".xml")
                 && Files.exists(stack.file) && !Files.isWritable(stack.file)) return;
 
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
@@ -77,7 +77,7 @@ public class XMLwrite {
             writer.close();
 
             Path file = stack.file;
-            if (!stack.file.getFileName().toString().substring((int) (Files.size(fname) - 4)).equals(".xml")) {
+            if (!stack.file.getFileName().toString().endsWith(".xml")) {
                 file = stack.file.getParent().resolve("_stack.xml");
             }
             if (!Files.exists(file) || Files.isWritable(file)) {

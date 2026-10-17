@@ -5118,9 +5118,10 @@ label:
                                 case "cds", "cards" -> {
                                     if (bg_flag) {
                                         if (!parent.objectType.equals("background")) parent = ((OCard) parent).bg;
+                                        OStack st = (parent instanceof OBackground) ? ((OBackground) parent).stack : (OStack) parent;
                                         number = 0;
-                                        for (int k = 0; k < ((OStack) parent).cardIdList.size(); k++) {
-                                            OCard cd = ((OStack) parent).GetCardbyId(((OStack) parent).cardIdList.get(k));
+                                        for (int k = 0; k < st.cardIdList.size(); k++) {
+                                            OCard cd = st.GetCardbyId(st.cardIdList.get(k));
                                             if (cd.bgid == parent.id) {
                                                 number++;
                                             }
@@ -5128,16 +5129,17 @@ label:
                                     } else {
                                         Debug.println("parent: " + parent.getClass());
                                         if (parent instanceof OCard) {
-                                            number = 1;
+                                            number = ((OCard) parent).stack.cardIdList.size();
                                         } else {
                                             number = ((OStack) parent).cardIdList.size();
                                         }
                                     }
                                 }
                                 case "bgs", "bkgnds", "backgrounds" -> {
+                                    OStack st = (parent instanceof OCard) ? ((OCard) parent).stack : (OStack) parent;
                                     ArrayList<Integer> list = new ArrayList<>();
-                                    for (int k = 0; k < ((OStack) parent).cardIdList.size(); k++) {
-                                        OCard cd = ((OStack) parent).GetCardbyId(((OStack) parent).cardIdList.get(k));
+                                    for (int k = 0; k < st.cardIdList.size(); k++) {
+                                        OCard cd = st.GetCardbyId(st.cardIdList.get(k));
                                         int j;
                                         for (j = 0; j < list.size(); j++) {
                                             if (cd.bgid == list.get(j)) {
@@ -5152,6 +5154,9 @@ label:
                             }
                             if (number == -1)
                                 throw new xTalkException("number ofで数えられません");
+                            if (i - 3 - offset >= start && stringList.get(i - 3 - offset).equalsIgnoreCase("the")) {
+                                offset++;
+                            }
                             stringList.set(i - 2 - offset, Integer.toString(number));
                             typeAry[i - 2 - offset] = wordType.STRING;
                             for (int m = i - 2 - offset + 1; m <= i + endoff; m++) {

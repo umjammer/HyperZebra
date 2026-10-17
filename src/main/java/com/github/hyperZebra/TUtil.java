@@ -360,6 +360,8 @@ public class TUtil {
             result.theResult = PCARD.version;
         } else if (0 == message.compareTo("version")) {
             result.theResult = PCARD.version;
+        } else if (0 == message.compareTo("environment")) {
+            result.theResult = "development";
         } else if (0 == message.compareTo("systemname")) {
             result.theResult = System.getProperty("os.name");
         } else if (0 == message.compareTo("systemversion")) {
@@ -826,8 +828,8 @@ public class TUtil {
         String prpty = inProperty.toLowerCase();
         OButton btn = null;
         OField fld = null;
-        // OCard cd=null;
-        // OBackground bg=null;
+        OCard cd = null;
+        OBackground bg = null;
         // OStack stk=null;
 
         /*if(obj==null) {
@@ -838,11 +840,11 @@ public class TUtil {
             btn = (OButton) obj;
         if (0 == obj.objectType.compareTo("field"))
             fld = (OField) obj;
-        /*if(0==obj.objectType.compareTo("card"))
-            cd=(OCard)obj;
-        if(0==obj.objectType.compareTo("background"))
-            bg=(OBackground)obj;
-        if(0==obj.objectType.compareTo("stack"))
+        if (0 == obj.objectType.compareTo("card"))
+            cd = (OCard) obj;
+        if (0 == obj.objectType.compareTo("background"))
+            bg = (OBackground) obj;
+        /*if(0==obj.objectType.compareTo("stack"))
             stk=(OStack)obj;*/
 
         if (0 == prpty.compareTo("icon")) {
@@ -949,6 +951,8 @@ public class TUtil {
         } else if (0 == prpty.compareTo("number")) {
             if (fld != null) return Integer.toString(((OCardBase) fld.parent).GetNumberof(fld));
             if (btn != null) return Integer.toString(((OCardBase) btn.parent).GetNumberof(btn));
+            if (cd != null) return Integer.toString(cd.stack.GetNumberof(cd));
+            if (bg != null) return Integer.toString(bg.stack.GetNumberof(bg));
             else {
                 System.out.println("未定義のオブジェクトプロパティ:" + prpty);
                 return "";

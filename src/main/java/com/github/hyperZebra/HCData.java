@@ -206,6 +206,7 @@ label:
         for (int i = 0; i < size; i++) {
             try {
                 int c = dis.read();
+                if (c == -1 && size == 1) return -1;
                 HCStackDebug.read(c);
                 opcode[i] = (byte) c;
             } catch (IOException e) {

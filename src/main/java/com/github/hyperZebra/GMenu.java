@@ -112,7 +112,7 @@ public class GMenu {
                 int itemcount = m.getItemCount();
                 for (int j = 0; j < itemcount; j++) {
                     JMenuItem mi = m.getItem(j);
-                    if (mi.getText().equals(item)) {
+                    if (mi != null && mi.getText().equals(item)) {
                         return mi;
                     }
                 }
