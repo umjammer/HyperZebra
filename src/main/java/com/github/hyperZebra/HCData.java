@@ -464,6 +464,7 @@ label:
                 top, left, right, bottom,
                 maskLeft, maskTop, maskRight, maskBottom,
                 imgLeft, imgTop, imgRight, imgBottom, stack);
+        threadList.add(p);
         if (stack.GetCardbyId(stack.firstCard) != null &&
                 stack.GetCardbyId(stack.firstCard).bitmapName != null &&
                 stack.GetCardbyId(stack.firstCard).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
@@ -472,8 +473,6 @@ label:
                 stack.GetBackgroundbyId(stack.firstBg).bitmapName != null &&
                 stack.GetBackgroundbyId(stack.firstBg).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
             p.start();
-        } else {
-            threadList.add(p);
         }
 
 
@@ -497,8 +496,12 @@ label:
                 Thread lastp = null;
                 Thread lastp2 = null;
                 for (Thread p : threadList) {
-                    if (p != null && !p.isAlive()) {
-                        p.start();
+                    if (p != null && p.getState() == State.NEW) {
+                        try {
+                            p.start();
+                        } catch (IllegalThreadStateException e) {
+                            // already started
+                        }
                     }
                     // 並行3スレッドまで
                     while (lastp2 != null && lastp2.isAlive()) {

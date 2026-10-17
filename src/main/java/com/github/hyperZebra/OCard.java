@@ -774,29 +774,30 @@ public class OCard extends OCardBase {
         if (cd.bitmapName != null) {
             try {
                 Path path = cd.stack.file.getParent().resolve(cd.bitmapName);
-                cd.pict = ImageIO.read(Files.newInputStream(path));
-                if (cd.pict == null) {
-                    // 読み込まれるまで待つ
-                    for (int i = 0; HCData.threadList != null && i < HCData.threadList.size(); i++) {
-                        Thread p = HCData.threadList.get(i);
-                        if (p != null && p.getName().equals(cd.bitmapName)) {
-                            if (!p.isAlive()) {
+                // 読み込まれるまで待つ
+                for (int i = 0; HCData.threadList != null && i < HCData.threadList.size(); i++) {
+                    Thread p = HCData.threadList.get(i);
+                    if (p != null && p.getName().equals(cd.bitmapName)) {
+                        if (p.getState() == Thread.State.NEW) {
+                            try {
                                 p.start();
+                            } catch (IllegalThreadStateException e) {
+                                // already started
                             }
-                            long lastLength = -1;
-                            for (int j = 0; !Files.exists(path) && j < 50 || p.isAlive() || lastLength != Files.size(path); j++) {
-                                lastLength = Files.size(path);
-                                try {
-                                    Thread.sleep(50);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                        }
+                        long lastLength = -1;
+                        for (int j = 0; !Files.exists(path) && j < 50 || p.isAlive() || (Files.exists(path) && lastLength != Files.size(path)); j++) {
+                            lastLength = Files.exists(path) ? Files.size(path) : -1;
+                            try {
+                                Thread.sleep(50);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
                             }
                         }
                     }
-                    if (Files.exists(path) && !Files.isDirectory(path)) {
-                        cd.pict = ImageIO.read(Files.newInputStream(path));
-                    }
+                }
+                if (Files.exists(path) && !Files.isDirectory(path)) {
+                    cd.pict = ImageIO.read(Files.newInputStream(path));
                 }
                 if (cd.pict != null) {
                     cd.label = MyLabel.getMyCdLabel(cd);

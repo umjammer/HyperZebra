@@ -930,7 +930,8 @@ public class TUtil {
                 return (((OCardBase) obj).showPict == true) ? "true" : "false";
             } else throw new xTalkException("showPictはカードとバックグラウンドのみ参照できます");
         } else if (0 == prpty.compareTo("short name")) {
-            return obj.name;
+            if (!obj.name.isEmpty()) return obj.name;
+            return obj.getShortName();
         } else if (0 == prpty.compareTo("name")) {
             return obj.getShortName();
         } else if (0 == prpty.compareTo("long name")) {
