@@ -3268,8 +3268,8 @@ label:
                         } catch (AWTException e) {
                             e.printStackTrace();
                         }
-                        x += PCARD.pc.getX();
-                        y += PCARD.pc.getY() + PCARD.pc.getInsets().top;
+                        x = x * PCARD.pc.zoom + PCARD.pc.getX();
+                        y = y * PCARD.pc.zoom + PCARD.pc.getY() + PCARD.pc.getInsets().top;
                         if (rb != null) {
                         /*BufferedImage bi = new BufferedImage(16,16, BufferedImage.TYPE_INT_ARGB);
                         Toolkit kit = Toolkit.getDefaultToolkit();
@@ -3380,10 +3380,10 @@ label:
                     } catch (AWTException e) {
                         e.printStackTrace();
                     }
-                    sx += PCARD.pc.getX();
-                    sy += PCARD.pc.getY() + PCARD.pc.getInsets().top;
-                    ex += PCARD.pc.getX();
-                    ey += PCARD.pc.getY() + PCARD.pc.getInsets().top;
+                    sx = sx * PCARD.pc.zoom + PCARD.pc.getX();
+                    sy = sy * PCARD.pc.zoom + PCARD.pc.getY() + PCARD.pc.getInsets().top;
+                    ex = ex * PCARD.pc.zoom + PCARD.pc.getX();
+                    ey = ey * PCARD.pc.zoom + PCARD.pc.getY() + PCARD.pc.getInsets().top;
                     if (rb != null) {
 //                        BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 //                        Toolkit kit = Toolkit.getDefaultToolkit();
@@ -4468,7 +4468,7 @@ label:
                 Graphics2D offg = off.createGraphics();
 
                 for (int i = 0; i < cnt * 2; i++) {
-                    PCARD.pc.mainPane.paint(offg);
+                    PCARD.pc.mainPane.paintUnscaled(offg);
                     offg.setXORMode(Color.white);
                     offg.fillRect(0, 0, PCARD.pc.stack.width, PCARD.pc.stack.height);
                     PCARD.pc.mainPane.getGraphics().drawImage(off, 0, 0, PCARD.pc.stack.width, PCARD.pc.stack.height, PCARD.pc);

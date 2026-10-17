@@ -31,9 +31,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.MenuSelectionManager;
+import javax.swing.RepaintManager;
+import javax.swing.SwingUtilities;
 
 
 class PCARDFrame extends JFrame {
@@ -44,6 +48,7 @@ class PCARDFrame extends JFrame {
     static PCARD pc = null;
     static boolean useGrid = true;
     static int gridSize = 1;
+    int zoom = 2;
     MyPanel mainPane;
     OStack stack;
     static OStack home;
@@ -98,9 +103,10 @@ class PCARDFrame extends JFrame {
     public static void setNewBounds() {
         Rectangle r = pc.getBounds();
         if (pc.toolbar == null || pc.toolbar.tb == null) return;
-        pc.setBounds(r.x, r.y, pc.stack.width + pc.toolbar.getTWidth(), pc.stack.height + pc.toolbar.getTHeight() + pc.getInsets().top + pc.getJMenuBar().getHeight());
+        int z = pc.zoom;
+        pc.setBounds(r.x, r.y, pc.stack.width * z + pc.toolbar.getTWidth(), pc.stack.height * z + pc.toolbar.getTHeight() + pc.getInsets().top + pc.getJMenuBar().getHeight());
         if (pc.stack != null && pc.toolbar != null && pc.stack.scroll != null) {
-            pc.mainPane.setBounds(pc.toolbar.getTWidth() - pc.stack.scroll.x, pc.toolbar.getTHeight() - pc.stack.scroll.y, pc.stack.width, pc.stack.height);
+            pc.mainPane.setBounds(pc.toolbar.getTWidth() - pc.stack.scroll.x * z, pc.toolbar.getTHeight() - pc.stack.scroll.y * z, pc.stack.width * z, pc.stack.height * z);
         }
     }
 }
@@ -121,7 +127,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     GMenu paintMenu;
     GMsg msg;
     International intl;
-    static boolean useDoubleBuffer = true;// バッファをオフにしてメモリ節約できる？
+    static boolean useDoubleBuffer = false;// バッファをオフにしてメモリ節約できる？
     Pidle pidle;
     PaintIdle paidle;
     DropTarget drop;
@@ -149,6 +155,34 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     public static void main(String[] args) {
         pc = new PCARD();
 
+        Toolkit.getDefaultToolkit().getSystemEventQueue().push(new java.awt.EventQueue() {
+            @Override
+            protected void dispatchEvent(java.awt.AWTEvent event) {
+                if (event instanceof java.awt.event.MouseEvent me && pc != null && pc.zoom > 1 && me.getSource() == pc && pc.mainPane != null && pc.mainPane.isShowing()) {
+                    if (MenuSelectionManager.defaultManager().getSelectedPath().length == 0) {
+                        java.awt.Point pt = SwingUtilities.convertPoint(pc.mainPane, 0, 0, pc);
+                        if (me.getX() >= pt.x && me.getY() >= pt.y) {
+                            int mx = me.getX() - pt.x;
+                            int my = me.getY() - pt.y;
+                            me.translatePoint(mx / pc.zoom - mx, my / pc.zoom - my);
+                        }
+                    }
+                }
+                super.dispatchEvent(event);
+            }
+        });
+
+        RepaintManager.setCurrentManager(new RepaintManager() {
+            @Override
+            public void addDirtyRegion(JComponent c, int x, int y, int w, int h) {
+                if (pc != null && pc.mainPane != null && pc.zoom > 1 && SwingUtilities.isDescendingFrom(c, pc.mainPane)) {
+                    super.addDirtyRegion(pc.rootPane, 0, 0, pc.rootPane.getWidth(), pc.rootPane.getHeight());
+                } else {
+                    super.addDirtyRegion(c, x, y, w, h);
+                }
+            }
+        });
+
         // ウィンドウアイコンの設定
         try {
             Image icon = ImageIO.read(new File("." + File.separatorChar + "resource" + File.separatorChar + "icon.png"));
@@ -158,13 +192,13 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         }
 
         new OWindow(pc, true);
-        pc.rootPane.setDoubleBuffered(useDoubleBuffer);
+        pc.rootPane.setDoubleBuffered(true);
         pc.getRootPane().setOpaque(false);
         pc.setBackground(Color.WHITE);
 
         pc.setLayout(new BorderLayout());
         pc.mainPane = new MyPanel(pc);
-        pc.mainPane.setDoubleBuffered(useDoubleBuffer);
+        pc.mainPane.setDoubleBuffered(false);
 //        pc.setContentPane(pc.mainPane /*, BorderLayout.CENTER */); // こうするとツールバーがおかしくなる
         pc.add(pc.mainPane, BorderLayout.CENTER);
 

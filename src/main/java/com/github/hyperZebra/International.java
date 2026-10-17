@@ -90,6 +90,11 @@ class International {
             // putHash(menuHash, menuRHash,"Show PatternPalette","パターンパレットを表示");
 
             putHash(menuHash, menuRHash, "Objects", "オブジェクト");
+            putHash(menuHash, menuRHash, "View", "表示");
+            putHash(menuHash, menuRHash, "Zoom x1", "ズーム x1");
+            putHash(menuHash, menuRHash, "Zoom x2", "ズーム x2");
+            putHash(menuHash, menuRHash, "Zoom x3", "ズーム x3");
+            putHash(menuHash, menuRHash, "Zoom x4", "ズーム x4");
 
             putHash(menuHash, menuRHash, "Font", "フォント");
 

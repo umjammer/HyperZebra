@@ -15,17 +15,17 @@ public class VEffect {
     static BufferedImage oldoff = null;
 
     public static void setOldOff() {
-        int width = PCARDFrame.pc.mainPane.getWidth();
-        int height = PCARDFrame.pc.mainPane.getHeight();
+        int width = PCARDFrame.pc.stack != null ? PCARDFrame.pc.stack.width : PCARDFrame.pc.mainPane.getWidth();
+        int height = PCARDFrame.pc.stack != null ? PCARDFrame.pc.stack.height : PCARDFrame.pc.mainPane.getHeight();
         if (width <= 0 || height <= 0) return;
         oldoff = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
         Graphics2D offg = oldoff.createGraphics();
-        PCARDFrame.pc.mainPane.paint(offg);
+        PCARDFrame.pc.mainPane.paintUnscaled(offg);
     }
 
     public static void visualEffect(int effect, int toEffect, int speed) {
-        int width = PCARDFrame.pc.mainPane.getWidth();
-        int height = PCARDFrame.pc.mainPane.getHeight();
+        int width = PCARDFrame.pc.stack != null ? PCARDFrame.pc.stack.width : PCARDFrame.pc.mainPane.getWidth();
+        int height = PCARDFrame.pc.stack != null ? PCARDFrame.pc.stack.height : PCARDFrame.pc.mainPane.getHeight();
 
         if (effect == 0) {
         } else {
@@ -38,12 +38,12 @@ public class VEffect {
             if (toEffect == 0) {
                 // オフスクリーンに描画
                 // PCARD.lockedScreen = false;
-                PCARDFrame.pc.mainPane.paint(offg);
+                PCARDFrame.pc.mainPane.paintUnscaled(offg);
                 PCARD.lockedScreen = true;
             } else if (toEffect == 4) {
                 // オフスクリーンに描画
                 // PCARD.lockedScreen = false;
-                PCARDFrame.pc.mainPane.paint(offg);
+                PCARDFrame.pc.mainPane.paintUnscaled(offg);
                 PCARD.lockedScreen = true;
                 offg.setXORMode(Color.white);
                 offg.fillRect(0, 0, width, height);

@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
@@ -22,6 +23,43 @@ class MyPanel extends JPanel {
     MyPanel(PCARDFrame owner) {
         super();
         this.owner = owner;
+    }
+
+    public void paintUnscaled(Graphics g) {
+        super.paint(g);
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        if (owner != null && owner.zoom > 1) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.scale(owner.zoom, owner.zoom);
+            super.paint(g2);
+            g2.dispose();
+        } else {
+            super.paint(g);
+        }
+    }
+
+    @Override
+    public Graphics getGraphics() {
+        Graphics g = super.getGraphics();
+        if (g != null && owner != null && owner.zoom > 1) {
+            ((Graphics2D) g).scale(owner.zoom, owner.zoom);
+        }
+        return g;
+    }
+
+    @Override
+    public void paintImmediately(int x, int y, int w, int h) {
+        int z = (owner != null && owner.zoom > 1) ? owner.zoom : 1;
+        super.paintImmediately(x * z, y * z, w * z, h * z);
+    }
+
+    @Override
+    public void paintImmediately(Rectangle r) {
+        if (r == null) return;
+        paintImmediately(r.x, r.y, r.width, r.height);
     }
 
 

@@ -485,6 +485,22 @@ public class GMenu {
             mi.addActionListener(listener);
 
         }
+
+        // Viewメニュー
+        m = new JMenu(PCARD.pc.intl.getText("View"));
+        mb.add(m);
+        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x1")));
+        cb.setSelected(pcard.zoom == 1);
+        cb.addActionListener(listener);
+        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x2")));
+        cb.setSelected(pcard.zoom == 2);
+        cb.addActionListener(listener);
+        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x3")));
+        cb.setSelected(pcard.zoom == 3);
+        cb.addActionListener(listener);
+        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x4")));
+        cb.setSelected(pcard.zoom == 4);
+        cb.addActionListener(listener);
     }
 
     static boolean isMacOSX() {
@@ -746,6 +762,17 @@ class GMenuBrowse implements ActionListener {
         } else if (cmd.equalsIgnoreCase("Next Window")) {
             if (PCARD.pc.stack.scriptEditor != null) {
                 PCARD.pc.stack.scriptEditor.toFront();
+            }
+        } else if (cmd.equalsIgnoreCase("Zoom x1") || cmd.equalsIgnoreCase("Zoom x2") || cmd.equalsIgnoreCase("Zoom x3") || cmd.equalsIgnoreCase("Zoom x4")) {
+            int newZoom = Integer.parseInt(cmd.substring(cmd.length() - 1));
+            PCARD.pc.zoom = newZoom;
+            for (int z = 1; z <= 4; z++) {
+                GMenu.changeSelected("View", "Zoom x" + z, z == newZoom);
+            }
+            PCARDFrame.setNewBounds();
+            if (PCARD.pc.stack != null && PCARD.pc.mainPane != null) {
+                PCARD.pc.mainPane.setBounds(PCARD.pc.stack.left * newZoom, PCARD.pc.stack.top * newZoom, PCARD.pc.stack.width * newZoom, PCARD.pc.stack.height * newZoom + PCARD.pc.getInsets().top);
+                PCARD.pc.mainPane.repaint();
             }
         } else if (cmd.equalsIgnoreCase("Button Info…")) {
             if (ButtonGUI.gui.target != null) {

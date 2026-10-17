@@ -184,7 +184,8 @@ public class OStack extends OObject {
     public void setTopLeft(int h, int v) {
         left = h;
         top = v;
-        pcard.setBounds(left, top, width, height + pcard.getInsets().top);
+        int z = pcard.zoom;
+        pcard.setBounds(left, top, width * z, height * z + pcard.getInsets().top);
     }
 
     public void setRect(int v1, int v2, int v3, int v4) {
@@ -192,7 +193,8 @@ public class OStack extends OObject {
         top = v2;
         width = v3 - v1;
         height = v4 - v2;
-        pcard.setBounds(left, top, width, height + pcard.getInsets().top);
+        int z = pcard.zoom;
+        pcard.setBounds(left, top, width * z, height * z + pcard.getInsets().top);
     }
 
     public void setCantAbort(Boolean in) {
@@ -289,13 +291,14 @@ public class OStack extends OObject {
         }
         pcard.setTitle(titleName);
 
-        mainPane.setBounds(left, top, width, height + pcard.getInsets().top);
+        int z = pcard.zoom;
+        mainPane.setBounds(left * z, top * z, width * z, height * z + pcard.getInsets().top);
         mainPane.setVisible(true);
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         if (d != null) {
-            pcard.setBounds(d.width / 2 - width / 2, d.height / 2 - height / 2 - 20, width, height + 20);
+            pcard.setBounds(d.width / 2 - (width * z) / 2, d.height / 2 - (height * z) / 2 - 20, width * z, height * z + 20);
         } else {
-            pcard.setBounds(left, top - height - 20, width, height + 20);
+            pcard.setBounds(left, top - height * z - 20, width * z, height * z + 20);
         }
         pcard.setVisible(true);
         // pcard.setLocationRelativeTo(null);
@@ -341,7 +344,8 @@ public class OStack extends OObject {
 
     public void setNewBounds() {
         Rectangle r = PCARD.pc.stack.pcard.getBounds();
-        PCARD.pc.stack.pcard.setBounds(r.x, r.y, width + PCARD.pc.toolbar.getTWidth(), height + PCARD.pc.toolbar.getTHeight() + pcard.getInsets().top);
+        int z = pcard.zoom;
+        PCARD.pc.stack.pcard.setBounds(r.x, r.y, width * z + PCARD.pc.toolbar.getTWidth(), height * z + PCARD.pc.toolbar.getTHeight() + pcard.getInsets().top);
     }
 
     static void openStackFile(String inpath, boolean isUsingOnly) {
@@ -1532,11 +1536,11 @@ Debug.println(file + " is MacBinary type?");
     public void mouseWithinCheck() {
         if (PCARD.pc.stack.curCard == null) return;
         PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-        int x = pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x;
-        int y = pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y;
+        int x = (pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x) / PCARD.pc.zoom;
+        int y = (pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y) / PCARD.pc.zoom;
         if ((x < 0) || (y < 0) ||
-                (x > PCARD.pc.mainPane.getWidth()) ||
-                (y > PCARD.pc.mainPane.getHeight())) {
+                (x > PCARD.pc.mainPane.getWidth() / PCARD.pc.zoom) ||
+                (y > PCARD.pc.mainPane.getHeight() / PCARD.pc.zoom)) {
             return;
         }
         if (this.curCard != null) {

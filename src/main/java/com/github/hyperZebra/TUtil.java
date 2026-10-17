@@ -382,15 +382,15 @@ public class TUtil {
             result.theResult = GUI.mouseDown ? "Down" : "Up";
         } else if (0 == message.compareTo("mouseh")) {
             PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-            result.theResult = Integer.toString(pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x);
+            result.theResult = Integer.toString((pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x) / PCARD.pc.zoom);
         } else if (0 == message.compareTo("mousev")) {
             PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-            result.theResult = Integer.toString(pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y - PCARD.pc.getInsets().top);
+            result.theResult = Integer.toString((pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y - PCARD.pc.getInsets().top) / PCARD.pc.zoom);
         } else if (0 == message.compareTo("mouseloc")) {
             // カードの左上起点のマウス座標
             PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-            result.theResult = pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x + "," +
-                    (pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y - PCARD.pc.getInsets().top);
+            result.theResult = (pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x) / PCARD.pc.zoom + "," +
+                    (pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y - PCARD.pc.getInsets().top) / PCARD.pc.zoom;
         } else if (0 == message.compareTo("clickh")) {
             result.theResult = Integer.toString(GUI.clickH);
         } else if (0 == message.compareTo("clickv")) {
@@ -1486,7 +1486,8 @@ public class TUtil {
             else if (cd != null) PCARD.pc.stack.setRect(v1, v2, v3, v4);
             else if (0 == obj.objectType.compareTo("window")) {
                 if (((OWindow) obj).frame == PCARD.pc) {
-                    ((OWindow) obj).frame.setBounds(v1, v2, v3 - v1, v4 - v2);
+                    int z = PCARD.pc.zoom;
+                    ((OWindow) obj).frame.setBounds(v1, v2, (v3 - v1) * z, (v4 - v2) * z + PCARD.pc.getInsets().top + PCARD.pc.getJMenuBar().getHeight());
                 } else if (((OWindow) obj).frame != null) {
                     ((OWindow) obj).frame.setBounds(PCARD.pc.getX() + v1, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2, v3 - v1, v4 - v2);
                 } else if (((OWindow) obj).gpw != null) {

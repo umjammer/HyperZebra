@@ -1439,7 +1439,7 @@ public class TXcmd {
                 BufferedImage offImage = new BufferedImage(PCARD.pc.stack.addColor.getWidth(), PCARD.pc.stack.addColor.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D offg = offImage.createGraphics();
                 lock = true;
-                PCARD.pc.mainPane.paint(offg);
+                PCARD.pc.mainPane.paintUnscaled(offg);
                 lock = false;
 
                 DataBuffer offdb = offImage.getRaster().getDataBuffer();
