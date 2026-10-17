@@ -3112,11 +3112,15 @@ label:
                         if (next > 1 && 0 == stringList.get(next).compareToIgnoreCase("tempo")) {
                             if (soundRsrc.isEmpty())
                                 soundRsrc = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
-                            tempo = Integer.parseInt(stringList.get(next + 1));
+                            String tempoStr = getVariable(memData, stringList.get(next + 1));
+                            if (tempoStr == null) tempoStr = stringList.get(next + 1);
+                            tempo = Integer.parseInt(tempoStr);
                             next++;
                             // System.out.println("soundRsrc"+soundRsrc);
                         } else if (next > 1) {
-                            Matcher m = p.matcher(stringList.get(next));
+                            String noteStr = getVariable(memData, stringList.get(next));
+                            if (noteStr == null) noteStr = stringList.get(next);
+                            Matcher m = p.matcher(noteStr);
                             boolean flag = false;
                             while (m.find()) {
                                 int allLength = 0;

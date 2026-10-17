@@ -92,7 +92,8 @@ public class TSound implements LineListener {
             try {
                 sound = AudioSystem.getAudioInputStream(new File(cpath + ".wav"));
             } catch (FileNotFoundException e4) {
-                throw new xTalkException("サウンド\"" + soundRsrc + "\"がありません");
+                sound = createSynthesizedSound(soundRsrc, length);
+                // throw new xTalkException("サウンド\"" + soundRsrc + "\"がありません");
             } catch (IOException e4) {
                 throw new xTalkException("サウンド\"" + soundRsrc + "\"を開けません");
             } catch (UnsupportedAudioFileException e4) {
@@ -181,10 +182,10 @@ public class TSound implements LineListener {
 
             if (!nowPlaying) {
                 nowPlaying = true;
-                clip.start();
                 nowClip = clip;
-                if (sound != null) sound.close();
                 clip.addLineListener(this);
+                clip.start();
+                if (sound != null) sound.close();
             } else {
                 clipList.add(clip);
                 nameList.add(soundRsrc);
@@ -196,13 +197,51 @@ public class TSound implements LineListener {
         return true;
     }
 
+    private static AudioInputStream createSynthesizedSound(String soundRsrc, double length) {
+        float sampleRate = 22050.0f;
+        double dur = (length > 0.0) ? Math.max(length * 2.0, 0.5) : 0.35;
+        int numSamples = (int) (sampleRate * dur);
+        byte[] data = new byte[numSamples];
+        double baseFreq = 261.625565;
+        String sname = soundRsrc != null ? soundRsrc.toLowerCase() : "";
+        for (int i = 0; i < numSamples; i++) {
+            double t = i / sampleRate;
+            double sample;
+            if (sname.equals("harpsichord")) {
+                double env = Math.exp(-t * 6.0);
+                sample = (Math.sin(2.0 * Math.PI * baseFreq * t)
+                        + 0.5 * Math.sin(2.0 * Math.PI * baseFreq * 2.0 * t)
+                        + 0.25 * Math.sin(2.0 * Math.PI * baseFreq * 3.0 * t)) / 1.75 * env;
+            } else if (sname.equals("boing")) {
+                double env = Math.exp(-t * 4.0);
+                double freq = baseFreq * (1.0 + 0.5 * Math.sin(2.0 * Math.PI * 12.0 * t) * Math.exp(-t * 3.0));
+                sample = Math.sin(2.0 * Math.PI * freq * t) * env;
+            } else {
+                double attack = Math.min(1.0, t / 0.02);
+                double decay = Math.exp(-t * 1.5);
+                sample = (Math.sin(2.0 * Math.PI * baseFreq * t)
+                        + 0.2 * Math.sin(2.0 * Math.PI * baseFreq * 2.0 * t)) / 1.2 * attack * decay;
+            }
+            data[i] = (byte) (sample * 80.0);
+        }
+        AudioFormat af = new AudioFormat(sampleRate, 8, 1, true, false);
+        return new AudioInputStream(new java.io.ByteArrayInputStream(data), af, numSamples);
+    }
+
     public void PlayStop() {
+        for (Clip c : clipList) {
+            c.close();
+        }
+        clipList.clear();
+        nameList.clear();
+        nowPlaying = false;
         if (nowClip != null) {
-            clipList.clear();
-            nameList.clear();
-            nowClip.stop();
+            Clip c = nowClip;
             nowClip = null;
             name = "";
+            c.removeLineListener(this);
+            c.stop();
+            c.close();
         }
     }
     // todo: 音量調整
@@ -211,7 +250,9 @@ public class TSound implements LineListener {
     public void update(LineEvent event) {
         if (event.getType() == LineEvent.Type.STOP) {
             Clip clip = (Clip) event.getSource();
+            clip.removeLineListener(this);
             clip.stop();
+            clip.close();
             if (clipList.isEmpty()) {
                 nowPlaying = false;
                 nowClip = null;
@@ -222,8 +263,8 @@ public class TSound implements LineListener {
                 clipList.remove(0);
                 nameList.remove(0);
                 nowPlaying = true;
-                nowClip.start();
                 nowClip.addLineListener(this);
+                nowClip.start();
             }
         }
         if (event.getType() == LineEvent.Type.CLOSE) {
