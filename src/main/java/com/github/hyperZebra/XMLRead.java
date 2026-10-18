@@ -14,9 +14,9 @@ import javax.xml.stream.XMLStreamReader;
 
 public class XMLRead {
 
-    // XMLファイル読み込み開始
+    // Start reading XML file
     public static boolean readToc(String xmlfile, OStack inStack) {
-        // 進捗表示を開始
+        // Start progress display
         inStack.barDialog = new JDialog(inStack.pcard);
         inStack.barDialog.setUndecorated(true);
         inStack.bar = new JProgressBar();
@@ -40,7 +40,7 @@ public class XMLRead {
         try {
             stream = new BufferedInputStream(new FileInputStream(xmlfile));
 
-            // DOCTYPEでエラーになるため読み飛ばす
+            // Skip to avoid DOCTYPE error
             {
                 StringBuilder s = new StringBuilder(128);
                 int i = 0;
@@ -82,7 +82,7 @@ public class XMLRead {
                             OCard cd = new OCard(inStack);
                             reader = cd.readXML(reader);
                             inStack.AddNewCard(cd.id);
-                            // inStack.cdCacheList.add(cd); // new OCard()の時点で登録されている
+                            // inStack.cdCacheList.add(cd); // Already registered when new OCard() is called
                         } else if (elm.equals("font")) {
                             reader = inStack.readFontXML(reader);
                         } else if (elm.equals("nextStyleID")) {
@@ -118,10 +118,10 @@ public class XMLRead {
             }
             result = true;
         } catch (FileNotFoundException ex) {
-            System.err.println(xmlfile + " が見つかりません");
+            System.err.println(xmlfile + " was not found");
         } catch (XMLStreamException ex) {
-            System.err.println(xmlfile + " の読み込みに失敗しました");
-            inStack.cantModify = true; // 壊れたデータの書き込み禁止
+            System.err.println("Failed to read " + xmlfile);
+            inStack.cantModify = true; // Prevent writing corrupted data
             ex.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,7 +139,7 @@ public class XMLRead {
                 }
             }
         }
-        // チェック
+        // Check
         if (inStack.firstCard != 0 && inStack.GetCardbyId(inStack.firstCard) == null) {
             System.err.println("Error: First card is not found!");
             if (inStack.GetCardbyNum(1) != null) {
@@ -148,10 +148,10 @@ public class XMLRead {
         } else {
             if (result == false) {
                 new GDialog(inStack.pcard, PCARDFrame.pc.intl.getDialogText("Error occured at reading XML file."), null, "OK", null, null);
-                result = true;// 途中までしか読めなくても強制的に開いてみる
+                result = true;// Force open even if only partially readable
             } else if (completeFlag == false) {
                 new GDialog(inStack.pcard, PCARDFrame.pc.intl.getDialogText("XML end tag is not found."), null, "OK", null, null);
-                result = true;// 途中までしか読めなくても強制的に開いてみる
+                result = true;// Force open even if only partially readable
             }
         }
 
@@ -175,7 +175,7 @@ public class XMLRead {
         }
     }
 
-    /* StackSmith日本語文字化け対応
+    /* StackSmith Japanese mojibake handling
     final static char[] macroman = {
             0x00C4,0x00C5,0x00C7,0x00C9,0x00D1,0x00D6,0x00DC,0x00E1,// 80- 87
             0x00E0,0x00E2,0x00E4,0x00E3,0x00E5,0x00E7,0x00E9,0x00E8,// 88- 8F

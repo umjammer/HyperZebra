@@ -7,10 +7,10 @@ import java.util.Map;
 
 class International {
 
-    Map<String, String> menuHash = new HashMap<>(); // 高速化のためのツリー
-    Map<String, String> menuRHash = new HashMap<>(); // 逆引き
-    Map<String, String> dialogHash = new HashMap<>(); // 高速化のためのツリー
-    Map<String, String> dialogRHash = new HashMap<>(); // 逆引き
+    Map<String, String> menuHash = new HashMap<>(); // Tree for speeding up
+    Map<String, String> menuRHash = new HashMap<>(); // Reverse lookup
+    Map<String, String> dialogHash = new HashMap<>(); // Tree for speeding up
+    Map<String, String> dialogRHash = new HashMap<>(); // Reverse lookup
 
     public International() throws Exception {
         if (Locale.getDefault().equals(Locale.JAPANESE)) {

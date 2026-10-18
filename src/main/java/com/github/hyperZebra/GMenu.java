@@ -84,14 +84,14 @@ public class GMenu {
     public static JMenu searchMenu(JMenuBar mb, String menu) {
         if (mb == null) return null;
         int count = mb.getMenuCount();
-        // そのまま探す
+        // Find as is
         for (int i = 0; i < count; i++) {
             JMenu m = mb.getMenu(i);
             if (m.getText().equals(menu)) {
                 return m;
             }
         }
-        // 英語メニューで探す
+        // Find in English menu
         for (int i = 0; i < count; i++) {
             JMenu m = mb.getMenu(i);
             if (PCARD.pc.intl.getEngText(m.getText()).equals(menu)) {
@@ -105,7 +105,7 @@ public class GMenu {
     public static JMenuItem searchMenuItem(JMenuBar mb, String menu, String item) {
         if (mb == null) return null;
         int count = mb.getMenuCount();
-        // そのまま探す
+        // Find as is
         for (int i = 0; i < count; i++) {
             JMenu m = mb.getMenu(i);
             if (m.getText().equals(menu)) {
@@ -118,7 +118,7 @@ public class GMenu {
                 }
             }
         }
-        // 英語メニューで探す
+        // Find in English menu
         for (int i = 0; i < count; i++) {
             JMenu m = mb.getMenu(i);
             if (PCARD.pc.intl.getEngText(m.getText()).equals(menu)) {
@@ -156,7 +156,7 @@ public class GMenu {
         }
 
         if (mode == 0) {
-            // Fileメニュー
+            // File menu
             m = new JMenu(PCARD.pc.intl.getText("File"));
             mb.add(m);
             m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Stack…")));
@@ -200,7 +200,7 @@ public class GMenu {
                 mi.addActionListener(listener);
             }
 
-            // Editメニュー
+            // Edit menu
             m = new JMenu(PCARD.pc.intl.getText("Edit"));
             mb.add(m);
             m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo")));
@@ -244,7 +244,7 @@ public class GMenu {
         }
 
         if (mode == 1) {
-            // Fileメニュー
+            // File menu
             m = new JMenu(PCARD.pc.intl.getText("File"));
             mb.add(m);
             m.setEnabled(false);
@@ -256,7 +256,7 @@ public class GMenu {
             mi.addActionListener(listener);
             // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Save as ppm…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/mi.addActionListener(listener);
 
-            // Editメニュー
+            // Edit menu
             m = new JMenu(PCARD.pc.intl.getText("Edit"));
             mb.add(m);
             m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo Paint")));
@@ -296,7 +296,7 @@ public class GMenu {
             mi.addActionListener(listener);
         }
 
-        // Goメニュー
+        // Go menu
         m = new JMenu(PCARD.pc.intl.getText("Go"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Back")));
@@ -334,7 +334,7 @@ public class GMenu {
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, s));
         mi.addActionListener(listener);
 
-        // Toolメニュー
+        // Tools menu
         m = new JMenu(PCARD.pc.intl.getText("Tools"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Show ToolBar")));
@@ -377,9 +377,9 @@ public class GMenu {
         // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("FreePolygon")));mi.setEnabled(false);mi.addActionListener(listener);
         // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Spoit")));mi.setEnabled(false);mi.addActionListener(listener);
 
-        // 0.ブラウズモード
+        // 0. Browse mode
         if (mode == 0) {
-            // Objectsメニュー
+            // Objects menu
             m = new JMenu(PCARD.pc.intl.getText("Objects"));
             mb.add(m);
             m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Button Info…")));
@@ -393,10 +393,10 @@ public class GMenu {
             m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Stack Info…")));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Bring Closer")));
+            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("to front")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Send Farther")));
+            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("to back")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, s));
             mi.addActionListener(listener);
             m.addSeparator();
@@ -410,7 +410,7 @@ public class GMenu {
         }
 
         if (mode == 1) {
-            // Paintメニュー
+            // Paint menu
             m = new JMenu(PCARD.pc.intl.getText("Paint"));
             mb.add(m);
             // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
@@ -486,7 +486,7 @@ public class GMenu {
 
         }
 
-        // Viewメニュー
+        // View menu
         m = new JMenu(PCARD.pc.intl.getText("View"));
         mb.add(m);
         m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x1")));
@@ -581,7 +581,7 @@ public class GMenu {
         }
         if (subm == null) return;
 
-        // 最近使ったスタック
+        // Recently used stacks
         File recentFile = new File("resource_trash" + File.separatorChar + "recent.txt");
         if (recentFile.exists()) {
             FileInputStream fis = null;
@@ -649,7 +649,7 @@ class TearoffThread extends Thread
     }
 }*/
 
-// ブラウズ時のメニュー動作(オーサリング、ペイントでも使う)
+// Menu actions during browsing (also used in authoring and painting)
 class GMenuBrowse implements ActionListener {
 
     @Override
@@ -657,7 +657,7 @@ class GMenuBrowse implements ActionListener {
         String cmd = e.getActionCommand();
         // System.out.println(cmd);
 
-        // スクリプト実行中はメニュー実施しない
+        // Do not execute menu during script execution
         if (TTalk.idle != true) return;
 
         try {
@@ -693,7 +693,7 @@ class GMenuBrowse implements ActionListener {
             }
 
             if (PCARD.pc.tool != null) {
-                // ペイントツールの場合はこれで色々やる
+                // For paint tools, do various things with this
                 TBButtonListener.ChangeTool("DummyPaint", null);
             } else if (AuthTool.tool != null) {
                 if (AuthTool.tool.getClass() == ButtonTool.class) {
@@ -814,7 +814,7 @@ class GMenuBrowse implements ActionListener {
         } else if (cmd.equalsIgnoreCase("New Field")) {
             TTalk.doScriptforMenu("choose field tool");
             TTalk.doScriptforMenu("create field");
-        } else if (cmd.equalsIgnoreCase("Bring Closer")) { // to front
+        } else if (cmd.equalsIgnoreCase("to front")) { // to front
             if (AuthTool.tool.getClass() == ButtonTool.class) {
                 if (ButtonGUI.gui.target != null) {
                     OButton obtn = null;
@@ -844,7 +844,7 @@ class GMenuBrowse implements ActionListener {
                         GUI.removeAllListener();
                         ButtonGUI.gui.addListenerToParts();
 
-                        // obtnは生きているがtargetはいなくなるので取り直す
+                        // obtn still exists but target is gone, so re-acquire it
                         ButtonGUI.gui.target = obtn.getComponent();
                     }
                 } else {
@@ -876,7 +876,7 @@ class GMenuBrowse implements ActionListener {
                         GUI.removeAllListener();
                         FieldGUI.gui.addListenerToParts();
 
-                        // obtnは生きているがtargetはいなくなるので取り直す
+                        // obtn still exists but target is gone, so re-acquire it
                         FieldGUI.gui.target = obtn.getComponent();
                     }
                 } else {
@@ -884,7 +884,7 @@ class GMenuBrowse implements ActionListener {
                             null, "OK", null, null);
                 }
             }
-        } else if (cmd.equalsIgnoreCase("Send Farther")) { // to back
+        } else if (cmd.equalsIgnoreCase("to back")) { // to back
             if (AuthTool.tool.getClass() == ButtonTool.class) {
                 if (ButtonGUI.gui.target != null) {
                     OButton obtn = null;
@@ -914,7 +914,7 @@ class GMenuBrowse implements ActionListener {
                         GUI.removeAllListener();
                         ButtonGUI.gui.addListenerToParts();
 
-                        // obtnは生きているがtargetはいなくなるので取り直す
+                        // obtn still exists but target is gone, so re-acquire it
                         ButtonGUI.gui.target = obtn.getComponent();
                     }
                 } else {
@@ -946,7 +946,7 @@ class GMenuBrowse implements ActionListener {
                         GUI.removeAllListener();
                         FieldGUI.gui.addListenerToParts();
 
-                        // obtnは生きているがtargetはいなくなるので取り直す
+                        // obtn still exists but target is gone, so re-acquire it
                         FieldGUI.gui.target = obtn.getComponent();
                     }
                 } else {
@@ -985,7 +985,7 @@ class GMenuBrowse implements ActionListener {
         } else if (cmd.equalsIgnoreCase("Cut Button") || cmd.equalsIgnoreCase("Copy Button")) {
             if (AuthTool.tool.getClass() == ButtonTool.class) {
                 if (ButtonGUI.gui.tgtOBtn != null) {
-                    // XMLテキストを取得
+                    // Get XML text
                     XMLOutputFactory factory = XMLOutputFactory.newInstance();
                     StringWriter stringWriter = new StringWriter();
                     try {
@@ -1024,15 +1024,15 @@ class GMenuBrowse implements ActionListener {
                             writer.writeCharacters("\n\t\t");
                         }
 
-                        // ボタン情報をXMLにする
+                        // Convert button info to XML
                         ButtonGUI.gui.tgtOBtn.writeXML(writer);
 
-                        // buttonclipタグを閉じる
+                        // Close buttonclip tag
                         writer.writeEndElement();
 
                         writer.close();
 
-                        // クリップボードにコピー
+                        // Copy to clipboard
                         {
                             Toolkit kit = Toolkit.getDefaultToolkit();
                             Clipboard clip = kit.getSystemClipboard();
@@ -1042,7 +1042,7 @@ class GMenuBrowse implements ActionListener {
                         }
 
                         if (cmd.equalsIgnoreCase("Cut Button")) {
-                            // カットのときは削除する
+                            // Delete on cut
                             ((OCardBase) ButtonGUI.gui.tgtOBtn.parent).partsList.remove(ButtonGUI.gui.tgtOBtn);
                             ((OCardBase) ButtonGUI.gui.tgtOBtn.parent).btnList.remove(ButtonGUI.gui.tgtOBtn);
                             if (ButtonGUI.gui.tgtOBtn.getComponent() != null) {
@@ -1090,7 +1090,7 @@ class GMenuBrowse implements ActionListener {
                     }
                     OButton btn = new OButton(cdbase, newid);
                     try {
-                        // clipoptionエレメントを読み出す
+                        // Read clipoption element
                         String iconpath = "";
                         String iconname = "";
                         String fontname = "";
@@ -1149,13 +1149,13 @@ class GMenuBrowse implements ActionListener {
                                 path += File.separatorChar + fname;
                             }*/
                             if (!iconpath.equals(path)) {
-                                // 他のスタックからのコピーの場合アイコンリソースもコピーする
+                                // If copying from another stack, also copy icon resources
                                 if (PCARD.pc.stack.rsrc.getNameAll(btn.icon, "icon") != null) {
-                                    // アイコンが既に存在しているので別のIDにする
+                                    // Icon already exists, use a different ID
                                     btn.icon = PCARD.pc.stack.rsrc.getNewResourceId("icon", btn.icon);
                                 }
                                 if (iconpath != null && !iconpath.isEmpty() && new File(iconpath).exists()) {
-                                    // ファイルをコピー
+                                    // Copy file
                                     String srcfname = new File(iconpath).getName();
                                     String ext = "";
                                     if (srcfname.lastIndexOf(".") >= 0) {
@@ -1168,7 +1168,7 @@ class GMenuBrowse implements ActionListener {
                                             FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                         srcChannel.transferTo(0, srcChannel.size(), destChannel);
                                     }
-                                    // リソースに追加
+                                    // Add to resources
                                     PCARDFrame.pc.stack.rsrc.addResource(btn.icon, "icon", iconname, newFileName);
                                 }
                             }
@@ -1189,7 +1189,7 @@ class GMenuBrowse implements ActionListener {
         } else if (cmd.equalsIgnoreCase("Cut Field") || cmd.equalsIgnoreCase("Copy Field")) {
             if (AuthTool.tool.getClass() == FieldTool.class) {
                 if (FieldGUI.gui.tgtOFld != null) {
-                    // XMLテキストを取得
+                    // Get XML text
                     XMLOutputFactory factory = XMLOutputFactory.newInstance();
                     StringWriter stringWriter = new StringWriter();
                     try {
@@ -1215,15 +1215,15 @@ class GMenuBrowse implements ActionListener {
                             writer.writeCharacters("\n\t\t");
                         }
 
-                        // フィールド情報をXMLにする
+                        // Convert field info to XML
                         FieldGUI.gui.tgtOFld.writeXML(writer);
 
-                        // fieldclipタグを閉じる
+                        // Close fieldclip tag
                         writer.writeEndElement();
 
                         writer.close();
 
-                        // クリップボードにコピー
+                        // Copy to clipboard
                         {
                             Toolkit kit = Toolkit.getDefaultToolkit();
                             Clipboard clip = kit.getSystemClipboard();
@@ -1233,7 +1233,7 @@ class GMenuBrowse implements ActionListener {
                         }
 
                         if (cmd.equalsIgnoreCase("Cut Field")) {
-                            // カットのときは削除する
+                            // Delete on cut
                             ((OCardBase) FieldGUI.gui.tgtOFld.parent).partsList.remove(FieldGUI.gui.tgtOFld);
                             ((OCardBase) FieldGUI.gui.tgtOFld.parent).fldList.remove(FieldGUI.gui.tgtOFld);
                             if (FieldGUI.gui.tgtOFld.getComponent() != null) {
@@ -1281,7 +1281,7 @@ class GMenuBrowse implements ActionListener {
                     }
                     OField fld = new OField(cdbase, newid);
                     try {
-                        // clipoptionエレメントを読み出す
+                        // Read clipoption element
                         String fontname = "";
                         String text = "";
                         while (reader.hasNext()) {
@@ -1386,7 +1386,7 @@ class GMenuBrowse implements ActionListener {
                 if (fname.length() > 5 && fname.endsWith(".hzb")) {
                     // ok
                 } else if (parentpath.length() > 5 && parentpath.endsWith(".hzb")) {
-                    // .hzbの中にあるファイルを開くと親が開くようにする
+                    // When opening files in .hzb, parent opens
                     path = parentpath;
                 }
 
@@ -1397,7 +1397,7 @@ class GMenuBrowse implements ActionListener {
             fd.setVisible(true);
             if(fd.getFile()!=null){
                 String path = fd.getDirectory()+fd.getFile();*/
-            // MacOSXの標準ファイルダイアログが無用な上書き確認などするので自作する
+            // MacOSX standard file dialog shows unnecessary overwrite confirmation, so make custom one
             JFileChooser chooser = new JFileChooser();
             if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
                 chooser.setCurrentDirectory(PCARD.pc.stack.file.getParent().getParent().toFile());
@@ -1408,7 +1408,7 @@ class GMenuBrowse implements ActionListener {
             chooser.setFileFilter(new FileFilter() {
                 @Override
                 public boolean accept(File f) {
-                    // 拡張子がhzbのものは非表示
+                    // Hide items with hzb extension
                     String name = f.getName();
                     int n = name.lastIndexOf('.');
                     if (n > 0) {
@@ -1432,7 +1432,7 @@ class GMenuBrowse implements ActionListener {
             int selected = chooser.showSaveDialog(PCARD.pc);
             if (selected == JFileChooser.APPROVE_OPTION) {
                 try {
-                    // 進捗表示を開始
+                    // Start progress display
                     PCARD.pc.stack.barDialog = new JDialog(PCARD.pc);
                     PCARD.pc.stack.barDialog.setUndecorated(true);
                     PCARD.pc.stack.barDialog.getContentPane().setLayout(new BorderLayout());
@@ -1450,7 +1450,7 @@ class GMenuBrowse implements ActionListener {
 
                     String path = chooser.getSelectedFile().getPath();
 
-                    // 拡張子 hzb を付ける
+                    // Add hzb extension
                     int n = path.lastIndexOf('.');
                     if (n > 0) {
                         String ext = path.substring(n);
@@ -1463,7 +1463,7 @@ class GMenuBrowse implements ActionListener {
 
                     Path f = Path.of(path);
                     if (Files.exists(f)) {
-                        // 上書き確認
+                        // Overwrite confirmation
                         new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("This file name already exists. If you continue, the existing file will be replaced."),
                                 null, PCARDFrame.pc.intl.getDialogText("Cancel"), "OK", null);
                         if (GDialog.clicked.equals(PCARDFrame.pc.intl.getDialogText("Cancel"))) {
@@ -1485,14 +1485,14 @@ class GMenuBrowse implements ActionListener {
 
                     PCARD.pc.setTitle("");
 
-                    Files.createDirectory(f); // ディレクトリ作成
+                    Files.createDirectory(f); // Create directory
                     if (Files.exists(f)) {
                         PCARD.pc.stack.bar.setValue(10);
                         PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
 
                         Path xmlFilePath = f.getParent().resolve("_stack.xml");
 
-                        // スタックのインスタンスを作成
+                        // Create stack instance
                         OStack newStack = new OStack(PCARD.pc);
                         newStack.file = xmlFilePath;
                         newStack.rsrc = new Rsrc(newStack);
@@ -1500,7 +1500,7 @@ class GMenuBrowse implements ActionListener {
                         newStack.width = 640;
                         newStack.height = 480;
 
-                        // カードとバックグラウンドのインスタンスを作成
+                        // Create card and background instances
                         OCard cd = new OCard(newStack);
                         OBackground bg = new OBackground(newStack);
 
@@ -1544,7 +1544,7 @@ class GMenuBrowse implements ActionListener {
                         PCARD.pc.stack.bar.setValue(50);
                         PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
 
-                        // XML書き込み
+                        // XML writing
                         XMLwrite xmlWrite = new XMLwrite(newStack);
                         xmlWrite.saveStackNow();
                         try {
@@ -1560,7 +1560,7 @@ class GMenuBrowse implements ActionListener {
                         PCARD.pc.stack.barDialog.remove(PCARD.pc.stack.bar);
                         PCARD.pc.stack.barDialog.dispose();
 
-                        // XMLを開く
+                        // Open XML
                         TTalk.CallMessage("open stack \"" + f + "\"", "", null, false, true);
                     } else {
                         new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Can't create a new folder."),
@@ -1573,7 +1573,7 @@ class GMenuBrowse implements ActionListener {
         } else if (cmd.equalsIgnoreCase("New Card")) {
             if (PCARD.pc.stack.curCard == null) return;
 
-            // カードのインスタンスを作成
+            // Create card instance
             OCard cd = new OCard(PCARD.pc.stack);
 
             cd.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.GetMaxCardId());
@@ -1585,13 +1585,13 @@ class GMenuBrowse implements ActionListener {
         } else if (cmd.equalsIgnoreCase("New Background")) {
             if (PCARD.pc.stack.curCard == null) return;
 
-            // バックグラウンドのインスタンスを作成
+            // Create background instance
             OBackground bg = new OBackground(PCARD.pc.stack);
             bg.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.GetMaxCardId());
             bg.changed = true;
             PCARD.pc.stack.AddNewBg(bg);
 
-            // カードのインスタンスを作成
+            // Create card instance
             OCard cd = new OCard(PCARD.pc.stack);
             cd.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.GetMaxCardId());
             cd.bgid = bg.id;
@@ -1611,19 +1611,19 @@ class GMenuBrowse implements ActionListener {
                     if (i > 0) {
                         previd = PCARD.pc.stack.cardIdList.get(i - 1);
                     } else {
-                        // 最初のカードの場合
+                        // For the first card
                         previd = PCARD.pc.stack.cardIdList.get(i + 1);
                         PCARD.pc.stack.firstCard = previd;
                         PCARD.pc.stack.firstBg = PCARD.pc.stack.GetCardbyId(previd).bgid;
                     }
-                    // カード削除
+                    // Delete card
                     PCARD.pc.stack.cardIdList.remove(i);
 
                 }
             }
             for (int i = 0; i < PCARD.pc.stack.cdCacheList.size(); i++) {
                 if (PCARD.pc.stack.cdCacheList.get(i).id == PCARD.pc.stack.curCard.id) {
-                    // カード削除
+                    // Delete card
                     PCARD.pc.stack.cdCacheList.remove(i);
                 }
             }
@@ -1636,7 +1636,7 @@ class GMenuBrowse implements ActionListener {
                 }
             }
             if (!useBg) {
-                // bg参照数が0なので削除する
+                // Delete because bg reference count is 0
                 for (int j = 0; j < PCARD.pc.stack.bgCacheList.size(); j++) {
                     if (PCARD.pc.stack.bgCacheList.get(j).id == bgid) {
                         PCARD.pc.stack.bgCacheList.remove(j);
@@ -1675,7 +1675,7 @@ class GMenuBrowse implements ActionListener {
                 }
                 TTalk.doScriptforMenu("closeStack");
 
-                // スタック保存待ち
+                // Waiting for stack save
                 for (int j = 0; j < 100; j++) {
                     boolean flag = false;
                     if (PCARD.pc.stack.changed) {
@@ -1704,7 +1704,7 @@ class GMenuBrowse implements ActionListener {
                 }
             }
 
-            // 終了
+            // End
             System.exit(0);
         } else {
             for (int i = 0; i < GMenu.recentsMenuName.length; i++) {
@@ -1713,7 +1713,7 @@ class GMenuBrowse implements ActionListener {
                     return;
                 }
             }
-            // どのメニューにも一致しない
+            // Does not match any menu
             {
                 GMenuPaint.doMenu(cmd);
             }

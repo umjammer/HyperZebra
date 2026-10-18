@@ -36,7 +36,7 @@ class AuthTool {
 
     static authtoolInterface tool;
 
-//    static boolean editBackground; // はPaintToolのものを流用する
+//    static boolean editBackground; // Reuse PaintTool's version
 }
 
 
@@ -202,7 +202,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 
         newButton = false;
         if ((e.getModifiersEx() & InputEvent.META_DOWN_MASK) > 0 ||
-                (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0) { // 新規透明ボタン
+                (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0) { // New transparent button
             OCardBase cdbase = PCARDFrame.pc.stack.curCard;
             if (PaintTool.editBackground) {
                 cdbase = PCARDFrame.pc.stack.curCard.bg;
@@ -224,7 +224,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 target = obtn.btn;
                 tgtOBtn = obtn;
 
-                // 外観変更
+                // Change appearance
                 {
                     obtn.btn.setBounds(x, y, 2, 2);
                     obtn.style = 1;
@@ -296,7 +296,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 obtn.enabled = obtn2.enabled;
                 obtn.setVisible(obtn2.getVisible());
 
-                // 外観変更
+                // Change appearance
                 {
                     OButton.buildOButton(obtn);
                     tgtOBtn = obtn;
@@ -325,17 +325,17 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
         } else {
             target = null;
         }
-        startX = x; // 最初の位置を記憶
+        startX = x; // Remember initial position
         startY = y;
-        offsetX = e.getX(); // ポインタと部品のオフセットを記憶
+        offsetX = e.getX(); // Remember offset between pointer and component
         offsetY = e.getY();
-        lastX = x; // サイズの変更用に前回の位置を記憶
+        lastX = x; // Remember previous position for resizing
         lastY = y;
 
         isMouseDown = true;
 
         if (target != null) {
-            // ドラッグ時の描画が重いのでスレッド内でぶん回してみる
+            // Dragging drawing is heavy, so try running in a thread
             Thread p = new dragThread();
             p.start();
         }
@@ -365,7 +365,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             if (target.getClass() == MyCheck.class) obtn = ((MyCheck) target).btnData;
             if (target.getClass() == MyPopup.class) obtn = ((MyPopup) target).btnData;
             if (obtn != null) {
-                // ダブルクリック判定
+                // Double-click detection
                 if (!newButton && e.getClickCount() >= 2) {
                     AuthDialog.openAuthDialog(PCARDFrame.pc, "button", obtn);
                 } else {
@@ -419,7 +419,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 if (target != null) {
                     Rectangle newr = target.getBounds();
                     if (!sizeChange) {
-                        // 移動
+                        // Move
                         newr.x = x - offsetX;
                         newr.y = y - offsetY;
                         if (GUI.key[11] > 1) { // SHIFT
@@ -434,7 +434,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                             ((MyButton) target).setAutoHilite(false);
                         }
                     } else {
-                        // サイズ変更
+                        // Resize
                         if (sizeLeft) {
                             newr.x += x - lastX;
                             newr.width -= x - lastX;
@@ -485,7 +485,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 //        if (target != null) {
 //            Rectangle newr = target.getBounds();
 //            if (!sizeChange) {
-//                // 移動
+//                // Move
 //                newr.x = x - offsetX;
 //                newr.y = y - offsetY;
 //                if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) > 0) {
@@ -498,7 +498,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 //                target.setBounds(newr);
 //                target.setEnabled(false);
 //            } else {
-//                // サイズ変更
+//                // Resize
 //                newr.width += x - lastX;
 //                newr.height += y - lastY;
 //                target.setBounds(newr);
@@ -554,7 +554,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 tgtOBtn.setRect(tgtOBtn.left, tgtOBtn.top,
                         tgtOBtn.left + tgtOBtn.width + 1, tgtOBtn.top + tgtOBtn.height);
             }
-        } else if (GUI.key[14] > 0 && (GUI.key['+'] > 0)) { // テンキーの+はショートカットが効かないのでここに
+        } else if (GUI.key[14] > 0 && (GUI.key['+'] > 0)) { // Numpad + shortcut doesn't work, so put it here
             OButton obtn = tgtOBtn;
             int i = ((OCardBase) obtn.parent).GetNumberof(obtn) - 1;
             int ip = ((OCardBase) obtn.parent).GetNumberofParts(obtn) - 1;
@@ -570,9 +570,9 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 
             OCard.reloadCurrentCard();
 
-            // obtnは生きているがtargetはいなくなるので取り直す
+            // obtn still exists but target is gone, so re-acquire it
             ButtonGUI.gui.target = obtn.getComponent();
-        } else if (GUI.key[14] > 0 && (GUI.key['-'] > 0)) { // テンキーの-はショートカットが効かないのでここに
+        } else if (GUI.key[14] > 0 && (GUI.key['-'] > 0)) { // Numpad - shortcut doesn't work, so put it here
             OButton obtn = tgtOBtn;
             int i = ((OCardBase) obtn.parent).GetNumberof(obtn) - 1;
             int ip = ((OCardBase) obtn.parent).GetNumberofParts(obtn) - 1;
@@ -588,7 +588,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 
             OCard.reloadCurrentCard();
 
-            // obtnは生きているがtargetはいなくなるので取り直す
+            // obtn still exists but target is gone, so re-acquire it
             ButtonGUI.gui.target = obtn.getComponent();
         }
     }
@@ -655,16 +655,16 @@ class MyButtonDropListener extends DropTargetAdapter {
                             baseid = Integer.parseInt(m.group(1));
                         }
                         int iconid = PCARDFrame.pc.stack.rsrc.getNewResourceId("icon", baseid);
-                        // ファイルをコピー
+                        // Copy file
                         String newFileName = "ICON_" + iconid + ext;
                         Path newFilePath = PCARDFrame.pc.stack.file.getParent().resolve(newFileName);
                         try (FileChannel srcChannel = new FileInputStream(path.toFile()).getChannel();
                              FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                             srcChannel.transferTo(0, srcChannel.size(), destChannel);
                         }
-                        // リソースに追加
+                        // Add to resources
                         PCARDFrame.pc.stack.rsrc.addResource(iconid, "icon", name, newFileName);
-                        // ボタンのアイコンに設定
+                        // Set button icon
 //                        Component component = ((DropTarget) e.getSource()).getComponent();
 //                        OButton obtn = ((MyButton) component).btnData;
                         OCardBase cdbase = PCARDFrame.pc.stack.curCard;
@@ -832,7 +832,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
         newField = false;
         if ((e.getModifiersEx() & InputEvent.META_DOWN_MASK) > 0 ||
-                (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0) { // 新規フィールド
+                (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0) { // New field
             OCardBase cdbase = PCARD.pc.stack.curCard;
             if (PaintTool.editBackground) {
                 cdbase = PCARD.pc.stack.curCard.bg;
@@ -855,7 +855,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
                 target = ofld.fld;
                 tgtOFld = ofld;
 
-                // 外観変更
+                // Change appearance
                 {
                     ofld.fld.setBounds(x, y, 2, 2);
                     ofld.style = 1;
@@ -919,7 +919,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
                 ofld.enabled = obtn2.enabled;
                 ofld.setVisible(obtn2.getVisible());
 
-                // 外観変更
+                // Change appearance
                 {
                     OField.buildOField(ofld);
                     tgtOFld = ofld;
@@ -943,17 +943,17 @@ class FieldGUI implements MouseListener, MouseMotionListener {
         } else {
             target = null;
         }
-        startx = x; // 最初の位置を記憶
+        startx = x; // Remember initial position
         starty = y;
-        offsetx = e.getX(); // ポインタと部品のオフセットを記憶
+        offsetx = e.getX(); // Remember offset between pointer and component
         offsety = e.getY();
-        lastx = x; // サイズの変更用に前回の位置を記憶
+        lastx = x; // Remember previous position for resizing
         lasty = y;
 
         isMouseDown = true;
 
         if (target != null) {
-            // ドラッグ時の描画が重いのでスレッド内でぶん回してみる
+            // Dragging drawing is heavy, so try running in a thread
             Thread p = new dragThread();
             p.start();
         }
@@ -979,7 +979,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
             else if (target.getClass() == MyScrollPane.class) ofld = ((MyScrollPane) target).fldData;
 
             if (ofld != null) {
-                // ダブルクリック判定
+                // Double-click detection
                 if (!newField && e.getClickCount() >= 2) {
                     AuthDialog.openAuthDialog(PCARD.pc, "field", ofld);
                 } else {
@@ -1031,7 +1031,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
                 if (target != null) {
                     Rectangle newr = target.getBounds();
                     if (!sizeChange) {
-                        // 移動
+                        // Move
                         newr.x = x - offsetx;
                         newr.y = y - offsety;
                         if (GUI.key[11] > 1) { // SHIFT
@@ -1044,7 +1044,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
                         target.setBounds(newr);
                         target.setEnabled(false);
                     } else {
-                        // サイズ変更
+                        // Resize
                         if (sizeleft) {
                             newr.x += x - lastx;
                             newr.width -= x - lastx;
@@ -1086,7 +1086,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 //        if (target != null) {
 //            Rectangle newr = target.getBounds();
 //            if (!sizeChange) {
-//                // 移動
+//                // Move
 //                newr.x = x - offsetX;
 //                newr.y = y - offsetY;
 //                if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) > 0) {
@@ -1098,7 +1098,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 //                }
 //                target.setBounds(newr);
 //            } else {
-//                // サイズ変更
+//                // Resize
 //                newr.width += x - lastX;
 //                newr.height += y - lastY;
 //                target.setBounds(newr);
@@ -1153,7 +1153,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
                 tgtOFld.setRect(tgtOFld.left, tgtOFld.top,
                         tgtOFld.left + tgtOFld.width + 1, tgtOFld.top + tgtOFld.height);
             }
-        } else if (GUI.key[14] > 0 && (GUI.key['+'] > 0)) { // テンキーの+はショートカットが効かないのでここに
+        } else if (GUI.key[14] > 0 && (GUI.key['+'] > 0)) { // Numpad + shortcut doesn't work, so put it here
             OField ofld = tgtOFld;
             int i = ((OCardBase) ofld.parent).GetNumberof(ofld) - 1;
             int ip = ((OCardBase) ofld.parent).GetNumberofParts(ofld) - 1;
@@ -1169,9 +1169,9 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
             OCard.reloadCurrentCard();
 
-            // ofldは生きているがtargetはいなくなるので取り直す
+            // ofld still exists but target is gone, so re-acquire it
             FieldGUI.gui.target = ofld.getComponent();
-        } else if (GUI.key[14] > 0 && (GUI.key['-'] > 0)) { // テンキーの-はショートカットが効かないのでここに
+        } else if (GUI.key[14] > 0 && (GUI.key['-'] > 0)) { // Numpad - shortcut doesn't work, so put it here
             OField ofld = tgtOFld;
             int i = ((OCardBase) ofld.parent).GetNumberof(ofld) - 1;
             int ip = ((OCardBase) ofld.parent).GetNumberofParts(ofld) - 1;
@@ -1187,7 +1187,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
             OCard.reloadCurrentCard();
 
-            // ofldは生きているがtargetはいなくなるので取り直す
+            // ofld still exists but target is gone, so re-acquire it
             FieldGUI.gui.target = ofld.getComponent();
         }
     }
@@ -1238,7 +1238,7 @@ class MyFieldDropListener extends DropTargetAdapter {
 //                        baseid = Integer.valueOf(m.group(1));
 //                    }
 //                    int rsrcid = PCARD.pc.stack.rsrc.getNewResourceId("pictfont", baseid);
-//                    // ファイルをコピー
+//                    // Copy file
 //                    String newFileName = "PICTFONT_" + rsrcid + ext;
 //                    String newFilePath = PCARD.pc.stack.file.getParent() + File.separatorChar + newFileName;
 //                    FileChannel srcChannel = new FileInputStream(path).getChannel();
@@ -1249,9 +1249,9 @@ class MyFieldDropListener extends DropTargetAdapter {
 //                        srcChannel.close();
 //                        destChannel.close();
 //                    }
-//                    // リソースに追加
+//                    // Add to resources
 //                    PCARD.pc.stack.rsrc.addResource(rsrcid, "pictfont", name, newFileName);
-//                    // フィールドのフォントに設定
+//                    // Set field font
 //                    Component component = ((DropTarget) e.getSource()).getComponent();
 //                    OField ofld = ((MyTextArea) component).fldData;
 //                    ofld.fontPict = bi;

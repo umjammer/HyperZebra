@@ -86,7 +86,7 @@ public class ResEdit {
             pc.stack = new OStack(pc);
         }
 
-        // 各Typeごとに開いて選択する
+        // Open and select for each type
         if (type.equals("icon") || type.equals("cicn") || type.equals("picture") || type.equals("cursor")) {
             child = new IconTypeEditor(pc, type, object);
         } else {
@@ -163,7 +163,7 @@ class ResTypeEditor extends JFrame {
             scrollpane.setViewportView(contpane);
         }
 
-        // アイコン選択ダイアログのときはok buttonを表示
+        // Show OK button for icon selection dialog
         if (object != null) {
             JPanel okPanel = new JPanel();
             okPanel.setLayout(new FlowLayout());
@@ -191,7 +191,7 @@ class ResTypeEditor extends JFrame {
         }
 
         if (object == null) {
-            // リソースをソートしてリストに保存
+            // Sort resources and save to list
             int number = pc.stack.rsrc.getRsrcCount(type);
 
             rsrcAry = new RsrcClass[number];
@@ -201,7 +201,7 @@ class ResTypeEditor extends JFrame {
             }
             Arrays.sort(rsrcAry, new DataComparator());
         } else {
-            // リソースをソートしてリストに保存
+            // Sort resources and save to list
             int number = pc.stack.rsrc.getRsrcCount(type);
             int numberall = pc.stack.rsrc.getRsrcCountAll(type);
 
@@ -367,7 +367,7 @@ class IconTypeEditor extends ResTypeEditor {
             }
             iconlabel.setHorizontalAlignment(SwingConstants.CENTER);
             iconlabel.addMouseListener(listener);
-            // iconはすべて読み込めないので後で表示する
+            // Not all icons can be loaded, so display them later
             panel.add("North", iconlabel);
 
             JLabel label = new JLabel(rsrc.id + " " + rsrc.name);
@@ -454,7 +454,7 @@ class IconTypeEditor extends ResTypeEditor {
                 int w = 124;
                 int h = 110;
                 if (bi != null && (bi.getWidth() <= w && bi.getHeight() <= h)) {
-                    // そのままの大きさ
+                    // Original size
                     // String filename = pcard.stack.rsrc.getFileName(Integer.valueOf(this.getName()), "icon");
                     // String path = pcard.stack.file.getParent()+File.separatorChar+filename;
                     setIcon(new ImageIcon(bi));
@@ -464,7 +464,7 @@ class IconTypeEditor extends ResTypeEditor {
                     return;
                 }
                 if (bi != null && (bi.getWidth() > w || bi.getHeight() > h)) {
-                    // 縮小表示
+                    // Resize display
                     float rate = (float) w / bi.getWidth();
                     if ((float) h / bi.getHeight() < rate) {
                         rate = (float) h / bi.getHeight();
@@ -472,7 +472,7 @@ class IconTypeEditor extends ResTypeEditor {
                     int nw = (int) (rate * bi.getWidth());
                     int nh = (int) (rate * bi.getHeight());
 
-                    // 3倍の大きさの画像も用意
+                    // Also prepare an image 3 times the size
                     if (bi.getWidth() > nw * 3) {
                         this.bi = new BufferedImage(nw * 3, nh * 3, BufferedImage.TYPE_INT_ARGB);
                         Graphics2D g1 = (Graphics2D) this.bi.getGraphics();
@@ -487,7 +487,7 @@ class IconTypeEditor extends ResTypeEditor {
                     bi.flush();
                     bi = newbi;
 
-                    // 後から高画質にする
+                    // Enhance quality later
                     if (updateThread == null || !updateThread.isAlive()) {
                         updateThread = new lateUpdateThread();
                         updateThread.setButton(this);
@@ -527,7 +527,7 @@ class IconTypeEditor extends ResTypeEditor {
 
         @Override
         public void run() {
-            // 高画質にする
+            // Enhance quality
             setPriority(MIN_PRIORITY);
 
             try {
@@ -545,7 +545,7 @@ class IconTypeEditor extends ResTypeEditor {
                     this.interrupt();
                 }
 
-                // 画面上に見えているか？
+                // Is it visible on screen?
                 int top = button.owner.scrollpane.getVerticalScrollBar().getValue();
                 int bottom = top + button.owner.scrollpane.getHeight();
                 if (button.getParent().getBounds().y + button.getBounds().height > top &&
@@ -559,7 +559,7 @@ class IconTypeEditor extends ResTypeEditor {
                     }
                     int nw = (int) (rate * bi.getWidth());
                     int nh = (int) (rate * bi.getHeight());
-                    // そこからきれいに縮小
+                    // Then scale down cleanly
                     Image img = bi.getScaledInstance(nw, -1, Image.SCALE_AREA_AVERAGING);
                     BufferedImage newbi = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2 = (Graphics2D) newbi.getGraphics();
@@ -581,12 +581,12 @@ class IconTypeEditor extends ResTypeEditor {
         @Override
         public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() >= 2) {
-                // ダブルクリック
+                // Double click
                 if (pcard.stack.rsrc.rsrcIdMap.containsKey(type + editor.selectedId[0])) {
-                    // 開く
+                    // Open
                     new IconEditor(editor, pcard.stack.rsrc, type, editor.selectedId[0]);
                 } else {
-                    // このスタックのリソースでない場合はコピーを作るか尋ねる
+                    // If not a resource in this stack, ask to make a copy
                     new GDialog(editor, PCARD.pc.intl.getDialogText("This resource is not in this stack. Make a copy?"), null, "Cancel", "OK", null);
                     if (GDialog.clicked.equals("OK")) {
                         RsrcClass r = pcard.stack.rsrc.getResourceAll(editor.selectedId[0], type);
@@ -623,19 +623,19 @@ class IconTypeEditor extends ResTypeEditor {
             IconButton btn = (IconButton) e.getSource();
             IconTypeEditor editor = (IconTypeEditor) (btn.getRootPane().getParent());
             if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0) {
-                // 範囲選択
+                // Range selection
                 int selectid = Integer.parseInt(btn.getName());
                 int lastselectid = editor.selectedId[0];
                 int allnumber = rsrcAry.length;
                 for (int i = 0; i < allnumber; i++) {
                     RsrcClass rsrc = rsrcAry[i];
                     if ((rsrc.id <= selectid) != (rsrc.id <= lastselectid)) {
-                        // 一つずつ追加
+                        // Add one by one
                         IconButton[] newSelectedButton = new IconButton[editor.selectedButton.length + 1];
                         int[] newSelectedId = new int[editor.selectedButton.length + 1];
                         System.arraycopy(editor.selectedButton, 0, newSelectedButton, 1, editor.selectedButton.length);
                         System.arraycopy(editor.selectedId, 0, newSelectedId, 1, editor.selectedButton.length);
-                        // ボタンを探す
+                        // Find button
                         for (int j = 0; j < contpane.getComponentCount(); j++) {
                             JPanel panel = (JPanel) contpane.getComponent(i);
                             IconButton iconbutton = (IconButton) panel.getComponent(0);
@@ -652,7 +652,7 @@ class IconTypeEditor extends ResTypeEditor {
                 }
             } else if (((e.getModifiersEx() & InputEvent.META_DOWN_MASK) != 0) ||
                     ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0)) {
-                // 追加選択
+                // Add to selection
                 IconButton[] newSelectedButton = new IconButton[editor.selectedButton.length + 1];
                 int[] newSelectedId = new int[editor.selectedButton.length + 1];
                 System.arraycopy(editor.selectedButton, 0, newSelectedButton, 1, editor.selectedButton.length);
@@ -663,7 +663,7 @@ class IconTypeEditor extends ResTypeEditor {
                 editor.selectedId = newSelectedId;
                 ((IconButton) (e.getSource())).setBorder(getSelectedBorder(96, 96, 128));
             } else {
-                // 一つ選択
+                // Select one
                 if (editor.selectedButton != null) {
                     for (int i = 0; i < editor.selectedButton.length; i++) {
                         if (editor.selectedButton[i] != null) {
@@ -788,7 +788,7 @@ class IconTypeEditor extends ResTypeEditor {
                             if (pcard.stack.file != null) {
                                 iconid = pcard.stack.rsrc.getNewResourceId(type, baseid);
 
-                                // ファイルをコピー
+                                // Copy file
                                 switch (type) {
                                     case "icon" -> newFileName = "ICON_" + iconid + ext;
                                     case "cicn" -> newFileName = "cicn_" + iconid + ext;
@@ -806,7 +806,7 @@ class IconTypeEditor extends ResTypeEditor {
                                 iconid = pcard.stack.rsrc.getNewResourceId(type, 1);
                                 newFileName = path;
                             }
-                            // リソースに追加
+                            // Add to resources
                             pcard.stack.rsrc.addResource(iconid, type, name, newFileName);
 
                             editor.selectedId[j] = iconid;
@@ -816,7 +816,7 @@ class IconTypeEditor extends ResTypeEditor {
                             new GDialog(editor, str, null, "OK", null, null);
                         }
                     }
-                    // 開き直す
+                    // Reload
                     editor.open(pcard, 0);
                 }
             } catch (Exception ex) {
@@ -862,7 +862,7 @@ class OtherTypeEditor extends ResTypeEditor {
         int number = rsrcAry.length;
         setTitle(type + "(" + number + ")");
 
-        // テーブルを用意
+        // Prepare table
         String[][] tabledata = new String[number][3];
 
         for (int i = 0; i < number; i++) {
@@ -908,7 +908,7 @@ class REMenu {
 
         listener = new REMenuListener(owner);
 
-        // メニューバーの設定
+        // Set up menu bar
         JMenuBar mb = new JMenuBar();
         owner.setJMenuBar(mb);
 
@@ -919,7 +919,7 @@ class REMenu {
             s = InputEvent.META_DOWN_MASK;
         }
 
-        // Fileメニュー
+        // File menu
         m = new JMenu(PCARDFrame.pc.intl.getText("File"));
         mb.add(m);
 
@@ -942,7 +942,7 @@ class REMenu {
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
         mi.addActionListener(listener);
 
-        // Editメニュー
+        // Edit menu
         m = new JMenu(PCARDFrame.pc.intl.getText("Edit"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Cut")));
@@ -964,7 +964,7 @@ class REMenu {
     }
 }
 
-// リソース編集のメニュー動作
+// Resource editing menu actions
 class REMenuListener implements ActionListener {
 
     ResTypeEditor editor;
@@ -1005,7 +1005,7 @@ class REMenuListener implements ActionListener {
                         name = "dummy";
                     }
                 }
-                // ファイルを作成
+                // Create file
                 if (editor.pcard.stack.file == null) return;
                 Path newFilePath = editor.pcard.stack.file.getParent().resolve(newFileName);
                 File newFile = newFilePath.toFile();
@@ -1021,11 +1021,11 @@ class REMenuListener implements ActionListener {
                     System.out.println("unknown resource type..");
                 }
 
-                // リソースに追加
+                // Add to resources
                 editor.pcard.stack.rsrc.addResource(rsrcid, editor.type, name, newFileName);
                 editor.selectedId = new int[1];
                 editor.selectedId[0] = rsrcid;
-                // 開き直す
+                // Reload
                 editor.open(editor.pcard, 0);
             }
             case "Open" -> {
@@ -1042,7 +1042,7 @@ class REMenuListener implements ActionListener {
                 for (int i = 0; i < number; i++) {
                     RsrcClass rsrc = editor.rsrcAry[i];
                     if (editor.type.equals("icon")) {
-                        // ボタンを探す
+                        // Find button
                         for (int j = 0; j < editor.contpane.getComponentCount(); j++) {
                             JPanel panel = (JPanel) editor.contpane.getComponent(i);
                             IconTypeEditor.IconButton iconbutton = (IconTypeEditor.IconButton) panel.getComponent(0);
@@ -1068,7 +1068,7 @@ class REMenuListener implements ActionListener {
                 String attrStr = "";
                 if(new File("/Developer/Tools/GetFileInfo").exists()){
                     try {
-                        // バンドルかどうか
+                // Whether it's a bundle
                         ProcessBuilder pb = new ProcessBuilder("/Developer/Tools/GetFileInfo", getConvertPath(parentPath));
                         Process p = pb.start();
                         p.waitFor();
@@ -1100,7 +1100,7 @@ class REMenuListener implements ActionListener {
                         ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", notBundleAttr, "\""+parentPath+"\"");
                         pb1.start();
                     }*/
-                        // "-R"はOSX10.6以上 バンドルの中はあらかじめ開いておかないと表示できない
+                        // "-R" requires OSX 10.6 or later; bundles must be opened in advance to be displayed
                         ProcessBuilder pb = new ProcessBuilder("open", "-R", filename.toString());
                         pb.start();
                     /*if(isBundle){
@@ -1114,7 +1114,7 @@ class REMenuListener implements ActionListener {
             }
             case "Cut", "Copy" -> {
                 if (editor.selectedId.length > 0) {
-                    // ファイルをコピー
+                    // Copy file
                     for (int i = 0; i < editor.selectedId.length; i++) {
                         RsrcClass rsrc;
                         rsrc = editor.pcard.stack.rsrc.getResource1(editor.selectedId[i], editor.type);
@@ -1130,7 +1130,7 @@ class REMenuListener implements ActionListener {
                         }
                     }
 
-                    // XMLテキストを取得
+                    // Get XML text
                     XMLOutputFactory factory = XMLOutputFactory.newInstance();
                     StringWriter stringWriter = new StringWriter();
                     try {
@@ -1149,7 +1149,7 @@ class REMenuListener implements ActionListener {
 
                         writer.close();
 
-                        // クリップボードにコピー(XML)
+                        // Copy to clipboard (XML)
                         {
                             Toolkit kit = Toolkit.getDefaultToolkit();
                             Clipboard clip = kit.getSystemClipboard();
@@ -1235,14 +1235,14 @@ class REMenuListener implements ActionListener {
                                     }
                                 }
                                 if (isComplete) {
-                                    // リソースを追加
+                                    // Add resource
                                     int id = editor.pcard.stack.rsrc.getNewResourceId(typeStr, origId);
 
-                                    // リソースのファイルもコピーする
+                                    // Also copy the resource file
                                     String srcFilePath = "resource_trash" + File.separatorChar + fnameStr;
                                     String newFileName = "dummy";
                                     if (new File(srcFilePath).exists()) {
-                                        // ファイルをコピー
+                                        // Copy file
                                         String ext = "";
                                         if (fnameStr.lastIndexOf(".") >= 0) {
                                             ext = fnameStr.substring(fnameStr.lastIndexOf("."));
@@ -1260,10 +1260,10 @@ class REMenuListener implements ActionListener {
                                             srcChannel.transferTo(0, srcChannel.size(), destChannel);
                                         }
                                     } else {
-                                        // ファイルがない
+                                        // File not found
                                     }
 
-                                    // リソースに追加
+                                    // Add to resources
                                     editor.pcard.stack.rsrc.addResource(id, typeStr, nameStr, newFileName, leftStr, topStr, info);
 
                                     int[] oldSelId = editor.selectedId;
@@ -1281,7 +1281,7 @@ class REMenuListener implements ActionListener {
                 else if (editor.type.equals("icon")) {
                     Image img = GMenuPaint.getClipboardImage();
                     if (img != null) {
-                        // 画像の場合
+                        // If it's an image
 
                         String newFileName = "dummy";
                         String name = "dummy";
@@ -1291,7 +1291,7 @@ class REMenuListener implements ActionListener {
                             newFileName = "ICON_" + rsrcid + ".png";
                             name = "";
                         }
-                        // ファイルを作成
+                        // Create file
                         Path newFilePath = editor.pcard.stack.file.getParent().resolve(newFileName);
                         File newFile = newFilePath.toFile();
                         if (editor.type.equals("icon")) {
@@ -1302,7 +1302,7 @@ class REMenuListener implements ActionListener {
                             }
                         }
 
-                        // リソースに追加
+                        // Add to resources
                         editor.pcard.stack.rsrc.addResource(rsrcid, "icon", name, newFileName);
                         editor.selectedId = new int[1];
                         editor.selectedId[0] = rsrcid;
@@ -1310,14 +1310,14 @@ class REMenuListener implements ActionListener {
                 }
 
                 editor.scroll = editor.scrollpane.getVerticalScrollBar().getValue();
-                // 開き直す
+                // Reload
                 editor.open(editor.pcard, 0);
                 OCard.reloadCurrentCard();
             }
         }
 
         if (cmd.equals("Delete") || cmd.equals("Cut")) {
-            // 削除
+            // Delete
             int number = editor.selectedId.length;
             for (int i = 0; i < number; i++) {
                 try {
@@ -1326,13 +1326,13 @@ class REMenuListener implements ActionListener {
                     e1.printStackTrace();
                 }
             }
-            // 選択解除
+            // Deselect
             if (editor.type.equals("icon")) {
                 ((IconTypeEditor) editor).selectedButton = null;
             }
             editor.selectedId = new int[] {0};
             editor.scroll = editor.scrollpane.getVerticalScrollBar().getValue();
-            // 開き直す
+            // Reload
             editor.open(editor.pcard, 0);
             OCard.reloadCurrentCard();
         }

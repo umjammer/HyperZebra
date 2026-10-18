@@ -96,7 +96,7 @@ public class TextEditor extends JFrame {
             obj.text = allStr;
             area.savedScript();
         } else {
-            System.out.println("テキストの保存に失敗しました");
+            System.out.println("Failed to save text");
         }
     }*/
 }
@@ -194,7 +194,7 @@ class TEMenu {
 
         listener = new TEMenuListener();
 
-        // メニューバーの設定
+        // Set up menu bar
         JMenuBar mb = new JMenuBar();
         TextEditor.setJMenuBar(mb);
 
@@ -206,9 +206,9 @@ class TEMenu {
         }
         int s_shift = s + InputEvent.SHIFT_MASK;
 
-        // Fileメニュー
+        // File menu
 
-        // Editメニュー
+        // Edit menu
         m = new JMenu(PCARDFrame.pc.intl.getText("Edit"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Undo")));
@@ -235,7 +235,7 @@ class TEMenu {
     }
 }
 
-// メニュー動作
+// Menu actions
 class TEMenuListener implements ActionListener {
 
     @Override

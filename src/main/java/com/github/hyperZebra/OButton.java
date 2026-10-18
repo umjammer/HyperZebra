@@ -56,23 +56,23 @@ public class OButton extends OObject {
     MyCheck chkbox = null;
     MyRadio radio = null;
     MyPopup popup = null;
-    BufferedImage imageForScale; // アイコン拡大縮小用データ;
+    BufferedImage imageForScale; // Data for icon scaling;
 
-    // プロパティ
+    // Properties
     // Boolean autoHilite=true;
     Color color = Color.BLACK;
     Color bgColor = Color.WHITE;
     int group = 0;
-    Boolean check_hilite = false;// 他のカードからの参照用
-    private boolean autoHilite = true;// 作成時のみ参照
-    private boolean hilite = false;// 作成時のみ参照
+    Boolean check_hilite = false;// For reference from other cards
+    private boolean autoHilite = true;// Referenced only at creation
+    private boolean hilite = false;// Referenced only at creation
     int icon = 0;
     URI iconURI;
-    // number (カードの情報から求める)
+    // number (calculated from card information)
     Boolean sharedHilite = false;
     Boolean showName = true;
-    int style = 0;// 0標準 1透明 2不透明 3長方形 4シャドウ 5丸みのある長方形 6省略時設定 7楕円 8ポップアップ 9チェックボックス 10ラジオ
-    int textAlign = 1;// 0左 1中 2右
+    int style = 0;// 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
+    int textAlign = 1;// 0 left 1 center 2 right
     String textFont = "";
     int textHeight = 16;
     int textSize = 12;
@@ -83,7 +83,7 @@ public class OButton extends OObject {
     int blendMode;
     int blendLevel = 100;
 
-    // 追加プロパティ
+    // Additional properties
     @SuppressWarnings("unused")
     private String reserved1;
     @SuppressWarnings("unused")
@@ -97,7 +97,7 @@ public class OButton extends OObject {
     @SuppressWarnings("unused")
     private String reserved25;
 
-    // 他
+    // Other
     static BufferedImage cache_bi;
     static ImageIcon cache_icon;
     static int cache_id = -99;
@@ -137,7 +137,7 @@ public class OButton extends OObject {
             popup.setToolTipText(in);
         }
         if (icon == -1) {
-            // PICTボタンの場合
+            // For PICT button
             setIcon(-1, false);
         } else if (!PCARD.lockedScreen) {
             PCARD.pc.mainPane.paintImmediately(left, top, width, height);
@@ -170,9 +170,9 @@ public class OButton extends OObject {
                         if (scaleIcon || blendMode != 0) imageForScale = cache_bi;
                         btn.setIcon(new ImageIcon(cache_bi));
                     }
-                    // btn.setIcon(cache_icon); // こんなことしても別に早くなっていない様子
+                    // btn.setIcon(cache_icon); // This doesn't seem to make it any faster
                 } else {
-                    // アイコン読み込み
+                    // Load icon
                     Path path = Paths.get(((OCardBase) parent).stack.rsrc.getFilePathAll(icon, "icon"));
                     if (path != null) {
                         // String path = (((OCardBase)parent).stack.file.getParent()+File.separatorChar+fileName);
@@ -201,7 +201,7 @@ public class OButton extends OObject {
                             e.printStackTrace();
                         }
                     } else {
-                        // アイコン読み込み(png,jpeg)
+                        // Load icon(png,jpeg)
                         File file = new File(card.stack.file.getParent() + "/resource/icon" + icon + ".png");
                         if (file.exists()) {
                             try {
@@ -236,7 +236,7 @@ public class OButton extends OObject {
                 }
                 if (!PCARD.lockedScreen && noupdate == false) {
                     /*if(cache_bi!=null){
-                        // もうちょっとちゃんとしないといけないが高速化
+                        // Needs to be done more properly but for speedup
                         Graphics paneg = PCARD.pc.mainPane.getGraphics();
                         paneg.drawImage(cache_bi,left,top,left+width,top+height,0,0,width,height,PCARD.pc.mainPane);
                     }else*/
@@ -251,7 +251,7 @@ public class OButton extends OObject {
                     }
                 }
             } else if (icon == -1) {
-                // PICTボタン読み込み(pbm)
+                // Load PICT button (pbm)
                 int rsrcid = ((OCardBase) parent).stack.rsrc.getRsrcIdAll(name, "picture");
                 Path path = Paths.get(((OCardBase) parent).stack.rsrc.getFilePathAll(rsrcid, "picture"));
                 if (path != null) {
@@ -270,7 +270,7 @@ public class OButton extends OObject {
                     } catch (IOException e) {
                     }
                 } else {
-                    // PICTボタン読み込み(jpeg,png)
+                    // Load PICT button (jpeg, png)
                     File file = new File(card.stack.file.getParent() + "/resource/pict" + name + ".png");
                     if (!file.exists()) {
                         file = new File(card.stack.file.getParent() + "/resource/pict" + name + ".jpeg");
@@ -1277,11 +1277,11 @@ public class OButton extends OObject {
     }
 
 
-    // HCのスタックを変換
+    // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readButtonBlock(DataInputStream dis, int partSize) {
         // System.out.println("====readButtonBlock====");
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         int flags = HCData.readCode(dis, 1);
         // System.out.println("flags:"+flags);
         setVisible(((flags >> 7) & 0x01) == 0);
@@ -1308,7 +1308,7 @@ public class OButton extends OObject {
         sharedHilite = !(((flags2 >> 4) & 0x01) != 0);
         group = (flags2) & 0x0F;
         int style = HCData.readCode(dis, 1);
-        // 0標準 1透明 2不透明 3長方形 4シャドウ 5丸みのある長方形 6省略時設定 7楕円 8ポップアップ 9チェックボックス 10ラジオ
+        // 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
         switch (style) {
             case 0:
                 this.style = 1;
@@ -1388,7 +1388,7 @@ public class OButton extends OObject {
         String scriptStr = scriptResult.str;
         // System.out.println("scriptStr:"+scriptStr);
 
-        // フォント名をテーブルから検索
+        // Search for font name from table
         OStack stack = ((OCardBase) this.parent).stack;
         for (int i = 0; i < stack.fontList.size(); i++) {
             if (stack.fontList.get(i).id == textFontID) {
@@ -1414,7 +1414,7 @@ public class OButton extends OObject {
             System.out.println("padding:"+padding);
         }*/
 
-        // スクリプト
+        // Script
         String[] scriptAry = scriptStr.split("\n");
         Collections.addAll(scriptList, scriptAry);
         stringList = new ArrayList[scriptList.size()];
@@ -1425,7 +1425,7 @@ public class OButton extends OObject {
 
 
     static void buildOButton(OButton obtn) {
-        // swingのボタンを追加
+        // Add Swing button
         if (obtn.style == 0 || obtn.style == 6) {
             obtn.btn = new MyButton(obtn, obtn.name);
             if (obtn.style == 6) {
@@ -1548,7 +1548,7 @@ public class OButton extends OObject {
             obtn.popup.setForeground(obtn.color);
             obtn.popup.setBackground(obtn.bgColor);
             if (obtn.height >= 19 && obtn.height <= 20) {
-                obtn.height = 20; // hcのデフォルトでは上が消えてしまう
+                obtn.height = 20; // In HC default the top gets cut off
             }
             obtn.popup.setBounds(obtn.left, obtn.top, obtn.width, obtn.height);
             obtn.popup.setEnabled(obtn.enabled);
@@ -1843,7 +1843,7 @@ class RoundedCornerButton extends MyButton {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (getHilite()) {
-            if (btnData.style != 1 && btnData.style != 7) { // 透明と楕円はXOR
+            if (btnData.style != 1 && btnData.style != 7) { // Transparent and oval are XOR
                 g2.setColor(Color.BLACK);
                 g2.fill(shape);
             } else {
@@ -1857,7 +1857,7 @@ class RoundedCornerButton extends MyButton {
             // }else if(hasFocus() && isFocusPainted()) {
             // paintFocusAndRollover(g2, fc);
         } else {
-            if (btnData.style != 1 && btnData.style != 7) { // 透明と楕円は書かない
+            if (btnData.style != 1 && btnData.style != 7) { // Transparent and oval are not drawn
                 g2.setColor(getBackground());
                 g2.fill(shape);
             }
@@ -1959,7 +1959,7 @@ class RectButton extends RoundedCornerButton {
         if (PCARD.lockedScreen && paneg == g) return;
         Graphics2D g2 = (Graphics2D) g;
         // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-        if (btnData.style == 1) { // 透明
+        if (btnData.style == 1) { // Transparent
             if (autoHilite && getHilite()) {
                 initShape();
                 g2.setXORMode(Color.WHITE);
@@ -1968,7 +1968,7 @@ class RectButton extends RoundedCornerButton {
                 // g2.setXORMode(Color.WHITE);
             }
         }
-        if (btnData.style == 2) { // 不透明
+        if (btnData.style == 2) { // Opaque
             initShape();
             if (autoHilite && getHilite()) {
                 g2.setXORMode(Color.WHITE);
@@ -1979,7 +1979,7 @@ class RectButton extends RoundedCornerButton {
                 g2.fill(shape);
             }
         }
-        if (btnData.style == 3 || btnData.style == 4) { // 長方形 シャドウ
+        if (btnData.style == 3 || btnData.style == 4) { // Rectangle Shadow
             initShape();
             if (getHilite()) {
                 // g2.setColor(Color.WHITE);

@@ -32,7 +32,7 @@ public class ResEditIndex extends JFrame {
 
         setTitle("Resource Editor");
 
-        // テーブルを用意
+        // Prepare table
         String[][] tabledata = {{"", ""}};
 
         JTable table = new JTable(tabledata, columnNames);
@@ -40,13 +40,13 @@ public class ResEditIndex extends JFrame {
         table.setEnabled(false);
         // table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
-        // スクロール
+        // Scroll
         scrollPane = new JScrollPane(table);
         add(scrollPane);
 
         setTable(stack.rsrc);
 
-        // ウィンドウ位置とサイズ設定
+        // Set window position and size
         setBounds(0, 0, 560, 480);
         setLocationRelativeTo(parent);
         setVisible(true);

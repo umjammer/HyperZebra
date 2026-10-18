@@ -118,7 +118,7 @@ public class ScriptEditor extends JFrame {
             PCARD.pc.stack.scriptEditor = new ScriptEditor(owner);
         }
 
-        // 2重オープンチェック
+        // Double open check
         if (tabPane != null) {
             for (int i = 0; i < tabPane.getComponentCount(); i++) {
                 if (!tabPane.getComponent(i).getName().equals("JScrollPane")) {
@@ -131,12 +131,12 @@ public class ScriptEditor extends JFrame {
                 if (scrPane.isValid() == false) {
                     PCARD.pc.stack.scriptEditor.dispose();
                     PCARD.pc.stack.scriptEditor = new ScriptEditor(owner);
-                    return;// 壊れている
+                    return;// Corrupted
                 }
                 ScriptArea area = (ScriptArea) scrPane.getViewport().getComponent(0);
                 if (area.compareObject(obj) == true) {
                     if (line > 0) {
-                        // 指定行にジャンプ
+                        // Jump to specified line
                         String[] newAry = area.getText().split("\n");
                         int selStart = 0;
                         int selEnd = 0;
@@ -206,7 +206,7 @@ public class ScriptEditor extends JFrame {
         }
 
         if (line > 0) {
-            // 指定行にジャンプ
+            // Jump to specified line
             String[] newAry = area.getText().split("\n");
             int selStart = 0;
             int selEnd = 0;
@@ -252,7 +252,7 @@ public class ScriptEditor extends JFrame {
             if (scrPane.getViewport().getComponentCount() == 0) return;
             ScriptArea area = (ScriptArea) scrPane.getViewport().getComponent(0);
             if (false == saveAlert(area)) {
-                return;// クローズキャンセル
+                return;// Cancel close
             }
         }
         PCARD.pc.stack.scriptEditor.setVisible(false);
@@ -274,10 +274,10 @@ public class ScriptEditor extends JFrame {
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
         if (retValue == JOptionPane.YES_OPTION) {
-            // 保存する
+            // Save
             saveScript(area);
         } else if (retValue == JOptionPane.NO_OPTION) {
-            // 保存しない
+            // Don't save
         } else if (retValue == JOptionPane.CANCEL_OPTION) {
             return false;
         }
@@ -293,7 +293,7 @@ public class ScriptEditor extends JFrame {
         }
 
         /*OObject obj = null;
-        // カード(bg)を開いているなら、メモリ上にあるオブジェクトの情報を書き換える
+        // If card (bg) is open, rewrite object info in memory
         if(area.ParentId==0 || area.compareParent(PCARD.pc.stack.curCard)){
             obj = area.getObject(PCARD.pc.stack.curCard);
         } else {
@@ -305,7 +305,7 @@ public class ScriptEditor extends JFrame {
             obj.setScript(allStr);
             area.savedScript();
         } else {
-            System.out.println("スクリプトの保存に失敗しました");
+            System.out.println("Failed to save script");
         }
     }
 
@@ -318,12 +318,12 @@ public class ScriptEditor extends JFrame {
         JMenuBar mb = PCARD.pc.stack.scriptEditor.getJMenuBar();
         for (int i = 0; i < mb.getMenuCount(); i++) {
             if (mb.getMenu(i).getText().equals(PCARD.pc.intl.getText("Debug"))) {
-                // すでにdebugメニューがある
+                // Debug menu already exists
                 return;
             }
         }
 
-        // debugメニューを作成
+        // Create debug menu
         SEMenuListener listener = new SEMenuListener();
         int s = InputEvent.CTRL_DOWN_MASK;
         if (System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
@@ -424,7 +424,7 @@ class ScriptArea extends JTextPane {
         // getDocument().addUndoableEditListener(undo);
         // getDocument().addUndoableEditListener(new UndoableEditListener() {
         // public void undoableEditHappened(UndoableEditEvent e) {
-        // 行われた編集(文字の追加や削除)をUndoManagerに登録
+        // Register performed edits (character additions or deletions) with UndoManager
                 /*if (checkThreadCnt==0) {
                     sub.addEdit(e.getEdit());
                     sub.end();
@@ -437,12 +437,12 @@ class ScriptArea extends JTextPane {
                 }*/
 
                 /*
-                 * http:// webcache.googleusercontent.com/search?q=cache:fm8Klx9_kTAJ:gline.zapto.org/log/read.php/tech/1227234261/101-200+UndoableEditEvent+色の変更は&cd=2&hl=ja&ct=clnk&gl=jp&client=safari&source=www.google.co.jp
-                 * javax.swing.undoではまったのでメモ。
-                    例えば、文字列の置換のような削除、挿入という複数の処理を１回で元に戻したい場合は
-                    UndoManagerを入れ子にする。
+                 * http:// webcache.googleusercontent.com/search?q=cache:fm8Klx9_kTAJ:gline.zapto.org/log/read.php/tech/1227234261/101-200+UndoableEditEvent+color+change+is&cd=2&hl=ja&ct=clnk&gl=jp&client=safari&source=www.google.co.jp
+                 * Note on getting stuck with javax.swing.undo.
+                    For example, when you want to undo multiple operations like deletion and insertion (such as string replacement) in one go,
+                    nest UndoManagers.
 
-                    UndoManagerを２つ用意して、基本はサブに追加する。一塊の処理が終わったらend()を呼んでメインに追加する。
+                    Prepare two UndoManagers, and basically add to the sub one. When a block of processing finishes, call end() to add to the main one.
 
                     void undoableEditHappened(UndoableEditEvent e) {
                     　　sub.addEdit(e.getEdit());
@@ -496,14 +496,14 @@ class ScriptArea extends JTextPane {
         int selectedStartChar = getSelectionStart() - script.substring(0, getSelectionStart()).lastIndexOf("\n") - 1;
         int selectedEndChar = getSelectionEnd() - script.substring(0, getSelectionEnd()).lastIndexOf("\n") - 1;
 
-        // タブ文字を消す
+        // Remove tab characters
         if (script.contains("\t")) {
             script = script.substring(0, script.indexOf("\t")) + script.substring(script.indexOf("\t") + 1);
             selectedStartChar--;
             selectedEndChar--;
         }
 
-        // インデントを解析
+        // Parse indentation
         StringBuilder newScript = new StringBuilder();
         String[] scrAry = (script + " ").split("\n");
         ArrayList<String> nestAry = new ArrayList<>();
@@ -651,7 +651,7 @@ class ScriptArea extends JTextPane {
             selEnd += selectedEndChar;
 
 
-            // テキストを設定
+            // Set text
             getDocument().removeDocumentListener(seListener);
             setText(newScript.toString());
             getDocument().addDocumentListener(seListener);
@@ -673,7 +673,7 @@ class ScriptArea extends JTextPane {
         StringBuilder handler = new StringBuilder();
         TreeSet<String> varSet = new TreeSet<>();
 
-        // 行の連結
+        // Join lines
         for (int i = scriptAry.length - 2; i >= 0; i--) {
             if (scriptAry[i].isEmpty()) continue;
             char c = scriptAry[i].charAt(scriptAry[i].length() - 1);
@@ -683,7 +683,7 @@ class ScriptArea extends JTextPane {
             }
         }
 
-        // 全ての行を解析
+        // Parse all lines
         for (int i = 0; i < scriptAry.length; i++) {
             stringList[i] = new ArrayList<>();
             typeList[i] = new ArrayList<>();
@@ -694,7 +694,7 @@ class ScriptArea extends JTextPane {
 
         getDocument().removeDocumentListener(seListener);
 
-        // 文字に色を付ける
+        // Colorize characters
         int start = 0;
         for (int i = 0; i < scriptAry.length; i++) {
             MutableAttributeSet attr = new SimpleAttributeSet();
@@ -750,16 +750,16 @@ class ScriptArea extends JTextPane {
         boolean inFunc = false;
         ArrayList<TTalk.wordType> Brackets = new ArrayList<>();
 
-        // 単語分割する。演算子、括弧、コメント、文字列の分別。
+        // Split into words. Separate operators, parentheses, comments, and strings.
         for (int i = 0; i < script.length(); i++) {
             char code = script.charAt(i);
             if (code == '+' || code == '-' || code == '*' || code == '/' || code == '^' || code == '&'
                     || code == '=' || code == '<' || code == '>' || code == '≠' || code == '≤' || code == '≥') {
                 if (code == '-' && i > 0 && script.codePointAt(i - 1) == '-') {
-                    // コメント
+                    // Comment
                     typeList.remove(typeList.size() - 1);
                     stringList.remove(stringList.size() - 1);
-                    // 行の終わりまでコメント
+                    // Comment to end of line
                     typeList.add(TTalk.wordType.COMMENT);
                     stringList.add(script.substring(i - 1));
                     break;
@@ -807,7 +807,7 @@ class ScriptArea extends JTextPane {
                         Brackets.add(TTalk.wordType.LBRACKET);
                         inFunc = false;
                     } else if (isCmd && typeList.size() == 1) {
-                        // 左側がコマンドとして認識される場合
+                        // When left side is recognized as command
                         typeList.add(TTalk.wordType.LBRACKET);
                         Brackets.add(TTalk.wordType.LBRACKET);
                         inFunc = false;
@@ -849,9 +849,9 @@ class ScriptArea extends JTextPane {
                     str.setLength(0);
                 }
                 if (inFunc) {
-                    typeList.add(TTalk.wordType.COMMA_FUNC);// 関数の引数指定
+                    typeList.add(TTalk.wordType.COMMA_FUNC);// Function argument specification
                 } else {
-                    typeList.add(TTalk.wordType.COMMA);// loc/rectあるいはglobal、はたまたハンドラの引数
+                    typeList.add(TTalk.wordType.COMMA);// loc/rect or global, or handler arguments
                 }
                 stringList.add(",");
             } else if (code == '"') {
@@ -906,7 +906,7 @@ class ScriptArea extends JTextPane {
         String command = "";
 
 
-        // 演算子を特定
+        // Identify operators
         for (int i = 0; i < typeList.size(); i++) {
             TTalk.wordType theType = typeList.get(i);
 
@@ -933,9 +933,9 @@ class ScriptArea extends JTextPane {
                                     typeList.set(i + 2, TTalk.wordType.OPERATOR_SUB);
                                     typeList.set(i + 3, TTalk.wordType.OPERATOR_SUB);
                                 }
-                                // else throw new xTalkException("there is notの後にa/anが必要です");
+                                // else throw new xTalkException("a/an is required after there is not");
                             }
-                            // else throw new xTalkException("there isの後にa/anが必要です");
+                            // else throw new xTalkException("a/an is required after there is");
                         }
                     }
                     case "is" -> {
@@ -974,13 +974,13 @@ class ScriptArea extends JTextPane {
             }*/
         }
 
-        // 各単語の分別
+        // Classify each word
         for (int i = 0; i < typeList.size(); i++) {
             TTalk.wordType type = typeList.get(i);
             if (type == TTalk.wordType.X) {
                 String str = stringList.get(i);
                 if (i == 0 && isCmd) {
-                    // 行の最初の単語
+                    // First word on line
                     switch (str) {
                         case "repeat" -> {
                             typeList.set(i, TTalk.wordType.REPEAT);
@@ -1038,7 +1038,7 @@ class ScriptArea extends JTextPane {
                     }
                 }
                 if ((i == 0 && isCmd) || i >= 1 && (typeList.get(i - 1) == TTalk.wordType.THEN || typeList.get(i - 1) == TTalk.wordType.ELSE)) {
-                    // コマンドをかけるところの最初の単語
+                    // First word where a command can be placed
                     if (PCARD.pc.stack.rsrc != null && PCARD.pc.stack.rsrc.getxcmdId(str, "command") > 0) {
                         typeList.set(i, TTalk.wordType.XCMD);
                     } else if (str.equals("global")) {
@@ -1086,7 +1086,7 @@ class ScriptArea extends JTextPane {
                         typeList.set(i, TTalk.wordType.USER_CMD);
                     }
                 } else {
-                    // コマンドが書けないところ
+                    // Where a command cannot be written
                     if (str.equals("else")) {
                         typeList.set(i, TTalk.wordType.ELSE);
                         continue;
@@ -1098,7 +1098,7 @@ class ScriptArea extends JTextPane {
                         continue;
                     } else if (typeList.get(0) == TTalk.wordType.ON_HAND ||
                             typeList.get(0) == TTalk.wordType.ON_FUNC) {
-                        // 引数
+                        // Arguments
                         typeList.set(i, TTalk.wordType.VARIABLE);
                         varSet.add(str);
                         continue;
@@ -1132,7 +1132,7 @@ class ScriptArea extends JTextPane {
                             }
                         }
                     } else if (typeList.get(0) == TTalk.wordType.GLOBAL) {
-                        // グローバル変数
+                        // Global variable
                         typeList.set(i, TTalk.wordType.VARIABLE);
                         varSet.add(str);
                         continue;
@@ -1140,7 +1140,7 @@ class ScriptArea extends JTextPane {
                         typeList.set(i, TTalk.wordType.REPEAT);
                         continue;
                     } else if (i >= 1 && typeList.get(i - 1) == TTalk.wordType.REPEAT && stringList.get(i - 1).equals("with")) {
-                        // repeat変数
+                        // repeat variable
                         typeList.set(i, TTalk.wordType.VARIABLE);
                         varSet.add(str);
                         continue;
@@ -1231,7 +1231,7 @@ class ScriptArea extends JTextPane {
                         continue;
                     } else if (i >= 1 && typeList.get(i - 1) == TTalk.wordType.CMD_SUB &&
                             (command.equals("put") || command.equals("add") || command.equals("subtract") || command.equals("divide") || command.equals("multiply"))) {
-                        // 変数
+                        // Variable
                         typeList.set(i, TTalk.wordType.VARIABLE);
                         varSet.add(str);
                         continue;
@@ -1247,7 +1247,7 @@ class ScriptArea extends JTextPane {
                     if (TTalk.funcSet.contains(str)) {
                         if (str.equals("number") && i + 2 < stringList.size() && stringList.get(i + 1).equals("of") &&
                                 !stringList.get(i + 2).matches("s$")) {
-                            // number of xxsは関数だが、そうでない場合はプロパティ
+                            // number of xxs is a function, otherwise it is a property
                             typeList.set(i, TTalk.wordType.PROPERTY);
                         } else if (str.equals("number") && i - 1 > 0 && stringList.get(i - 1).equals("a")) {
                             typeList.set(i, TTalk.wordType.X);
@@ -1302,13 +1302,13 @@ class ScriptArea extends JTextPane {
                     return true;
                 }
             }else if(obj.objectType.equals("stack")){
-                return true;// スタックごとにエディタウィンドウを持つので必ず一致
+                return true;// Always matches since each stack has its own editor window
             }
         }
         return false;
     }*/
 
-    // オブジェクトの親が一致するか
+    // Whether the object parent matches
     /*boolean compareParent(OObject parent){
         if(ParentType!=null && ParentType.equals("background") && parent != null && parent.objectType.equals("card")){
             OCard cd = (OCard)parent;
@@ -1368,7 +1368,7 @@ class ScriptArea extends JTextPane {
         if (!getText().equals(undobuf.get(undobuf.size() - 1))) {
             undobuf.add(getText());
             if (undobuf.size() >= 2) {
-                // 単語単位でundobufに登録する
+                // Register with undobuf in word units
                 String str1 = undobuf.get(undobuf.size() - 2);
                 String str2 = undobuf.get(undobuf.size() - 1);
                 boolean wordflag = false;
@@ -1481,7 +1481,7 @@ class SEMenu {
 
         listener = new SEMenuListener();
 
-        // メニューバーの設定
+        // Set up menu bar
         JMenuBar mb = new JMenuBar();
         scriptEditor.setJMenuBar(mb);
 
@@ -1494,7 +1494,7 @@ class SEMenu {
         int s_opt = s + InputEvent.ALT_DOWN_MASK;
         int s_shift = s + InputEvent.SHIFT_DOWN_MASK;
 
-        // Fileメニュー
+        // File menu
         m = new JMenu(PCARD.pc.intl.getText("File"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Close")));
@@ -1507,7 +1507,7 @@ class SEMenu {
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Print…")));
         mi.setEnabled(false);
 
-        // Editメニュー
+        // Edit menu
         m = new JMenu(PCARD.pc.intl.getText("Edit"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo")));
@@ -1552,7 +1552,7 @@ class SEMenu {
         mi.addActionListener(listener);
 
 
-        // Scriptメニュー
+        // Script menu
         m = new JMenu(PCARD.pc.intl.getText("Script"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Edit Card Script")));
@@ -1578,7 +1578,7 @@ class SEMenu {
     }
 }
 
-// メニュー動作
+// Menu actions
 class SEMenuListener implements ActionListener {
 
     @Override
@@ -1797,7 +1797,7 @@ class FindDialog extends JDialog implements ActionListener {
         setTitle(PCARD.pc.intl.getDialogText("Find String"));
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel topPanel = new JPanel();
         // topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         getContentPane().add("North", topPanel);
@@ -1852,7 +1852,7 @@ class ReplaceDialog extends JDialog implements ActionListener {
         setTitle(PCARD.pc.intl.getDialogText("Replace String"));
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         topPanel.setPreferredSize(new Dimension(380, 60));
@@ -1880,7 +1880,7 @@ class ReplaceDialog extends JDialog implements ActionListener {
         topPanel.add(area2);
         topPanel.add(area1);
 
-        // タブキーによる移動
+        // Tab key navigation
         Set<KeyStroke>
                 strokes = new HashSet<>(Collections.singletonList(KeyStroke.getKeyStroke("pressed TAB")));
         area1.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, strokes);

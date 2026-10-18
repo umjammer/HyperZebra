@@ -28,12 +28,12 @@ public class VariableWatcher extends JDialog {
     public VariableWatcher() {
         super(/*PCARD.pc*/);
 
-        // オブジェクトをウィンドウリストに登録
+        // Register object in window list
         setTitle("VariableWatcher");
         new OWindow(this);
         watcherWindow = this;
 
-        // テーブルを用意
+        // Prepare table
         String[][] tabledata = {{"it", ""}};
 
         JTable table = new JTable(tabledata, columnNames);
@@ -41,11 +41,11 @@ public class VariableWatcher extends JDialog {
         table.setEnabled(false);
         table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
-        // スクロール
+        // Scroll
         scrollpane = new JScrollPane(table);
         add(scrollpane);
 
-        // ウィンドウ位置とサイズ設定
+        // Set window position and size
         setBounds(0, 0, 320, 240);
         setLocationRelativeTo(null);
     }

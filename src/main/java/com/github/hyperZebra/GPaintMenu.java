@@ -29,7 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 
 
-// ペイント時のメニュー動作
+// Menu actions during painting
 class GMenuPaint implements ActionListener {
 
     @Override
@@ -51,9 +51,9 @@ class GMenuPaint implements ActionListener {
 
         if (cmd.equalsIgnoreCase("Undo Paint")) {
             PaintTool.owner.tool.clear();
-            // redoBufにイメージを移す
+            // Move image to redoBuf
             PaintTool.owner.redoBuf.setData(PaintTool.owner.getSurface().getData());
-            // mainImgにundoBufを書く
+            // Write undoBuf to mainImg
             PaintTool.owner.getSurface().setData(PaintTool.owner.undoBuf.getData());
 
             if (PaintTool.owner == PCARDFrame.pc) {
@@ -71,7 +71,7 @@ class GMenuPaint implements ActionListener {
             PaintTool.owner.mainPane.repaint();
         } else if (cmd.equalsIgnoreCase("Redo Paint")) {
             setUndo();
-            // mainImgにredoBufを書く
+            // Write redoBuf to mainImg
             PaintTool.owner.getSurface().setData(PaintTool.owner.redoBuf.getData());
 
             /*Graphics g = PaintTool.owner.mainPane.getGraphics();
@@ -246,14 +246,14 @@ class GMenuPaint implements ActionListener {
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
-                // まず新しいバッファを作成してクリア
+                // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D dst_g = bi2.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                 dst_g.fill(rect);
 
-                // 選択領域の左右反転
+                // Horizontal flip of selection area
                 Graphics2D dst_g2 = bi2.createGraphics();
                 AffineTransform af = new AffineTransform();
                 af.scale(-1.0f, 1.0f);
@@ -271,14 +271,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsクリア
+                    // Clear newSrcBits
                     BufferedImage newbi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newbi.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも反転させる
+                    // Also flip srcBits
                     Rectangle srcRect = tl.getSelectedRect();
 
                     af = new AffineTransform();
@@ -300,14 +300,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsクリア
+                    // Clear newSrcBits
                     BufferedImage newbi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newbi.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも反転させる
+                    // Also flip srcBits
                     Rectangle srcRect = tl.getSelectedRect();
 
                     af = new AffineTransform();
@@ -326,23 +326,23 @@ class GMenuPaint implements ActionListener {
                     smarttl.movePoint.x += oldLeft - flipLeft;
                 }
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.redoBuf = bi2;
 
                 PaintTool.owner.mainPane.repaint();
 
             } else {
-                // サーフェース全体の左右反転
+                // Horizontal flip of entire surface
                 setUndo();
 
-                // まずredoBufをクリア
+                // First clear redoBuf
                 BufferedImage bi = PaintTool.owner.redoBuf;
                 Graphics2D dst_g = bi.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                 dst_g.fill(rect);
 
-                // 左右反転
+                // Horizontal flip
                 Graphics2D dst_g2 = bi.createGraphics();
                 AffineTransform af = new AffineTransform();
                 af.scale(-1.0f, 1.0f);
@@ -350,11 +350,11 @@ class GMenuPaint implements ActionListener {
                 dst_g2.transform(af);
                 dst_g2.drawImage(PaintTool.owner.getSurface(), 0, 0, null);
 
-                // redoBufとmainImgを入れ替え
+                // Swap redoBuf and mainImg
                 BufferedImage savebi = PaintTool.owner.getSurface();
                 PaintTool.owner.redoBuf = savebi;
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.setSurface(bi);
                 PaintTool.owner.mainPane.repaint();
             }
@@ -364,14 +364,14 @@ class GMenuPaint implements ActionListener {
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
-                // まず新しいバッファを作成してクリア
+                // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D dst_g = bi2.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                 dst_g.fill(rect);
 
-                // 選択領域の上下反転
+                // Vertical flip of selection area
                 Graphics2D dst_g2 = bi2.createGraphics();
                 AffineTransform af = new AffineTransform();
                 af.scale(1.0f, -1.0f);
@@ -387,14 +387,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsクリア
+                    // Clear newSrcBits
                     BufferedImage newbi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newbi.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも反転させる
+                    // Also flip srcBits
                     Rectangle srcRect = tl.getSelectedRect();
 
                     af = new AffineTransform();
@@ -416,14 +416,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsクリア
+                    // Clear newSrcBits
                     BufferedImage newbi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newbi.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも反転させる
+                    // Also flip srcBits
                     Rectangle srcRect = tl.getSelectedRect();
 
                     af = new AffineTransform();
@@ -442,24 +442,24 @@ class GMenuPaint implements ActionListener {
                     smarttl.movePoint.y += oldTop - flipTop;
                 }
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.redoBuf = bi2;
 
                 PaintTool.owner.mainPane.repaint();
 
                 bi.flush();
             } else {
-                // サーフェース全体の上下反転
+                // Vertical flip of entire surface
                 setUndo();
 
-                // まずredoBufをクリア
+                // First clear redoBuf
                 BufferedImage bi = PaintTool.owner.redoBuf;
                 Graphics2D dst_g = bi.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                 dst_g.fill(rect);
 
-                // 上下反転
+                // Vertical flip
                 Graphics2D dst_g2 = bi.createGraphics();
                 AffineTransform af = new AffineTransform();
                 af.scale(1.0f, -1.0f);
@@ -467,11 +467,11 @@ class GMenuPaint implements ActionListener {
                 dst_g2.transform(af);
                 dst_g2.drawImage(PaintTool.owner.getSurface(), 0, 0, null);
 
-                // redoBufとmainImgを入れ替え
+                // Swap redoBuf and mainImg
                 BufferedImage savebi = PaintTool.owner.getSurface();
                 PaintTool.owner.redoBuf = savebi;
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.setSurface(bi);
                 PaintTool.owner.mainPane.repaint();
             }
@@ -484,14 +484,14 @@ class GMenuPaint implements ActionListener {
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
-                // まず新しいバッファを作成してクリア
+                // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(bi.getHeight(), bi.getWidth(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D dst_g = bi2.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getHeight(), bi.getWidth());
                 dst_g.fill(rect);
 
-                // 選択領域の左回転
+                // Left rotation of selection area
                 Graphics2D dst_g2 = bi2.createGraphics();
                 AffineTransform af = new AffineTransform();
                 Rectangle srcRect = (Rectangle) tl.getSelectedRect().clone();
@@ -506,7 +506,7 @@ class GMenuPaint implements ActionListener {
                     ((SelectTool) tl).moveRect.width = srcRect.height;
                     ((SelectTool) tl).moveRect.height = srcRect.width;
 
-                    // 平行移動
+                    // Translation
                     ((SelectTool) tl).moveRect.x += (srcRect.width - srcRect.height) / 2;
                     ((SelectTool) tl).moveRect.y -= (srcRect.width - srcRect.height) / 2;
                 } else if (tl.getClass() == LassoTool.class) {
@@ -515,14 +515,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsを作成してクリア
+                    // Create and clear newSrcBits
                     BufferedImage newSrcBits = new BufferedImage(bi.getHeight(), bi.getWidth(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newSrcBits.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, newSrcBits.getHeight(), newSrcBits.getWidth());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも回転させる
+                    // Also rotate srcBits
                     af = new AffineTransform();
                     af.setToRotation(Math.PI * 3.0 / 2.0, srcRect2.x + (double) srcRect2.width / 2, srcRect2.x + (double) srcRect2.width / 2);
                     LassoTool lassotl = (LassoTool) tl;
@@ -532,7 +532,7 @@ class GMenuPaint implements ActionListener {
                     lassotl.srcbits.flush();
                     lassotl.srcbits = newSrcBits;
 
-                    // 平行移動
+                    // Translation
                     lassotl.movePoint.x += srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                     lassotl.movePoint.y -= srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                 } else if (tl.getClass() == SmartSelectTool.class) {
@@ -541,14 +541,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsを作成してクリア
+                    // Create and clear newSrcBits
                     BufferedImage newSrcBits = new BufferedImage(bi.getHeight(), bi.getWidth(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newSrcBits.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, newSrcBits.getHeight(), newSrcBits.getWidth());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも回転させる
+                    // Also rotate srcBits
                     af = new AffineTransform();
                     af.setToRotation(Math.PI * 3.0 / 2.0, srcRect2.x + (double) srcRect2.width / 2, srcRect2.x + (double) srcRect2.width / 2);
                     SmartSelectTool smarttl = (SmartSelectTool) tl;
@@ -558,40 +558,40 @@ class GMenuPaint implements ActionListener {
                     smarttl.srcbits.flush();
                     smarttl.srcbits = newSrcBits;
 
-                    // 平行移動
+                    // Translation
                     smarttl.movePoint.x += srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                     smarttl.movePoint.y -= srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                 }
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.redoBuf = bi2;
 
                 PaintTool.owner.mainPane.repaint();
 
                 bi.flush();
             } else {
-                // サーフェース全体の左回転
+                // Left rotation of entire surface
                 setUndo();
 
-                // まずredoBufをクリア
+                // First clear redoBuf
                 BufferedImage bi = PaintTool.owner.redoBuf;
                 Graphics2D dst_g = bi.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                 dst_g.fill(rect);
 
-                // 左回転
+                // Left rotation
                 Graphics2D dst_g2 = bi.createGraphics();
                 AffineTransform af = new AffineTransform();
                 af.setToRotation(Math.PI * 3.0 / 2.0, (double) bi.getWidth() / 2, (double) bi.getHeight() / 2);
                 dst_g2.transform(af);
                 dst_g2.drawImage(PaintTool.owner.getSurface(), 0, 0, null);
 
-                // redoBufとmainImgを入れ替え
+                // Swap redoBuf and mainImg
                 BufferedImage savebi = PaintTool.owner.getSurface();
                 PaintTool.owner.redoBuf = savebi;
 
-                // イメージを新しくする
+                // Update image
                 PaintTool.owner.setSurface(bi);
                 PaintTool.owner.mainPane.repaint();
             }
@@ -601,14 +601,14 @@ class GMenuPaint implements ActionListener {
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
-                // まず新しいバッファを作成してクリア
+                // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(bi.getHeight(), bi.getWidth(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D dst_g = bi2.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getHeight(), bi.getWidth());
                 dst_g.fill(rect);
 
-                // 選択領域の右回転
+                // Right rotation of selection area
                 Graphics2D dst_g2 = bi2.createGraphics();
                 AffineTransform af = new AffineTransform();
                 Rectangle srcRect = (Rectangle) tl.getSelectedRect().clone();
@@ -623,7 +623,7 @@ class GMenuPaint implements ActionListener {
                     ((SelectTool) tl).moveRect.width = srcRect.height;
                     ((SelectTool) tl).moveRect.height = srcRect.width;
 
-                    // 平行移動
+                    // Translation
                     ((SelectTool) tl).moveRect.x += (srcRect.width - srcRect.height) / 2;
                     ((SelectTool) tl).moveRect.y -= (srcRect.width - srcRect.height) / 2;
                 } else if (tl.getClass() == LassoTool.class) {
@@ -632,14 +632,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsを作成してクリア
+                    // Create and clear newSrcBits
                     BufferedImage newSrcBits = new BufferedImage(bi.getHeight(), bi.getWidth(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newSrcBits.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, newSrcBits.getHeight(), newSrcBits.getWidth());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも回転させる
+                    // Also rotate srcBits
                     af = new AffineTransform();
                     af.setToRotation(Math.PI / 2.0, srcRect2.y + (double) srcRect2.height / 2, srcRect2.y + (double) srcRect2.height / 2);
                     LassoTool lassotl = (LassoTool) tl;
@@ -649,7 +649,7 @@ class GMenuPaint implements ActionListener {
                     lassotl.srcbits.flush();
                     lassotl.srcbits = newSrcBits;
 
-                    // 平行移動
+                    // Translation
                     lassotl.movePoint.x += srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                     lassotl.movePoint.y -= srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                 } else if (tl.getClass() == SmartSelectTool.class) {
@@ -658,14 +658,14 @@ class GMenuPaint implements ActionListener {
                     dst_g2.transform(af);
                     dst_g2.drawImage(bi, 0, 0, null);
 
-                    // newSrcBitsを作成してクリア
+                    // Create and clear newSrcBits
                     BufferedImage newSrcBits = new BufferedImage(bi.getHeight(), bi.getWidth(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D newsrcbits_g = newSrcBits.createGraphics();
                     newsrcbits_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     Rectangle2D.Double nrect = new Rectangle2D.Double(0, 0, newSrcBits.getHeight(), newSrcBits.getWidth());
                     newsrcbits_g.fill(nrect);
 
-                    // srcBitsも回転させる
+                    // Also rotate srcBits
                     af = new AffineTransform();
                     af.setToRotation(Math.PI / 2.0, srcRect2.y + (double) srcRect2.height / 2, srcRect2.y + (double) srcRect2.height / 2);
                     SmartSelectTool smarttl = (SmartSelectTool) tl;
@@ -675,40 +675,40 @@ class GMenuPaint implements ActionListener {
                     smarttl.srcbits.flush();
                     smarttl.srcbits = newSrcBits;
 
-                    // 平行移動
+                    // Translation
                     smarttl.movePoint.x += srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                     smarttl.movePoint.y -= srcRect.x - srcRect.y + (srcRect.width - (srcRect.height)) / 2;
                 }
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.redoBuf = bi2;
 
                 PaintTool.owner.mainPane.repaint();
 
                 bi.flush();
             } else {
-                // サーフェース全体の右回転
+                // Right rotation of entire surface
                 setUndo();
 
-                // まずredoBufをクリア
+                // First clear redoBuf
                 BufferedImage bi = PaintTool.owner.redoBuf;
                 Graphics2D dst_g = bi.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                 Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, bi.getWidth(), bi.getHeight());
                 dst_g.fill(rect);
 
-                // 右回転
+                // Right rotation
                 Graphics2D dst_g2 = bi.createGraphics();
                 AffineTransform af = new AffineTransform();
                 af.setToRotation(Math.PI / 2.0, (double) bi.getWidth() / 2, (double) bi.getHeight() / 2);
                 dst_g2.transform(af);
                 dst_g2.drawImage(PaintTool.owner.getSurface(), 0, 0, null);
 
-                // redoBufとmainImgを入れ替え
+                // Swap redoBuf and mainImg
                 BufferedImage savebi = PaintTool.owner.getSurface();
                 PaintTool.owner.redoBuf = savebi;
 
-                // イメージを新しくする
+                // Update image
                 PaintTool.owner.setSurface(bi);
                 PaintTool.owner.mainPane.repaint();
             }
@@ -719,10 +719,10 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲
+                // Selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
-                // 端の処理をさせるため、画像サイズを大きくする
+                // Enlarge image size to handle edges
                 int biwidth = bi.getWidth();
                 int biheight = bi.getHeight();
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
@@ -736,7 +736,7 @@ class GMenuPaint implements ActionListener {
                 bigbi.createGraphics().drawImage(bi, 2, biheight + 2, biwidth + 2, biheight + 4, 0, biheight - 2, biwidth, biheight, null);
                 bigbi.createGraphics().drawImage(bi, 2, 2, null);
 
-                // フィルター処理
+                // Filter processing
                 float[] operator = {
                         0.00f, 0.01f, 0.02f, 0.01f, 0.00f,
                         0.01f, 0.03f, 0.08f, 0.03f, 0.01f,
@@ -751,7 +751,7 @@ class GMenuPaint implements ActionListener {
                 BufferedImage newimg = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 newimg.createGraphics().drawImage(bignewimg, -2, -2, null);
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.redoBuf = newimg;
 
                 if (PaintTool.owner.tool.getClass() == LassoTool.class ||
@@ -771,7 +771,7 @@ class GMenuPaint implements ActionListener {
                         for (int h = 0; h < width; h++) {
                             int c = mskbuf.getElem(0, h + v * width);
                             if ((c & 0xFF000000) == 0) {
-                                // 移動した部分を透明にする
+                                // Make moved area transparent
                                 if (!PaintTool.editBackground) {
                                     movbuf.setElem(h + v * width, 0x00FFFFFF);
                                 } else {
@@ -788,12 +788,12 @@ class GMenuPaint implements ActionListener {
 
                 bi.flush();
             } else {
-                // サーフェース全体のぼかし
+                // Blur of entire surface
                 setUndo();
 
                 BufferedImage bi = PaintTool.owner.getSurface();
 
-                // 端の処理をさせるため、画像サイズを大きくする
+                // Enlarge image size to handle edges
                 BufferedImage bigbi = new BufferedImage(bi.getWidth() + 4, bi.getHeight() + 4, BufferedImage.TYPE_INT_ARGB);
                 bigbi.createGraphics().drawImage(bi, 0, 2, 2, bi.getHeight() + 2, 0, 0, 2, bi.getHeight(), null);
                 bigbi.createGraphics().drawImage(bi, bi.getWidth() + 2, 2, bi.getWidth() + 4, bi.getHeight() + 2, bi.getWidth() - 2, 0, bi.getWidth(), bi.getHeight(), null);
@@ -801,7 +801,7 @@ class GMenuPaint implements ActionListener {
                 bigbi.createGraphics().drawImage(bi, 2, bi.getHeight() + 2, bi.getWidth() + 2, bi.getHeight() + 4, 0, bi.getHeight() - 2, bi.getWidth(), bi.getHeight(), null);
                 bigbi.createGraphics().drawImage(bi, 2, 2, null);
 
-                // フィルター処理
+                // Filter processing
                 float[] operator = {
                         0.00f, 0.01f, 0.02f, 0.01f, 0.00f,
                         0.01f, 0.03f, 0.08f, 0.03f, 0.01f,
@@ -816,7 +816,7 @@ class GMenuPaint implements ActionListener {
                 BufferedImage newimg = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 newimg.createGraphics().drawImage(bignewimg, -2, -2, null);
 
-                // イメージを新しくする
+                // Update image
                 PaintTool.owner.setSurface(newimg);
                 PaintTool.owner.mainPane.repaint();
             }
@@ -824,10 +824,10 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲
+                // Selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
-                // 端の処理をさせるため、画像サイズを大きくする
+                // Enlarge image size to handle edges
                 int biwidth = bi.getWidth();
                 int biheight = bi.getHeight();
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
@@ -841,7 +841,7 @@ class GMenuPaint implements ActionListener {
                 bigbi.createGraphics().drawImage(bi, 2, biheight + 2, biwidth + 2, biheight + 4, 0, biheight - 2, biwidth, biheight, null);
                 bigbi.createGraphics().drawImage(bi, 2, 2, null);
 
-                // フィルター処理
+                // Filter processing
                 float[] operator = {
                         -0.00f, -0.01f, -0.02f, -0.01f, -0.00f,
                         -0.01f, -0.03f, -0.08f, -0.03f, -0.01f,
@@ -856,7 +856,7 @@ class GMenuPaint implements ActionListener {
                 BufferedImage newimg = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 newimg.createGraphics().drawImage(bignewimg, -2, -2, null);
 
-                // 選択領域を新しくする
+                // Update selection area
                 PaintTool.owner.redoBuf = newimg;
 
                 if (PaintTool.owner.tool.getClass() == LassoTool.class ||
@@ -876,7 +876,7 @@ class GMenuPaint implements ActionListener {
                         for (int h = 0; h < width; h++) {
                             int c = mskbuf.getElem(0, h + v * width);
                             if ((c & 0xFF000000) == 0) {
-                                // 移動した部分を透明にする
+                                // Make moved area transparent
                                 if (!PaintTool.editBackground) {
                                     movbuf.setElem(h + v * width, 0x00FFFFFF);
                                 } else {
@@ -893,12 +893,12 @@ class GMenuPaint implements ActionListener {
 
                 bi.flush();
             } else {
-                // サーフェース全体のシャープ
+                // Sharpen of entire surface
                 setUndo();
 
                 BufferedImage bi = PaintTool.owner.getSurface();
 
-                // 端の処理をさせるため、画像サイズを大きくする
+                // Enlarge image size to handle edges
                 BufferedImage bigbi = new BufferedImage(bi.getWidth() + 4, bi.getHeight() + 4, BufferedImage.TYPE_INT_ARGB);
                 bigbi.createGraphics().drawImage(bi, 0, 2, 2, bi.getHeight() + 2, 0, 0, 2, bi.getHeight(), null);
                 bigbi.createGraphics().drawImage(bi, bi.getWidth() + 2, 2, bi.getWidth() + 4, bi.getHeight() + 2, bi.getWidth() - 2, 0, bi.getWidth(), bi.getHeight(), null);
@@ -906,7 +906,7 @@ class GMenuPaint implements ActionListener {
                 bigbi.createGraphics().drawImage(bi, 2, bi.getHeight() + 2, bi.getWidth() + 2, bi.getHeight() + 4, 0, bi.getHeight() - 2, bi.getWidth(), bi.getHeight(), null);
                 bigbi.createGraphics().drawImage(bi, 2, 2, null);
 
-                // フィルター処理
+                // Filter processing
                 float[] operator = {
                         -0.00f, -0.01f, -0.02f, -0.01f, -0.00f,
                         -0.01f, -0.03f, -0.08f, -0.03f, -0.01f,
@@ -921,7 +921,7 @@ class GMenuPaint implements ActionListener {
                 BufferedImage newimg = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 newimg.createGraphics().drawImage(bignewimg, -2, -2, null);
 
-                // イメージを新しくする
+                // Update image
                 PaintTool.owner.setSurface(newimg);
                 PaintTool.owner.mainPane.repaint();
             }
@@ -929,7 +929,7 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲
+                // Selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
                     BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -938,7 +938,7 @@ class GMenuPaint implements ActionListener {
                     bi = bi2;
                 }
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -972,12 +972,12 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // サーフェース全体の色反転
+                // Invert colors of entire surface
                 setUndo();
 
                 BufferedImage bi = PaintTool.owner.getSurface();
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -995,7 +995,7 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲を暗くする
+                // Darken selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
                     BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1004,7 +1004,7 @@ class GMenuPaint implements ActionListener {
                     bi = bi2;
                 }
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -1047,12 +1047,12 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // サーフェース全体を暗くする
+                // Darken entire surface
                 setUndo();
 
                 BufferedImage bi = PaintTool.owner.getSurface();
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -1079,7 +1079,7 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲を明るくする
+                // Lighten selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
                     BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1088,7 +1088,7 @@ class GMenuPaint implements ActionListener {
                     bi = bi2;
                 }
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -1131,12 +1131,12 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // サーフェース全体を明るくする
+                // Lighten entire surface
                 setUndo();
 
                 BufferedImage bi = PaintTool.owner.getSurface();
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -1163,7 +1163,7 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲を下にあるものにする
+                // Make selection area items go behind
                 BufferedImage bi;
                 if (tl.getClass() == LassoTool.class) {
                     bi = ((LassoTool) tl).srcbits;
@@ -1184,7 +1184,7 @@ class GMenuPaint implements ActionListener {
                 System.out.println("rect1:" + rect1);
                 System.out.println("rect2:" + rect2);
 
-                // 処理
+                // Processing
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 DataBuffer maindb = PaintTool.owner.getSurface().getRaster().getDataBuffer();
                 int width = bi.getWidth();
@@ -1193,7 +1193,7 @@ class GMenuPaint implements ActionListener {
                 int mainheight = PaintTool.owner.getSurface().getHeight();
 
                 if (tl.getClass() == SelectTool.class) {
-                    // 矩形選択ツール
+                    // Rectangular selection tool
                     for (int v = 0; v < rect1.height; v++) {
                         for (int h = 0; h < rect1.width; h++) {
                             // if((0xFF000000&db.getElem(h+v*width))!=0){
@@ -1207,7 +1207,7 @@ class GMenuPaint implements ActionListener {
                         }
                     }
                 } else {
-                    // 投げ縄か自動選択ツール
+                    // Lasso or auto-select tool
                     for (int v = 0; v < height; v++) {
                         for (int h = 0; h < width; h++) {
                             if ((0xFF000000 & db.getElem(h + v * width)) != 0) {
@@ -1224,13 +1224,13 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // 選択範囲がありません!
+                // No selection area!
             }
         } else if (cmd.equalsIgnoreCase("Fill")) {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲を塗りつぶし
+                // Fill selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
                     BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1243,9 +1243,9 @@ class GMenuPaint implements ActionListener {
                     bi.createGraphics().fillRect(0, 0, tl.getSelectedRect().width, tl.getSelectedRect().height);
                 }
 
-                // 処理
+                // Processing
 
-                // パターンを適用
+                // Apply pattern
                 PaintTool.setPattern(false);
                 DataBuffer fillbuf = bi.getRaster().getDataBuffer();
                 DataBuffer patbuf = PaintTool.pat.getRaster().getDataBuffer();
@@ -1264,7 +1264,7 @@ class GMenuPaint implements ActionListener {
                     }
                 }
 
-                // グラデーションを適用(パターンとの併用は不可)
+                // Apply gradient (cannot be used with pattern)
                 if (PaintTool.owner.grad.use) {
                     PaintBucketTool.gradfill(bi, PaintTool.owner.grad.color1, PaintTool.owner.grad.color2, PaintTool.owner.grad.angle);
                 }
@@ -1291,15 +1291,15 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // サーフェース全体を塗りつぶし
+                // Fill entire surface
                 setUndo();
 
                 BufferedImage bi = PaintTool.owner.getSurface();
                 bi.createGraphics().fillRect(0, 0, bi.getWidth(), bi.getHeight());
 
-                // 処理
+                // Processing
 
-                // パターンを適用
+                // Apply pattern
                 PaintTool.setPattern(false);
                 DataBuffer fillbuf = bi.getRaster().getDataBuffer();
                 DataBuffer patbuf = PaintTool.pat.getRaster().getDataBuffer();
@@ -1318,7 +1318,7 @@ class GMenuPaint implements ActionListener {
                     }
                 }
 
-                // グラデーションを適用(パターンとの併用は不可)
+                // Apply gradient (cannot be used with pattern)
                 if (PaintTool.owner.grad.use) {
                     PaintBucketTool.gradfill(bi, PaintTool.owner.grad.color1, PaintTool.owner.grad.color2, PaintTool.owner.grad.angle);
                 }
@@ -1329,9 +1329,9 @@ class GMenuPaint implements ActionListener {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲の白色を透明にする
+                // Make white in selection area transparent
 
-                // 処理
+                // Processing
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
                     toolSelectInterface tl = (toolSelectInterface) PaintTool.owner.tool;
                     BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
@@ -1380,15 +1380,15 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // 選択範囲無し
+                // No selection area
             }
         } else if (cmd.equalsIgnoreCase("Opaque")) {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲の透明を白色にする
+                // Make transparent in selection area white
 
-                // 処理
+                // Processing
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
                     toolSelectInterface tl = (toolSelectInterface) PaintTool.owner.tool;
                     BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
@@ -1440,7 +1440,7 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // 選択範囲無し
+                // No selection area
             }
         } else if (cmd.equalsIgnoreCase("Reverse Selection")) {
 
@@ -1448,7 +1448,7 @@ class GMenuPaint implements ActionListener {
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null &&
                     (PaintTool.owner.tool.getClass() == LassoTool.class ||
                             PaintTool.owner.tool.getClass() == SmartSelectTool.class)) {
-                // 選択範囲を逆転し、その画像は下にあるものにする
+                // Invert selection area and make its image go behind
 
                 BufferedImage srcbits = null;
                 if (PaintTool.owner.tool.getClass() == LassoTool.class) {
@@ -1468,7 +1468,7 @@ class GMenuPaint implements ActionListener {
                 Rectangle rect1 = tl.getSelectedRect();
                 Rectangle rect2 = tl.getMoveRect();
 
-                // 逆転処理
+                // Inversion processing
                 DataBuffer srcdb = srcbits.getRaster().getDataBuffer();
                 DataBuffer newdb = newbi.getRaster().getDataBuffer();
                 int width = newbi.getWidth();
@@ -1496,7 +1496,7 @@ class GMenuPaint implements ActionListener {
                 }
 
 
-                // ピックアップ
+                // Pickup
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
                     BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1505,7 +1505,7 @@ class GMenuPaint implements ActionListener {
                     bi = bi2;
                 }
 
-                // 処理
+                // Processing
                 DataBuffer redodb = bi.getRaster().getDataBuffer();
                 DataBuffer maindb = PaintTool.owner.getSurface().getRaster().getDataBuffer();
                 width = bi.getWidth();
@@ -1530,7 +1530,7 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // 選択範囲がありません!
+                // No selection area!
             }
         } else if (cmd.equalsIgnoreCase("Scale Selection…")) {
 
@@ -1540,15 +1540,15 @@ class GMenuPaint implements ActionListener {
                     new PaintScaleDialog(PaintTool.owner);
                 }
             } else {
-                // 選択範囲がありません!
+                // No selection area!
             }
         } else if (cmd.equalsIgnoreCase("Opaque")) {
 
             if (PaintTool.owner.tool instanceof toolSelectInterface &&
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                // 選択範囲の透明を白色にする
+                // Make transparent in selection area white
 
-                // 処理
+                // Processing
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
                     toolSelectInterface tl = (toolSelectInterface) PaintTool.owner.tool;
                     BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
@@ -1600,7 +1600,7 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // 選択範囲無し
+                // No selection area
             }
         } else if (cmd.equalsIgnoreCase("Expand Selection")) {
 
@@ -1608,7 +1608,7 @@ class GMenuPaint implements ActionListener {
                     ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
 
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
-                    // 選択範囲を1pixel拡大
+                    // Expand selection area by 1 pixel
                     SelectTool tool = (SelectTool) PaintTool.owner.tool;
                     tool.moveRect.x--;
                     tool.moveRect.y--;
@@ -1628,7 +1628,7 @@ class GMenuPaint implements ActionListener {
                     PaintTool.owner.redoBuf = newbi;
                 } else if ((PaintTool.owner.tool.getClass() == LassoTool.class ||
                         PaintTool.owner.tool.getClass() == SmartSelectTool.class)) {
-                    // 選択範囲を1pixel拡大
+                    // Expand selection area by 1 pixel
 
                     BufferedImage srcbits = null;
                     if (PaintTool.owner.tool.getClass() == LassoTool.class) {
@@ -1648,7 +1648,7 @@ class GMenuPaint implements ActionListener {
                     newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
                     newg.fillRect(0, 0, newbi.getWidth(), newbi.getHeight());
 
-                    // 処理
+                    // Processing
                     DataBuffer srcdb = srcbits.getRaster().getDataBuffer();
                     DataBuffer newdb = newbi.getRaster().getDataBuffer();
                     int width = srcbits.getWidth();
@@ -1687,7 +1687,7 @@ class GMenuPaint implements ActionListener {
 
                 PaintTool.owner.mainPane.repaint();
             } else {
-                // 選択範囲がありません!
+                // No selection area!
             }
         } else if (cmd.equalsIgnoreCase("Filter…")) {
 
@@ -1712,7 +1712,7 @@ class GMenuPaint implements ActionListener {
     }
 
 
-    // クリップボードに画像をコピー
+    // Copy image to clipboard
     public static void setClipboardImage(BufferedImage img, int width, int height) {
         Toolkit kit = Toolkit.getDefaultToolkit();
         Clipboard clip = kit.getSystemClipboard();
@@ -1774,7 +1774,7 @@ class GMenuPaint implements ActionListener {
 
 
     static public void setUndo() {
-        // undoBufにイメージを移す
+        // Move image to undoBuf
         PaintTool.owner.undoBuf.setData(PaintTool.owner.getSurface().getData());
 
         // PCARD.pc.redoBuf = null;

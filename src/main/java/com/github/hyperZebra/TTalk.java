@@ -67,7 +67,7 @@ class MemoryData {
     ArrayList<String> nameList;
     ArrayList<String> valueList;
     String message;
-    String[] params; // とりあえず引数を持っておく
+    String[] params; // Hold arguments for now
 }
 
 interface TalkObject {
@@ -92,7 +92,7 @@ interface TalkObject {
 }
 
 /*class BasicTalkObject implements TalkObject {
-    // Stringしか持たない基本オブジェクト
+    // Basic object that holds only String
     private String str;
 
     // ----getter-----
@@ -123,7 +123,7 @@ interface TalkObject {
 
 final class VariableObj implements TalkObject {
 
-    // 数値型も持つ変数オブジェクト
+    // Variable object that also holds numeric type
     private StringBuilder str;
     private double num;
     private boolean num_flag;
@@ -182,12 +182,12 @@ final class VariableObj implements TalkObject {
 enum chunkType {BYTE, CHAR, ITEM, WORD, LINE}
 /*
 final class ChunkObj implements TalkObject {
-    // チャンク指定を持ったままで読み書きできるオブジェクト
-    // 多重チャンク指定の場合はChunkObjをネストする
+    // Object that can be read/written while holding chunk specification
+    // Nest ChunkObj for multiple chunk specifications
     private TalkObject tobj;
-    private int[] splitSets; // number of chunks +1個の配列。
-                             // 各delimiterまでのoffsetが入る。
-                             // [0]にはかならず0が、[splitSet.length]には全体の長さが入ることになる。
+    private int[] splitSets; // Array of number of chunks + 1.
+                              // Offsets to each delimiter are stored.
+                              // [0] is always 0, and [splitSet.length] contains the total length.
     private int chunk_s;
     private int chunk_e;
     private chunkType chunktype;
@@ -210,7 +210,7 @@ final class ChunkObj implements TalkObject {
 
     private void makeCache(){
         if(chunktype == chunkType.BYTE || chunktype == chunkType.CHAR){
-            return; // キャッシュ不要
+            return; // No cache needed
         }
 
         if(chunktype == chunkType.ITEM || chunktype == chunkType.LINE){
@@ -229,7 +229,7 @@ final class ChunkObj implements TalkObject {
             char[] data = tobj.getStr().toCharArray();
             boolean in_quote = false;
             int cnt = 1;
-            // 配列の数を調べる
+            // Count the number of array elements
             for(int i=0; i<data.length; i++){
                 if(data[i] == '\"'){
                     in_quote = !in_quote;
@@ -238,9 +238,9 @@ final class ChunkObj implements TalkObject {
                     cnt++;
                 }
             }
-            // 配列に作成
+            // Create array
             splitSets = new int[cnt+1];
-            // 配列に代入
+            // Assign to array
             cnt = 1;
             splitSets[0] = 0;
             int i=0;
@@ -305,27 +305,27 @@ final class ChunkObj implements TalkObject {
 
 }*/
 
-// byte[]を持つBytObjなんかも欲しい
-//  byte ofで参照させるか、char ofでbyte単位で扱うか。
+// Would also like a BytObj that holds byte[]
+//  Whether to reference with byte of or handle in byte units with char of.
 
-// 混乱してきた。整理しよう。
-//  最初はStringを持つ
-//  数値として参照されると、そのつど数値に変換する
-//  数値を代入される場合は新たに数値型が作られる。
-//  数値と文字の代入を繰り返すと使わないオブジェクトが増えていくのでGCがんばれ
+// Getting confused. Let me organize.
+//  Initially holds String
+//  When referenced as a number, convert to number each time
+//  When a number is assigned, a new numeric type is created.
+//  Repeated assignments of numbers and characters increase unused objects, so GC do your best
 //
-//  line ofで 変数が 参照されるとデータを配列で作成して保持し、配列のどれかを返す
-//    item of line ofとか大変。offset を持つ子を作成したほうが良い？
-//    そのときStringBuilder型はnullのままにするか、結合情報を持つかは実装次第。
-//    配列データはStringBuilderのほうを変更されると破棄する
-//  line ofで パーツが 参照されるとデータを配列で作成だけして返し、データは破棄する。
-//    パーツも配列データを持っていてもいいかもしれないが、どうせフィールドは表示するときに全データいるし、容量無駄
-//      ローカル変数はすぐ消えるから容量無駄にならないはず
-//  line ofで 変数に 代入されると変数はStringBuilder型をnullにしてデータを配列で持つ
-//  line ofで パーツに 代入されると配列を作って代入処理をし、そこからさらに結合処理をしてStringBuilderに代入する。
-//  line ofで代入された変数から全データを参照すると、配列に入ったデータを結合して返す。
-//    そのときStringBuilder型はnullのままにするか、結合情報を持つかは実装次第。
-//  word ofだったらsplit文字がいろいろあって復帰が大変なので、split文字だけの配列も持つ。
+//  When a variable is referenced with line of, create and hold data as an array, and return one of the array elements
+//    item of line of etc. is complicated. Should we create a child that holds offset?
+//    At that time, whether to leave StringBuilder type as null or hold combination information depends on implementation.
+//    Discard array data when StringBuilder side is changed
+//  When a part is referenced with line of, create only the data as an array and return it, discarding the data.
+//    Parts might also hold array data, but fields need all data when displaying anyway, so it is a waste of space
+//      Local variables are quickly deleted so it should not be a waste of space
+//  When assigned to a variable with line of, the variable sets StringBuilder type to null and holds data as an array
+//  When assigned to a part with line of, create an array, perform assignment, then perform combination and assign to StringBuilder.
+//  When all data is referenced from a variable assigned with line of, combine and return the data in the array.
+//    At that time, whether to leave StringBuilder type as null or hold combination information depends on implementation.
+//  For word of, there are various split characters so recovery is complicated, so also hold an array of just split characters.
 
 class OpenFile {
 
@@ -353,7 +353,7 @@ public class TTalk extends Thread {
     static long lastErrorTime;
     static boolean lockMessages = false;
     static int dragspeed = 0;
-    static int wait = 1; // 2.xで昔の速度にするためのウェイト
+    static int wait = 1; // Wait to return to old speed in 2.x
     static ArrayList<OpenFile> openFileList = new ArrayList<>();
 
 
@@ -381,11 +381,11 @@ public class TTalk extends Thread {
         NOP, OPERATOR_SUB
     }
 
-    static TreeSet<String> operatorSet; // 高速化のためのツリー
-    static TreeSet<String> constantSet; // 高速化のためのツリー
-    static TreeSet<String> commandSet; // スクリプトエディタで使用
-    static TreeSet<String> funcSet; // スクリプトエディタで使用
-    static TreeSet<String> propertySet; // スクリプトエディタで使用
+    static TreeSet<String> operatorSet; // Tree for speeding up
+    static TreeSet<String> constantSet; // Tree for speeding up
+    static TreeSet<String> commandSet; // Used by script editor
+    static TreeSet<String> funcSet; // Used by script editor
+    static TreeSet<String> propertySet; // Used by script editor
 
     private static void init() {
         operatorSet = new TreeSet<>();
@@ -455,7 +455,7 @@ public class TTalk extends Thread {
         commandSet.add("export");
         commandSet.add("find");
         commandSet.add("get");
-        commandSet.add("global");// 特別扱い
+        commandSet.add("global");// Special handling
         commandSet.add("go");
         commandSet.add("help");
         commandSet.add("hide");
@@ -706,7 +706,7 @@ public class TTalk extends Thread {
         globalData.valueList = new ArrayList<>();
     }
 
-    // 受け取ったメッセージを実行するスレッド
+    // Thread to execute received messages
     @Override
     public void run() {
         talk = this;
@@ -744,16 +744,16 @@ public class TTalk extends Thread {
         if (TXcmd.terazzaAry != null) {
             long startTime = (int) new Date().getTime();
             while (true) {
-                // sleepしてる間にアニメーション実施
+                // Execute animation during sleep
                 TXcmd.TerazzaAnime();
 
-                // 残り時間を調べる
+                // Check remaining time
                 int left = time - (int) ((new Date().getTime()) - startTime);
                 if (left <= 0) {
                     break;
                 }
 
-                // 30ずつsleep
+                // Sleep in increments of 30
                 int t = Math.min(left, 30);
                 try {
                     Thread.sleep(t);
@@ -772,7 +772,7 @@ public class TTalk extends Thread {
         }
     }
 
-    // メニューを実行するときに内部スクリプトを実行する
+    // Execute internal script when running a menu
     public static String doScriptforMenu(String script) throws xTalkException {
         if (Thread.currentThread() != talk) {
             CallMessage(script, "", null, false, true);
@@ -790,7 +790,7 @@ public class TTalk extends Thread {
         return result.theResult;
     }
 
-    // メッセージをスクリプトスレッドに投げる
+    // Send message to script thread
     public static void CallMessage(String message, OObject object) {
         // System.out.println("CallMessage "+message+" "+object.getShortName());
         CallMessage(message, "", object, false, false);
@@ -813,7 +813,7 @@ public class TTalk extends Thread {
             throws xTalkException {
         boolean changeIdle = false;
         if (idlenow == false && idle == true) {
-            // ビジー状態にする
+            // Set to busy state
             idle = false;
             changeIdle = true;
             GUI.mouseClicked = false;
@@ -827,14 +827,14 @@ public class TTalk extends Thread {
         lastResult = ReceiveMessage(message, params, object, object, memData);
 
         if (changeIdle) {
-            // idle状態に戻す
+            // Return to idle state
             returnToIdle();
         }
     }
 
     private static void returnToIdle() {
         if (!idle && !GUI.mouseDown) {
-            // GCをなるべく呼ぶ
+            // Call GC as much as possible
             SwingUtilities.invokeLater(System::gc);
         }
         idle = true;
@@ -859,7 +859,7 @@ public class TTalk extends Thread {
             VariableWatcher.watcherWindow.setTable(TTalk.globalData, null);
         }
 
-        // ファイルクローズ
+        // Close files
         for (OpenFile openFile : openFileList) {
             try {
                 if (openFile.istream != null) {
@@ -891,7 +891,7 @@ public class TTalk extends Thread {
     OObject[] objectRingArray = new OObject[128];
     int ringCnt;
 
-    // メッセージを受け取る
+    // Receive message
     private Result ReceiveMessage(String message, String[] params, OObject object, OObject target, MemoryData memData, Result result, boolean isFunc, boolean isDynamic, boolean isBgroot, int usingCnt)
             throws xTalkException {
         // long timestart = System.currentTimeMillis();
@@ -905,7 +905,7 @@ public class TTalk extends Thread {
 
         if (object == null || object.scriptList == null) return result;
 
-        // ハンドラ行のみをピックアップしてリストに保存する
+        // Pick up only handler lines and save to list
         if (object.handlerLineList == null) {
             object.handlerList = new TreeSet<>();
             object.handlerLineList = new ArrayList<>();
@@ -933,9 +933,9 @@ public class TTalk extends Thread {
             }
         }
 
-        // ハンドラを探す
+        // Find handler
         if (object.handlerList.contains(message.toLowerCase().intern())) {
-            // messageWatcher用
+            // For messageWatcher
             messageRingArray[ringCnt % 128] = message;
             objectRingArray[ringCnt % 128] = object;
             ringCnt++;
@@ -973,7 +973,7 @@ public class TTalk extends Thread {
                         memData2.nameList = new ArrayList<>();
                         memData2.valueList = new ArrayList<>();
 
-                        // 引数
+                        // Arguments
                         String[] handlerWords = object.scriptList.get(start - 1).split(" ");
                         if (handlerWords.length >= 3) { // on handler param
                             StringBuilder paramStr = new StringBuilder();
@@ -989,7 +989,7 @@ public class TTalk extends Thread {
                             }
                         }
 
-                        // memDataにメッセージ名とparamsをセット(param(i)とthe paramsのため)
+                        // Set message name and params in memData (for param(i) and the params)
                         memData2.message = message;
                         memData2.params = params;
 
@@ -1014,15 +1014,15 @@ public class TTalk extends Thread {
         // timeIsMoney("ReceiveMessage2-2:",timestart,15);
         if (result.ret == 1) {
             if (object.parent != null) {
-                // 通常パス:親に送信
+                // Normal pass: send to parent
                 /*if(object.objectType.equals("background")&&isBgroot==false){
-                    // バックグラウンドは一度カードを通ってから
+                    // Background goes through the card once
                     System.out.println("!1");
                     result=ReceiveMessage(message, params, ((OBackground)object).viewCard, target, isFunc, isDynamic, true);
                 }
                 else*/
                 if (object.parent.objectType.equals("background") && !object.objectType.equals("card")) {
-                    // バックグラウンドのパーツは一度カードを通ってから
+                    // Background components go through the card once
                     result = ReceiveMessage(message, params, ((OBackground) object.parent).viewCard, target, memData, result, isFunc, isDynamic, isBgroot, usingCnt);
                 } else {
                     result = ReceiveMessage(message, params, object.parent, target/*object.parent*/, memData, result, isFunc, isDynamic, isBgroot, usingCnt);
@@ -1032,10 +1032,10 @@ public class TTalk extends Thread {
                             target.objectType.equals("background") ||
                             target.objectType.equals("stack") ||
                             target.objectType.equals("card") && target != PCARD.pc.stack.curCard)) {
-                // ダイナミックパス:現在のカードに送信
+                // Dynamic pass: send to current card
                 result = ReceiveMessage(message, params, PCARD.pc.stack.curCard, target, memData, result, isFunc, true, isBgroot, usingCnt);
             } else if (!isDynamic && target != null && target.parent != null && target.parent.objectType.equals("card") && target.parent != PCARD.pc.stack.curCard) {
-                // ダイナミックパス:現在のカードに送信
+                // Dynamic pass: send to current card
                 result = ReceiveMessage(message, params, PCARD.pc.stack.curCard, target, memData, result, isFunc, true, isBgroot, usingCnt);
             } else {
                 OStack stack = null;
@@ -1052,15 +1052,15 @@ public class TTalk extends Thread {
             }
         }
 
-        return result;// 0なら見つかった、1なら見つからなかったので次のオブジェクトを探す
+        return result;// 0 if found, 1 if not found so look for next object
     }
 
 
-    // mode=0 通常    mode=1 内部呼び出しなのでエラー出さない
+    // mode=0 normal    mode=1 internal call so no error
     private Result doScript(OObject object, OObject target, String message, String script, MemoryData memData, String[] parentparams, int mode)
             throws xTalkException {
         ArrayList<String> scriptList = new ArrayList<>();
-        while (script.contains("\r")) { // return(CR)を(LF)に変える
+        while (script.contains("\r")) { // Convert return (CR) to (LF)
             script = script.substring(0, script.indexOf("\r")) + "\n" + script.substring(script.indexOf("\r") + 1);
         }
         String[] scrAry = script.split("\n");
@@ -1071,9 +1071,9 @@ public class TTalk extends Thread {
     }
 
 
-    // ハンドラの中身を実行
-    // objectがnullの場合もある
-    // messageがnullの場合もある
+    // Execute handler body
+    // object may be null
+    // message may be null
     // -1 . error/exit to HyperCard
     // 0 .. normal end
     // 1 .. pass message
@@ -1164,7 +1164,7 @@ label:
                         if(line>end) break;
                         str = str.substring(0,str.length()-1)+" "+scriptList.get(line);
                     }*/
-                    // 分解
+                    // Parse
                     sList = new ArrayList<>();
                     tList = new ArrayList<>();
                     fullresolution(str, sList, tList, memData.treeset, true);
@@ -1206,7 +1206,7 @@ label:
                             }
                             line++;
                         }
-                        if (line > end + 1) throw new xTalkException("end repeatが見つかりません");
+                        if (line > end + 1) throw new xTalkException("end repeat not found");
 
                         if (sList.size() <= 1 || sList.get(1).startsWith("--") || 0 == sList.get(1).compareToIgnoreCase("forever")) {
                             // repeat [forever]
@@ -1233,7 +1233,7 @@ label:
                                 if (words2.length >= 1) rstart = new StringBuilder(words2[1]);
                                 next = 4;
                             } else {
-                                throw new xTalkException("repeat withの引数が分かりません");
+                                throw new xTalkException("repeat with arguments are unknown");
                             }
                             while (true) {
                                 if (next >= sList.size() || 0 == sList.get(next).compareToIgnoreCase("to"))
@@ -1244,7 +1244,7 @@ label:
                                         down = true;
                                         break;
                                     } else {
-                                        throw new xTalkException("downの後にはtoが必要です");
+                                        throw new xTalkException("to is required after down");
                                     }
                                 }
                                 rstart.append(" ").append(sList.get(next));
@@ -1338,16 +1338,16 @@ label:
                         result.ret = 0;
                     }
                     case "if" -> {
-                        // if構文
+                        // if syntax
                         // ArrayList<String> stringList = new ArrayList<String>();
                         // ArrayList<wordType> typeList = new ArrayList<wordType>();
                         String nstr = "";
 
-                        // 分解
+                        // Parse
                         // resolution(str, stringList, typeList,false);
 
                         int next = -1;
-                        String prm = "";// ifの条件のString
+                        String prm = "";// String of if condition
 
                         int iftype = 0;
                         int iftype2 = 0;
@@ -1355,14 +1355,14 @@ label:
                         for (int i = 1; i < sList.size(); i++, endi = i) {
 
                             if (0 == sList.get(i).compareToIgnoreCase("then")) {
-                                if (i == sList.size() - 1) { // 行末にthen
+                                if (i == sList.size() - 1) { // then at end of line
                                     iftype = 1;
                                     next = 0;
-                                    break; // 複数行のthen
+                                    break; // Multi-line then
                                 } else {
                                     iftype = 2;
                                     next = i;
-                                    break; // 1行のthen
+                                    break; // One-line then
                                 }
                             }
                         }
@@ -1371,7 +1371,7 @@ label:
                         ArrayList<wordType> ntypeList = new ArrayList<>();
                         if (iftype == 0) {
                             iftype2 = 1;
-                            // 2行目のthenを探す
+                            // Find then on second line
 
                             if (line + 1 <= end) {
                                 line++;
@@ -1380,16 +1380,16 @@ label:
                             resolution(nstr, nstringList, ntypeList, false);
 
                             if (!nstringList.isEmpty() && 0 == nstringList.get(0).compareToIgnoreCase("then")) {
-                                if (1 == nstringList.size()) { // 行末にthen
+                                if (1 == nstringList.size()) { // then at end of line
                                     iftype = 1;
-                                    next = 0; // 複数行のthen(2行目にある場合)
+                                    next = 0; // Multi-line then (if on second line)
 
                                 } else {
                                     iftype = 2;
-                                    next = 0; // 1行のthen(2行目にある場合)
+                                    next = 0; // One-line then (if on second line)
 
                                 }
-                            } else throw new xTalkException("if文にはthenが必要です");
+                            } else throw new xTalkException("if statement requires then");
                         }
                         if (iftype2 == 1 && iftype == 2) {
                             sList = nstringList;
@@ -1400,7 +1400,7 @@ label:
                         typeList = ntypeList;
                         line++;
                     }*/
-                        // ifの条件を満たすかどうか
+                        // Whether if condition is met
                         boolean doif = false;
                         if (0 == Evalution(prm, memData, object, target).compareTo("true")) {
                             doif = true;
@@ -1409,17 +1409,17 @@ label:
                         boolean thenthen = false;
                         int elseiftype = 0;
                         boolean doifever = false;
-                        // elseが連続する処理のためにここからループする
+                        // Loop from here for consecutive else processing
                         while (true) {
-                            // then(else)実行
+                            // Execute then (else)
                             boolean else_works = false;
                             if (iftype == 2) {
-                                // thenが行末でない
-                                // ->この行を(elseまで)実行
+                                // then is not at end of line
+                                // ->Execute this line (to else)
                                 next++;
                                 int nstart = next;
                                 while (true) {
-                                    if (next >= sList.size()) { // 行末まで来た
+                                    if (next >= sList.size()) { // Reached end of line
                                         String n2str = "";
                                         ArrayList<String> n2stringList = new ArrayList<>();
                                         ArrayList<wordType> n2typeList = new ArrayList<>();
@@ -1429,7 +1429,7 @@ label:
                                         }
                                         resolution(n2str, n2stringList, n2typeList, false);
                                         if (n2stringList.size() > n2next && 0 == n2stringList.get(n2next).compareToIgnoreCase("else")) {
-                                            // 次の行の先頭がelse
+                                            // Next line starts with else
                                             if (sList.get(nstart).equalsIgnoreCase("if")) {
                                                 int next2 = nstart;
                                                 for (; next2 < sList.size(); next2++) {
@@ -1453,16 +1453,16 @@ label:
                                             break;
                                         } else if (0 == sList.get(sList.size() - 1).compareToIgnoreCase("else") ||
                                                 0 == sList.get(sList.size() - 1).compareToIgnoreCase("then")) {
-                                            // この行の行末がelseかthen
+                                            // End of this line is else or then
                                             iftype = 1;
                                             thenthen = true;
                                             break;
                                         } else {
-                                            // 行末で、次の行がelseでないので終了
+                                            // At end of line, next line is not else so end
                                             break;
                                         }
                                     } else if (0 == sList.get(next).compareToIgnoreCase("else")) {
-                                        // 文中にelse
+                                        // else in the middle of sentence
                                         else_works = true;
                                         if (sList.get(nstart).equalsIgnoreCase("if")) {
                                             int next2 = nstart + 1;
@@ -1491,8 +1491,8 @@ label:
                                     doifever = true;
                                 }
                             } else if (iftype == 1) {
-                                // thenが行末
-                                // ->次の行からend if/elseまで実行
+                                // then is at end of line
+                                // ->Execute from next line to end if/else
                                 if (iftype2 == 1) {
                                     // line++;
                                 }
@@ -1542,8 +1542,8 @@ label:
                                                 nest++;
                                             }
                                         } else if (nest == 0) {
-                                            // System.out.println("elseで続く:"+str2);
-                                            // elseで続く
+                                            // System.out.println("continues with else:"+str2);
+                                            // Continues with else
                                             // next = 0;
                                         /*String n2str = "";
                                         ArrayList<String> n2stringList = new ArrayList<String>();
@@ -1590,8 +1590,8 @@ label:
                                             // System.out.println(nest+"#"+str2);
                                         } else {
                                             if (nest == 0) {
-                                                // System.out.println("elseで終了"+str2);
-                                                // elseで終了
+                                                // System.out.println("ends with else"+str2);
+                                                // Ends with else
                                             /*sList.clear();
                                             tList.clear();*/
                                                 sList = new ArrayList<>();
@@ -1605,8 +1605,8 @@ label:
                                         }
                                     } else if (0 == words2[0].compareToIgnoreCase("end") && 0 == words2[1].compareToIgnoreCase("if")) {
                                         if (nest == 0) {
-                                            // end ifで終了
-                                            // System.out.println("end ifで終了"+str2);
+                                            // End with end if
+                                            // System.out.println("ends with end if"+str2);
                                             break;
                                         }
                                         nest--;
@@ -1637,8 +1637,8 @@ label:
                                 break;
                             } else {
                                 doStr = "";
-                                // elseの判定
-                                if (next + 1 == sList.size()) { // 行末にelse
+                                // else judgment
+                                if (next + 1 == sList.size()) { // else at end of line
                                     iftype = 1;
                                     next = 0;
 //                                    System.out.println("iftype=1;next=0;");
@@ -1653,7 +1653,7 @@ label:
                                     resolution(scriptList.get(line), sList, tList, false);
                                     doif = true;
                                 } else if (sList.get(next + 1).equalsIgnoreCase("if") &&
-                                        sList.get(sList.size() - 1).equalsIgnoreCase("then")) { // else if 〜 then
+                                        sList.get(sList.size() - 1).equalsIgnoreCase("then")) { // else if ... to ... then
                                     iftype = 1;
 //                                    System.out.println("iftype=1;");
                                     elseiftype = 1;
@@ -1687,21 +1687,21 @@ label:
                                 return result;
                             }
                         }
-                        throw new xTalkException("exitが分かりません");
+                        throw new xTalkException("exit is unknown");
                     }
                     case "next" -> {
                         if (sList.size() >= 2 && 0 == sList.get(1).compareToIgnoreCase("repeat")) {
                             result.ret = 0;
                             return result;
                         }
-                        throw new xTalkException("nextが分かりません");
+                        throw new xTalkException("next is unknown");
                     }
                     case "pass" -> {
                         if (sList.size() >= 2 && 0 == sList.get(1).compareToIgnoreCase(message)) {
                             result.ret = 1;
                             return result;
                         }
-                        throw new xTalkException("passが分かりません");
+                        throw new xTalkException("pass is unknown");
                     }
                     case "return" -> {
                         result.theResult = "";
@@ -1715,9 +1715,9 @@ label:
                         result.ret = 0;
                         return result;
                     }
-                    case "end" -> throw new xTalkException("endが不正な位置にあります");
+                    case "end" -> throw new xTalkException("end is in an invalid position");
                     default -> {
-                        // 通常文の実行
+                        // Execute normal statement
                         if (TTalk.stop) {
                             throw new xTalkException("user abort.");
                         }
@@ -1729,7 +1729,7 @@ label:
 //                            result = doScriptLine(str, object, target, memData);
 //                        } else {
 //                            if (object.stringList == null || object.stringList[line] == null) {
-//                                // 分解
+//                                // Parse
 //                                // object.stringList[line] = new ArrayList<String>();
 //                                // object.typeList[line]  = new ArrayList<wordType>();
 //                                // fullresolution(str, object.stringList[line], object.typeList[line], true);
@@ -1739,11 +1739,11 @@ label:
 //                            ArrayList<String> stringList = new ArrayList<String>(object.stringList[line]);
 //
 //                            wordType[] typeAry = new wordType[object.typeList[line].size()];
-//                            for (int i = 0; i < object.typeList[line].size(); i++) { // リストより配列に移す
+//                            for (int i = 0; i < object.typeList[line].size(); i++) { // Move from list to array
 //                                typeAry[i] = object.typeList[line].get(i);
 //                            }
 //
-//                            // 実行
+//                            // Execute
 //                            result = CommandExec(stringList, typeAry, object, target, memData);
 //                        }
 
@@ -1753,11 +1753,11 @@ label:
                         wordType[] typeAry = new wordType[tList.size()];
                         tList.toArray(typeAry);
 //                        wordType[] typeAry = new wordType[tList.size()];
-//                        for (int i = 0; i < tList.size(); i++) { // リストより配列に移す
+//                        for (int i = 0; i < tList.size(); i++) { // Move from list to array
 //                            typeAry[i] = tList.get(i);
 //                        }
 
-                        // 実行
+                        // Execute
                         result = CommandExec(stringList, typeAry, object, target, memData, line);
                         lastResult = result;
                     }
@@ -1767,13 +1767,13 @@ label:
         } catch (xTalkException e) {
             e.printStackTrace();
 
-            // スクリプトエラー発生時の処理
+            // Processing when script error occurs
             String str = "";
             if (line < scriptList.size()) str = scriptList.get(line);
             while (str.length() > 1 && str.charAt(0) == ' ') str = str.substring(1);
             System.out.println("Error occurred at:" + str);
 
-            if (mode == 1) { // 内部呼び出しなので、ここではダイアログを出さず上位の呼び出し元に投げる
+            if (mode == 1) { // Internal call so do not show dialog here, throw to upper caller
                 throw new xTalkException(e.getMessage());
             }
 
@@ -1783,7 +1783,7 @@ label:
 
             lastErrorTime = System.currentTimeMillis();
 
-            if (TTalk.stop) { // cmd+.による強制停止 または エラーによる停止
+            if (TTalk.stop) { // Force stop by cmd+. or stop by error
                 throw new xTalkException(e.getMessage());
             }
 
@@ -1815,7 +1815,7 @@ label:
                         JOptionPane.WARNING_MESSAGE, null, options, options[0]);
             }
 
-            TTalk.stop = true; // 無駄なダイアログを発生させない
+            TTalk.stop = true; // Do not generate unnecessary dialogs
 
             throw new xTalkException(e.getMessage());
         }
@@ -1861,7 +1861,7 @@ label:
         ScriptArea.checkWordsLine2(script, stringList, typeList, isCmd, handler, varSet);
     }
 
-    // スクリプトを単語単位に分解
+    // Parse script into word units
     /*private static void resolution(String script, ArrayList<String> stringList, ArrayList<wordType> typeList, boolean isCmd)
     {
         // long timestart = System.currentTimeMillis();
@@ -1919,7 +1919,7 @@ label:
                     }
                     else if(isCmd && typeList.size()==1)
                     {
-                        // 左側がコマンドとして認識される場合
+                        // When left side is recognized as command
                         typeList.add(wordType.LBRACKET);
                     }
                     else {
@@ -2008,7 +2008,7 @@ label:
         ArrayList<String> stringList = new ArrayList<>();
         ArrayList<wordType> typeList = new ArrayList<>();
 
-        // 1.分解
+        // 1. Parse
         fullresolution(script, stringList, typeList, memData.treeset, true);
 
         wordType[] typeAry = new wordType[typeList.size()];
@@ -2017,7 +2017,7 @@ label:
         }
 
         // timeIsMoney("CommandExec:",timestart,19);
-        // 2.実行
+        // 2. Execute
         return CommandExec(stringList, typeAry, object, target, memData, startline);
     }
 
@@ -2067,7 +2067,7 @@ label:
 
         boolean inScript = true;
         if (commandSet.contains(str)) {
-            // オブジェクトからその親にハンドラは含まれているか
+            // Whether handler is included from object to its parent
             inScript = false;
             OObject obj = object;
             while (obj != null && obj.handlerList != null) {
@@ -2080,7 +2080,7 @@ label:
         }
 
         if (inScript) {
-            // スクリプトに含まれるハンドラ
+            // Handlers included in script
             int o = 0;
             for (int i = 1; i < stringList.size(); i++) {
                 if (typeAry[i] == wordType.COMMA || i == stringList.size() - 1) {
@@ -2103,7 +2103,7 @@ label:
                     }
                     if (i == stringList.size() || (typeAry[i] == wordType.COMMA && nest == 0)) {
                         if (j < typeAry.length && typeAry[j] == wordType.OPERATOR && 0 != stringList.get(j).compareTo("-")) {
-                            // msg boxに式を入れた場合には、コマンドとして実行はしない
+                            // If an expression is entered in the msg box, do not execute it as a command
                             flag = true;
                             result.ret = 1;
                             break;
@@ -2118,8 +2118,8 @@ label:
                     }
                 }
             }
-            // 基本は自分自身にメッセージ送信する
-            // バックグラウンドとスタックの場合は自分の子供のカードにメッセージ送信する
+            // By default, send message to self
+            // For background and stack, send message to own child card
             OObject sendObject = object;
             if (object != null && object.objectType.equals("background")) {
                 sendObject = ((OBackground) object).viewCard;
@@ -2132,7 +2132,7 @@ label:
             if (sendObject == null) sendObject = object;
             if (!flag) result = ReceiveMessage(stringList.get(0), paramAry, sendObject, target, memData);
             if (result.ret == 1) {
-                // 値を評価する(msg box用)
+                // Evaluate value (for msg box)
                 result.theResult = Evalution(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
                 result.ret = 0;
             }
@@ -2204,7 +2204,7 @@ label:
                             String value = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
                             if (0 == stringList.get(next + 1).compareToIgnoreCase("last") || 0 == stringList.get(next + 1).compareToIgnoreCase("first")) {
                                 stringList.set(next + 1, stringList.get(next + 2));
-                                // 上書きされるのでコピーする
+                                // Will be overwritten so make a copy
                                 ArrayList<String> cpstringList = (ArrayList<String>) stringList.clone();
                                 wordType[] cptypeAry = typeAry.clone();
                                 String value1 = Evalution(cpstringList, cptypeAry, next + 4, cpstringList.size() - 1, memData, object, target);
@@ -2306,7 +2306,7 @@ label:
                                 String value = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
                                 TUtil.SetProperty(obj, "text", value);
                             } else {
-                                // 変数
+                                // Variable
                                 String value = Evalution(stringList, typeAry, 1, stringList.size() - 3, memData, object, target);
                                 setVariable(memData, stringList.get(stringList.size() - 1), value);
                             }
@@ -2321,16 +2321,16 @@ label:
                 String property = "";
                 OObject obj = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("setが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("set is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("the"))
                     next++;
-                if (next >= stringList.size()) throw new xTalkException("setが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("set is unknown");
                 property = stringList.get(next);
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("setが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("set is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("of")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("setが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("set is unknown");
                     int end = next;
                     while (end < stringList.size()) {
                         if (0 == stringList.get(end).compareToIgnoreCase("to"))
@@ -2339,7 +2339,7 @@ label:
                     }
                     obj = getObject(stringList, typeAry, next, end - 1, memData, object, target);
                     if (obj == null) {
-                        throw new xTalkException("setで変更するオブジェクトが分かりません");
+                        throw new xTalkException("object to change with set is unknown");
                     }
                     next = end;
                 }
@@ -2352,7 +2352,7 @@ label:
                             if (property.equalsIgnoreCase("topleft") || property.equalsIgnoreCase("scroll") ||
                                     property.equalsIgnoreCase("loc") || property.equalsIgnoreCase("location") ||
                                     property.equalsIgnoreCase("rect") || property.equalsIgnoreCase("rectangle")) {
-                                // loc,rectの場合はコンマで分割
+                                // For loc, rect, split by comma
                                 param.append(Evalution(value.toString(), memData, object, target)).append(",");
                                 value = new StringBuilder();
                                 next++;
@@ -2372,7 +2372,7 @@ label:
             }
             case "go" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("goが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("go is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("to"))
                     next++;
                 int id = 0;
@@ -2407,7 +2407,7 @@ label:
                         PCARD.pc.tool = null;
                         PaintTool.saveCdPictures();
                         {
-                            // ペイント用バッファ
+                            // Paint buffer
                             PCARD.pc.mainImg = null;
                             PCARD.pc.bgImg = null;
                             PCARD.pc.undoBuf = null;
@@ -2443,15 +2443,15 @@ label:
                     return result;
                 }
 
-                // #####こんなことして大丈夫？
+                // ##### Is it OK to do this?
                 messageList.clear();
 
-                // ペイントの後片付け
+                // Cleanup after paint
                 if (PCARD.pc.tool != null) {
                     PCARD.pc.tool.end();
                     PaintTool.saveCdPictures();
                     {
-                        // ペイント用バッファ
+                        // Paint buffer
                         PCARD.pc.mainImg = null;
                         PCARD.pc.bgImg = null;
                         PCARD.pc.undoBuf = null;
@@ -2463,7 +2463,7 @@ label:
                 if (!lockMessages) {
                     talk.ReceiveMessage("closeCard", new String[0], PCARD.pc.stack.curCard, PCARD.pc.stack.curCard, null);
                 }
-                OCard cd = OCard.getOCard(PCARD.pc.stack, id, true);// データのみ読み込む
+                OCard cd = OCard.getOCard(PCARD.pc.stack, id, true);// Read only data
 
                 if (!lockMessages) {
                     if (cd.bgid != PCARD.pc.stack.curCard.bgid) {
@@ -2473,7 +2473,7 @@ label:
                 boolean saveLockedScreen = PCARD.lockedScreen;
                 if (!PCARD.lockedScreen) {
                     if (PCARD.visual > 0) VEffect.setOldOff();
-                    // メインスレッドで画面を書き換えられてしまうのを防ぐ
+                    // Prevent screen from being rewritten on main thread
                     PCARD.lockedScreen = true;
                     fastLockScreen = 0;
                 }
@@ -2483,7 +2483,7 @@ label:
                 for (int i = PCARD.pc.mainPane.getComponentCount() - 1; i >= 0; i--) {
                     // PCARD.pc.mainPane.remove(PCARD.pc.mainPane.getComponent(i));
                 }
-                cd = OCard.getOCard(PCARD.pc.stack, id, false);// 部品もピクチャも読み込む
+                cd = OCard.getOCard(PCARD.pc.stack, id, false);// Read both components and pictures
 
                 cd.bg = OBackground.getOBackground(PCARD.pc.stack, cd, cd.bgid, false);// new OBackground(PCARD.pc.stack, cd, cd.bgid, false);
 
@@ -2508,12 +2508,12 @@ label:
                 }
 
                 if (PCARD.pc.tool != null) {
-                    // ペイントの開始
+                    // Start paint
                     String toolName = PCARD.pc.tool.getName();
                     PCARD.pc.tool = null;
                     TBButtonListener.ChangeTool(toolName, null);
                 } else if (AuthTool.tool != null) {
-                    // オーサリングの開始
+                    // Start authoring
                     if (AuthTool.tool.getClass() == ButtonTool.class) {
                         TBButtonListener.ChangeTool("button", null);
                     } else if (AuthTool.tool.getClass() == FieldTool.class) {
@@ -2524,7 +2524,7 @@ label:
             }
             case "visual" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("visualが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("visual is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("effect"))
                     next++;
                 int mode;
@@ -2535,7 +2535,7 @@ label:
             }
             case "lock" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("lockが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("lock is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("screen")) {
                     if (fastLockScreen != object.id) {
                         VEffect.setOldOff();
@@ -2547,7 +2547,7 @@ label:
             }
             case "unlock" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("unlockが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("unlock is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("screen")) {
                     int vis = 0, tovis = 0, spd = 3;
                     next++;
@@ -2575,9 +2575,9 @@ label:
             case "answer" -> {
                 // answer
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("answerが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("answer is unknown");
                 if (stringList.get(next).equals("file")) {
-                    // ファイルオープンダイアログ
+                    // File open dialog
                     next++;
                     int j;
                     for (j = next; next < stringList.size() - 1; j++) {
@@ -2619,7 +2619,7 @@ label:
 
                             @Override
                             public String getDescription() {
-                                return type + "ファイル";
+                                return type + "file";
                             }
 
                             private static String getExtension(File f) {
@@ -2649,7 +2649,7 @@ label:
                         setVariable(memData, "it", path);
                     }
                 } else {
-                    // answerダイアログボックスの表示
+                    // Show answer dialog box
                     String answerStr = "";
                     String btn1 = "OK";
                     String btn2 = null;
@@ -2688,7 +2688,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("addが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("add is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2724,7 +2724,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("subtractが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("subtract is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2760,7 +2760,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("multiplyが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("multiply is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2796,7 +2796,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("divideが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("divide is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2827,8 +2827,8 @@ label:
             }
             case "get" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("getが分かりません");
-                // 変数it
+                if (next >= stringList.size()) throw new xTalkException("get is unknown");
+                // Variable it
                 String value = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                 setVariable(memData, "it", value);
             /*String newStr="";
@@ -2842,7 +2842,7 @@ label:
             case "show" -> {
                 StringBuilder objStr = new StringBuilder();
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("showが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("show is unknown");
                 if (stringList.get(next).equalsIgnoreCase("all") &&
                         next + 1 < stringList.size() &&
                         (stringList.get(next + 1).equalsIgnoreCase("cds") || stringList.get(next + 1).equalsIgnoreCase("cards"))) {
@@ -2862,7 +2862,7 @@ label:
                     doScriptLines(innerScript.toString(), object, target, memData);
                     // }
                 } else if (stringList.get(next).equalsIgnoreCase("groups")) {
-                    // フィールドのグループ指定スタイルに下線を付ける
+                    // Underline group selection style of field
                     // TODO:
                 } else {
                     while (next < stringList.size()) {
@@ -2907,7 +2907,7 @@ label:
             }
             case "hide" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("hideが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("hide is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set visible of");
                 for (int i = next; i < stringList.size(); i++) {
@@ -2923,7 +2923,7 @@ label:
             }
             case "enable" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("enableが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("enable is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set enabled of");
                 for (int i = next; i < stringList.size(); i++) {
@@ -2939,7 +2939,7 @@ label:
             }
             case "disable" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("disableが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("disable is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set enabled of");
                 for (int i = next; i < stringList.size(); i++) {
@@ -2955,7 +2955,7 @@ label:
             }
             case "wait" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("waitが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("wait is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("until")) {
                     while (true) {
                         ArrayList<String> stL = new ArrayList<>(stringList);
@@ -3003,7 +3003,7 @@ label:
             }
             case "do" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("doが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("do is unknown");
                 String newStr = "";
                 newStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                 doScript(object, target, "", newStr, memData, null, 0);
@@ -3012,22 +3012,22 @@ label:
                 // String newStr="";
                 OObject obj = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("sendが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("send is unknown");
                 while (0 != stringList.get(next).compareToIgnoreCase("to")) {
                     // newStr += stringList.get(next)+" ";
                     next++;
                     if (next >= stringList.size()) {
-                        // throw new xTalkException("sendにはtoが必要です");
+                        // throw new xTalkException("send requires to");
                         break;
                     }
                 }
                 if (next < stringList.size()) {
                     String newStr2 = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("send toが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("send to is unknown");
                     obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (obj == null) {
-                        // 変数の値を解析して送信する
+                        // Parse and send variable value
                         String v = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                         ArrayList<String> vList = new ArrayList<>();
                         ArrayList<wordType> tList = new ArrayList<>();
@@ -3038,7 +3038,7 @@ label:
                         }
                         obj = getObject(vList, typeAry2, 0, vList.size() - 1, memData, object, target);
                         if (obj == null) {
-                            throw new xTalkException("sendでメッセージを送信するオブジェクトが分かりません");
+                            throw new xTalkException("object to send message with send is unknown");
                         }
                     }
                     if (obj.objectType.equals("window")) {
@@ -3055,7 +3055,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 OObject obj = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("editが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("edit is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("picture")) {
                     // picture
@@ -3078,23 +3078,23 @@ label:
                         if (!newStr.isEmpty()) newStr.append(" ");
                         newStr.append(stringList.get(next));
                         next++;
-                        if (next >= stringList.size()) throw new xTalkException("editにはofが必要です");
+                        if (next >= stringList.size()) throw new xTalkException("edit requires of");
                     }
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("edit ofが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("edit of is unknown");
                     obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
-                    if (obj == null) throw new xTalkException("editで編集するオブジェクトが分かりません");
+                    if (obj == null) throw new xTalkException("object to edit with edit is unknown");
                     if (newStr.toString().equalsIgnoreCase("script")) {
                         ScriptEditor.openScriptEditor(PCARD.pc, obj);
                     } else {
-                        throw new xTalkException(newStr + "は編集できません");
+                        throw new xTalkException(newStr + " cannot be edited");
                     }
                 }
             }
             case "play" -> {
                 int next = 1;
                 if (next >= stringList.size())
-                    throw new xTalkException("playが分かりません");
+                    throw new xTalkException("play is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("stop")) {
                     // play stop
                     tsound.PlayStop();
@@ -3140,7 +3140,7 @@ label:
                                 flag = true;
                             }
                             if (flag == false && !soundRsrc.isEmpty()) {
-                                throw new xTalkException("playの" + stringList.get(next) + "が分かりません");
+                                throw new xTalkException("play of " + stringList.get(next) + " is unknown");
                             }
                         }
                         next++;
@@ -3157,18 +3157,18 @@ label:
             }
             case "push" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("pushが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("push is unknown");
                 if (stringList.get(next).equalsIgnoreCase("cd") ||
                         stringList.get(next).equalsIgnoreCase("card")) {
                     pushCardList.add(PCARD.pc.stack.curCard.getShortName());
                 } else {
                     if (next >= stringList.size())
-                        throw new xTalkException("push " + stringList.get(next) + "が分かりません");
+                        throw new xTalkException("push " + stringList.get(next) + " is unknown");
                 }
             }
             case "pop" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("popが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("pop is unknown");
                 if (stringList.get(next).equalsIgnoreCase("cd") ||
                         stringList.get(next).equalsIgnoreCase("card")) {
                     if (!pushCardList.isEmpty()) {
@@ -3178,19 +3178,19 @@ label:
                     }
                 } else {
                     if (next >= stringList.size())
-                        throw new xTalkException("push " + stringList.get(next) + "が分かりません");
+                        throw new xTalkException("push " + stringList.get(next) + " is unknown");
                 }
             }
             case "click" -> {
                 int next = 1;
                 if (next < stringList.size() && stringList.get(next).equalsIgnoreCase("at")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("click atの座標がありません");
+                    if (next >= stringList.size()) throw new xTalkException("no coordinates for click at");
                     StringBuilder value = new StringBuilder();
                     StringBuilder param = new StringBuilder();
                     while (next < stringList.size() && !stringList.get(next).equalsIgnoreCase("with")) {
                         if (stringList.get(next).equals(",")) {
-                            // コンマで分割
+                            // Split by comma
                             param.append(Evalution(value.toString(), memData, object, target)).append(",");
                             value = new StringBuilder();
                             next++;
@@ -3201,13 +3201,13 @@ label:
                     }
                     param.append(Evalution(value.toString(), memData, object, target));
                     String[] params = param.toString().split(",");
-                    if (2 != params.length) throw new xTalkException("click atの座標がわかりません");
+                    if (2 != params.length) throw new xTalkException("click at coordinates are unknown");
                     int x = 0, y = 0;
                     try {
                         x = Integer.parseInt(params[0]);
                         y = Integer.parseInt(params[1]);
                     } catch (Exception e) {
-                        throw new xTalkException("click atの座標がわかりません");
+                        throw new xTalkException("click at coordinates are unknown");
                     }
 
                     if (PCARD.pc.tool == null && AuthTool.tool == null) {
@@ -3216,7 +3216,7 @@ label:
                         for (int i = 0; i < PCARD.pc.mainPane.getComponentCount(); i++) {
                             Component c = PCARD.pc.mainPane.getComponent(i);
                             if (c.isVisible() &&
-                                    x >= c.getX() && y >= c.getY() && x < c.getX() + c.getWidth() && y < c.getY() + c.getHeight() && // containsを使うと透明ボタンで反応しない
+                                    x >= c.getX() && y >= c.getY() && x < c.getX() + c.getWidth() && y < c.getY() + c.getHeight() && // Using contains does not respond to transparent buttons
                                     c.isEnabled()) {
                                 if (c.getClass() == MyPopup.class) obj = ((MyPopup) c).btnData;
                                 if (c.getClass() == MyCheck.class) obj = ((MyCheck) c).btnData;
@@ -3301,7 +3301,7 @@ label:
                             /*PCARD.pc.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));*/
                         }
                     }
-                } else throw new xTalkException("clickが分かりません");
+                } else throw new xTalkException("click is unknown");
             }
             case "drag" -> {
                 int next = 1;
@@ -3309,12 +3309,12 @@ label:
                 int ex = 0, ey = 0;
                 if (next < stringList.size() && stringList.get(next).equalsIgnoreCase("from")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("drag fromの座標がありません");
+                    if (next >= stringList.size()) throw new xTalkException("no coordinates for drag from");
                     StringBuilder value = new StringBuilder();
                     StringBuilder param = new StringBuilder();
                     while (next < stringList.size() && !stringList.get(next).equalsIgnoreCase("to")) {
                         if (stringList.get(next).equals(",")) {
-                            // コンマで分割
+                            // Split by comma
                             param.append(Evalution(value.toString(), memData, object, target)).append(",");
                             value = new StringBuilder();
                             next++;
@@ -3325,24 +3325,24 @@ label:
                     }
                     param.append(Evalution(value.toString(), memData, object, target));
                     String[] params = param.toString().split(",");
-                    if (2 != params.length) throw new xTalkException("drag fromの座標がわかりません");
+                    if (2 != params.length) throw new xTalkException("drag from coordinates are unknown");
 
                     try {
                         sx = Integer.parseInt(params[0]);
                         sy = Integer.parseInt(params[1]);
                     } catch (Exception e) {
-                        throw new xTalkException("drag fromの座標がわかりません");
+                        throw new xTalkException("drag from coordinates are unknown");
                     }
-                } else throw new xTalkException("fromがありません");
+                } else throw new xTalkException("from is missing");
 
                 if (next < stringList.size() && stringList.get(next).equalsIgnoreCase("to")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("drag toの座標がありません");
+                    if (next >= stringList.size()) throw new xTalkException("no coordinates for drag to");
                     StringBuilder value = new StringBuilder();
                     StringBuilder param = new StringBuilder();
                     while (next < stringList.size()) {
                         if (stringList.get(next).equals(",")) {
-                            // コンマで分割
+                            // Split by comma
                             param.append(Evalution(value.toString(), memData, object, target)).append(",");
                             value = new StringBuilder();
                             next++;
@@ -3353,15 +3353,15 @@ label:
                     }
                     param.append(Evalution(value.toString(), memData, object, target));
                     String[] params = param.toString().split(",");
-                    if (2 != params.length) throw new xTalkException("drag toの座標がわかりません");
+                    if (2 != params.length) throw new xTalkException("drag to coordinates are unknown");
 
                     try {
                         ex = Integer.parseInt(params[0]);
                         ey = Integer.parseInt(params[1]);
                     } catch (Exception e) {
-                        throw new xTalkException("drag toの座標がわかりません");
+                        throw new xTalkException("drag to coordinates are unknown");
                     }
-                } else throw new xTalkException("toがありません");
+                } else throw new xTalkException("to is missing");
 
                 {
                     int j;
@@ -3437,17 +3437,17 @@ label:
                 int next = 1;
                 if (next < stringList.size()) {
                     if (stringList.get(next).equalsIgnoreCase("menuBar")) {
-                        // メニューバーを初期状態に戻す
+                        // Reset menu bar to initial state
                         PCARD.pc.menu = new GMenu(PCARD.pc, 0);
                         GMenu.menuUpdate(PCARD.pc.menu.mb);
-                    } else throw new xTalkException("resetが分かりません");
+                    } else throw new xTalkException("reset is unknown");
                 }
             }
             case "delete" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("deleteが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("delete is unknown");
                 if (stringList.get(next).equalsIgnoreCase("menu")) {
-                    // メニュー削除
+                    // Delete menu
                     for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
                         Component c = PCARDFrame.pc.menu.mb.getComponent(i);
                         if (c.getClass() == JMenu.class) {
@@ -3455,14 +3455,14 @@ label:
                             String v = Evalution(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
                             if (menu.getText().equalsIgnoreCase(v)) {
                                 PCARDFrame.pc.menu.mb.remove(menu);
-                                // メニュー反映
+                                // Reflect menu
                                 GMenu.menuUpdate(PCARD.pc.menu.mb);
                                 break;
                             }
                         }
                     }
                 } else if (stringList.get(next).equalsIgnoreCase("menuItem")) {
-                    // メニューアイテム削除
+                    // Delete menu item
                     for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
                         Component c = PCARDFrame.pc.menu.mb.getComponent(i);
                         if (c.getClass() == JMenu.class) {
@@ -3473,7 +3473,7 @@ label:
                                     JMenuItem mi = (JMenuItem) c2;
                                     if (mi.getText().equalsIgnoreCase(stringList.get(next))) {
                                         menu.remove(mi);
-                                        // メニュー反映
+                                        // Reflect menu
                                         GMenu.menuUpdate(PCARD.pc.menu.mb);
                                         break;
                                     }
@@ -3492,7 +3492,7 @@ label:
             }
             case "sort" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("sortが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("sort is unknown");
                 String splitStr = "\n";
                 if (next + 1 <= stringList.size() && stringList.get(next).equalsIgnoreCase("items") &&
                         stringList.get(next + 1).equalsIgnoreCase("of")) {
@@ -3503,7 +3503,7 @@ label:
                     next += 2;
                 }
                 int j = next;
-                boolean isAscending = true; // ソート方向
+                boolean isAscending = true; // Sort direction
 
                 for (; j < stringList.size(); j++) {
                     if (stringList.get(j).equalsIgnoreCase("descending")) {
@@ -3549,7 +3549,7 @@ label:
                 // ask
                 int next = 1;
                 if (stringList.get(next).equals("file")) {
-                    // ファイルセーブダイアログ
+                    // File save dialog
                     next++;
                     int j;
                     for (j = next; next < stringList.size() - 1; j++) {
@@ -3576,19 +3576,19 @@ label:
                     chooser.setDialogTitle(answerStr);
                     int ret = chooser.showSaveDialog(PCARD.pc);
                     if (ret != JFileChooser.APPROVE_OPTION) {
-                        // 保存しない
+                        // Do not save
                         result.theResult = "canceled";
                         return result;
                     }
                     String path = chooser.getSelectedFile().getPath();
                     setVariable(memData, "it", path);
                 } else {
-                    // テキスト入力付きダイアログボックスの表示
+                    // Show dialog box with text input
                     String answerStr = "";
-                    if (next >= stringList.size()) throw new xTalkException("askが分かりません");
-                    if (stringList.get(next).equalsIgnoreCase("file")) throw new xTalkException("ask file未対応");
+                    if (next >= stringList.size()) throw new xTalkException("ask is unknown");
+                    if (stringList.get(next).equalsIgnoreCase("file")) throw new xTalkException("ask file not supported");
                     if (stringList.get(next).equalsIgnoreCase("password"))
-                        throw new xTalkException("ask password未対応");
+                        throw new xTalkException("ask password not supported");
                     int i;
                     for (i = next + 1; i < stringList.size(); i++) {
                         if (0 == stringList.get(i).compareToIgnoreCase("with")) break;
@@ -3605,9 +3605,9 @@ label:
             }
             case "domenu" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("domenuが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("domenu is unknown");
 
-                // TODO enabledか、そもそもメニューにあるのかも調べたい
+                // TODO Want to check if enabled and if it is in the menu at all
                 GMenuBrowse.doMenu(stringList.get(next));
             }
             case "select" -> {
@@ -3616,7 +3616,7 @@ label:
                 String chunkStart = "";
                 String chunkEnd = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("selectが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("select is unknown");
                 if (typeAry[next] == wordType.FUNC) {
                     String newStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (!newStr.isEmpty()) {
@@ -3670,18 +3670,18 @@ label:
                         OField fld = (OField) target;
                         fld.setSelectedLine(0);
                     } else {
-                        // throw new xTalkException("ターゲットをselect emptyできません");
+                        // throw new xTalkException("cannot select target empty");
                     }
                     result.theResult = "";
                     result.ret = 0;
                     return result;
                 } else {
-                    throw new xTalkException("select オブジェクト コマンドは未サポートです");
+                    throw new xTalkException("select object command is not supported");
                 }
                 while (0 != stringList.get(next).compareToIgnoreCase("of")) {
                     next++;
                     if (next >= stringList.size()) {
-                        throw new xTalkException("selectが分かりません");
+                        throw new xTalkException("select is unknown");
                     }
                 }
                 obj = getObject(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
@@ -3690,8 +3690,8 @@ label:
                         if (chunkEnd == null) {
                             if (chunkStart.isEmpty()) chunkStart = "0";
                             ((OButton) obj).setSelectedLine(Integer.parseInt(chunkStart));
-                        } else throw new xTalkException("ボタンはひとつのlineでのみ選択できます");
-                    } else throw new xTalkException("ボタンはlineでのみ選択できます");
+                        } else throw new xTalkException("buttons can only be selected on one line");
+                    } else throw new xTalkException("buttons can only be selected by line");
                 } else if (obj.objectType.equals("field")) {
                     if (chunkType.equalsIgnoreCase("line") && chunkEnd == null) {
                         OField fld = (OField) obj;
@@ -3710,32 +3710,32 @@ label:
                             fld.fld.repaint();
                         }
                     } else {
-                        throw new xTalkException("selectでの複雑な選択範囲は未サポートです");
+                        throw new xTalkException("complex selection with select is not supported");
                     }
-                } else throw new xTalkException("フィールドとポップアップボタン以外のテキストは選択できません");
+                } else throw new xTalkException("text other than fields and popup buttons cannot be selected");
             }
             case "choose" -> {
                 int next = 2;
-                if (next >= stringList.size()) throw new xTalkException("chooseが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("choose is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("tool")) {
                     next = 1;
                     boolean ret = TBButtonListener.ChangeTool(stringList.get(next), null);
                     if (!ret) {
-                        throw new xTalkException("ツール\"" + stringList.get(next) + "\"はありません");
+                        throw new xTalkException("tool\"" + stringList.get(next) + "\" does not exist");
                     }
                     PCARD.pc.mainPane.repaint();
                 } else {
-                    throw new xTalkException("chooseが分かりません");
+                    throw new xTalkException("choose is unknown");
                 }
             }
             case "create" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("createが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("create is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("menu")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("create menuが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("create menu is unknown");
 
                     JMenu m = new JMenu(stringList.get(next));
                     PCARD.pc.menu.mb.add(m);
@@ -3806,7 +3806,7 @@ label:
             }
             case "open" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("openが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("open is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("stack")) {
                     next = 2;
@@ -3826,7 +3826,7 @@ label:
                     result.ret = 0;
                 } else if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("open fileが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("open file is unknown");
 
                     String path = stringList.get(next);
                     if (!new File(path).exists()) {
@@ -3834,42 +3834,42 @@ label:
                     }
                     if (!new File(path).getName().equals(path)) {
                         if (!new File(new File(path).getParent()).exists()) {
-                            throw new xTalkException("不明なディレクトリです。ファイルをopenできません");
+                            throw new xTalkException("Unknown directory. Cannot open file");
                         }
                     }
 
                     if (!new File(stringList.get(next)).exists()) {
-                        // 新規作成
+                        // Create new
                         try {
                             if (!new File(stringList.get(next)).createNewFile()) {
-                                throw new xTalkException("ファイルを作成できませんでした");
+                                throw new xTalkException("Could not create file");
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     } else if (new File(stringList.get(next)).isDirectory()) {
-                        // ディレクトリ
-                        throw new xTalkException("ディレクトリはopenできません");
+                        // Directory
+                        throw new xTalkException("Cannot open directory");
                     }
                     for (OpenFile openFile : openFileList) {
                         if (openFile.path.equals(path)) {
-                            throw new xTalkException("すでにopenしています");
+                            throw new xTalkException("Already open");
                         }
                     }
                     OpenFile ofile = new OpenFile();
                     ofile.path = path;
                     openFileList.add(ofile);
                 } else {
-                    throw new xTalkException("openが分かりません");
+                    throw new xTalkException("open is unknown");
                 }
             }
             case "close" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("closeが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("close is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("window")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("close windowが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("close window is unknown");
 
                     OObject obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (obj != null) {
@@ -3877,7 +3877,7 @@ label:
                     }
                 } else if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("close fileが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("close file is unknown");
 
                     String path = stringList.get(next);
                     if (!new File(path).exists()) {
@@ -3885,15 +3885,15 @@ label:
                     }
                     if (!new File(path).getName().equals(path)) {
                         if (!new File(new File(path).getParent()).exists()) {
-                            throw new xTalkException("不明なディレクトリです。ファイルをcloseできません");
+                            throw new xTalkException("Unknown directory. Cannot close file");
                         }
                     }
 
                     if (!new File(stringList.get(next)).exists()) {
-                        throw new xTalkException("ファイルがありません");
+                        throw new xTalkException("File does not exist");
                     } else if (new File(stringList.get(next)).isDirectory()) {
-                        // ディレクトリ
-                        throw new xTalkException("ディレクトリはcloseできません");
+                        // Directory
+                        throw new xTalkException("Cannot close directory");
                     }
                     OpenFile ofile = null;
                     for (OpenFile openFile : openFileList) {
@@ -3901,7 +3901,7 @@ label:
                             ofile = openFile;
                         }
                     }
-                    if (ofile == null) throw new xTalkException("openしていません");
+                    if (ofile == null) throw new xTalkException("Not open");
                     if (ofile.istream != null) {
                         try {
                             ofile.istream.close();
@@ -3917,18 +3917,18 @@ label:
                     ofile.path = null;
                     openFileList.remove(ofile);
                 } else {
-                    throw new xTalkException("closeが分かりません");
+                    throw new xTalkException("close is unknown");
                 }
             }
             case "read" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("readが分かりません");
-                if (!stringList.get(next).equals("from")) throw new xTalkException("readが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("read is unknown");
+                if (!stringList.get(next).equals("from")) throw new xTalkException("read is unknown");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("read fromが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("read from is unknown");
                 if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("read from fileが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("read from file is unknown");
 
                     String path = stringList.get(next);
                     if (!new File(path).exists()) {
@@ -3942,11 +3942,11 @@ label:
                     if (next < stringList.size()) {
                         if (stringList.get(next).equals("at")) {
                             next++;
-                            if (next >= stringList.size()) throw new xTalkException("read from file atが分かりません");
+                            if (next >= stringList.size()) throw new xTalkException("read from file at is unknown");
                             try {
                                 offset = Integer.parseInt(stringList.get(next));
                             } catch (Exception e) {
-                                throw new xTalkException("ここには数値が必要です");
+                                throw new xTalkException("A number is required here");
                             }
 
                             next++;
@@ -3955,23 +3955,23 @@ label:
                             if (stringList.get(next).equals("until")) {
                                 next++;
                                 if (next >= stringList.size())
-                                    throw new xTalkException("read from file untilが分かりません");
+                                    throw new xTalkException("read from file until is unknown");
                                 String tmp = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                                 if (tmp.length() == 1) {
                                     endChar = tmp.charAt(0);
                                 } else if (tmp.equalsIgnoreCase("eof")) {
                                     endChar = -1;
                                 } else {
-                                    throw new xTalkException("ここには文字を指定してください");
+                                    throw new xTalkException("Please specify a character here");
                                 }
                             } else if (stringList.get(next).equals("for")) {
                                 next++;
                                 if (next >= stringList.size())
-                                    throw new xTalkException("read from file forが分かりません");
+                                    throw new xTalkException("read from file for is unknown");
                                 try {
                                     forchars = Integer.parseInt(stringList.get(next));
                                 } catch (Exception e) {
-                                    throw new xTalkException("ここには数値が必要です");
+                                    throw new xTalkException("A number is required here");
                                 }
                             }
                         }
@@ -3985,13 +3985,13 @@ label:
                         }
                     }
                     if (ofile == null) {
-                        throw new xTalkException("ファイルが開かれていません");
+                        throw new xTalkException("File is not open");
                     }
                     if (ofile.istream == null) {
                         try {
                             ofile.istream = new FileInputStream(path);
                         } catch (FileNotFoundException e) {
-                            throw new xTalkException("ファイルから読み込みできません");
+                            throw new xTalkException("Cannot read from file");
                         }
                     }
                     try {
@@ -4017,27 +4017,27 @@ label:
                         }
                         setVariable(memData, "it", new String(b));
                     } catch (IOException e) {
-                        throw new xTalkException("ファイルから読み込み中にエラーが発生しました");
+                        throw new xTalkException("An error occurred while reading from file");
                     }
                 } else {
-                    throw new xTalkException("read fromが分かりません");
+                    throw new xTalkException("read from is unknown");
                 }
             }
             case "write" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("writeが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("write is unknown");
 
                 while (next < stringList.size() && !stringList.get(next).equals("to")) {
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("writeにはto fileが必要です");
+                if (next >= stringList.size()) throw new xTalkException("write requires to file");
                 String text = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
 
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("writeにはto fileが必要です");
+                if (next >= stringList.size()) throw new xTalkException("write requires to file");
                 if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("write to fileが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("write to file is unknown");
 
                     int j = next;
                     while (j < stringList.size() && !stringList.get(j).equals("at")) {
@@ -4052,11 +4052,11 @@ label:
                     next = j;
                     if (next < stringList.size() && stringList.get(next).equals("at")) {
                         next++;
-                        if (next >= stringList.size()) throw new xTalkException("write to file atが分かりません");
+                        if (next >= stringList.size()) throw new xTalkException("write to file at is unknown");
                         try {
                             offset = Integer.parseInt(stringList.get(next));
                         } catch (Exception e) {
-                            throw new xTalkException("ここには数値が必要です");
+                            throw new xTalkException("A number is required here");
                         }
 
                         next++;
@@ -4070,13 +4070,13 @@ label:
                         }
                     }
                     if (ofile == null) {
-                        throw new xTalkException("ファイルが開かれていません");
+                        throw new xTalkException("File is not open");
                     }
                     if (ofile.ostream == null && offset == -1) {
                         try {
                             ofile.ostream = new FileOutputStream(path);
                         } catch (FileNotFoundException e) {
-                            throw new xTalkException("ファイルに書き込みできません");
+                            throw new xTalkException("Cannot write to file");
                         }
                     }
                     try {
@@ -4095,27 +4095,27 @@ label:
                             text = new String(b) + text;
                         }
                     } catch (IOException e) {
-                        throw new xTalkException("ファイルへの書き込みの準備中にエラーが発生しました");
+                        throw new xTalkException("An error occurred while preparing to write to file");
                     }
                     try {
                         ofile.ostream.write(text.getBytes());
                     } catch (IOException e) {
-                        throw new xTalkException("ファイルへの書き込み中にエラーが発生しました");
+                        throw new xTalkException("An error occurred while writing to file");
                     }
                 } else {
-                    throw new xTalkException("writeが分かりません");
+                    throw new xTalkException("write is unknown");
                 }
             }
             case "convert" -> {
                 int next = 2;
-                if (next >= stringList.size()) throw new xTalkException("convertが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("convert is unknown");
 
                 for (next = 2; next < stringList.size(); next++) {
                     if (stringList.get(next).equalsIgnoreCase("to")) {
                         break;
                     }
                 }
-                if (next >= stringList.size()) throw new xTalkException("convertにtoがありません");
+                if (next >= stringList.size()) throw new xTalkException("convert is missing to");
 
                 String convStr = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
 
@@ -4124,7 +4124,7 @@ label:
                 calender.set(Calendar.MINUTE, 0);
                 calender.set(Calendar.SECOND, 0);
 
-                while (true) { // breakで抜けるためのダミーループ
+                while (true) { // Dummy loop to break out of
                     Pattern p = Pattern.compile("^([0-9]{1,4})\\.([0-9]{2})([0-9]{2})$");
                     Matcher m = p.matcher(convStr);
                     if (m.find()) {
@@ -4196,13 +4196,13 @@ label:
                         break;
                     }
 
-                    throw new xTalkException("convertでこの日付を解析できません");
+                    throw new xTalkException("Cannot parse this date with convert");
                 }
 
                 if (next + 1 < stringList.size() &&
                         stringList.get(next + 1).equalsIgnoreCase("dateItems")) {
                     // dateitems
-                    // 年 月 日 時間 分 秒 曜日
+                    // Year Month Day Hour Minute Second Day of week
                     String dateItemStr = "";
                     dateItemStr += calender.get(Calendar.YEAR) + ",";
                     dateItemStr += calender.get(Calendar.MONTH) + 1 + ",";
@@ -4214,12 +4214,12 @@ label:
                     result.theResult = dateItemStr;
                     result.ret = 0;
                 } else {
-                    throw new xTalkException("convert toでの変換が分かりません");
+                    throw new xTalkException("Conversion with convert to is unknown");
                 }
             }
             case "find" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("findが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("find is unknown");
                 OField fld = null;
                 int j = 2;
                 for (; j < stringList.size(); j++) {
@@ -4228,7 +4228,7 @@ label:
                         if (obj != null && obj.objectType.equals("field")) {
                             fld = (OField) obj;
                         } else {
-                            throw new xTalkException("findで検索するフィールドが分かりません");
+                            throw new xTalkException("field to search with find is unknown");
                         }
                         break;
                     }
@@ -4337,7 +4337,7 @@ label:
             }
             case "type" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("typeが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("type is unknown");
 
                 int j;
                 for (j = next + 1; j < stringList.size(); j++) {
@@ -4376,18 +4376,18 @@ label:
             }
             case "start" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("startが分かりません");
-                if (!stringList.get(next).equals("using")) throw new xTalkException("startが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("start is unknown");
+                if (!stringList.get(next).equals("using")) throw new xTalkException("start is unknown");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("start usingが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("start using is unknown");
                 if (!stringList.get(next).equals("stack"))
-                    throw new xTalkException("start usingではスタックを指定してください");
+                    throw new xTalkException("Please specify a stack with start using");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("start using stackが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("start using stack is unknown");
 
                 String pathStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
-                // 二重using禁止
+                // Double using not allowed
                 if (PCARD.pc.stack.usingStacks != null) {
                     for (int i = 0; i < PCARD.pc.stack.usingStacks.size(); i++) {
                         if (pathStr.equals(PCARD.pc.stack.usingStacks.get(i).path)) {
@@ -4405,14 +4405,14 @@ label:
             }
             case "stop" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("stopが分かりません");
-                if (!stringList.get(next).equals("using")) throw new xTalkException("stopが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("stop is unknown");
+                if (!stringList.get(next).equals("using")) throw new xTalkException("stop is unknown");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("stop usingが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("stop using is unknown");
                 if (!stringList.get(next).equals("stack"))
-                    throw new xTalkException("stop usingではスタックを指定してください");
+                    throw new xTalkException("Please specify a stack with stop using");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("stop using stackが分かりません");
+                if (next >= stringList.size()) throw new xTalkException("stop using stack is unknown");
 
                 String pathStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
@@ -4463,7 +4463,7 @@ label:
                 if (next >= stringList.size()) cnt = 3;
                 else cnt = Integer.parseInt(stringList.get(next));
 
-                // 反転画像を用意
+                // Prepare inverted image
                 BufferedImage off = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_BGR);
                 Graphics2D offg = off.createGraphics();
 
@@ -4498,7 +4498,7 @@ label:
          * --close window
          * controlKey
          * --convert [date] to dateitems
-         * convert [date] to dateitems以外
+         * Other than convert [date] to dateitems
          * create menu
          * create stack
          * --create btn/fld
@@ -4552,7 +4552,7 @@ label:
          * returnKey
          * save stack x as
          * --select
-         * --select chunk of field (lineのみ)
+         * --select chunk of field (line only)
          * select text of field
          * --select empty
          * --send to
@@ -4563,7 +4563,7 @@ label:
          * show number cards
          * show menubar
          * --show all cards
-         * --sort コンテナ
+         * --sort container
          * sort card
          * --start using stack
          * --stop using stack
@@ -4584,7 +4584,7 @@ label:
     }
 
     private static String convertFromMacPath(String path) {
-        // : を separetorCharに変換
+        // Convert : to separatorChar
         while (path.contains(":")) {
             int index = path.indexOf(":");
             path = path.substring(0, index) + File.separatorChar + path.substring(index + 1);
@@ -4619,8 +4619,8 @@ label:
             ArrayList<String> stringList, wordType[] typeAry, int start, int end,
             MemoryData memData, OObject object, OObject target)
             throws xTalkException {
-        // リストに入った単語を解釈/演算していく
-        // 単語数が減るときは左側を残して右側をwordType.NOPにする
+        // Interpret/operate on words entered in the list
+        // When the number of words decreases, keep the left side and set the right side to wordType.NOP
 
 //        String hintstr = "";
 //        for (int i = start; i <= end; i++) {
@@ -4653,12 +4653,12 @@ label:
             }
         }
 
-        // あらかじめtoLowerCaseとinternをしているため、==で比較できる
+        // Since toLowerCase and intern have been done in advance, they can be compared with ==
 
-        // 1.括弧
+        // 1. Parentheses
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.LBRACKET) {
-                // 対応する閉じ括弧を探す
+                // Find the corresponding closing parenthesis
                 int depth = 0;
                 int j = i + 1;
                 for (; j <= end; j++) {
@@ -4679,19 +4679,19 @@ label:
                     }
                 }
                 if (j > end)
-                    throw new xTalkException("対応する括弧がありません");
+                    throw new xTalkException("No matching parenthesis");
 //            } else if (typeAry[i] == wordType.RBRACKET) {
-//                // 関数の場合にここに入ってしまうので暫定対応
+//                // Enters here for functions, so temporary workaround
 //                int j;
 //                for (j = start; j <= end; j++) {
 //                    if (typeAry[j] == wordType.LFUNC) break;
 //                }
 //                if (j > end)
-//                    throw new xTalkException("対応する括弧がありません");
+//                    throw new xTalkException("No matching parenthesis");
             }
         }
 
-        // 括弧付きでの関数コール
+        // Function call with parentheses
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.LFUNC) {
                 if (i > start /* && typeAry[i-1]==wordType.X */) {
@@ -4745,12 +4745,12 @@ label:
                             }
                         }
                     }
-                    if (j > end) throw new xTalkException("(が不正です");
+                    if (j > end) throw new xTalkException("( is invalid");
                 }
             }
         }
 
-        // HyperTalk定数
+        // HyperTalk constants
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.CONST) {
                 String str = stringList.get(i) /* .toLowerCase() */;
@@ -4775,7 +4775,7 @@ label:
                         }
                         case "carriagereturn" -> {
                             stringList.set(i, "\r");
-                            typeAry[i] = wordType.STRING;  // 追加
+                            typeAry[i] = wordType.STRING;  // Add
                         }
                         case "linefeed" -> {
                             stringList.set(i, "\n");
@@ -4792,7 +4792,7 @@ label:
                         case "return" -> {
                             // stringList.set(i,"\r");
                             stringList.set(i, "\n");
-                            typeAry[i] = wordType.STRING;  // 改行コードを変更
+                            typeAry[i] = wordType.STRING;  // Change newline code
                         }
                         case "space" -> {
                             stringList.set(i, " ");
@@ -4859,7 +4859,7 @@ label:
             }
         }
 
-        // 変数
+        // Variable
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.VARIABLE ||
                     typeAry[i] == wordType.X && ((i - 1 < start) || (!stringList.get(i - 1).equals("the")))) {
@@ -4871,9 +4871,9 @@ label:
             }
         }
 
-        // プロパティ
+        // Property
         for (int i = end; i >= start; i--) {
-            // for(int i=start; i<=end; i++) {   // a of the x とかがあるので後ろから見る
+            // for(int i=start; i<=end; i++) {   // There is a of the x etc. so look from the back
             if (typeAry[i] == wordType.PROPERTY) {
                 if (stringList.get(i).equals("the") &&
                         ((i + 1 <= end && 0 != stringList.get(i + 1).compareToIgnoreCase("target")) &&
@@ -4887,7 +4887,7 @@ label:
                                                         (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
                                         ))
                         )) {
-                    if (i > end - 1) throw new xTalkException("theの後にプロパティ名がありません");
+                    if (i > end - 1) throw new xTalkException("No property name after the");
                     String str = stringList.get(i + 1);
                     if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
                         str += " " + stringList.get(i + 2);
@@ -4907,7 +4907,7 @@ label:
                         !stringList.get(i).equals("item") && !stringList.get(i).equals("word") &&
                         !stringList.get(i).equals("line")
                 ) {
-                    if (i + 1 > end - 1) throw new xTalkException("ofの後にオブジェクト名がありません");
+                    if (i + 1 > end - 1) throw new xTalkException("No object name after of");
                     String str = stringList.get(i);
                     ObjResult objres = null;
                     try {
@@ -4940,10 +4940,10 @@ label:
             }
         }
 
-        // theでコールする関数
+        // Function called with the
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.THE_FUNC) {
-                if (i > end - 1) throw new xTalkException("theの後に関数名がありません");
+                if (i > end - 1) throw new xTalkException("No function name after the");
                 String str = stringList.get(i + 1);
                 stringList.set(i, TUtil.CallSystemFunction(str, new String[0], target, memData, true).theResult);
                 typeAry[i] = wordType.STRING;
@@ -4951,7 +4951,7 @@ label:
             }
         }
 
-        // チャンク式
+        // Chunk expression
         for (int i = end; i >= start; i--) {
             if (typeAry[i] == wordType.CHUNK) {
                 String str = stringList.get(i)/*.toLowerCase()*/;
@@ -5004,7 +5004,7 @@ label:
             }
         }
 
-        // チャンク式2(any,last)
+        // Chunk expression 2 (any, last)
         for (int i = end; i >= start + 1; i--) {
             if (typeAry[i] == wordType.CHUNK) {
                 String str = stringList.get(i)/*.toLowerCase() */;
@@ -5044,7 +5044,7 @@ label:
             }
         }
 
-        // チャンク式3(number of xxxs)
+        // Chunk expression 3 (number of xxxs)
         for (int i = end; i >= start + 2; i--) {
             if (typeAry[i] == wordType.X) {
                 String str = stringList.get(i)/*.toLowerCase()*/;
@@ -5157,7 +5157,7 @@ label:
                                 }
                             }
                             if (number == -1)
-                                throw new xTalkException("number ofで数えられません");
+                                throw new xTalkException("Cannot count with number of");
                             if (i - 3 - offset >= start && stringList.get(i - 3 - offset).equalsIgnoreCase("the")) {
                                 offset++;
                             }
@@ -5172,10 +5172,10 @@ label:
             }
         }
 
-        // ofでコールする関数
+        // Function called with of
         for (int i = end; i >= start; i--) {
             if (typeAry[i] == wordType.FUNC) {
-                // ofを使用したnumber of/関数呼び出し
+                // number of/function call using of
                 char c = ' ';
                 if (i + 2 <= end) {
                     c = stringList.get(i + 2).charAt(stringList.get(i + 2).length() - 1);
@@ -5216,7 +5216,7 @@ label:
                             }
                             stringList.set(i, Integer.toString(cnt));
                             typeAry[i] = wordType.STRING;
-                        } else throw new xTalkException("ここにはバックグラウンドかスタックを指定してください");
+                        } else throw new xTalkException("Please specify a background or stack here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
                         if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5228,7 +5228,7 @@ label:
                             if (0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
                                 next++;
                             }
-                        } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+                        } else throw new xTalkException("Please specify a card or background here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("flds") || 0 == stringList.get(i + 2).compareToIgnoreCase("fields") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
                         if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5240,7 +5240,7 @@ label:
                             if (0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
                                 next++;
                             }
-                        } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+                        } else throw new xTalkException("Please specify a card or background here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("parts") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("parts")) {
                         if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5249,7 +5249,7 @@ label:
                             else cdbs = (OCardBase) objres2.obj;
                             stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
                             typeAry[i] = wordType.STRING;
-                        } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+                        } else throw new xTalkException("Please specify a card or background here");
                     }
                     int cnt = 0;
                     if (objres2 != null) cnt += objres2.cnt;
@@ -5262,7 +5262,7 @@ label:
                         !stringList.get(i).equals("line") &&
                         !stringList.get(i).equals("short") &&
                         !stringList.get(i).equals("long")) {
-                    // 関数呼び出し
+                    // Function call
                     String[] paramAry = new String[1];
                     paramAry[0] = stringList.get(i + 2);
                     Result funcres = TUtil.CallSystemFunction(stringList.get(i), paramAry, target, memData, true);
@@ -5274,7 +5274,7 @@ label:
                         }
                         stringList.set(i, funcres.theResult);
                         typeAry[i] = wordType.STRING;
-                    } else throw new xTalkException("この関数が分かりません");
+                    } else throw new xTalkException("This function is unknown");
                     for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
                         typeAry[j] = wordType.NOP;
                     }
@@ -5282,8 +5282,8 @@ label:
             }
         }
 
-//        // item random of 2 of x がいけるようにするために前に移動させてみた
-//        // プロパティ(or関数)
+//        // Tried moving to the front to allow item random of 2 of x
+//        // Property (or function)
 //        for (int i = start; i <= end; i++) {
 //            if (typeAry[i] == wordType.X) {
 //                if (0 == stringList.get(i).compareToIgnoreCase("the") &&
@@ -5296,7 +5296,7 @@ label:
 //                                                        (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
 //                                        )
 //                        )) {
-//                    if (i > end - 1) throw new xTalkException("theの後にプロパティ名がありません");
+//                    if (i > end - 1) throw new xTalkException("No property name after the");
 //                    String str = stringList.get(i + 1);
 //                    if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
 //                        str += " " + stringList.get(i + 2);
@@ -5306,7 +5306,7 @@ label:
 //                    typeAry[i] = wordType.STRING;
 //                    typeAry[i + 1] = wordType.NOP;
 //                } else if (i <= end - 1 && 0 == stringList.get(i + 1).compareToIgnoreCase("of") && typeAry[i + 1] == wordType.X) {
-//                    if (i + 1 > end - 1) throw new xTalkException("ofの後にオブジェクト名がありません");
+//                    if (i + 1 > end - 1) throw new xTalkException("No object name after of");
 //                    String str = stringList.get(i);
 //                    ObjResult objres = null;
 //                    objres = getObjectfromList(stringList, typeAry, i + 2, object, target);
@@ -5332,7 +5332,7 @@ label:
 //                            typeAry[j] = wordType.NOP;
 //                        }
 //                    } else {
-//                        // ofを使用したnumber of/関数呼び出し
+//                        // number of/function call using of
 //                        if (0 == str.compareToIgnoreCase("number")) {
 //                            // number of
 //                            ObjResult objres2 = null;
@@ -5364,7 +5364,7 @@ label:
 //                                    }
 //                                    stringList.set(i, Integer.toString(cnt));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("ここにはバックグラウンドかスタックを指定してください");
+//                                } else throw new xTalkException("Please specify a background or stack here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
 //                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5373,7 +5373,7 @@ label:
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.btnList.size()));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+//                                } else throw new xTalkException("Please specify a card or background here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("flds") || 0 == stringList.get(i + 2).compareToIgnoreCase("fields") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
 //                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5382,7 +5382,7 @@ label:
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.fldList.size()));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+//                                } else throw new xTalkException("Please specify a card or background here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("parts") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("parts")) {
 //                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5391,7 +5391,7 @@ label:
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("ここにはカードかバックグラウンドを指定してください");
+//                                } else throw new xTalkException("Please specify a card or background here");
 //                            }
 //                            int cnt = 0;
 //                            if (objres2 != null) cnt += objres2.cnt;
@@ -5399,7 +5399,7 @@ label:
 //                                typeAry[j] = wordType.NOP;
 //                            }
 //                        } else {
-//                            // 関数呼び出し
+//                            // Function call
 //                            String[] paramAry = new String[1];
 //                            paramAry[0] = stringList.get(i + 2);
 //                            Result funcres = TUtil.CallSystemMessage(str, paramAry, memData, true);
@@ -5411,7 +5411,7 @@ label:
 //                                }
 //                                stringList.set(i, funcres.theResult);
 //                                typeAry[i] = wordType.STRING;
-//                            } else throw new xTalkException("この関数が分かりません");
+//                            } else throw new xTalkException("This function is unknown");
 //                            for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
 //                                typeAry[j] = wordType.NOP;
 //                            }
@@ -5480,7 +5480,7 @@ label:
             }
         }
 
-        // コンテナ
+        // Container
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OBJECT && (i <= end - 1 && (typeAry[i + 1] == wordType.X || typeAry[i + 1] == wordType.STRING || typeAry[i + 1] == wordType.OBJECT || typeAry[i + 1] == wordType.OF_OBJ) ||
                     stringList.get(i).equals("me") ||
@@ -5491,7 +5491,7 @@ label:
                 objres = getObjectfromList(stringList, typeAry, i, object, target);
                 if (objres != null && objres.obj != null) {
                     if (i + 1 <= end && stringList.get(i).equalsIgnoreCase("the") && stringList.get(i + 1).equalsIgnoreCase("target")) {
-                        // targetの場合はオブジェクト名
+                        // Object name for target
                         stringList.set(i, objres.obj.getShortName());
                         typeAry[i] = wordType.STRING;
                         for (int j = i + 1; j < i + objres.cnt && j <= end; j++) {
@@ -5504,21 +5504,21 @@ label:
                             typeAry[j] = wordType.NOP;
                         }
                     } else if (0 == objres.obj.objectType.compareTo("card"))
-                        throw new xTalkException("カードはコンテナとして使えません");
+                        throw new xTalkException("Cards cannot be used as containers");
                     else if (0 == objres.obj.objectType.compareTo("background"))
-                        throw new xTalkException("バックグラウンドはコンテナとして使えません");
+                        throw new xTalkException("Backgrounds cannot be used as containers");
                     else if (0 == objres.obj.objectType.compareTo("stack"))
-                        throw new xTalkException("スタックはコンテナとして使えません");
+                        throw new xTalkException("Stacks cannot be used as containers");
                 }
             }
         }
 
-        // 2b.負の記号(withinはここじゃない？)
+        // 2b. Negative sign (is within not here?)
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("-")) {
                     if (i == start || typeAry[i - 1] == wordType.OPERATOR || typeAry[i - 1] == wordType.OPERATOR_SUB) {
-                        if (i > end - 1) throw new xTalkException("-の後に値がありません");
+                        if (i > end - 1) throw new xTalkException("No value after -");
                         String str = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         try {
                             double value = -1.0 * (Double.parseDouble(str));
@@ -5526,19 +5526,19 @@ label:
                             stringList.set(i, numFormat.format(value));
                             typeAry[i + 1] = wordType.NOP;
                         } catch (Exception err) {
-                            throw new xTalkException("-の後の値が不正です。" + err);
+                            throw new xTalkException("Value after - is invalid. " + err);
                         }
                     }
                 } else if (stringList.get(i).equals("not")) {
                     if (i == start || (typeAry[i - 1] != wordType.OPERATOR && typeAry[i - 1] != wordType.OPERATOR_SUB) ||
                             (0 == stringList.get(i - 1).compareToIgnoreCase("and") || 0 == stringList.get(i - 1).compareToIgnoreCase("or") || 0 == stringList.get(i - 1).compareToIgnoreCase("&"))) {
                         if (i > end - 1) {
-                            throw new xTalkException("notの後に値がありません");
+                            throw new xTalkException("No value after not");
                         }
                         String value = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         if (value.compareToIgnoreCase("true") == 0) value = "false";
                         else if (value.compareToIgnoreCase("false") == 0) value = "true";
-                        else throw new xTalkException("notの後に真偽値(true/false)がありません");
+                        else throw new xTalkException("No boolean value (true/false) after not");
                         typeAry[i] = wordType.STRING;
                         stringList.set(i, value);
                         typeAry[i + 1] = wordType.NOP;
@@ -5561,7 +5561,7 @@ label:
 //                        p = new Point(Integer.valueOf(strAry[0]),
 //                                Integer.valueOf(strAry[1]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within演算子のポイントの指定が不正です。" + err);
+//                        throw new xTalkException("within operator point specification is invalid. " + err);
 //                    }
 //
 //                    Rectangle r = null;
@@ -5572,7 +5572,7 @@ label:
 //                                Integer.valueOf(strAry[2]),
 //                                Integer.valueOf(strAry[3]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within演算子の矩形領域の指定が不正です。" + err);
+//                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
 //                    }
 //
 //                    typeAry[j] = wordType.STRING;
@@ -5604,7 +5604,7 @@ label:
 //                        p = new Point(Integer.valueOf(strAry[0]),
 //                                Integer.valueOf(strAry[1]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within演算子のポイントの指定が不正です。" + err);
+//                        throw new xTalkException("within operator point specification is invalid. " + err);
 //                    }
 //
 //                    Rectangle r = null;
@@ -5615,7 +5615,7 @@ label:
 //                                Integer.valueOf(strAry[2]),
 //                                Integer.valueOf(strAry[3]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within演算子の矩形領域の指定が不正です。" + err);
+//                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
 //                    }
 //
 //                    typeAry[j] = wordType.STRING;
@@ -5633,11 +5633,11 @@ label:
             }
         }
 
-        // 3.べき乗
+        // 3. Exponentiation
         for (int i = end; i >= start; i--) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("^")) {
-                    if (i > end - 1) throw new xTalkException("^演算子が不正です");
+                    if (i > end - 1) throw new xTalkException("^ operator is invalid");
                     try {
                         String str1 = "";
                         int j = i - 1;
@@ -5658,20 +5658,20 @@ label:
                         typeAry[i] = wordType.NOP;
                         typeAry[i + 1] = wordType.NOP;
                     } catch (Exception err) {
-                        throw new xTalkException("^演算子が不正です。" + err);
+                        throw new xTalkException("^ operator is invalid. " + err);
                     }
                 }
             }
         }
 
-        // 4.数の乗除
+        // 4. Number multiplication/division
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("*") ||
                         stringList.get(i).equals("/") ||
                         stringList.get(i).equals("div") ||
                         stringList.get(i).equals("mod")) {
-                    if (i > end - 1) throw new xTalkException(stringList.get(i) + "演算子が不正です");
+                    if (i > end - 1) throw new xTalkException(stringList.get(i) + " operator is invalid");
                     String str1 = "";
                     String str2 = "";
                     try {
@@ -5707,18 +5707,18 @@ label:
                         typeAry[i] = wordType.NOP;
                         typeAry[i + 1] = wordType.NOP;
                     } catch (Exception err) {
-                        throw new xTalkException(stringList.get(i) + "演算子が不正です。" + err);
+                        throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
                     }
                 }
             }
         }
 
-        // 5.数の加減
+        // 5. Number addition/subtraction
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("+") ||
                         stringList.get(i).equals("-")) {
-                    if (i > end - 1) throw new xTalkException(stringList.get(i) + "演算子が不正です");
+                    if (i > end - 1) throw new xTalkException(stringList.get(i) + " operator is invalid");
                     try {
                         String str1 = "";
                         int j = i - 1;
@@ -5747,18 +5747,18 @@ label:
                         typeAry[i] = wordType.NOP;
                         typeAry[i + 1] = wordType.NOP;
                     } catch (Exception err) {
-                        throw new xTalkException(stringList.get(i) + "演算子が不正です。" + err);
+                        throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
                     }
                 }
             }
         }
 
-        // 6..テキストの連結
+        // 6. Text concatenation
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("&")) {
                     if (i > end - 1) {
-                        throw new xTalkException(stringList.get(i) + "演算子が不正です");
+                        throw new xTalkException(stringList.get(i) + " operator is invalid");
                     }
                     String str1 = "";
                     int j = i - 1;
@@ -5773,7 +5773,7 @@ label:
                         try {
                             str2 = Evalution(stringList, typeAry, i + 2, i + 2, memData, object, target);
                         } catch (Exception err) {
-                            throw new xTalkException(stringList.get(i) + "演算子が不正です。" + err);
+                            throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
                         }
                         typeAry[i + 2] = wordType.NOP;
                         typeAry[j] = wordType.STRING;
@@ -5782,7 +5782,7 @@ label:
                         try {
                             str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         } catch (Exception err) {
-                            throw new xTalkException(stringList.get(i) + "演算子が不正です。" + err);
+                            throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
                         }
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, str1 + str2);
@@ -5813,7 +5813,7 @@ label:
                         p = new Point(Integer.parseInt(strAry[0]),
                                 Integer.parseInt(strAry[1]));
                     } catch (Exception err) {
-                        throw new xTalkException("within演算子のポイントの指定が不正です。" + err);
+                        throw new xTalkException("within operator point specification is invalid. " + err);
                     }
 
                     Rectangle r = null;
@@ -5824,7 +5824,7 @@ label:
                                 Integer.parseInt(strAry[2]),
                                 Integer.parseInt(strAry[3]));
                     } catch (Exception err) {
-                        throw new xTalkException("within演算子の矩形領域の指定が不正です。" + err);
+                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
                     }
 
                     typeAry[j] = wordType.STRING;
@@ -5856,7 +5856,7 @@ label:
                         p = new Point(Integer.parseInt(strAry[0]),
                                 Integer.parseInt(strAry[1]));
                     } catch (Exception err) {
-                        throw new xTalkException("within演算子のポイントの指定が不正です。" + err);
+                        throw new xTalkException("within operator point specification is invalid. " + err);
                     }
 
                     Rectangle r = null;
@@ -5867,7 +5867,7 @@ label:
                                 Integer.parseInt(strAry[2]),
                                 Integer.parseInt(strAry[3]));
                     } catch (Exception err) {
-                        throw new xTalkException("within演算子の矩形領域の指定が不正です。" + err);
+                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
                     }
 
                     typeAry[j] = wordType.STRING;
@@ -5885,14 +5885,14 @@ label:
             }
         }
 
-        // 7.数またはテキストの比較
+        // 7. Number or text comparison
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 String opr = stringList.get(i);
                 switch (opr) {
                     case "<", ">", "≤", "≥" -> {
                         if (i > end - 1) {
-                            throw new xTalkException("比較演算子が不正です");
+                            throw new xTalkException("Comparison operator is invalid");
                         }
                         String str1 = "";
                         int j = i - 1;
@@ -5903,7 +5903,7 @@ label:
                             }
                         }
                         if (typeAry[i + 1] == wordType.OPERATOR_SUB) {
-                            if (i + 1 > end - 1) throw new xTalkException("比較演算子が不正です");
+                            if (i + 1 > end - 1) throw new xTalkException("Comparison operator is invalid");
                             if (opr.equals("<") && stringList.get(i + 1).equals(">")) continue;
                             opr = opr + stringList.get(i + 1);
                             typeAry[i] = wordType.NOP;
@@ -5941,7 +5941,7 @@ label:
                             value=str1.compareTo(str2)>0;
                         else if(0==opr.compareTo(">=") || 0==opr.compareTo("≥"))
                             value=str1.compareTo(str2)>=0;*/
-                            else throw new xTalkException("数字以外を比較できません:" + str1 + "と" + str2);
+                            else throw new xTalkException("Cannot compare non-numbers: " + str1 + " and " + str2);
                             typeAry[j] = wordType.STRING;
                             stringList.set(j, value ? "true" : "false");
                             typeAry[i] = wordType.NOP;
@@ -5951,7 +5951,7 @@ label:
                     case "is" -> {
                         if (i > end - 1) continue;
                         if (0 == stringList.get(i + 1).compareToIgnoreCase("in")) {
-                            if (i + 1 > end - 1) throw new xTalkException("is in演算子が不正です");
+                            if (i + 1 > end - 1) throw new xTalkException("is in operator is invalid");
                             String str1 = "";
                             int j = i - 1;
                             for (; j >= start; j--) {
@@ -5972,7 +5972,7 @@ label:
                                 (0 == stringList.get(i + 1).compareToIgnoreCase("a") ||
                                         0 == stringList.get(i + 1).compareToIgnoreCase("an"))) {
                             // is a
-                            if (i + 2 > end) throw new xTalkException("is a演算子が不正です");
+                            if (i + 2 > end) throw new xTalkException("is a operator is invalid");
                             String str1 = "";
                             int j = i - 1;
                             for (; j >= start; j--) {
@@ -5994,7 +5994,7 @@ label:
                                 value = true;// **
                             } else if (stringList.get(i + 2).equalsIgnoreCase("logical")) {
                                 value = (str1.equalsIgnoreCase("true") || str1.equalsIgnoreCase("false"));
-                            } else throw new xTalkException(stringList.get(i + 2) + "をis a演算子に使えません");
+                            } else throw new xTalkException(stringList.get(i + 2) + " cannot be used with is a operator");
                             typeAry[j] = wordType.STRING;
                             stringList.set(j, value ? "true" : "false");
                             typeAry[i] = wordType.NOP;
@@ -6003,7 +6003,7 @@ label:
                         } else if (0 == stringList.get(i + 1).compareToIgnoreCase("not")) {
                             if (i > end - 2) continue;
                             if (0 == stringList.get(i + 2).compareToIgnoreCase("in")) {
-                                if (i + 2 > end - 1) throw new xTalkException("is not in演算子が不正です");
+                                if (i + 2 > end - 1) throw new xTalkException("is not in operator is invalid");
                                 String str1 = "";
                                 int j = i - 1;
                                 for (; j >= start; j--) {
@@ -6026,7 +6026,7 @@ label:
                                 if (0 == stringList.get(i + 2).compareToIgnoreCase("a") ||
                                         0 == stringList.get(i + 2).compareToIgnoreCase("an")) {
                                     // is not a/an
-                                    if (i + 2 > end) throw new xTalkException("is not a演算子が不正です");
+                                    if (i + 2 > end) throw new xTalkException("is not a operator is invalid");
                                     String str1 = "";
                                     int j = i - 1;
                                     for (; j >= start; j--) {
@@ -6049,7 +6049,7 @@ label:
                                     } else if (stringList.get(i + 3).equalsIgnoreCase("logical")) {
                                         value = (str1.equalsIgnoreCase("true") || str1.equalsIgnoreCase("false"));
                                     } else
-                                        throw new xTalkException(stringList.get(i + 3) + "をis not a演算子に使えません");
+                                        throw new xTalkException(stringList.get(i + 3) + " cannot be used with is not a operator");
                                     typeAry[j] = wordType.STRING;
                                     stringList.set(j, !value ? "true" : "false");
                                     typeAry[i] = wordType.NOP;
@@ -6061,7 +6061,7 @@ label:
                         }
                     }
                     case "contains" -> {
-                        if (i + 1 > end) throw new xTalkException("contains演算子が不正です");
+                        if (i + 1 > end) throw new xTalkException("contains operator is invalid");
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
@@ -6082,12 +6082,12 @@ label:
             }
         }
 
-        // 8.数またはテキストの比較
+        // 8. Number or text comparison
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 String opr = stringList.get(i);
                 if (opr.equals("≠")) {
-                    if (i > end - 1) throw new xTalkException("比較演算子が不正です");
+                    if (i > end - 1) throw new xTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
@@ -6112,7 +6112,7 @@ label:
                         stringList.get(i + 1).equals("not") ||
                         opr.equals("<") &&
                                 stringList.get(i + 1).equals(">")) {
-                    if (i + 1 > end - 1) throw new xTalkException("比較演算子が不正です");
+                    if (i + 1 > end - 1) throw new xTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
@@ -6136,7 +6136,7 @@ label:
                 } else if (opr.equals("=") ||
                         opr.equals("is")) {
                     if (i > end - 1)
-                        throw new xTalkException("比較演算子が不正です");
+                        throw new xTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
@@ -6162,11 +6162,11 @@ label:
             }
         }
 
-        // 9.and演算子
+        // 9. and operator
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("and")) {
-                    if (i > end - 1) throw new xTalkException("and演算子が不正です");
+                    if (i > end - 1) throw new xTalkException("and operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
@@ -6181,10 +6181,10 @@ label:
                         boolean value2 = false;
                         if (0 == str1.compareToIgnoreCase("true")) value1 = true;
                         else if (0 == str1.compareToIgnoreCase("false")) value1 = false;
-                        else throw new xTalkException("and演算には真偽値(true/false)が必要です");
+                        else throw new xTalkException("and operation requires boolean value (true/false)");
                         if (0 == str2.compareToIgnoreCase("true")) value2 = true;
                         else if (0 == str2.compareToIgnoreCase("false")) value2 = false;
-                        else throw new xTalkException("and演算には真偽値(true/false)が必要です");
+                        else throw new xTalkException("and operation requires boolean value (true/false)");
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, (value1 && value2) ? "true" : "false");
                         typeAry[i] = wordType.NOP;
@@ -6194,11 +6194,11 @@ label:
             }
         }
 
-        // 10.or演算子
+        // 10. or operator
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("or")) {
-                    if (i > end - 1) throw new xTalkException("or演算子が不正です");
+                    if (i > end - 1) throw new xTalkException("or operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
@@ -6213,10 +6213,10 @@ label:
                         boolean value2 = false;
                         if (0 == str1.compareToIgnoreCase("true")) value1 = true;
                         else if (0 == str1.compareToIgnoreCase("false")) value1 = false;
-                        else throw new xTalkException("or演算には真偽値(true/false)が必要です");
+                        else throw new xTalkException("or operation requires boolean value (true/false)");
                         if (0 == str2.compareToIgnoreCase("true")) value2 = true;
                         else if (0 == str2.compareToIgnoreCase("false")) value2 = false;
-                        else throw new xTalkException("or演算には真偽値(true/false)が必要です");
+                        else throw new xTalkException("or operation requires boolean value (true/false)");
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, (value1 || value2) ? "true" : "false");
                         typeAry[i] = wordType.NOP;
@@ -6226,13 +6226,13 @@ label:
             }
         }
 
-        // 演算子無しで値を繋げていないか？
+        // Are values being concatenated without an operator?
         for (int i = start + 1; i <= end; i++) {
             /*if(typeAry[i-1]==wordType.X && typeAry[i]==wordType.X) {
-                throw new xTalkException(stringList.get(i-1)+" "+stringList.get(i)+"がわかりません");
+                throw new xTalkException(stringList.get(i-1)+" "+stringList.get(i)+" is unknown");
             }*/
             if (typeAry[i] != wordType.NOP) {
-                throw new xTalkException(stringList.get(i) + "がわかりません");
+                throw new xTalkException(stringList.get(i) + " is unknown");
             }
         }
 
@@ -6257,7 +6257,7 @@ label:
         String str = name.toLowerCase();
 
         if (memData.treeset.contains(str)) {
-            // ローカル変数に代入
+            // Assign to local variable
             for (int i = 0; i < memData.nameList.size(); i++) {
                 if (str.equals(memData.nameList.get(i))) {
                     memData.valueList.set(i, value);
@@ -6268,7 +6268,7 @@ label:
         }
 
         if (globalData.treeset.contains(str)) {
-            // グローバル変数に代入
+            // Assign to global variable
             for (int i = 0; i < globalData.nameList.size(); i++) {
                 if (str.equals(globalData.nameList.get(i))) {
                     globalData.valueList.set(i, value);
@@ -6278,19 +6278,19 @@ label:
             }
         }
 
-        // ローカル変数を宣言して代入
+        // Declare and assign local variable
         if (true == Character.isLetter(name.charAt(0))) {
             if (true == name.matches("^[A-Za-z0-9_]*$")) {
                 memData.nameList.add(str);
                 memData.valueList.add(value);
                 memData.treeset.add(str);
-            } else throw new xTalkException("変数名がアルファベットと数字ではありません:" + name);
-        } else throw new xTalkException("変数名の頭がアルファベットではありません:" + name);
+            } else throw new xTalkException("Variable name is not alphanumeric: " + name);
+        } else throw new xTalkException("Variable name does not start with alphabetic character: " + name);
         // timeIsMoney("setVariable:",timestart,23);
 
     }
 
-    // 変数の値の取得
+    // Get variable value
     private static String getVariable(MemoryData memData, String str) {
         // long timestart = System.currentTimeMillis();
         if (memData == null) return null;
@@ -6321,13 +6321,13 @@ label:
         return null;
     }
 
-    // グローバル変数の宣言、代入
+    // Global variable declaration, assignment
     private static void setGlobalVariable(
             String name, String value)
             throws xTalkException {
         String str = name.toLowerCase();
 
-        // グローバル変数に代入
+        // Assign to global variable
         if (globalData.treeset.contains(str)) {
             for (int i = 0; i < globalData.nameList.size(); i++) {
                 if (str.equals(globalData.nameList.get(i))) {
@@ -6337,14 +6337,14 @@ label:
             }
         }
 
-        // グローバル変数を宣言して代入
+        // Declare and assign global variable
         if (true == Character.isLetter(name.charAt(0))) {
             if (true == name.matches("^[A-Za-z0-9_]*$")) {
                 globalData.nameList.add(str);
                 globalData.valueList.add(Objects.requireNonNullElse(value, ""));
                 globalData.treeset.add(str);
-            } else throw new xTalkException("変数名がアルファベットと数字ではありません:" + name);
-        } else throw new xTalkException("変数名の頭がアルファベットではありません:" + name);
+            } else throw new xTalkException("Variable name is not alphanumeric: " + name);
+        } else throw new xTalkException("Variable name does not start with alphabetic character: " + name);
     }
 
     private static ObjResult getObjectfromList(ArrayList<String> stringList, wordType[] typeAry, int start,
@@ -6357,7 +6357,7 @@ label:
 
         int next = start;
 
-        if (next >= stringList.size()) return null;// throw new xTalkException("オブジェクトが分かりません");
+        if (next >= stringList.size()) return null;// throw new xTalkException("Object is unknown");
         String str = stringList.get(next);
         if (0 == str.compareToIgnoreCase("HyperCard")) {
             objres.cnt = 1;
@@ -6385,7 +6385,7 @@ label:
             return objres;
         }
         next++;
-        if (next >= stringList.size()) return null;// throw new xTalkException("オブジェクトが分かりません");
+        if (next >= stringList.size()) return null;// throw new xTalkException("Object is unknown");
         String str2 = stringList.get(next);
         if (0 == str.compareToIgnoreCase("the") && 0 == str2.compareToIgnoreCase("target")) {
             objres.cnt = 2;
@@ -6515,7 +6515,7 @@ label:
         if (0 == str.compareToIgnoreCase("btn") || 0 == str.compareToIgnoreCase("button") ||
                 0 == str2.compareToIgnoreCase("btn") || 0 == str2.compareToIgnoreCase("button")) {
             boolean bg = false;
-            // 今いるカードではなく、オブジェクトの存在するカードが必要な場合もあるが基準が分からんpart1
+            // Sometimes need the card where the object exists rather than the current card, but no standard is known part1
             OCardBase cdbase;
             /*if(object.objectType.equals("card")) cdbase=(OCardBase)object;
             else if(object.objectType.equals("background")) cdbase=((OBackground)object).viewCard;
@@ -6532,7 +6532,7 @@ label:
                 // cdbase=PCARD.pc.stack.curCard;
                 next++;
             }
-            if (next >= stringList.size()) throw new xTalkException("ボタンが分かりません");
+            if (next >= stringList.size()) throw new xTalkException("button is unknown");
             String str3 = stringList.get(next);
             int id = 0;
             int number = 0;
@@ -6548,7 +6548,7 @@ label:
                     name = str3;
                 }
             }
-            // 他のカードのオブジェクト指定
+            // Object specification on other card
             next++;
             while (next < stringList.size() && typeAry[next] == wordType.NOP) {
                 next++;
@@ -6557,13 +6557,13 @@ label:
                 String str5 = stringList.get(next);
                 if (0 == str5.compareToIgnoreCase("of")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("オブジェクトが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("object is unknown");
                     ObjResult objres2;
                     objres2 = getObjectfromList(stringList, typeAry, next, object, target);
                     next += objres2.cnt/*-1*/;
-                    if (objres2.obj == null) throw new xTalkException("オブジェクトが分かりません");
+                    if (objres2.obj == null) throw new xTalkException("object is unknown");
                     if (0 != objres2.obj.objectType.compareTo("card") && 0 != objres2.obj.objectType.compareTo("background"))
-                        throw new xTalkException("ここにはカードまたはバックグラウンドを指定してください");
+                        throw new xTalkException("Please specify a card or background here");
                     cdbase = (OCardBase) objres2.obj;
                     if (bg == true && 0 == cdbase.objectType.compareTo("card")) {
                         if (((OCard) cdbase).bg != null) {
@@ -6571,11 +6571,11 @@ label:
                         } else {
                             cdbase = new OBackground(cdbase.stack, (OCard) cdbase, ((OCard) cdbase).bgid, true);
                         }
-                        if (cdbase == null) throw new xTalkException("バックグラウンドがありません");
+                        if (cdbase == null) throw new xTalkException("No background");
                     }
                 }
             }
-            // cdbase.btnListからid/number/nameでさがす
+            // Search by id/number/name from cdbase.btnList
             if (id != 0) {
                 for (int i = 0; i < cdbase.btnList.size(); i++) {
                     if (id == cdbase.btnList.get(i).id) {
@@ -6585,10 +6585,10 @@ label:
                         return objres;
                     }
                 }
-                throw new xTalkException("id " + id + " のボタンはありません");
+                throw new xTalkException("No button with id " + id);
             } else if (number != 0) {
-                if (number < 0) throw new xTalkException(number + "番目のボタンはありません");
-                if (number > cdbase.btnList.size()) throw new xTalkException(number + "番目のボタンはありません");
+                if (number < 0) throw new xTalkException("No button at number " + number);
+                if (number > cdbase.btnList.size()) throw new xTalkException("No button at number " + number);
                 objres.cnt = next - start/*+1*/;
                 objres.obj = cdbase.btnList.get(number - 1);
                 // /System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
@@ -6602,7 +6602,7 @@ label:
                         return objres;
                     }
                 }
-                // 例外として、カード移動した後でもmeのオブジェクトは名前で参照できる
+                // As an exception, the me object can be referenced by name even after card movement
                 if (object != null && object.objectType.equals("button")) {
                     if (bg && object.parent.objectType.equals("background") ||
                             !bg && object.parent.objectType.equals("card")) {
@@ -6625,7 +6625,7 @@ label:
                         }
                     }
                 }
-                throw new xTalkException("名前が\"" + name + "\"のボタンはありません");
+                throw new xTalkException("No button with name \"" + name + "\"");
             }
         }
         // field
@@ -6642,7 +6642,7 @@ label:
                 cdbase = PCARD.pc.stack.curCard;
                 next++;
             }
-            if (next >= stringList.size()) throw new xTalkException("フィールドが分かりません");
+            if (next >= stringList.size()) throw new xTalkException("field is unknown");
             String str3 = stringList.get(next);
             int id = 0;
             int number = 0;
@@ -6658,7 +6658,7 @@ label:
                     name = str3;
                 }
             }
-            // 他のカードのオブジェクト指定
+            // Object specification on other card
             next++;
             while (next < stringList.size() && typeAry[next] == wordType.NOP) {
                 next++;
@@ -6667,35 +6667,35 @@ label:
                 String str5 = stringList.get(next);
                 if (0 == str5.compareToIgnoreCase("of")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("オブジェクトが分かりません");
+                    if (next >= stringList.size()) throw new xTalkException("object is unknown");
                     ObjResult objres2;
                     objres2 = getObjectfromList(stringList, typeAry, next, object, target);
                     next += objres2.cnt/*-1*/;
-                    if (objres2.obj == null) throw new xTalkException("オブジェクトが分かりません");
+                    if (objres2.obj == null) throw new xTalkException("object is unknown");
                     if (0 != objres2.obj.objectType.compareTo("card") && 0 != objres2.obj.objectType.compareTo("background"))
-                        throw new xTalkException("ここにはカードまたはバックグラウンドを指定してください");
+                        throw new xTalkException("Please specify a card or background here");
                     cdbase = (OCardBase) objres2.obj;
                 }
             }
 
-            // cdからbgを得る(こうしないとカードごとに内容の違うフィールドの内容が取れない)
-            // メモリにbgを展開していなかった時代の方法
+            // Get bg from cd (otherwise cannot get field content that differs per card)
+            // Method from the era when bg was not expanded in memory
             /*if(bg == true && 0==cdbase.objectType.compareTo("card")) {
                 if(((OCard)cdbase).bg != null) {
                     cdbase = (OCardBase) ((OCard)cdbase).bg;
                 } else {
                     cdbase = (OCardBase) new OBackground(cdbase.stack, (OCard)cdbase, ((OCard)cdbase).bgid, true);
                 }
-                if(cdbase == null) throw new xTalkException("バックグラウンドがありません");
+                if(cdbase == null) throw new xTalkException("No background");
             }*/
 
-            // cdからbgを得る(こうしないとカードごとに内容の違うフィールドの内容が取れない)
+            // Get bg from cd (otherwise cannot get field content that differs per card)
             if (bg == true && 0 == cdbase.objectType.compareTo("card")) {
                 OCard ocd = (OCard) cdbase;
                 cdbase = ocd.getBg();
             }
 
-            // cdbase.fldListからid/number/nameでさがす
+            // Search by id/number/name from cdbase.fldList
             if (id != 0) {
                 for (int i = 0; i < cdbase.fldList.size(); i++) {
                     if (id == cdbase.fldList.get(i).id) {
@@ -6705,10 +6705,10 @@ label:
                         return objres;
                     }
                 }
-                throw new xTalkException("id " + id + " のフィールドはありません");
+                throw new xTalkException("No field with id " + id);
             } else if (number != 0) {
-                if (number < 0) throw new xTalkException(number + "番目のフィールドはありません");
-                if (number > cdbase.fldList.size()) throw new xTalkException(number + "番目のフィールドはありません");
+                if (number < 0) throw new xTalkException("No field at number " + number);
+                if (number > cdbase.fldList.size()) throw new xTalkException("No field at number " + number);
                 objres.cnt = next - start/*+1*/;
                 objres.obj = cdbase.fldList.get(number - 1);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
@@ -6722,7 +6722,7 @@ label:
                         return objres;
                     }
                 }
-                // 例外として、カード移動した後でもmeのオブジェクトは名前で参照できる
+                // As an exception, the me object can be referenced by name even after card movement
                 if (object != null && object.objectType.equals("field")) {
                     if (bg && object.parent.objectType.equals("background") ||
                             !bg && object.parent.objectType.equals("card")) {
@@ -6734,7 +6734,7 @@ label:
                         }
                     }
                 }
-                throw new xTalkException("名前が\"" + name + "\"のフィールドはありません");
+                throw new xTalkException("No field with name \"" + name + "\"");
             }
         }
         // cd
@@ -6754,23 +6754,23 @@ label:
                     name = str3;
                 }
             }
-            // id/number/nameでさがす
+            // Search by id/number/name
             if (id != 0) {
                 objres.cnt = next - start + 1;
                 objres.obj = PCARD.pc.stack.GetCardbyId(id);
-                if (objres.obj == null) throw new xTalkException("idが" + id + "のカードはありません");
+                if (objres.obj == null) throw new xTalkException("No card with id " + id);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
                 return objres;
             } else if (number != 0) {
                 objres.cnt = next - start + 1;
                 objres.obj = PCARD.pc.stack.GetCardbyNum(number);
-                if (objres.obj == null) throw new xTalkException(number + "番目のカードはありません");
+                if (objres.obj == null) throw new xTalkException("No card at number " + number);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
                 return objres;
             } else {
                 objres.cnt = next - start + 1;
                 objres.obj = PCARD.pc.stack.GetCard(name);
-                if (objres.obj == null) throw new xTalkException("名前が" + name + "のカードはありません");
+                if (objres.obj == null) throw new xTalkException("No card with name " + name);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
                 return objres;
             }
@@ -6793,7 +6793,7 @@ label:
             String[] strAry = source.split(itemDelimiter);
             return strAry.length;
         }
-        if (0 == mode.compareTo("words")) { // 改行と""の括りにも対応必要
+        if (0 == mode.compareTo("words")) { // Need to handle newlines and "" grouping
             String[] strAry = source.split(" ");
             return strAry.length;
         }
@@ -6846,7 +6846,7 @@ label:
             // System.out.println("getChunk:"+(System.currentTimeMillis()-timestart));
             return value.toString();
         }
-        if (0 == mode.compareTo("word")) { // 改行と""の括りにも対応必要
+        if (0 == mode.compareTo("word")) { // Need to handle newlines and "" grouping
             StringBuilder value = new StringBuilder();
             String[] strAry = source.split(" ");
             if (start - 1 < strAry.length && start >= 1) value = new StringBuilder(strAry[start - 1]);
@@ -6923,7 +6923,7 @@ label:
             if (0 == mode.compareTo("item")) {
                 delimiter = itemDelimiter;
             }
-            if (0 == mode.compareTo("word")) { // 改行と""の括りにも対応必要
+            if (0 == mode.compareTo("word")) { // Need to handle newlines and "" grouping
                 delimiter = " ";
             }
             if (0 == mode.compareTo("line")) {
@@ -6983,7 +6983,7 @@ label:
         if (0 == mode2.compareTo("item")) {
             delimiter2 = itemDelimiter;
         }
-        if (0 == mode2.compareTo("word")) { // 改行と""の括りにも対応必要
+        if (0 == mode2.compareTo("word")) { // Need to handle newlines and "" grouping
             delimiter2 = " ";
         }
         if (0 == mode2.compareTo("line")) {
@@ -7014,7 +7014,7 @@ label:
             if (0 == mode.compareTo("item")) {
                 delimiter = itemDelimiter;
             }
-            if (0 == mode.compareTo("word")) { // 改行と""の括りにも対応必要
+            if (0 == mode.compareTo("word")) { // Need to handle newlines and "" grouping
                 delimiter = " ";
             }
             if (0 == mode.compareTo("line")) {
@@ -7072,7 +7072,7 @@ label:
             if (0 == mode.compareTo("item")) {
                 delimiter = itemDelimiter;
             }
-            if (0 == mode.compareTo("word")) { // 改行と""の括りにも対応必要
+            if (0 == mode.compareTo("word")) { // Need to handle newlines and "" grouping
                 delimiter = " ";
             }
             if (0 == mode.compareTo("line")) {
@@ -7142,7 +7142,7 @@ label:
         if (0 == mode2.compareTo("item")) {
             delimiter2 = itemDelimiter;
         }
-        if (0 == mode2.compareTo("word")) { // 改行と""の括りにも対応必要
+        if (0 == mode2.compareTo("word")) { // Need to handle newlines and "" grouping
             delimiter2 = " ";
         }
         if (0 == mode2.compareTo("line")) {
@@ -7170,7 +7170,7 @@ label:
             if (0 == mode.compareTo("item")) {
                 delimiter = itemDelimiter;
             }
-            if (0 == mode.compareTo("word")) { // 改行と""の括りにも対応必要
+            if (0 == mode.compareTo("word")) { // Need to handle newlines and "" grouping
                 delimiter = " ";
             }
             if (0 == mode.compareTo("line")) {
@@ -7296,7 +7296,7 @@ label:
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("this")) {
             next++;
-            if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+            if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
                 obj = PCARD.pc.stack.curCard;
                 next++;
@@ -7309,7 +7309,7 @@ label:
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("next")) {
             next++;
-            if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+            if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
                 int id;
                 int i;
@@ -7328,13 +7328,13 @@ label:
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("last")) {
             next++;
-            if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+            if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
                 obj = PCARD.pc.stack.GetCardbyNum(PCARD.pc.stack.cardIdList.size());
                 next++;
             }
         } else if (stringList.size() - start >= 2) {
-            // 今いるカードではなく、オブジェクトの存在するカードが必要な場合もあるが基準は？見つからないとき？
+            // Sometimes need the card where the object exists rather than the current card, but what is the standard? When not found?
             OCardBase cdbase;
             /*if(object.objectType.equals("card")) cdbase=(OCardBase)object;
             else if(object.objectType.equals("background")) cdbase=((OBackground)object).viewCard;
@@ -7344,10 +7344,10 @@ label:
             cdbase = PCARD.pc.stack.curCard;
 
             boolean bg_flag = false;
-            // boolean cdbg_flag = false;// カードとBGの両方を探す
-            int flag = 0; // 1がボタン、2がフィールド
+            // boolean cdbg_flag = false;// Search both card and BG
+            int flag = 0; // 1 is button, 2 is field
             for (int i = next; i <= end; i++) {
-                // 括弧
+                // Parentheses
                 if (typeAry[i] == wordType.LBRACKET) {
                     int nest = 0;
                     for (int j = i + 1; j <= end; j++) {
@@ -7368,7 +7368,7 @@ label:
                 }
             }
             for (int i = next; i <= end; i++) {
-                // 他のカードの場合
+                // For other cards
                 if (0 == stringList.get(i).compareToIgnoreCase("of") &&
                         (!stringList.get(i - 1).matches("[0-9]*") ||
                                 i - 2 >= start &&
@@ -7376,13 +7376,13 @@ label:
                                         !stringList.get(i - 2).equalsIgnoreCase("line") && !stringList.get(i - 2).equalsIgnoreCase("word") &&
                                         !stringList.get(i - 2).equalsIgnoreCase("character"))) {
                     if (i + 1 > end) {
-                        throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        throw new xTalkException("Object" + errStr + " is unknown");
                     }
                     // if(0==stringList.get(i+1).compareToIgnoreCase("this")){
-                    // if(i+2>end) throw new xTalkException("オブジェクト"+errStr+" が分かりません");
+                    // if(i+2>end) throw new xTalkException("Object"+errStr+" is unknown");
                     if (0 == stringList.get(i + 1).compareToIgnoreCase("card") || 0 == stringList.get(i + 1).compareToIgnoreCase("cd")) {
                         if (i + 2 <= end && 0 == stringList.get(i + 2).compareToIgnoreCase("id")) {
-                            if (i + 3 > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                            if (i + 3 > end) throw new xTalkException("Object" + errStr + " is unknown");
                             int j;
                             for (j = i + 3; j < end; j++) {
                                 if (0 == stringList.get(j).compareToIgnoreCase("of")) {
@@ -7394,7 +7394,7 @@ label:
                             try {
                                 cdbase = PCARD.pc.stack.GetCardbyId(Integer.parseInt(str));
                             } catch (Exception err) {
-                                throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                                throw new xTalkException("Object" + errStr + " is unknown");
                             }
                         } else {
                             int j;
@@ -7414,10 +7414,10 @@ label:
                         if (cdbase != null) {
                             end = i - 1;
                             break;
-                        } else throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        } else throw new xTalkException("Object" + errStr + " is unknown");
                     } else if (0 == stringList.get(i + 1).compareToIgnoreCase("background") || 0 == stringList.get(i + 1).compareToIgnoreCase("bkgnd") || 0 == stringList.get(i + 1).compareToIgnoreCase("bg")) {
                         if (i + 2 <= end && 0 == stringList.get(i + 2).compareToIgnoreCase("id")) {
-                            if (i + 3 > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                            if (i + 3 > end) throw new xTalkException("Object" + errStr + " is unknown");
                             int j;
                             for (j = i + 3; j < end; j++) {
                                 if (0 == stringList.get(j).compareToIgnoreCase("of")) {
@@ -7429,7 +7429,7 @@ label:
                             try {
                                 cdbase = PCARD.pc.stack.GetBackgroundbyId(Integer.parseInt(str));
                             } catch (Exception err) {
-                                throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                                throw new xTalkException("Object" + errStr + " is unknown");
                             }
                         } else {
                             int j;
@@ -7449,13 +7449,13 @@ label:
                         if (cdbase != null) {
                             end = i - 1;
                             break;
-                        } else throw new xTalkException("オブジェクト" + errStr + " が分かりません");
-                    } else throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        } else throw new xTalkException("Object" + errStr + " is unknown");
+                    } else throw new xTalkException("Object" + errStr + " is unknown");
                     // }
                 }
             }
 
-            // Cardにあるオブジェクト
+            // Objects on Card
             if (0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card") ||
                     (0 != stringList.get(next).compareToIgnoreCase("bg") && 0 != stringList.get(next).compareToIgnoreCase("bkgnd") && 0 != stringList.get(next).compareToIgnoreCase("background"))) {
                 if (0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card")) {
@@ -7466,9 +7466,9 @@ label:
                     // cdbg_flag = true;
                     bg_flag = true;
                 } else {
-                    return null;// オブジェクトではない
+                    return null;// Not an object
                 }
-                if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                 if (typeAry[next] != wordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn"))) {
                     flag = 1;
                     next++;
@@ -7476,10 +7476,10 @@ label:
                     flag = 2;
                     next++;
                 } else {
-                    // Cardそのもの
+                    // The Card itself
                     if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                         next++;
-                        if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                         int j;
                         for (j = next; j < end; j++) {
                             if (0 == stringList.get(j).compareToIgnoreCase("of") &&
@@ -7489,7 +7489,7 @@ label:
                         try {
                             obj = PCARD.pc.stack.GetCardbyId(Integer.parseInt(str));
                         } catch (Exception err) {
-                            throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                            throw new xTalkException("Object" + errStr + " is unknown");
                         }
                     } else {
                         int j;
@@ -7516,11 +7516,11 @@ label:
                     }
                 }
             }
-            // Bgにあるオブジェクト
+            // Objects on Bg
             if (next <= end && (0 == stringList.get(next).compareToIgnoreCase("bg") || 0 == stringList.get(next).compareToIgnoreCase("bkgnd") || 0 == stringList.get(next).compareToIgnoreCase("background"))) {
                 bg_flag = true;
                 next++;
-                if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn")) {
                     flag = 1;
                     // cdbase = PCARD.pc.stack.curCard.bg;
@@ -7530,10 +7530,10 @@ label:
                     // cdbase = PCARD.pc.stack.curCard.bg;
                     next++;
                 } else {
-                    // Bgそのもの
+                    // The Bg itself
                     if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                         next++;
-                        if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                         int j;
                         for (j = next; j < end; j++) {
                             if (0 == stringList.get(j).compareToIgnoreCase("of") &&
@@ -7543,7 +7543,7 @@ label:
                         try {
                             obj = PCARD.pc.stack.GetBackgroundbyId(Integer.parseInt(str));
                         } catch (Exception err) {
-                            throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                            throw new xTalkException("Object" + errStr + " is unknown");
                         }
                     } else {
                         int j;
@@ -7562,10 +7562,10 @@ label:
             }
             if (obj == null && flag == 1) {
                 // btn
-                if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                     next++;
-                    if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                    if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                     int j;
                     for (j = next; j < end; j++) {
                         if (0 == stringList.get(j).compareToIgnoreCase("of") &&
@@ -7580,7 +7580,7 @@ label:
                         if (!bg_flag) obj = cdbase.GetBtnbyId(Integer.parseInt(str));
                         else obj = cdbase.GetBgBtnbyId(Integer.parseInt(str));
                     } catch (Exception err) {
-                        throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        throw new xTalkException("Object" + errStr + " is unknown");
                     }
                 } else {
                     int j;
@@ -7626,10 +7626,10 @@ label:
             }
             if (obj == null && flag == 2) {
                 // fld
-                if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                     next++;
-                    if (next > end) throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                    if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                     int j;
                     for (j = next; j < end; j++) {
                         if (0 == stringList.get(j).compareToIgnoreCase("of") &&
@@ -7643,7 +7643,7 @@ label:
                         if (!bg_flag) obj = cdbase.GetFldbyId(Integer.parseInt(str));
                         else obj = cdbase.GetBgFldbyId(Integer.parseInt(str));
                     } catch (Exception err) {
-                        throw new xTalkException("オブジェクト" + errStr + " が分かりません");
+                        throw new xTalkException("Object" + errStr + " is unknown");
                     }
                 } else {
                     int j;
@@ -7669,7 +7669,7 @@ label:
 
         // timeIsMoney("getObject:",timestart,31);
         if (next != end && obj == null) {
-            throw new xTalkException("オブジェクト" + errStr + "が分かりません");
+            throw new xTalkException("Object" + errStr + " is unknown");
         }
         return obj;
     }
@@ -7705,6 +7705,6 @@ class xTalkException extends Exception {
     }
 
     public xTalkException(String msg, int line) {
-        super(msg + "(" + line + "行目)");
+        super(msg + "(line " + line + ")");
     }
 }

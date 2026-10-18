@@ -45,7 +45,7 @@ public class OField extends OObject {
     MyScrollPane scrollPane = null;
     BufferedImage fontPict2;
 
-    // プロパティ
+    // Properties
     Boolean autoTab = false;
     Boolean autoSelect = false;
     Boolean dontSearch = false;
@@ -55,13 +55,13 @@ public class OField extends OObject {
     // Color selectColor=Color.ORANGE;
     // Color textColor=Color.BLACK;
     Boolean fixedLineHeight = false;
-    // lockTextはenabledで代用
-    // number (カードの情報から求める)
+    // lockText is substituted with enabled
+    // number (calculated from card information)
     int scroll = 0;
     Boolean sharedText = false;
     Boolean showLines = false;
-    int style = 0;// (0標準) 1透明 2不透明 3長方形 4シャドウ 5スクロール
-    int textAlign = 0;// 0左 1中 2右
+    int style = 0;// (0 standard) 1 transparent 2 opaque 3 rectangle 4 shadow 5 scrolling
+    int textAlign = 0;// 0 left 1 center 2 right
     String textFont = "";
     int textHeight = 16;
     int textSize = 12;
@@ -75,7 +75,7 @@ public class OField extends OObject {
 
     ArrayList<styleClass> styleList;
 
-    // 追加プロパティ
+    // Additional properties
     @SuppressWarnings("unused")
     private String reservedFamily;
     @SuppressWarnings("unused")
@@ -200,14 +200,14 @@ public class OField extends OObject {
 
     public void setText2(String in) {
         if (card.objectType.equals("background") && !sharedText && ((OBackground) card).viewCard != null) {
-            // 共有でないbg fldのテキストは別の場所に保存
+            // Text of non-shared bg fld is saved elsewhere
             for (int j = 0; j < ((OBackground) card).viewCard.bgfldList.size(); j++) {
                 if (((OBackground) card).viewCard.bgfldList.get(j).id == id) {
                     ((OBackground) card).viewCard.bgfldList.get(j).text = in;
                     return;
                 }
             }
-            // 新しいデータを作成
+            // Create new data
             {
                 OBgFieldData bgflddata = new OBgFieldData(((OBackground) card).viewCard, id);
                 bgflddata.fld = this;
@@ -866,11 +866,11 @@ public class OField extends OObject {
     }
 
 
-    // HCのスタックを変換
+    // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readFieldBlock(DataInputStream dis, int partSize) {
         // System.out.println("====readFieldBlock====");
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         int flags = HCData.readCode(dis, 1);
         // System.out.println("flags:"+flags);
         setVisible(((flags >> 7) & 0x01) == 0);
@@ -897,7 +897,7 @@ public class OField extends OObject {
         multipleLines = ((flags2 >> 4) & 0x01) != 0;
         // group = (flags2)&0x0F;
         int style = HCData.readCode(dis, 1);
-        // 0標準 1透明 2不透明 3長方形 4シャドウ 5丸みのある長方形 6省略時設定 7楕円 8ポップアップ 9チェックボックス 10ラジオ
+        // 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
         switch (style) {
             case 0:
                 this.style = 1;
@@ -961,7 +961,7 @@ public class OField extends OObject {
         String scriptStr = scriptResult.str;
         // System.out.println("scriptStr:"+scriptStr);
 
-        // フォント名をテーブルから検索
+        // Search for font name from table
         OStack stack = ((OCardBase) this.parent).stack;
         for (int i = 0; i < stack.fontList.size(); i++) {
             if (stack.fontList.get(i).id == textFontID) {
@@ -987,7 +987,7 @@ public class OField extends OObject {
             System.out.println("padding:"+padding);
         }*/
 
-        // スクリプト
+        // Script
         String[] scriptAry = scriptStr.split("\n");
         Collections.addAll(scriptList, scriptAry);
         stringList = new ArrayList[scriptList.size()];
@@ -998,7 +998,7 @@ public class OField extends OObject {
 
 
     static void buildOField(OField ofld) {
-        // swingのテキストコンポーネントを追加
+        // Add Swing text component
         ofld.fld = new MyTextArea(ofld.getText());
 
         ofld.fld.fldData = ofld;
@@ -1024,7 +1024,7 @@ public class OField extends OObject {
             }*/
             if (bi == null) {
                 int rsrcid = ofld.card.stack.rsrc.getRsrcIdAll(ofld.textFont, "font");
-                rsrcid += ofld.textSize;// ベースID+テキストサイズ=ID
+                rsrcid += ofld.textSize;// base ID + text size = ID
                 String path = ofld.card.stack.rsrc.getFilePathAll(rsrcid, "font");
                 if (path != null) {
                     File file = new File(path/*ofld.card.stack.file.getParent()+File.separatorChar+rsrcName*/);
@@ -1063,7 +1063,7 @@ public class OField extends OObject {
                 break;
         }
         StyleConstants.setComponent(s, ofld.fld);
-        // (0標準) 1透明 2不透明 3長方形 4シャドウ 5スクロール
+        // (0 standard) 1 transparent 2 opaque 3 rectangle 4 shadow 5 scrolling
         switch (ofld.style) {
             case 1:
                 ofld.fld.setOpaque(false);
@@ -1189,7 +1189,7 @@ class MyScrollPane extends JScrollPane {
         }
         /*for(int i=0; i<getComponentCount(); i++){
             if(getComponent(i).getClass() == JScrollPane.ScrollBar.class) continue;
-            // setVisible(true)をやったときに書き換え命令が発生するのでこっそりやりたい
+            // When setVisible(true) is called, a write command is generated, so we want to do it quietly
             Class<JScrollPane.ScrollBar> c = JScrollPane.ScrollBar.class;
             Field m;
             try {
@@ -1217,7 +1217,7 @@ class MyTextArea extends JTextArea {
     private static final long serialVersionUID = 1L;
     OField fldData = null;
     JScrollPane pr_scrl;
-    int pr_selLine;// showLine xfcn用
+    int pr_selLine;// For showLine xfcn
     boolean smallfont;
 
     MyTextArea(String str) {
@@ -1240,7 +1240,7 @@ class MyTextArea extends JTextArea {
         if (PCARD.lockedScreen && paneg == g) return;
         // super.paintComponent(g);
         if (fldData != null) {
-            // 通常フィールド
+            // Normal field
             if (fldData.fontPict2 != null) {
                 if (fldData.style != 1) {
                     g.setColor(fldData.bgColor);
@@ -1248,9 +1248,9 @@ class MyTextArea extends JTextArea {
                     g.fillRect(r.x, r.y, r.width, r.height);
                 }
 
-                // ピクチャによる独自フォント
+                // Custom font using picture
                 int rsrcid = fldData.card.stack.rsrc.getRsrcIdAll(fldData.textFont, "font");
-                rsrcid += fldData.textSize;// ベースID+テキストサイズ=ID
+                rsrcid += fldData.textSize;// base ID + text size = ID
                 RsrcClass fontrsrc = fldData.card.stack.rsrc.getResourceAll(rsrcid, "font");
                 Rsrc.FontInfo fontinfo = (Rsrc.FontInfo) fontrsrc.optionInfo;
 
@@ -1282,7 +1282,7 @@ class MyTextArea extends JTextArea {
                 }
 
                 if (fldData.enabled && fldData.autoSelect && fldData.dontWrap) {
-                    // ライン選択
+                    // Line selection
                     if (fldData.selectedLine > 0) {
                         g.setColor(SystemColor.textHighlight);
                         g.fillRect(1, (fldData.selectedLine - 1) * fldData.textHeight, getWidth() - 1, fldData.textHeight);
@@ -1349,10 +1349,10 @@ class MyTextArea extends JTextArea {
 
                     int add = textSize;
                     if (nextc == '\n') add = 0;
-                    if (c == '\r' || c == '\n' || w > fldWidth - add + 1 || (isStyleChange && i != 0)) { // この行を描画する
+                    if (c == '\r' || c == '\n' || w > fldWidth - add + 1 || (isStyleChange && i != 0)) { // Draw this line
 
                         if (!isStyleChange && w > fldWidth - add + 1) {
-                            // 行末処理
+                            // End-of-line processing
                             {
                                 int len = drawStr.length();
                                 if (i + 1 < getText().length()) {
@@ -1376,7 +1376,7 @@ class MyTextArea extends JTextArea {
 
                         int drawWidth = fo.stringWidth(drawStr);
 
-                        // 右寄せかセンタリング
+                        // Right align or center
                         if (lft == 0) {
                             if (fldData.textAlign == 0) {
                                 lft = 0;
@@ -1402,7 +1402,7 @@ class MyTextArea extends JTextArea {
                             g.setColor(fldData.bgColor);
                         }
 
-                        // 文字描画
+                        // Character drawing
                         g.drawString(drawStr, lft, top);
 
                         // underline
@@ -1415,10 +1415,10 @@ class MyTextArea extends JTextArea {
                         }
 
                         if (!isStyleChange) {
-                            // v++; // 改行
+                            // v++; // Newline
                             lft = 0;
                             top += textHeight;
-                            /*// OS9とのフォントサイズの違いを吸収
+                            /*// Absorb font size differences from OS9
                             if(PCARD.pc.stack.createdByVersion.charAt(0)=='2' &&
                                     fldData.style!=5 && !smallfont && top+textHeight>fldData.height+4){
                                 smallfont = true;
@@ -1432,7 +1432,7 @@ class MyTextArea extends JTextArea {
                     }
 
                     if (isStyleChange) {
-                        // 次のスタイルを適用
+                        // Apply next style
                         int styleId = fldData.styleList.get(nextStyle).styleId;
                         for (int j = 0; j < fldData.card.stack.styleList.size(); j++) {
                             OStack.styleClass styleClass = fldData.card.stack.styleList.get(j);
@@ -1463,7 +1463,7 @@ class MyTextArea extends JTextArea {
                             }
                         }
 
-                        // 新しいスタイルを適用
+                        // Apply new style
                         g.setFont(new Font(textFont, textStyle & 0x03, textSize));
                         fo = g.getFontMetrics();
 
@@ -1474,7 +1474,7 @@ class MyTextArea extends JTextArea {
                             nextTextPosition = -1;
                         }
                     }
-                }/*else if(fldData.textAlign!=0){ // 右寄せかセンタリング
+                }/*else if(fldData.textAlign!=0){ // Right align or center
                     if(fldData.style!=1){
                         g.setColor(Color.WHITE);
                         g.fillRect(1,1,fldData.width-2,fldData.height-2);
@@ -1513,8 +1513,8 @@ class MyTextArea extends JTextArea {
                 return;
             }
         } else if (fldData == null) {
-            // showList用
-            // ライン選択
+            // For showList
+            // Line selection
             g.setColor(Color.WHITE);
             Rectangle r = g.getClipBounds();
             g.fillRect(r.x, r.y, r.width, r.height);

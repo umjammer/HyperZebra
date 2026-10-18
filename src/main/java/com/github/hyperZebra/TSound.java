@@ -28,7 +28,7 @@ public class TSound implements LineListener {
 
     private static void setNoteFreq() {
         if (note_freq[0] != 1.0) {
-            // 半音(2の12乗根)を計算
+            // Calculate semitone (12th root of 2)
             double r = Math.pow(2.0, 1.0 / 12.0);
             note_freq[0] = 1.0;
             for (int i = 1; i < 12; i++) {
@@ -46,7 +46,7 @@ public class TSound implements LineListener {
 
         if (note_freq[0] != 1.0) setNoteFreq();
 
-        // 3連符
+        // Triplets
         if (neiro[5].contains("3")) {
             if (neiro[5].contains("....")) neiro[5] = "....";
             else if (neiro[5].contains("...")) neiro[5] = "...";
@@ -57,7 +57,7 @@ public class TSound implements LineListener {
             Play(stack, soundRsrc, neiro, tempo, vol);
         }
 
-        // 長さ計算(秒)
+        // Calculate length (seconds)
         double length = 0.0;
         if (neiro[4].equalsIgnoreCase("w")) length = 240.0 / tempo;
         else if (neiro[4].equalsIgnoreCase("h")) length = 120.0 / tempo;
@@ -69,7 +69,7 @@ public class TSound implements LineListener {
         else if (!neiro[1].isEmpty()) length = 60.0 / tempo;
         if (neiro[5].equals("....")) length *= 1.5 * 1.5 * 1.5 * 1.5;
         if (neiro[5].equals("...")) length *= 1.5 * 1.5 * 1.5;
-        if (neiro[5].equals("..")) length *= 1.5 * 1.5;// 1.75倍じゃないようだ。
+        if (neiro[5].equals("..")) length *= 1.5 * 1.5;// Doesn't seem to be 1.75x.
         if (neiro[5].equals(".")) length *= 1.5;
 
         AudioInputStream sound = null;
@@ -78,7 +78,7 @@ public class TSound implements LineListener {
             String path = stack.rsrc.getFilePathAll(rsrcid, "sound");
             sound = AudioSystem.getAudioInputStream(new File(path/*stack.file.getParent()+File.separatorChar+fileName*/));
         } catch (UnsupportedAudioFileException e) {
-            // throw new xTalkException("サウンド\""+soundRsrc+"\"の音声ファイルに対応していません");
+            // throw new xTalkException("Does not support audio file for sound \""+soundRsrc+"\"");
             return false;
         } catch (Exception e) {
             /*String path = (PCARDFrame.pc.stack.file.getParent()+File.separatorChar+"resource"+File.separatorChar+soundRsrc);
@@ -93,11 +93,11 @@ public class TSound implements LineListener {
                 sound = AudioSystem.getAudioInputStream(new File(cpath + ".wav"));
             } catch (FileNotFoundException e4) {
                 sound = createSynthesizedSound(soundRsrc, length);
-                // throw new xTalkException("サウンド\"" + soundRsrc + "\"がありません");
+                // throw new xTalkException("Sound \"" + soundRsrc + "\" not found");
             } catch (IOException e4) {
-                throw new xTalkException("サウンド\"" + soundRsrc + "\"を開けません");
+                throw new xTalkException("Cannot open sound \"" + soundRsrc + "\"");
             } catch (UnsupportedAudioFileException e4) {
-                throw new xTalkException("サウンド\"" + soundRsrc + "\"の音声ファイルに対応していません");
+                throw new xTalkException("Does not support audio file for sound \"" + soundRsrc + "\"");
             }
             // }
             // }
@@ -143,7 +143,7 @@ public class TSound implements LineListener {
                 format = new AudioFormat(fileFormat.getEncoding(), newSampRate, fileFormat.getSampleSizeInBits(),
                         fileFormat.getChannels(), fileFormat.getFrameSize(), newFrameRate, fileFormat.isBigEndian());
 
-                // 長さ
+                // Length
                 int nLength = voiceData.length;
                 if (length != 0.0 || neiro[1].equalsIgnoreCase("r")) {
                     nLength = (int) (length * format.getSampleRate()) * format.getFrameSize();
@@ -244,7 +244,7 @@ public class TSound implements LineListener {
             c.close();
         }
     }
-    // todo: 音量調整
+    // todo: volume adjustment
 
     @Override
     public void update(LineEvent event) {

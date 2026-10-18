@@ -64,7 +64,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             GMenuPaint.setUndo();
         }
 
-        makeColors(30); // 類似度の初期値30で開く
+        makeColors(30); // Open with similarity initial value 30
 
         setBounds(owner.getX() + owner.getWidth() / 2 - 200, owner.getY() + owner.getHeight() / 2 - 160 + 12, 400, 320);
 
@@ -93,7 +93,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             return;
         }
 
-        // 代表色ピックアップ
+        // Pick representative colors
         ArrayList<Color> srcColors = new ArrayList<>();
         ArrayList<Integer> srcColorCount = new ArrayList<>();
         int width = bi.getWidth();
@@ -101,15 +101,15 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         DataBuffer db = bi.getRaster().getDataBuffer();
         int lasti = -1;
 
-        // 含まれる色のリストを作成
+        // Create list of included colors
         for (int v = 0; v < height; v++) {
             for (int h = 0; h < width; h++) {
                 int d = db.getElem(h + v * width);
-                if (((d >> 24) & 0xFF) == 0) continue;// 透明色は含まない
+                if (((d >> 24) & 0xFF) == 0) continue;// Exclude transparent colors
                 Color c = new Color((d >> 16) & 0xFF, (d >> 8) & 0xFF, (d >> 0) & 0xFF);
                 boolean isFound = false;
                 if (lasti >= 0 && isNearHSV(d, srcColors.get(lasti), near)) {
-                    // 既に見つけた色
+                    // Already found color
                     isFound = true;
                     srcColorCount.set(lasti, srcColorCount.get(lasti) + 1);
                 } else {
@@ -130,7 +130,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             }
         }
 
-        // 含まれる色を上位順に並べる。このとき上位にあるものと色相の差がある程度なければいけない。
+        // Sort included colors by frequency. Colors near the top must have some hue difference.
         int[] srcColorCountBest = new int[16];
         for (int j = 0; j < srcColorCountBest.length; j++) {
             srcColorCountBest[j] = 0;
@@ -166,7 +166,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             }
         }
 
-        // 変更前の色ボタン
+        // Pre-change color button
         for (int i = 0; i < 10; i++) {
             if (srcColorCountBest[i] == 0) break;
             JButton button = new JButton();
@@ -183,7 +183,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             getContentPane().add(button);
         }
 
-        // 変更後の色ボタン
+        // Post-change color button
         for (int i = 0; i < 10; i++) {
             if (srcColorCountBest[i] == 0) break;
             JButton button = new JButton();
@@ -200,7 +200,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             getContentPane().add(button);
         }
 
-        // 類似色判定を厳しくする、緩くするボタン
+        // Buttons to make similarity detection stricter or looser
         {
             JButton button = new JButton(PCARD.pc.intl.getDialogText("Unite"));
             button.setBounds(130, 100, 100, 25);
@@ -291,7 +291,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
             makeColors((near - 2) * 2);
         }
 
-        // キャプチャでの色選択を実現するために別スレッド
+        // Separate thread to enable color selection in capture
         ColorConvertThread thread = new ColorConvertThread(this, name, cmd, e);
         thread.start();
     }
@@ -342,7 +342,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
             if (owner.owner.tool instanceof toolSelectInterface &&
                     ((toolSelectInterface) owner.owner.tool).getSelectedSurface(owner.owner) != null) {
-                // まず新しいバッファを作成してクリア
+                // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(save_bi.getWidth(), save_bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D dst_g = bi2.createGraphics();
                 dst_g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -351,7 +351,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 dst_g = bi2.createGraphics();
                 dst_g.drawImage(save_bi, 0, 0, null);
 
-                // 操作
+                // Operation
                 DataBuffer surbuf = bi2.getRaster().getDataBuffer();
                 if (cmd.equals("OK")) {
                     toolSelectInterface tl = (toolSelectInterface) owner.owner.tool;
@@ -365,7 +365,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 for (int v = 0; v < height; v++) {
                     for (int h = 0; h < width; h++) {
                         int c = surbuf.getElem(h + v * width);
-                        // srcColorBestに近い色相があれば色を変換
+                        // If hue is close to srcColorBest, convert color
                         for (int i = 0; i < srcColorBest.length; i++) {
                             if (isNearHSV(c, srcColorBest[i], near + 2) && !dstColorBest[i].equals(srcColorBest[i])) {
                                 Color.RGBtoHSB(srcColorBest[i].getRed(), srcColorBest[i].getGreen(), srcColorBest[i].getBlue(), srchsb);
@@ -396,13 +396,13 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                     return;
                 }
 
-                // 選択領域を新しくする
+                // Update selection area
                 owner.owner.redoBuf = bi2;
                 owner.owner.mainPane.repaint();
             } else {
-                // サーフェース全体
+                // Entire surface
 
-                // まずredoBufにコピー
+                // First copy to redoBuf
                 BufferedImage bi = owner.owner.redoBuf;
                 if (bi == null) {
                     bi = new BufferedImage(owner.owner.getSurface().getWidth(), owner.owner.getSurface().getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -410,7 +410,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 Graphics2D dst_g = bi.createGraphics();
                 dst_g.drawImage(owner.owner.getSurface(), 0, 0, null);
 
-                // 操作(HSB空間での平行移動)
+                // Operation (parallel shift in HSB space)
                 DataBuffer surbuf = bi.getRaster().getDataBuffer();
                 int width = bi.getWidth();
                 int height = bi.getHeight();
@@ -420,7 +420,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 for (int v = 0; v < height; v++) {
                     for (int h = 0; h < width; h++) {
                         int c = surbuf.getElem(h + v * width);
-                        // srcColorBestに近い色相があれば色を変換
+                        // If hue is close to srcColorBest, convert color
                         for (int i = 0; i < srcColorBest.length; i++) {
                             if (isNearHSV(c, srcColorBest[i], near + 2) && !dstColorBest[i].equals(srcColorBest[i])) {
                                 Color.RGBtoHSB(srcColorBest[i].getRed(), srcColorBest[i].getGreen(), srcColorBest[i].getBlue(), srchsb);
@@ -444,13 +444,13 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                         }
                     }
                 }
-                /*for(int v=0; v<height; v++){ // RGBでの平行移動
+                /*for(int v=0; v<height; v++){ // Parallel shift in RGB
                     for(int h=0; h<width; h++){
                         int c = surbuf.getElem(h+v*width);
                         int srcred = (c>>16)&0x00FF;
                         int srcgreen = (c>>8)&0x00FF;
                         int srcblue = (c>>0)&0x00FF;
-                        // srcColorBestに近い色相があれば色を変換
+                        // If hue is close to srcColorBest, convert color
                         for(int i=0; i<srcColorBest.length; i++){
                             if(isNearHSV(c, srcColorBest[i], near+2) && !dstColorBest[i].equals(srcColorBest[i])){
                                 int dstred = srcred + dstColorBest[i].getRed() - srcColorBest[i].getRed();
@@ -469,10 +469,10 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                         }
                     }
                 }*/
-                // redoBufとmainImgを入れ替え
+                // Swap redoBuf and mainImg
                 BufferedImage savebi = owner.owner.getSurface();
 
-                // 選択領域を新しくする
+                // Update selection area
                 owner.owner.mainImg = bi;
                 if (cmd.equals("OK")) {
                     if (savebi != null) {
@@ -533,10 +533,10 @@ class EmbossDialog extends JFrame implements ActionListener {
         mainpanel.setLayout(new GridLayout(2, 2));
         getContentPane().add("Center", mainpanel);
 
-        // 厚み -on/off
-        // --明るさの変化(0-128)
-        // --端からの距離(0-32)
-        // --方向(x,y)
+        // Thickness - on/off
+        // --Brightness change (0-128)
+        // --Distance from edge (0-32)
+        // --Direction (x,y)
         {
             JPanel panel = new JPanel();
             panel.setLayout(new GridLayout(4, 1));
@@ -623,9 +623,9 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }
 
-        // グラデーション -on/off
-        // --明るさの変化(0-128)
-        // --方向(0-360)
+        // Gradation - on/off
+        // --Brightness change (0-128)
+        // --Direction (0-360)
         {
             JPanel panel = new JPanel();
             panel.setLayout(new GridLayout(4, 1));
@@ -680,11 +680,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }
 
-        // ハイライト -on/off
-        // --検出強度
-        // --明るさの変化(0-128)
-        // --範囲(0-16)
-        // --オフセット(x,y)
+        // Highlight - on/off
+        // --Detection strength
+        // --Brightness change (0-128)
+        // --Range (0-16)
+        // --Offset (x,y)
         {
             JPanel panel = new JPanel();
             panel.setLayout(new GridLayout(4, 1));
@@ -761,11 +761,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }
 
-        // 映り込み -on/off
-        // --種類 (直線/弧)
-        // --明るさの変化(0-128)
-        // --オフセット(x,y)
-        // --傾き(0-360)
+        // Reflection - on/off
+        // --Type (line/arc)
+        // --Brightness change (0-128)
+        // --Offset (x,y)
+        // --Angle (0-360)
         {
             JPanel panel = new JPanel();
             panel.setLayout(new GridLayout(4, 1));
@@ -849,7 +849,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }
 
-        // 影は別のダイアログで。
+        // Shadows are in a separate dialog.
 
         JPanel okpanel = new JPanel();
         getContentPane().add("South", okpanel);
@@ -980,14 +980,14 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         /*if(useThick){
             // Thickness
-            // 輪郭に近い部分は暗く、離れたところは明るい
+            // Parts close to the outline are dark, parts far away are bright
             int realThickWidth = new int[]{1,2,3,4,6,8,10,14,20,30,50}[thickWidth];
             for(int i=0; i<realThickWidth; i++){
                 for(int y=srcRect.y; y<srcRect.y+srcRect.height; y++){
                     for(int x=srcRect.x; x<srcRect.x+srcRect.width; x++){
                         boolean src = (srcdb.getElem(x+y*width)&0xFF000000)!=0;
                         if(src && i==0){
-                            // 1回目は輪郭部分を塗る
+                            // First time, paint the outline area
                             boolean srcup = false;
                             if((y-1)>=srcRect.y) srcup = (srcdb.getElem(x+(y-1)*width)&0xFF000000)!=0;
                             boolean srcdown = false;
@@ -1012,7 +1012,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                             }
                         }
                         else if(src){
-                            // 2回目以降はすでに塗った部分のすぐ隣を順次塗っていく
+                            // Second time and after, sequentially paint next to already painted parts
                             if((0xFF000000&newdb.getElem(x+y*width))==0){
                                 boolean dstup = false;
                                 if((y-1)>=srcRect.y) dstup = (newdb.getElem(x+(y-1)*width)&0xFF000000)!=0;
@@ -1023,7 +1023,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                                 boolean dstright = false;
                                 if((x+1)<srcRect.x+srcRect.width) dstright = (newdb.getElem(x+1+y*width)&0xFF000000)!=0;
 
-                                // 幅    :←外側,内側→
+                                // Width : ←outside, inside→
                                 // width1:-10*thickBright
                                 // width3:-10*thickBright,-5*thickBright,-0
 
@@ -1055,18 +1055,18 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }*/
 
-        /* ぼかしでどうにかできないか？
+        /* Can I do something with blur?
         if(useThick){
             // Thickness
-            // 輪郭に近い部分は暗く、離れたところは明るい
+            // Parts close to the outline are dark, parts far away are bright
 
-            // 輪郭を取得
+            // Get outline
             DataBuffer newdb = newimg.getRaster().getDataBuffer();
             for(int y=srcRect.y; y<srcRect.y+srcRect.height; y++){
                 for(int x=srcRect.x; x<srcRect.x+srcRect.width; x++){
                     boolean src = (srcdb.getElem(x+y*width)&0xFF000000)!=0;
                     if(src){
-                        // 輪郭部分を塗る
+                        // Paint outline area
                         boolean srcup = false;
                         if((y-1)>=srcRect.y) srcup = (srcdb.getElem(x+(y-1)*width)&0xFF000000)!=0;
                         boolean srcdown = false;
@@ -1084,10 +1084,10 @@ class EmbossDialog extends JFrame implements ActionListener {
                 }
             }
 
-            // ぼかし効果
+            // Blur effect
             int realThickWidth = new int[]{1,2,3,4,5,7,10,15,20,30,50}[thickWidth];
             for(int i=0; i<realThickWidth/5; i++){
-                // 平滑化(濃いめ)
+                // Smoothing (heavy)
                 final float[] operator={
                         0.00f, 0.02f, 0.05f, 0.05f, 0.05f, 0.02f, 0.00f,
                         0.02f, 0.05f, 0.05f, 0.07f, 0.05f, 0.05f, 0.02f,
@@ -1130,7 +1130,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                 newimg=convop.filter(newimg,null);
             }
             for(int i=0; i<realThickWidth%5; i++){
-                // 平滑化(濃いめ)
+                // Smoothing (heavy)
                 final float[] operator={
                         0.04f, 0.06f, 0.04f,
                         0.06f, 0.90f, 0.06f,
@@ -1141,7 +1141,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                 newimg=convop.filter(newimg,null);
             }
 
-            // 内部シャドウを塗る
+            // Paint inner shadow
             newdb = newimg.getRaster().getDataBuffer();
             for(int y=srcRect.y-realThickWidth; y<srcRect.y+srcRect.height+realThickWidth; y++){
                 for(int x=srcRect.x-realThickWidth; x<srcRect.x+srcRect.width+realThickWidth; x++){
@@ -1177,7 +1177,7 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         if (useThick) {
             // Thickness
-            // 輪郭に近い部分は暗く、離れたところは明るい
+            // Parts close to the outline are dark, parts far away are bright
             DataBuffer newdb = newimg.getRaster().getDataBuffer();
 
             int realThickWidth = new int[] {1, 2, 3, 4, 6, 8, 10, 14, 20, 30, 50}[thickWidth];
@@ -1186,7 +1186,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                     for (int x = srcRect.x; x < srcRect.x + srcRect.width; x++) {
                         boolean src = (srcdb.getElem(x + y * width) & 0xFF000000) != 0;
                         if (src && i == 0) {
-                            // 1回目は輪郭部分を塗る
+                            // First time, paint the outline area
                             boolean srcup = false;
                             if ((y - 1) >= srcRect.y) srcup = (srcdb.getElem(x + (y - 1) * width) & 0xFF000000) != 0;
                             boolean srcdown = false;
@@ -1212,7 +1212,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                                 newdb.setElem(x + y * width, c);
                             }
                         } else if (src) {
-                            // 2回目以降はすでに塗った部分のすぐ隣を順次塗っていく
+                            // Second time and after, sequentially paint next to already painted parts
                             if ((0xFF000000 & newdb.getElem(x + y * width)) == 0) {
                                 boolean dstup = false;
                                 if ((y - 1) >= srcRect.y)
@@ -1227,7 +1227,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                                 if ((x + 1) < srcRect.x + srcRect.width)
                                     dstright = (newdb.getElem(x + 1 + y * width) & 0xFF000000) != 0;
 
-                                // 幅    :←外側,内側→
+                                // Width : ←outside, inside→
                                 // width1:-10*thickBright
                                 // width3:-10*thickBright,-5*thickBright,-0
 
@@ -1235,7 +1235,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                                         dstleft & thickRight || dstright & thickLeft) {
                                     newdb.setElem(x + y * width, 0x00adbeef);
                                 } else if (i % 3 == 0) {
-                                    // 斜め方向の隣り合ったピクセルも調べる
+                                    // Also check diagonally adjacent pixels
                                     boolean dstul = false;
                                     if ((y - 1) >= srcRect.y && (x - 1) >= srcRect.x)
                                         dstul = (newdb.getElem(x - 1 + (y - 1) * width) & 0xFF000000) != 0;
@@ -1281,7 +1281,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }
 
-        // 塗り残しを塗る
+        // Paint unpainted areas
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
         for (int y = srcRect.y; y < srcRect.y + srcRect.height; y++) {
             for (int x = srcRect.x; x < srcRect.x + srcRect.width; x++) {
@@ -1296,7 +1296,7 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         if (useGrad) {
             // Gradation
-            // 一方向への単純なグラデーション
+            // Simple gradient in one direction
 
             Point topPoint = null;
             Point bottomPoint = null;
@@ -1341,7 +1341,7 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         if (useHighlight) {
             // Highlight
-            // てかり
+            // Gloss
 
             Point topPoint = null;
             Point bottomPoint = null;
@@ -1384,7 +1384,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
         }
 
-        // 選択領域を新しくする
+        // Update selection area
         owner.redoBuf = newimg;
         owner.mainPane.repaint();
 
@@ -1586,7 +1586,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             this.dispose();
             owner.mainPane.repaint();
         } else if (cmd.equals("OK")) {
-            // 拡大縮小を反映
+            // Reflect scaling
             String widthstr = widthfield.getText();
             if (!widthstr.matches("^[0-9]{1,5}$")) return;
             String heightstr = heightfield.getText();
@@ -1748,19 +1748,19 @@ class PaintBlendDialog extends JDialog implements ActionListener {
 
             String[] value = new String[] {
                     PCARD.pc.intl.getDialogText("Copy"),
-                    PCARD.pc.intl.getDialogText("Blend"), // 指定の強さでアルファブレンド
-                    PCARD.pc.intl.getDialogText("Add"), // (指定の強さで加算)発光
-                    PCARD.pc.intl.getDialogText("Subtract"), // (指定の強さで減算)焼きこみ
-                    PCARD.pc.intl.getDialogText("Multiply"), // 乗算
-                    PCARD.pc.intl.getDialogText("Screen"), // 指定の輝度から引いた色で掛け算
-                    PCARD.pc.intl.getDialogText("Darken"), // 暗い色を残す
-                    PCARD.pc.intl.getDialogText("Lighten"), // 明るい色を残す
-                    PCARD.pc.intl.getDialogText("Difference"), // 差の絶対値
-                    PCARD.pc.intl.getDialogText("Hue"), // 色相
-                    PCARD.pc.intl.getDialogText("Color"), // 色相と彩度
-                    PCARD.pc.intl.getDialogText("Saturation"), // 彩度
-                    PCARD.pc.intl.getDialogText("Luminosity"), // 輝度
-                    PCARD.pc.intl.getDialogText("Alpha Channel") // 輝度をアルファチャンネルに
+                    PCARD.pc.intl.getDialogText("Blend"), // Alpha blend with specified strength
+                    PCARD.pc.intl.getDialogText("Add"), // (Add with specified strength) Glow
+                    PCARD.pc.intl.getDialogText("Subtract"), // (Subtract with specified strength) Burn
+                    PCARD.pc.intl.getDialogText("Multiply"), // Multiply
+                    PCARD.pc.intl.getDialogText("Screen"), // Multiply with color subtracted from specified brightness
+                    PCARD.pc.intl.getDialogText("Darken"), // Keep darker color
+                    PCARD.pc.intl.getDialogText("Lighten"), // Keep lighter color
+                    PCARD.pc.intl.getDialogText("Difference"), // Absolute difference
+                    PCARD.pc.intl.getDialogText("Hue"), // Hue
+                    PCARD.pc.intl.getDialogText("Color"), // Hue and Saturation
+                    PCARD.pc.intl.getDialogText("Saturation"), // Saturation
+                    PCARD.pc.intl.getDialogText("Luminosity"), // Brightness
+                    PCARD.pc.intl.getDialogText("Alpha Channel") // Apply brightness to alpha channel
             };
             JComboBox<?> combo = new JComboBox<Object>(value);
             combo.setName("Mode");

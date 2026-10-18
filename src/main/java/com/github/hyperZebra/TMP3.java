@@ -39,7 +39,7 @@ public class TMP3 extends Thread {
                     baseFormat.getChannels() * 2, baseFormat.getSampleRate(), false);
             din = AudioSystem.getAudioInputStream(decodedFormat, in);
             pause_flag = true;
-            // スレッド側で再生する
+            // Play on the thread side
             start();
         } catch (Exception e) {
             // Handle exception.
@@ -88,7 +88,7 @@ public class TMP3 extends Thread {
         return playing_flag;
     }
 
-    // 受け取ったメッセージを実行するスレッド
+    // Thread to execute received messages
     @Override
     public void run() {
         this.setName("MP3 play");
@@ -122,7 +122,7 @@ public class TMP3 extends Thread {
             }
         }
 
-        // 停止
+        // Stop
         try {
             line.close();
             line = null;
@@ -151,7 +151,7 @@ public class TMP3 extends Thread {
                 if (nBytesRead != -1)
                     /* nBytesWritten = */ line.write(data, 0, nBytesRead);
             }
-            line.drain();// 再生が終わるまで待つ
+            line.drain();// Wait until playback ends
             line.stop();
         }
     }
@@ -162,7 +162,7 @@ public class TMP3 extends Thread {
         DataLine.Info info = new DataLine.Info(SourceDataLine.class,
                 audioFormat);
         res = (SourceDataLine) AudioSystem.getLine(info);
-        res.open(audioFormat, 524288);// 512KBくらいあればOK?
+        res.open(audioFormat, 524288);// 512KB should be enough?
         return res;
     }
 }

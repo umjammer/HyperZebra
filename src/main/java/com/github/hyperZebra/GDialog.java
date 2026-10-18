@@ -34,7 +34,7 @@ public class GDialog extends JDialog implements ActionListener {
         super(owner, true);
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
         JPanel topPanel = new JPanel();
@@ -92,7 +92,7 @@ public class GDialog extends JDialog implements ActionListener {
             setBounds(0, 0, 400, h + 48);
             setLocationRelativeTo(null);
         }
-        setUndecorated(true);// タイトルバー非表示
+        setUndecorated(true);// Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();
@@ -128,7 +128,7 @@ class GScrollDialog extends JDialog implements ActionListener {
         super(owner, true);
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
         // JPanel topPanel = new JPanel();
@@ -181,7 +181,7 @@ class GScrollDialog extends JDialog implements ActionListener {
             setBounds(0, 0, 400, h + 48);
             setLocationRelativeTo(null);
         }
-        setUndecorated(true);// タイトルバー非表示
+        setUndecorated(true);// Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();
@@ -214,7 +214,7 @@ class GUxAnswer extends JDialog implements ActionListener {
         super(owner, true);
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
         JPanel topPanel = new JPanel();
@@ -224,7 +224,7 @@ class GUxAnswer extends JDialog implements ActionListener {
         JPanel topPanel2 = new JPanel();
         topPanel.add(topPanel2);
 
-        // アイコン読み込み
+        // Load icon
         String fileName = PCARD.pc.stack.rsrc.getFilePathAll(icons[0], "icon");
         if (fileName != null) {
             Path path = (PCARD.pc.stack.file.getParent().resolve(fileName));
@@ -233,7 +233,7 @@ class GUxAnswer extends JDialog implements ActionListener {
             topPanel2.add(label);
         }
 
-        // テキスト
+        // Text
         String[] texts2 = text.split("\r");
         StringBuilder text2 = new StringBuilder();
         for (String s : texts2) {
@@ -277,7 +277,7 @@ class GUxAnswer extends JDialog implements ActionListener {
             setBounds(0, 0, 400, h + 48);
             setLocationRelativeTo(null);
         }
-        setUndecorated(true);// タイトルバー非表示
+        setUndecorated(true);// Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();

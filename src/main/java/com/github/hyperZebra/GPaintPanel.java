@@ -13,7 +13,7 @@ import java.io.Serial;
 import javax.swing.JPanel;
 
 
-// カードピクチャとバックグラウンドピクチャを表示するパネル
+// Panel for displaying card picture and background picture
 class MyPanel extends JPanel {
 
     @Serial
@@ -105,7 +105,7 @@ class MyPanel extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        // ペイントツール用メイン描画部
+        // Main drawing section for paint tool
         if (owner.tool != null) {
             if (!PaintTool.editBackground) {
                 mainPaneDraw(g, owner.bgImg);
@@ -120,7 +120,7 @@ class MyPanel extends JPanel {
                     owner.tool instanceof toolSelectInterface && ((toolSelectInterface) owner.tool).isMove()) {
                 BufferedImage flowImage = owner.redoBuf;
 
-                // ブレンドモード
+                // Blend mode
                 if (owner.blendMode != blendMode.Copy || owner.blendLevel != 100) {
                     Point offset = new Point(0, 0);
                     if (owner.tool.getClass() == SelectTool.class) {
@@ -159,7 +159,7 @@ class MyPanel extends JPanel {
                     flowImage = newImage;
                 }
 
-                // 選択範囲を描画
+                // Draw selection area
                 if (owner.tool.getClass() == SelectTool.class) {
                     SelectTool tl = (SelectTool) owner.tool;
                     if (tl.move) {
@@ -216,7 +216,7 @@ class MyPanel extends JPanel {
 
     void mainPaneDraw(Graphics g, BufferedImage img) {
         if (owner.bit > 1) {
-            // 拡大表示
+            // Magnified display
             g.drawImage(img, ((int) owner.bitLeft) * (-owner.bit),
                     ((int) owner.bitTop) * (-owner.bit),
                     ((int) owner.bitLeft) * (-owner.bit) + owner.bgImg.getWidth() * owner.bit,
@@ -229,7 +229,7 @@ class MyPanel extends JPanel {
 
     public void mainPaneDraw(Graphics g, BufferedImage img, int x, int y, int width, int height) {
         if (owner.bit > 1) {
-            // 拡大表示
+            // Magnified display
             g.drawImage(img, x * owner.bit - (int) owner.bitLeft * owner.bit,
                     y * owner.bit - (int) owner.bitTop * owner.bit,
                     x * owner.bit - (int) owner.bitLeft * owner.bit + width * owner.bit,
@@ -334,7 +334,7 @@ class MyPanel extends JPanel {
 
     private static void copyImage(BufferedImage newImage, BufferedImage flowImage,
                                   BufferedImage surfaceImage, Point offset, int level) {
-        // copyモードは色を変えるだけ
+        // Copy mode only changes colors
 
         // DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -367,7 +367,7 @@ class MyPanel extends JPanel {
 
     private static void blendImage(BufferedImage newImage, BufferedImage flowImage,
                                    BufferedImage surfaceImage, Point offset, int level) {
-        // blendモードはアルファ値を変えるだけ
+        // Blend mode only changes alpha values
 
         // DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -398,7 +398,7 @@ class MyPanel extends JPanel {
 
     private static void addImage(BufferedImage newImage, BufferedImage flowImage,
                                  BufferedImage surfaceImage, Point offset, int level) {
-        // addモードは黒を起点にした足し算
+        // Add mode is addition starting from black
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -456,7 +456,7 @@ class MyPanel extends JPanel {
 
     private static void subtractImage(BufferedImage newImage, BufferedImage flowImage,
                                       BufferedImage surfaceImage, Point offset, int level) {
-        // subtractモードは白を起点にした引き算
+        // Subtract mode is subtraction starting from white
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -514,7 +514,7 @@ class MyPanel extends JPanel {
 
     private static void multiplyImage(BufferedImage newImage, BufferedImage flowImage,
                                       BufferedImage surfaceImage, Point offset, int level) {
-        // multiplyモードは黒を起点にした掛け算
+        // Multiply mode is multiplication starting from black
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -569,7 +569,7 @@ class MyPanel extends JPanel {
 
     private static void screenImage(BufferedImage newImage, BufferedImage flowImage,
                                     BufferedImage surfaceImage, Point offset, int level) {
-        // screenモードはレベルを起点にした足し算
+        // Screen mode is addition starting from level
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -630,7 +630,7 @@ class MyPanel extends JPanel {
 
     private static void darkenImage(BufferedImage newImage, BufferedImage flowImage,
                                     BufferedImage surfaceImage, Point offset, int level) {
-        // darkenモードは暗いほうを残す
+        // Darken mode keeps the darker one
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -685,7 +685,7 @@ class MyPanel extends JPanel {
 
     private static void lightenImage(BufferedImage newImage, BufferedImage flowImage,
                                      BufferedImage surfaceImage, Point offset, int level) {
-        // lightenモードは明るいほうを残す
+        // Lighten mode keeps the lighter one
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -738,7 +738,7 @@ class MyPanel extends JPanel {
 
     private static void differenceImage(BufferedImage newImage, BufferedImage flowImage,
                                         BufferedImage surfaceImage, Point offset, int level) {
-        // differenceモードは差の絶対値
+        // Difference mode is absolute difference
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -791,7 +791,7 @@ class MyPanel extends JPanel {
 
     private static void hueImage(BufferedImage newImage, BufferedImage flowImage,
                                  BufferedImage surfaceImage, Point offset, int level) {
-        // hueモードは色相のみ
+        // Hue mode is hue only
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -834,7 +834,7 @@ class MyPanel extends JPanel {
 
                     Color.RGBtoHSB(red, green, blue, hsb);
                     Color.RGBtoHSB(sfc_red, sfc_green, sfc_blue, sfc_hsb);
-                    sfc_hsb[0] = hsb[0]; // 色相のみ代入
+                    sfc_hsb[0] = hsb[0]; // Assign hue only
                     int rgb = Color.HSBtoRGB(sfc_hsb[0], sfc_hsb[1], sfc_hsb[2]);
 
                     c = alpha + (0x00FFFFFF & rgb);
@@ -847,7 +847,7 @@ class MyPanel extends JPanel {
 
     private static void colorImage(BufferedImage newImage, BufferedImage flowImage,
                                    BufferedImage surfaceImage, Point offset, int level) {
-        // colorモードは色相と彩度
+        // Color mode is hue and saturation
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -890,8 +890,8 @@ class MyPanel extends JPanel {
 
                     Color.RGBtoHSB(red, green, blue, hsb);
                     Color.RGBtoHSB(sfc_red, sfc_green, sfc_blue, sfc_hsb);
-                    sfc_hsb[0] = hsb[0]; // 色相代入
-                    sfc_hsb[1] = hsb[1]; // 彩度代入
+                    sfc_hsb[0] = hsb[0]; // Assign hue
+                    sfc_hsb[1] = hsb[1]; // Assign saturation
                     int rgb = Color.HSBtoRGB(sfc_hsb[0], sfc_hsb[1], sfc_hsb[2]);
 
                     c = alpha + (0x00FFFFFF & rgb);
@@ -904,7 +904,7 @@ class MyPanel extends JPanel {
 
     private static void saturationImage(BufferedImage newImage, BufferedImage flowImage,
                                         BufferedImage surfaceImage, Point offset, int level) {
-        // saturationモードは彩度
+        // Saturation mode is saturation
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -947,7 +947,7 @@ class MyPanel extends JPanel {
 
                     Color.RGBtoHSB(red, green, blue, hsb);
                     Color.RGBtoHSB(sfc_red, sfc_green, sfc_blue, sfc_hsb);
-                    sfc_hsb[1] = hsb[1]; // 彩度代入
+                    sfc_hsb[1] = hsb[1]; // Assign saturation
                     int rgb = Color.HSBtoRGB(sfc_hsb[0], sfc_hsb[1], sfc_hsb[2]);
 
                     c = alpha + (0x00FFFFFF & rgb);
@@ -960,7 +960,7 @@ class MyPanel extends JPanel {
 
     private static void luminosityImage(BufferedImage newImage, BufferedImage flowImage,
                                         BufferedImage surfaceImage, Point offset, int level) {
-        // luminosityモードは明度
+        // Luminosity mode is brightness
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
@@ -1003,7 +1003,7 @@ class MyPanel extends JPanel {
 
                     Color.RGBtoHSB(red, green, blue, hsb);
                     Color.RGBtoHSB(sfc_red, sfc_green, sfc_blue, sfc_hsb);
-                    sfc_hsb[2] = hsb[2]; // 明度代入
+                    sfc_hsb[2] = hsb[2]; // Assign brightness
                     int rgb = Color.HSBtoRGB(sfc_hsb[0], sfc_hsb[1], sfc_hsb[2]);
 
                     c = alpha + (0x00FFFFFF & rgb);
@@ -1016,8 +1016,8 @@ class MyPanel extends JPanel {
 
     private static void alphaImage(BufferedImage newImage, BufferedImage flowImage,
                                    BufferedImage surfaceImage, Point offset, int level) {
-        // alpha channelモードは濃度をサーフェースのアルファチャンネルに適用
-        // サーフェースを変更するので特別扱いが必要
+        // Alpha channel mode applies density to surface alpha channel
+        // Special handling needed as surface is modified
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();

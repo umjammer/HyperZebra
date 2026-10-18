@@ -28,7 +28,7 @@ public class HCData {
 
         try {
             while (dis.available() > 0) {
-                int blockSize = readCode(dis, 2); // int blockSize = readCode(dis, 4);ずれるので2個しか読まないようにしてやった
+                int blockSize = readCode(dis, 2); // int blockSize = readCode(dis, 4); Only read 2 bytes to avoid drift
                 int typeCode = readCode(dis, 4);
 
                 if (stack.totalSize > 0) {
@@ -83,11 +83,11 @@ label:
                             stack.bar.setString("Converting Card Data...");
                             OCard cd = new OCard(PCARDFrame.pc.stack);
                             if (cd.readCardBlock(dis, blockSize)) {
-                                // stack.cdCacheList.add(cd); // new OCard()で登録されてる
+                                // stack.cdCacheList.add(cd); // Registered by new OCard()
                             } else {
                                 errCount++;
                             }
-                            System.gc();// GCをなるべく呼ぶ
+                            System.gc();// Call GC as much as possible
 
                             break;
                         case "BKGD":
@@ -134,7 +134,7 @@ label:
                             break label;
                         default:
                             while (true) {
-                                // アライメントをどうにか合わせてみる
+                                // Try to fix alignment
                                 blockSize = (0x00FFFFFF & blockSize) << 8;
                                 blockSize += (0x00FF & (typeCode >> 24));
                                 // System.out.println("<blockSize:"+blockSize);
@@ -172,7 +172,7 @@ label:
             e.printStackTrace();
         }
 
-        // デバッグ情報出力
+        // Output debug info
         /*File f = new File("./debug_"+stack.name+".txt");
         try {
             FileOutputStream stream = new FileOutputStream(f);
@@ -183,7 +183,7 @@ label:
         }*/
 
         if (result == true) {
-            // カードの枚数チェック
+            // Check number of cards
             // System.out.println(stack.cdCacheList.size()+","+stack.cardIdList.size());
             if (stack.cdCacheList.size() != stack.cardIdList.size()) {
                 System.out.println("number of cards check error.");
@@ -195,7 +195,7 @@ label:
             }
         }
 
-        // ピクチャの変換を開始
+        // Start picture conversion
         new convertPictureThread().start();
 
         return result;
@@ -284,7 +284,7 @@ label:
         } else {
             result.str = new String(b, 0, i);
         }
-        // 改行コード変更
+        // Change line ending
         for (int j = 0; j < result.str.length(); j++) {
             if (result.str.charAt(j) == '\r') {
                 result.str = result.str.substring(0, j) + "\n" + result.str.substring(j + 1);
@@ -318,7 +318,7 @@ label:
 
         try {
             result.str = new String(b, 0, i, "SJIS");
-            // 改行コード変更
+            // Change line ending
             for (int j = 0; j < result.str.length(); j++) {
                 if (result.str.charAt(j) == '\r') {
                     result.str = result.str.substring(0, j) + "\n" + result.str.substring(j + 1);
@@ -354,7 +354,7 @@ label:
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            // PNG形式に変換してファイルに保存
+            // Convert to PNG format and save to file
             String filename = "PAT_" + (i + 1) + ".png";
             File ofile = new File(parentPath + File.separatorChar + filename);
             try {
@@ -377,7 +377,7 @@ label:
             return false;
         }
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         int bitmapId = HCData.readCode(dis, 4);
         // HCStackDebug.debuginfo("bitmapId:"+Integer.toString(bitmapId));
         // System.out.println("bitmapId:"+bitmapId);
@@ -430,7 +430,7 @@ label:
             return false;
         }
 
-        // マスクをbyte配列にロード
+        // Load mask into byte array
         byte[] mask = null;
         if (maskSize > 0) {
             mask = new byte[maskSize];
@@ -446,7 +446,7 @@ label:
             }
         }
 
-        // イメージをbyte配列にロード
+        // Load image into byte array
         byte[] img = new byte[imgSize];
         try {
             // dis.read(img);
@@ -459,7 +459,7 @@ label:
             e.printStackTrace();
         }
 
-        // イメージの読み込みは最後に別スレッドで行う
+        // Load image in separate thread at the end
         Thread p = new saveThread(mask, img, bitmapId,
                 top, left, right, bottom,
                 maskLeft, maskTop, maskRight, maskBottom,
@@ -476,7 +476,7 @@ label:
         }
 
 
-        // アライメント調整
+        // Alignment adjustment
         int remainLength = blockSize - (64 + maskSize + imgSize);
         HCStackDebug.debuginfo("remainLength:" + remainLength);
         // System.out.println("remainLength:"+remainLength);
@@ -503,7 +503,7 @@ label:
                             // already started
                         }
                     }
-                    // 並行3スレッドまで
+                    // Up to 3 parallel threads
                     while (lastp2 != null && lastp2.isAlive()) {
                         try {
                             Thread.sleep(20);
@@ -563,7 +563,7 @@ label:
 
         @Override
         public void run() {
-            // bgに登録されているbitmapIDか？(スタックのデータを読み切ってしまわないと見逃してしまう場合あり)
+            // Is it a bitmapID registered in bg? (May be missed if stack data isn't fully read yet)
             boolean isBgPicture = false;
             for (int i = 0; stack.bgCacheList != null && i < stack.bgCacheList.size(); i++) {
                 if (stack.bgCacheList.get(i).bitmapName != null && stack.bgCacheList.get(i).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
@@ -585,7 +585,7 @@ label:
             g.fillRect(0, 0, right, imgTop);
             g.fillRect(0, imgBottom, right, bottom);
 
-            // アルファチャンネル付きのイメージに合成
+            // Composite into image with alpha channel
             if (mask != null) {
                 DataBuffer maindb = mainBi.getRaster().getDataBuffer();
                 DataBuffer maskdb = maskBi.getRaster().getDataBuffer();
@@ -615,7 +615,7 @@ label:
                 }
             }
 
-            // ファイルに保存(これに時間がかかる)
+            // Save to file (this takes time)
             String filename = "BMAP_" + bitmapId + ".png";
             Path file = PCARDFrame.pc.stack.file.getParent().resolve(filename);
             try {
@@ -634,7 +634,7 @@ label:
         }
 
 
-        // HyperCardのピクチャフォーマット(Wrath Of Bill Atkinson)の読み込み
+        // Read HyperCard picture format (Wrath Of Bill Atkinson)
         private static BufferedImage readWOBA(byte[] img, int id, int cdWidth, int cdHeight,
                                               int left, int top, int right, int bottom, boolean isBgPicture) {
             BufferedImage bi = new BufferedImage(cdWidth, cdHeight, BufferedImage.TYPE_INT_ARGB);
@@ -697,7 +697,7 @@ label:
                         }
                     } else if (opcode >= 0x80 && opcode <= 0x8F) {
                         switch (opcode) {
-                            case 0x80: // 1行分無圧縮
+                            case 0x80: // 1 row uncompressed
                                 while (x < right && i < img.length) {
                                     for (int k = 0; k < 8; k++) {
                                         db.setElem(x + y * cdWidth, (0x01 & (img[i] >> (7 - k))) != 0 ? 0xFF000000 : 0xFFFFFFFF);
@@ -707,19 +707,19 @@ label:
                                     i++;
                                 }
                                 break;
-                            case 0x81: // 1行白
+                            case 0x81: // 1 row white
                                 while (x < right) {
                                     db.setElem(x + y * cdWidth, 0xFFFFFFFF);
                                     x++;
                                 }
                                 break;
-                            case 0x82: // 1行黒
+                            case 0x82: // 1 row black
                                 while (x < right) {
                                     db.setElem(x + y * cdWidth, 0xFF000000);
                                     x++;
                                 }
                                 break;
-                            case 0x83: // 1行同一バイト
+                            case 0x83: // 1 row same byte
                                 while (x < right) {
                                     for (int k = 0; k < 8; k++) {
                                         db.setElem(x + y * cdWidth, (0x01 & (img[i] >> (7 - k))) != 0 ? 0xFF000000 : 0xFFFFFFFF);
@@ -730,7 +730,7 @@ label:
                                 keepArray[y % 8] = img[i];
                                 i++;
                                 break;
-                            case 0x84: // 1行同一バイト,保持配列のデータを使う
+                            case 0x84: // 1 row same byte, use kept array data
                                 while (x < right) {
                                     for (int k = 0; k < 8; k++) {
                                         db.setElem(x + y * cdWidth, (0x01 & (keepArray[y % 8] >> (7 - k))) != 0 ? 0xFF000000 : 0xFFFFFFFF);
@@ -739,7 +739,7 @@ label:
                                 }
                                 // debugStr += "keep "+Integer.toHexString((int)(0x00FF&keepArray[y%8]))+" ";// ####
                                 break;
-                            case 0x85: // 1行上をコピー
+                            case 0x85: // Copy 1 row above
                                 while (x < right) {
                                     for (int k = 0; k < 8; k++) {
                                         db.setElem(x + y * cdWidth, db.getElem(0, x + (y - 1) * cdWidth));
@@ -747,7 +747,7 @@ label:
                                     }
                                 }
                                 break;
-                            case 0x86: // 2行上をコピー
+                            case 0x86: // Copy 2 rows above
                                 while (x < right) {
                                     for (int k = 0; k < 8; k++) {
                                         db.setElem(x + y * cdWidth, db.getElem(0, x + (y - 2) * cdWidth));
@@ -755,7 +755,7 @@ label:
                                     }
                                 }
                                 break;
-                            case 0x87: // 3行上をコピー
+                            case 0x87: // Copy 3 rows above
                                 while (x < right) {
                                     for (int k = 0; k < 8; k++) {
                                         db.setElem(x + y * cdWidth, db.getElem(0, x + (y - 3) * cdWidth));
@@ -765,7 +765,7 @@ label:
                                 break;
                             case 0x88:
                                 dh = 16;
-                                dv = 0; // 16bit右シフトしてXOR
+                                dv = 0; // XOR after 16-bit right shift
                                 break;
                             case 0x89:
                                 dh = 0;
@@ -773,27 +773,27 @@ label:
                                 break;
                             case 0x8A:
                                 dh = 0;
-                                dv = 1; // 1行上とXOR
+                                dv = 1; // XOR with 1 row above
                                 break;
                             case 0x8B:
                                 dh = 0;
-                                dv = 2; // 2行上とXOR
+                                dv = 2; // XOR with 2 rows above
                                 break;
                             case 0x8C:
                                 dh = 1;
-                                dv = 0; // 1bit右シフトしてXOR
+                                dv = 0; // XOR after 1-bit right shift
                                 break;
                             case 0x8D:
                                 dh = 1;
-                                dv = 1; // 1bit右シフト、1行上とXOR
+                                dv = 1; // 1-bit right shift, XOR with 1 row above
                                 break;
                             case 0x8E:
                                 dh = 2;
-                                dv = 2; // 2bit右シフト、2行上とXOR
+                                dv = 2; // 2-bit right shift, XOR with 2 rows above
                                 break;
                             case 0x8F:
                                 dh = 8;
-                                dv = 0; // 8bit右シフトしてXOR
+                                dv = 0; // XOR after 8-bit right shift
                                 break;
 
                             default:
@@ -801,11 +801,11 @@ label:
                                 break;
                         }
                     } else if (opcode >= 0xA0 && opcode <= 0xBF) {
-                        // 下5bit分、次のバイトのopcodeを繰り返す
+                        // Repeat next byte's opcode for lower 5 bits
                         repeatInstructionCount = (0x1F & opcode);
                         repeatInstructionIndex = i;
                     } else if (opcode >= 0xC0 && opcode <= 0xDF) {
-                        // 下5bit*8分のデータ
+                        // Data for lower 5 bits * 8
                         int count = (0x1F & opcode) * 8;
                         while (count > 0 && x < cdWidth && i < img.length) {
                             for (int k = 0; k < 8; k++) {
@@ -817,7 +817,7 @@ label:
                             i++;
                         }
                     } else if (opcode >= 0xE0 && opcode <= 0xFF) {
-                        // 下5bit*16分のゼロ
+                        // Zeros for lower 5 bits * 16
                         int count = (0x1F & opcode) * 16;
                         while (count > 0 && x < cdWidth) {
                             for (int k = 0; k < 8; k++) {
@@ -830,7 +830,7 @@ label:
                 }
 
                 if (opcode >= 0x80 && opcode <= 0x87) {
-                    // 1行書き換えのときはdh,dvを実施しない
+                    // Don't execute dh, dv when rewriting 1 row
                     continue;
                 }
 

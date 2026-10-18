@@ -40,8 +40,8 @@ public class OStack extends OObject {
 
     PCARDFrame pcard;
 
-    Charset charset = StandardCharsets.UTF_8;// 文字コード
-    String path = "";// スタックファイルのパス
+    Charset charset = StandardCharsets.UTF_8;// Character encoding
+    String path = "";// Stack file path
     Path file;
     OCard curCard;
     GButton GUI_btn;
@@ -58,19 +58,19 @@ public class OStack extends OObject {
     XMLwrite saveXML;
     List<OStack> usingStacks = new ArrayList<>();
 
-    // 進捗ダイアログ
+    // Progress dialog
     JDialog barDialog;
     JProgressBar bar;
     int barOffset;
     int totalSize;
 
-    // プロパティ
+    // Properties
     boolean cantAbort = false;
     boolean cantDelete = false;
     boolean cantModify = false;
     boolean cantPeek = false;
     int firstCard;// toc.xml
-    int userLevel;// TODO:このレベル以下に制限
+    int userLevel;// TODO: Limit to this level and below
     private boolean privateAccess;// toc.xml
     String createdByVersion;// toc.xml
     String lastCompactedVersion;// toc.xml
@@ -86,10 +86,10 @@ public class OStack extends OObject {
     Point scroll;
     int firstBg;
 
-    // 追加プロパティ
+    // Additional properties
     boolean resizable = false;
 
-    // カード情報
+    // Card information
     List<OCard> cdCacheList = new ArrayList<>();
     List<OBackground> bgCacheList = new ArrayList<>();
     List<Integer> cardIdList = new ArrayList<>();
@@ -223,7 +223,7 @@ public class OStack extends OObject {
         PCARDFrame.setNewBounds();
     }
 
-    // メイン
+    // Main
     public OStack(PCARDFrame pc) {
         objectType = "stack";
 
@@ -308,7 +308,7 @@ public class OStack extends OObject {
         PCARD.pc.msg.setBounds(PCARD.pc.getX() + PCARD.pc.getWidth() / 2 - 240, PCARD.pc.getY() + PCARD.pc.getHeight(), 480, 28 + PCARD.pc.getInsets().top);
 
 
-        // 1番目のカードを開く
+        // Open the first card
         if (!cardIdList.isEmpty()) {
             mainPane.removeAll();
             try {
@@ -336,8 +336,8 @@ public class OStack extends OObject {
             TTalk.CallMessage("openCard", curCard);
         }
 
-        // 変更監視&XML保存のスレッドを立ち上げておく
-        if (!System.getProperty("java.version").startsWith("1.5")) { // JRE1.5.xは非対応
+        // Start a thread for change monitoring & XML saving
+        if (!System.getProperty("java.version").startsWith("1.5")) { // JRE1.5.x is not supported
             saveXML = new XMLwrite(this);
         }
     }
@@ -362,7 +362,7 @@ public class OStack extends OObject {
 
         BufferedImage bi = null;
         if (!isUsingOnly) {
-            // 画像ファイルかどうか
+            // Whether it's an image file
             try {
                 bi = javax.imageio.ImageIO.read(new File(inpath));
             } catch (Exception e2) {
@@ -392,7 +392,7 @@ public class OStack extends OObject {
 
         try {
             InputStream fstream = Files.newInputStream(file);
-            // HCスタックとして読んでみる
+            // Try reading as HC stack
             int size = 0;
             StringBuilder STAKstr = new StringBuilder();
             for (int i = 0; i < 4; i++) {
@@ -403,7 +403,7 @@ public class OStack extends OObject {
                 STAKstr.append((char) fstream.read());
             }
             if (STAKstr.toString().equals("STAK")) {
-                // これはきっとHyperCardスタックファイル
+                // This is probably a HyperCard stack file
 Debug.println(file + " is HyperCard stack file");
                 if (HCConvert.openHCStack(path, this)) {
                     if (!PCARD.pc.stack.cdCacheList.isEmpty()) {
@@ -412,7 +412,7 @@ Debug.println(file + " is HyperCard stack file");
                     }
                 }
             } else if (true /* path.substring(path.length()-4).equals(".bin") */) {
-                // MacBinary形式では？
+                // MacBinary format?
 Debug.println(file + " is MacBinary type?");
                 if (HCConvert.openMacBinaryStack(path, this)) {
                     if (!this.cdCacheList.isEmpty()) {
@@ -421,7 +421,7 @@ Debug.println(file + " is MacBinary type?");
                     }
                 }
             }
-            // XML形式として読む
+            // Read as XML format
             if (new File(path).isDirectory()) {
                 path += File.separatorChar + "_stack.xml";
                 if (!new File(path).exists()) {
@@ -625,9 +625,9 @@ Debug.println(file + " is MacBinary type?");
     static class styleClass {
 
         int id;
-        int style;// -1ならチェンジしない
-        int font;// -1ならチェンジしない
-        int size;// -1ならチェンジしない
+        int style;// -1 means don't change
+        int font;// -1 means don't change
+        int size;// -1 means don't change
 
         public styleClass(String id, String style, String font, String size) {
             this.id = Integer.parseInt(id);
@@ -881,7 +881,7 @@ Debug.println(file + " is MacBinary type?");
     }
 
 
-    // HCのスタックを変換
+    // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readStackBlock(DataInputStream dis, int blockSize) {
         // //System.out.println("readStackBlock");
@@ -890,7 +890,7 @@ Debug.println(file + " is MacBinary type?");
             return false;
         }
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         id = HCData.readCode(dis, 4);
         // System.out.println("blockId:"+id); // always -1
         /*String tygersStr =*/
@@ -906,10 +906,10 @@ Debug.println(file + " is MacBinary type?");
         // System.out.println("stackSize:"+stackSize);
         /*int something =*/
         HCData.readCode(dis, 4);
-        // System.out.println("something:"+something); // wingsでは2、南方では0、鳥でも0、うにょでも0
+        // System.out.println("something:"+something); // 2 in wings, 0 in Minami, 0 in Tori, 0 in Uniyo
         /*int tygers1Str =*/
         HCData.readCode(dis, 4);
-        // System.out.println("tygersStr:"+tygers1Str); // 鳥では0、うにょでも0
+        // System.out.println("tygersStr:"+tygers1Str); // 0 in Tori, 0 in Uniyo
         /*int numofBgs =*/
         HCData.readCode(dis, 4);
         // System.out.println("numofBgs:"+numofBgs);
@@ -1022,7 +1022,7 @@ Debug.println(file + " is MacBinary type?");
             // System.out.println("padding:"+padding);
         }*/
 
-        // スクリプト
+        // Script
         String[] scriptAry = scriptStr.split("\n");
         Collections.addAll(scriptList, scriptAry);
         stringList = new ArrayList[scriptList.size()];
@@ -1061,7 +1061,7 @@ Debug.println(file + " is MacBinary type?");
 
         int offset = 24;
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         /*int blockId =*/
         HCData.readCode(dis, 4);
         // System.out.println("blockId:"+blockId);
@@ -1132,7 +1132,7 @@ Debug.println(file + " is MacBinary type?");
         if (blockSize > 200000 || blockSize < 24) {
             return false;
         }
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         /*int blockId =*/
         HCData.readCode(dis, 4);
         // System.out.println("blockId:"+blockId);
@@ -1166,7 +1166,7 @@ Debug.println(file + " is MacBinary type?");
                 offset += 1;
             }
 
-            // フォントIDと名前を登録
+            // Register font ID and name
             fontList.add(new fontClass(fontId, nameResult.str));
         }
 
@@ -1190,7 +1190,7 @@ Debug.println(file + " is MacBinary type?");
             return false;
         }
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         listId = HCData.readCode(dis, 4);
         // System.out.println("listId:"+listId);
         /*int filler =*/
@@ -1249,7 +1249,7 @@ Debug.println(file + " is MacBinary type?");
 
         int offset = 24;
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         int pageId = HCData.readCode(dis, 4);
         // System.out.println("pageId:"+pageId);
         /*int filler =*/
@@ -1275,7 +1275,7 @@ Debug.println(file + " is MacBinary type?");
             offset += 4;
             // System.out.println("cardId:"+cardId);
             if (GetCardbyId(cardId) == null) {
-                cardIdList.add(cardId); // cardのidリストに追加
+                cardIdList.add(cardId); // Add card ID to card list
             }
             if (pageEntrySize > 4) {
                 /*String something =*/
@@ -1302,7 +1302,7 @@ Debug.println(file + " is MacBinary type?");
         if (blockSize > 200000 || blockSize < 12) {
             return false;
         }
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         /*int blockId =*/
         HCData.readCode(dis, 4);
         // System.out.println("blockId:"+blockId);
@@ -1396,7 +1396,7 @@ Debug.println(file + " is MacBinary type?");
             int j;
             for (j = 0; j < list.size(); j++) {
                 if (cd.bgid == list.get(j)) {
-                    break;// 既に探したbgのid
+                    break;// bg ID already searched
                 }
             }
             if (j < list.size()) continue;
@@ -1576,11 +1576,11 @@ Debug.println(file + " is MacBinary type?");
     }*/
 
 
-// 初期のオリジナルデータファイル形式について：
+// About the original data file format:
 
-    /* テキストファイルにスタックののプロパティ情報を入れる
+    /* Put stack property information in a text file
      * #charset:Shift_JIS
-     * #name:xxx(基本的にファイル名と同じ)
+     * #name:xxx (basically same as file name)
      * #left:0
      * #top:0
      * #width:512
@@ -1591,22 +1591,22 @@ Debug.println(file + " is MacBinary type?");
      * #cd:12345
      * #cd:67890
      *
-     * #は特殊コード。名前などで#を使いたいときは##にする
+     * # is a special code. Use ## when you want to use # in names etc.
      */
 
     /*
-     * ファイル構成は..idをxxxxとして
+     * File structure.. with id as xxxx
      *
-     * スタック  名前.sta
-     * BG情報   resource/bgxxxx
-     * CD情報   resource/cdxxxx <-ボタンとフィールドの情報も突っ込むので大変なことになる
+     * Stack  name.sta
+     * BG info   resource/bgxxxx
+     * CD info   resource/cdxxxx <- will be complicated since button and field info are also included
      * ICON    resource/iconxxxx.png
-     * ICONm   resource/iconxxxx_mask.png ->変換されて消える
+     * ICONm   resource/iconxxxx_mask.png -> converted and deleted
      * PICT    resource/pictxxxx.png
-     * PICTm   resource/pictxxxx_mask.png ->変換されて消える
+     * PICTm   resource/pictxxxx_mask.png -> converted and deleted
      * Snd     resource/sndxxxx.wav
      * CD pic  resource/cdpxxxx.png
-     * CD mask resource/cdpxxxx_mask.png ->変換されて消える
+     * CD mask resource/cdpxxxx_mask.png -> converted and deleted
      * BG pic  resource/bgpxxxx.png
      */
 }

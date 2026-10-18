@@ -267,7 +267,7 @@ class TBButton extends JToggleButton {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    JPopupMenu popup = new JPopupMenu(); // ポップアップメニューを生成
+    JPopupMenu popup = new JPopupMenu(); // Generate popup menu
     // Color color;
 
     TBButton(String in_text, int y, int x) {
@@ -377,7 +377,7 @@ class TBButton extends JToggleButton {
         }
     }
 
-    // メニュー項目を追加
+    // Add menu item
     private JMenuItem addPopupMenuItem(String name, ActionListener al, boolean check) {
         JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
         item.addActionListener(al);
@@ -427,7 +427,7 @@ class TBButtonListener implements ActionListener, MouseListener {
         }
 
         if (arg0.getClickCount() == 2) {
-            // ダブルクリック
+            // Double click
             if (PCARD.pc.intl.getToolText("Eraser").equals(cmd)) {
                 GMenuPaint.doMenu("Select All");
                 GMenuPaint.doMenu("Clear Selection");
@@ -499,7 +499,7 @@ class TBButtonListener implements ActionListener, MouseListener {
 
     static public boolean ChangeTool(String cmd, ActionEvent ae) {
 
-        // 前のツールの終了処理
+        // End processing of previous tool
         if (PCARD.pc.tool != null) {
             PCARD.pc.tool.end();
 
@@ -512,7 +512,7 @@ class TBButtonListener implements ActionListener, MouseListener {
             AuthTool.tool.end();
         }
 
-        // ツールバーのハイライトを変更
+        // Change toolbar highlight
         if (PCARD.pc.stack != null) {
             for (int i = 0; i < PCARD.pc.toolbar.tb.getContentPane().getComponentCount(); i++) {
                 JComponent component = (JComponent) PCARD.pc.toolbar.tb.getContentPane().getComponent(i);
@@ -533,7 +533,7 @@ class TBButtonListener implements ActionListener, MouseListener {
                 PCARD.pc.intl.getToolText("Field").equalsIgnoreCase(cmd) ||
                 PCARD.pc.intl.getToolEngText("Field").equalsIgnoreCase(cmd)) {
             if (PCARD.pc.tool != null) {
-                // ブラウズツールにしたのでペイントモードから戻す
+                // Return from paint mode since browse tool was selected
                 PCARD.pc.tool = null;
                 PCARD.pc.bit = 1;
                 PCARD.pc.getRootPane().removeMouseListener(paintGUI.gui);
@@ -549,14 +549,14 @@ class TBButtonListener implements ActionListener, MouseListener {
                 // PCARD.pc.pidle.start();
 
                 {
-                    // ペイント用バッファ
+                    // Paint buffer
                     PCARD.pc.mainImg = null;
                     PCARD.pc.bgImg = null;
                     PCARD.pc.undoBuf = null;
                     PCARD.pc.redoBuf = null;
                 }
 
-                // これでは切り替わってくれない
+                // This doesn't switch
                 // PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
 
                 GMenu.menuUpdate(PCARD.pc.menu.mb);
@@ -579,7 +579,7 @@ class TBButtonListener implements ActionListener, MouseListener {
             PCARD.pc.mainPane.addMouseListener(ButtonGUI.gui);
             PCARD.pc.mainPane.addMouseMotionListener(ButtonGUI.gui);
 
-            // メニュー
+            // Menu
             {
                 GMenu.changeEnabled("Go", "Background", true);
                 GMenu.changeEnabled("Objects", "Button Info…", true);
@@ -608,7 +608,7 @@ class TBButtonListener implements ActionListener, MouseListener {
             PCARD.pc.mainPane.addMouseListener(FieldGUI.gui);
             PCARD.pc.mainPane.addMouseMotionListener(FieldGUI.gui);
 
-            // メニュー
+            // Menu
             {
                 GMenu.changeEnabled("Edit", "Background", true);
                 GMenu.changeEnabled("Objects", "Button Info…", false);
@@ -628,7 +628,7 @@ class TBButtonListener implements ActionListener, MouseListener {
 
             return true;
         } else {
-            // ボタン、フィールドツール以外
+            // Except button and field tools
             if (AuthDialog.authDialog != null) AuthDialog.authDialog.dispose();
             AuthDialog.authDialog = null;
         }
@@ -638,7 +638,7 @@ class TBButtonListener implements ActionListener, MouseListener {
             AuthTool.tool = null;
             TBCursor.changeCursor(PCARD.pc);
 
-            // バックグラウンド編集モードを解除
+            // Exit background edit mode
             {
                 PaintTool.editBackground = false;
                 String titleName = PCARD.pc.stack.name;
@@ -650,7 +650,7 @@ class TBButtonListener implements ActionListener, MouseListener {
 
             OCard.reloadCurrentCard();
 
-            // メニュー
+            // Menu
             {
                 GMenu.changeEnabled("Edit", "Background", false);
                 GMenu.changeSelected("Edit", "Background", false);
@@ -664,7 +664,7 @@ class TBButtonListener implements ActionListener, MouseListener {
         }
 
         //
-        // ここから下はペイントツール
+        // Below is paint tool
         //
 
         if (PCARD.pc.intl.getToolText("Select").equalsIgnoreCase(cmd) ||
@@ -722,17 +722,17 @@ class TBButtonListener implements ActionListener, MouseListener {
         } else if (cmd.equals("DummyPaint")) {
             TBCursor.changeCursor(PCARD.pc);
         } else {
-            return false;// 見つからない
+            return false;// Not found
         }
 
         if (PCARD.pc.stack.curCard != null && PCARD.pc.mainImg == null) {
             {
-                // ペイント用バッファ
+                // Paint buffer
 
                 PCARD.pc.mainImg = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
 
                 PCARD.pc.bgImg = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
-                // これをRGBにするとundoBufと互換性がとれない
+                // If this is RGB, it won't be compatible with undoBuf
                 Graphics g = PCARD.pc.bgImg.getGraphics();
                 g.setColor(Color.WHITE);
                 g.fillRect(0, 0, PCARD.pc.stack.width, PCARD.pc.stack.height);
@@ -742,20 +742,20 @@ class TBButtonListener implements ActionListener, MouseListener {
                 PCARD.pc.redoBuf = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
             }
 
-            // カードピクチャをペイント用バッファへ移動
+            // Move card picture to paint buffer
             PCARD.pc.mainImg.getGraphics().drawImage(PCARD.pc.stack.curCard.pict, 0, 0, PCARD.pc);
             if (PCARD.pc.stack.curCard.bg != null && PCARD.pc.stack.curCard.bg.pict != null) {
                 PCARD.pc.bgImg.getGraphics().drawImage(PCARD.pc.stack.curCard.bg.pict, 0, 0, PCARD.pc);
             }
             PCARD.pc.mainPane.repaint();
 
-            // ペイント用リスナー
+            // Paint listener
             GUI.removeAllListener();
             paintGUI.gui.addListenerToParts();
             PCARD.pc.mainPane.addMouseListener(paintGUI.gui);
             PCARD.pc.mainPane.addMouseMotionListener(paintGUI.gui);
 
-            // これでは切り替わってくれない
+            // This doesn't switch
             // PCARD.pc.setJMenuBar(PCARD.pc.paintMenu.mb);
 
             GMenu.menuUpdate(PCARD.pc.paintMenu.mb);
@@ -764,13 +764,13 @@ class TBButtonListener implements ActionListener, MouseListener {
             /*PCARD.pc.paidle = new PaintIdle();
             PCARD.pc.paidle.start();*/
 
-            // メニュー
+            // Menu
             {
                 GMenu.changeEnabled("Edit", "Background", true);
             }
         }
 
-        // フィールドにフォーカスを渡さない
+        // Don't pass focus to field
         if (PCARD.pc.stack.curCard != null) {
             for (int i = 0; i < PCARD.pc.stack.curCard.fldList.size(); i++) {
                 PCARD.pc.stack.curCard.fldList.get(i).fld.setFocusable(false);

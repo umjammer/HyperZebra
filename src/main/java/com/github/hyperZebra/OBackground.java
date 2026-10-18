@@ -17,13 +17,13 @@ import javax.xml.stream.XMLStreamWriter;
 
 public class OBackground extends OCardBase {
 
-    // プロパティ
+    // Properties
     Boolean cantDelete = false;
     Boolean cantModify = false;
     Boolean dontSearch = false;
-    // number (スタックの情報から求める)
+    // number (calculated from stack information)
 
-    // 追加プロパティ
+    // Additional properties
     OCard viewCard;
 
     // toc.xml
@@ -50,7 +50,7 @@ public class OBackground extends OCardBase {
         name = in;
     }
 
-    // メイン
+    // Main
     public static OBackground getOBackground(OStack st, OCard cd, int bgId, boolean dataonly) throws xTalkException {
         // System.out.println("bgid="+bgId);
 
@@ -60,7 +60,7 @@ public class OBackground extends OCardBase {
             if (st == cd.stack && bgId == bg.id) {
                 if (dataonly) return bg;
                 else {
-                    // シェアードしてないテキスト
+                    // Unshared text
                     for (int j = 0; j < cd.bgfldList.size(); j++) {
                         OField fld = bg.GetBgFldbyId(cd.bgfldList.get(j).id);
                         if (fld != null && fld.sharedText == false) {
@@ -75,7 +75,7 @@ public class OBackground extends OCardBase {
         }
 
         if (st.firstBg > 0 && bgId != st.firstBg) {
-            // HCスタックをコンバートするとbgが存在しないことがあるため、最初のbgで代用
+            // When converting HC stacks, bg may not exist, so use the first bg
             return getOBackground(st, cd, st.firstBg, dataonly);
         }
 
@@ -94,7 +94,7 @@ public class OBackground extends OCardBase {
 
         id = bgId;
         {
-            throw new xTalkException("そのidのバックグラウンドのデータファイルがありません");
+            throw new xTalkException("No background data file with that id exists");
         }
     }
 
@@ -401,7 +401,7 @@ public class OBackground extends OCardBase {
 
         int offset = 50;
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         id = HCData.readCode(dis, 4);
         // System.out.println("id:"+id);
         if (id < 0 || id >= 2265535) {
@@ -477,7 +477,7 @@ public class OBackground extends OCardBase {
             // System.out.println("==content "+i+"==");
 
             int pid;
-            {// アライメント調整
+            {// Alignment adjustment
                 pid = HCData.readCode(dis, 1);
                 while (pid <= i) {
                     pid = (pid << 8) + HCData.readCode(dis, 1);
@@ -526,7 +526,7 @@ public class OBackground extends OCardBase {
                 contLen -= formattingLength;
             }
 
-            // テキスト
+            // Text
             resultStr contentResult;
             if (orgcontLen % 2 == 1) {
                 // System.out.println("readText(contLen+1="+(contLen+1)+")");
@@ -594,7 +594,7 @@ public class OBackground extends OCardBase {
             System.out.println("padding:"+padding);
         }*/
 
-        // スクリプト
+        // Script
         String[] scriptAry = scriptStr.split("\n");
         Collections.addAll(scriptList, scriptAry);
         stringList = new ArrayList[scriptList.size()];
@@ -607,16 +607,16 @@ public class OBackground extends OCardBase {
     private static OBackground buildOBackground(OBackground bg) {
         bg.picture = new OPicture(bg);
 
-        // bgの場合はピクチャがなくても白で必ず描画しなくてはいけない
+        // For backgrounds, must always draw white even if there's no picture
         bg.label = MyLabel.getMyBgLabel(bg);
         bg.label.setBounds(0, 0, bg.stack.width, bg.stack.height);
         PCARD.pc.mainPane.add(bg.label);
 
-        // ピクチャ読み込み(pbm)
+        // Load picture (pbm)
         if (bg.bitmapName != null) {
             try {
                 Path path = bg.stack.file.getParent().resolve(bg.bitmapName);
-                // 読み込まれるまで待つ
+                // Wait until loaded
                 for (int i = 0; HCData.threadList != null && i < HCData.threadList.size(); i++) {
                     Thread p = HCData.threadList.get(i);
                     if (p != null && p.getName().equals(bg.bitmapName)) {
@@ -650,10 +650,10 @@ public class OBackground extends OCardBase {
             return bg;
         }
 
-        // ピクチャ読み込み
+        // Load picture
         File file = new File(bg.stack.file.getParent() + "/resource/bgp" + bg.id + ".png");
         // bg.showPict = false;
-        bg.label = MyLabel.getMyBgLabel(bg);// bgはこれ以上後ろがないのでラベル必須
+        bg.label = MyLabel.getMyBgLabel(bg);// Background has nothing behind it, so label is required
         bg.label.setBounds(0, 0, bg.stack.width, bg.stack.height);
         PCARD.pc.mainPane.add(bg.label);
         try {
@@ -678,7 +678,7 @@ class OBgButtonData {
 
     OCardBase card;
     OButton btn;
-    boolean check_hilite = false; // ハイライト情報をカードごとに持つ
+    boolean check_hilite = false; // Holds highlight information per card
     int id;
 
 

@@ -43,8 +43,8 @@ public class PaintTool {
     static boolean canTablet = false;
     static PCARDFrame owner;
 
-    // ペイントプロパティ
-    static int brushSize = 3; // TODO staticでないようにする
+    // Paint properties
+    static int brushSize = 3; // TODO: Make non-static
     static float lineSize = 1;
     static int alpha = 100;
     static boolean antialias = false;
@@ -52,7 +52,7 @@ public class PaintTool {
     static BufferedImage pat;
     boolean fill;
     static int smartSelectPercent = 5; // 5%
-    // static boolean bit = false; // 拡大表示
+    // static boolean bit = false; // Zoomed display
     // static float bitLeft = 0;
     // static float bitTop = 0;
 
@@ -72,12 +72,12 @@ public class PaintTool {
 
     public static void mouseUp(int x, int y) {
         if (owner.bit > 1) {
-            // 端数切り捨て
+            // Truncate decimals
             PaintTool.owner.bitLeft = (float) (int) PaintTool.owner.bitLeft;
             PaintTool.owner.bitTop = (float) (int) PaintTool.owner.bitTop;
 
             if (owner.getClass() == IconEditor.class) {
-                // スクロールバーを使う
+                // Use scrollbar
                 ((IconEditor) owner).scrollpane.getHorizontalScrollBar().setValue(((IconEditor) owner).scrollpane.getHorizontalScrollBar().getValue() + (int) PaintTool.owner.bitLeft * PaintTool.owner.bit);
                 ((IconEditor) owner).scrollpane.getVerticalScrollBar().setValue(((IconEditor) owner).scrollpane.getVerticalScrollBar().getValue() + (int) PaintTool.owner.bitTop * PaintTool.owner.bit);
                 PaintTool.owner.bitLeft = 0;
@@ -167,7 +167,7 @@ public class PaintTool {
             lasty[0] = y;
 
             if (owner.getClass() == IconEditor.class) {
-                // スクロールバーを使う
+                // Use scrollbar
                 if (PaintTool.owner.bitLeft + (float) ((IconEditor) owner).scrollpane.getHorizontalScrollBar().getValue() / owner.bit < 0) {
                     PaintTool.owner.bitLeft = (float) -((IconEditor) owner).scrollpane.getHorizontalScrollBar().getValue() / owner.bit;
                 }
@@ -214,7 +214,7 @@ public class PaintTool {
     static public void setPattern(boolean invert) {
         BufferedImage patorg = PaintTool.owner.pat.patterns[PaintTool.owner.pat.pattern];
         if (patorg == null) {
-            // ない場合
+            // If not available
             PaintTool.pat = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
             Graphics g1 = PaintTool.pat.getGraphics();
             g1.setColor(PaintTool.owner.fore.color);
@@ -254,7 +254,7 @@ public class PaintTool {
         if (PaintTool.owner != PCARDFrame.pc) return;
         if (PCARD.pc.stack.curCard == null || PaintTool.owner.mainImg == null) return;
 
-        // Cardピクチャが全部透明かどうかを判定
+        // Determine whether Card picture is completely transparent
         DataBuffer db = PaintTool.owner.mainImg.getRaster().getDataBuffer();
         int width = PaintTool.owner.mainImg.getWidth();
         boolean isTransparent = true;
@@ -268,7 +268,7 @@ public class PaintTool {
             }
         }
 
-        // Cardピクチャ
+        // Card picture
         if (isTransparent) {
             PaintTool.owner.stack.curCard.pict = null;
             PaintTool.owner.stack.curCard.bitmapName = null;
@@ -278,7 +278,7 @@ public class PaintTool {
             }
             if (PaintTool.owner.stack.curCard.pict.getWidth() != PaintTool.owner.stack.width ||
                     PaintTool.owner.stack.curCard.pict.getHeight() != PaintTool.owner.stack.height) {
-                // サイズ変更
+                // Resize
                 PaintTool.owner.stack.curCard.pict = new BufferedImage(PaintTool.owner.stack.width, PaintTool.owner.stack.height, BufferedImage.TYPE_INT_ARGB);
             }
             Graphics2D g = (Graphics2D) PaintTool.owner.stack.curCard.pict.getGraphics();
@@ -289,7 +289,7 @@ public class PaintTool {
             g.drawImage(PaintTool.owner.mainImg, 0, 0, PaintTool.owner);
         }
 
-        // Bgピクチャが全部透明かどうかを判定
+        // Determine whether Bg picture is completely transparent
         DataBuffer bgdb = PaintTool.owner.bgImg.getRaster().getDataBuffer();
         int bgwidth = PaintTool.owner.bgImg.getWidth();
         boolean isWhite = true;
@@ -303,7 +303,7 @@ public class PaintTool {
             }
         }
 
-        // Bgピクチャ
+        // Bg picture
         if (isWhite) {
             PaintTool.owner.stack.curCard.bg.pict = null;
             PaintTool.owner.stack.curCard.bg.bitmapName = null;
@@ -313,7 +313,7 @@ public class PaintTool {
             }
             if (PaintTool.owner.stack.curCard.bg.pict.getWidth() != PaintTool.owner.stack.width ||
                     PaintTool.owner.stack.curCard.bg.pict.getHeight() != PaintTool.owner.stack.height) {
-                // サイズ変更
+                // Resize
                 PaintTool.owner.stack.curCard.bg.pict = new BufferedImage(PaintTool.owner.stack.width, PaintTool.owner.stack.height, BufferedImage.TYPE_INT_ARGB);
             }
             Graphics2D g2 = (Graphics2D) PaintTool.owner.stack.curCard.bg.pict.getGraphics();
@@ -326,10 +326,10 @@ public class PaintTool {
     }
 
     static public void saveCdPictures() {
-        // カードピクチャにコピー
+        // Copy to card picture
         PaintTool.toCdPict();
 
-        // ファイル保存 (card)
+        // Save file (card)
         if (PCARDFrame.pc.stack.curCard != null && PCARDFrame.pc.stack.curCard.pict != null) {
             if (PCARDFrame.pc.stack.curCard.bitmapName == null ||
                     PCARDFrame.pc.stack.curCard.bitmapName.isEmpty() ||
@@ -345,7 +345,7 @@ public class PaintTool {
             }
         }
 
-        // ファイル保存 (bg)
+        // Save file (bg)
         if (PCARDFrame.pc.stack.curCard != null &&
                 PCARDFrame.pc.stack.curCard.bg != null &&
                 PCARDFrame.pc.stack.curCard.bg.pict != null) {
@@ -418,7 +418,7 @@ interface toolSelectInterface extends toolInterface {
 }
 
 // -------------------
-// 鉛筆
+// Pencil
 // -------------------
 class PencilTool implements toolInterface {
 
@@ -550,11 +550,11 @@ class PencilTool implements toolInterface {
             }
         }
 
-        // 裏画面を取得
+        // Get back buffer
         Graphics2D g2;
         g2 = (Graphics2D) PaintTool.owner.getSurface().getGraphics();
 
-        // 線を裏画面に書く
+        // Draw line on back buffer
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         float brushSize = 1;
         g2.setStroke(new BasicStroke(brushSize, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
@@ -567,7 +567,7 @@ class PencilTool implements toolInterface {
         Line2D.Double line = new Line2D.Double(PaintTool.lastx[0], PaintTool.lasty[0], x, y);
         g2.draw(line);
 
-        // クリップサイズを計算
+        // Calculate clip size
         int left = 0, right = 0, top = 0, bottom = 0;
         if (x < PaintTool.lastx[0]) {
             left = (int) (x - brushSize / 2 - 1);
@@ -584,7 +584,7 @@ class PencilTool implements toolInterface {
             bottom = (int) (y + brushSize / 2 + 1);
         }
 
-        // 背景画面を描画
+        // Draw background screen
         Graphics2D g3;
         g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g3.setClip(new Rectangle(left, top, right - left, bottom - top));
@@ -597,7 +597,7 @@ class PencilTool implements toolInterface {
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g4.setClip(new Rectangle(left, top, right - left, bottom - top));
 
-        // 線分の画面を描画
+        // Draw line segment screen
         // g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
         if (PaintTool.owner.bit > 1)
             PaintTool.owner.mainPane.repaint(
@@ -623,7 +623,7 @@ class PencilTool implements toolInterface {
 
 
 // -------------------
-//   ブラシ
+//   Brush
 // -------------------
 class BrushTool implements toolTabletInterface {
 
@@ -658,7 +658,7 @@ class BrushTool implements toolTabletInterface {
     @Override
     public void penUp(float x, float y, float pressure, boolean eraser) {
         if (PaintTool.alpha != 100 || eraser) {
-            // サーフェースに書き込む
+            // Write to surface
             Graphics2D g = (Graphics2D) PaintTool.owner.getSurface().getGraphics();
             if (eraser) {
                 DataBuffer srcdb = PaintTool.owner.redoBuf.getRaster().getDataBuffer();
@@ -750,7 +750,7 @@ class BrushTool implements toolTabletInterface {
     public boolean penStillDown(float x, float y, float pressure, boolean eraser) {
         /*if(PaintTool.antialias && pressure==0.5f && Math.pow(x-PaintTool.lastX[0],2) + Math.pow(y-PaintTool.lastY[0],2) < PaintTool.brushSize*15){
             if(PaintTool.owner.bit==1&&PaintTool.lastTime+500>=System.currentTimeMillis()){
-                return false;// 短いラインは引かないことでアンチエイリアス時にきれいにする
+                return false;// Don't draw short lines to make anti-aliasing look cleaner
             }
         }*/
 
@@ -768,7 +768,7 @@ class BrushTool implements toolTabletInterface {
             }
         }
 
-        // 裏画面を取得
+        // Get back buffer
         Graphics2D g2;
         if (PaintTool.alpha == 100 && !eraser) {
             g2 = (Graphics2D) PaintTool.owner.getSurface().getGraphics();
@@ -776,7 +776,7 @@ class BrushTool implements toolTabletInterface {
             g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         }
 
-        // 線を裏画面に書く
+        // Draw line on back buffer
         if (PaintTool.antialias) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         } else {
@@ -797,7 +797,7 @@ class BrushTool implements toolTabletInterface {
         Line2D.Double line = new Line2D.Double(PaintTool.lastx[0], PaintTool.lasty[0], x, y);
         g2.draw(line);
 
-        // クリップサイズを計算
+        // Calculate clip size
         int left = 0, right = 0, top = 0, bottom = 0;
         if (x < PaintTool.lastx[0]) {
             left = (int) (x - brushSize / 2 - 1);
@@ -814,7 +814,7 @@ class BrushTool implements toolTabletInterface {
             bottom = (int) (y + brushSize / 2 + 1);
         }
 
-        // 背景画面を描画
+        // Draw background screen
         Graphics2D g3;
         if (PaintTool.alpha < 100) {
             g3 = (Graphics2D) PaintTool.owner.getSurface().getGraphics();
@@ -832,7 +832,7 @@ class BrushTool implements toolTabletInterface {
         g4.setClip(new Rectangle(left, top, right - left, bottom - top));
 
 
-        // 透明度を反映して線分を画面に描画
+        // Reflect transparency and draw line segment on screen
         if (PaintTool.alpha < 100 || eraser) {
             if (PaintTool.owner.bit > 1) {
                 AffineTransform af = new AffineTransform();
@@ -860,7 +860,7 @@ class BrushTool implements toolTabletInterface {
             return true;
         }
 
-        // 線分の画面を描画
+        // Draw line segment screen
         // g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
         if (PaintTool.owner.bit > 1)
             PaintTool.owner.mainPane.repaint(
@@ -870,7 +870,7 @@ class BrushTool implements toolTabletInterface {
         else
             PaintTool.owner.mainPane.repaint(left, top, right - left, bottom - top);
 
-        // 拡大表示時の枠線表示
+        // Draw border when zoomed display
         if (PaintTool.owner.bit > 2) {
             Graphics g5 = PaintTool.owner.mainPane.getGraphics();
             MyPanel.bordersDraw(g5, PaintTool.owner.bit, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
@@ -894,7 +894,7 @@ class BrushTool implements toolTabletInterface {
 
 
 // -------------------
-// 消しゴム
+// Eraser
 // -------------------
 class EraserTool implements toolTabletInterface {
 
@@ -927,7 +927,7 @@ class EraserTool implements toolTabletInterface {
     @Override
     public void penUp(float x, float y, float pressure, boolean eraser) {
 
-        // サーフェースに書き込む
+        // Write to surface
         if (true) { // eraser
             DataBuffer srcdb = PaintTool.owner.redoBuf.getRaster().getDataBuffer();
             DataBuffer tgtdb = PaintTool.owner.getSurface().getRaster().getDataBuffer();
@@ -1017,13 +1017,13 @@ class EraserTool implements toolTabletInterface {
             }
         }
 
-        // 裏画面を取得
+        // Get back buffer
         Graphics2D g2;
         if (true) { // eraser
             g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         }
 
-        // 線を裏画面に書く
+        // Draw line on back buffer
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         float brushSize = 16.0f / PaintTool.owner.bit;
         g2.setStroke(new BasicStroke(brushSize, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
@@ -1044,7 +1044,7 @@ class EraserTool implements toolTabletInterface {
             g2.draw(line);
         }
 
-        // クリップサイズを計算
+        // Calculate clip size
         int left = 0, right = 0, top = 0, bottom = 0;
         if (x < PaintTool.lastx[0]) {
             left = (int) (x - brushSize / 2 - 4);
@@ -1061,7 +1061,7 @@ class EraserTool implements toolTabletInterface {
             bottom = (int) (y + brushSize / 2 + 4);
         }
 
-        // 背景画面を描画
+        // Draw background screen
         Graphics2D g3;
         g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g3.setClip(new Rectangle(left, top, right - left, bottom - top));
@@ -1074,7 +1074,7 @@ class EraserTool implements toolTabletInterface {
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g4.setClip(new Rectangle(left, top, right - left, bottom - top));
 
-        // 透明度を反映して線分を画面に描画
+        // Reflect transparency and draw line segment on screen
         if (true) {
             if (PaintTool.owner.bit > 1) {
                 AffineTransform af = new AffineTransform();
@@ -1093,7 +1093,7 @@ class EraserTool implements toolTabletInterface {
             }*/
             g4.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-            // 拡大表示時の枠線表示
+            // Draw border when zoomed display
             if (PaintTool.owner.bit > 2) {
                 Graphics g5 = PaintTool.owner.mainPane.getGraphics();
                 MyPanel.bordersDraw(g5, PaintTool.owner.bit, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
@@ -1118,7 +1118,7 @@ class EraserTool implements toolTabletInterface {
 
 
 // -------------------
-// バケツ
+// Paint Bucket
 // -------------------
 class PaintBucketTool implements toolInterface {
 
@@ -1130,7 +1130,7 @@ class PaintBucketTool implements toolInterface {
     }
 
     public static void gradfill(BufferedImage img, Color color1, Color color2, double angle) {
-        // imgの不透明な部分のangle補正した領域を取得
+        // Get the region of the img's opaque part with angle correction
         DataBuffer buffer = img.getRaster().getDataBuffer();
         Point topPoint = null;
         Point bottomPoint = null;
@@ -1157,7 +1157,7 @@ class PaintBucketTool implements toolInterface {
             }
         }
 
-        // 不透明な部分をグラデーション塗り
+        // Fill opaque part with gradient
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // System.out.println(buffer.getElem(0, x+y*width));
@@ -1181,7 +1181,7 @@ class PaintBucketTool implements toolInterface {
         int width = surface.getWidth();
         int height = surface.getHeight();
 
-        // 左を調べる
+        // Check left
         int lx;
         for (lx = -1; px + lx >= 0; lx--) {
             // System.out.println("<srcColor:"+srcColor);
@@ -1192,7 +1192,7 @@ class PaintBucketTool implements toolInterface {
         }
         lx++;
 
-        // 右を調べる
+        // Check right
         int rx;
         for (rx = 1; px + rx < width; rx++) {
             // System.out.println(">srcColor:"+srcColor);
@@ -1203,20 +1203,20 @@ class PaintBucketTool implements toolInterface {
         }
         rx--;
 
-        // そのラインを塗る
+        // Paint that line
         for (int x = px + lx; x <= px + rx; x++) {
             newBuffer.setElem(0, x + py * width, newColor);
         }
 
-        // 上のラインを探す
+        // Search for the line above
         if (py - 1 >= 0) {
             for (int x = px + lx; x <= px + rx; x++) {
-                // 右端を探す
+                // Search for the right edge
                 if ((0x00FFFFFF & buffer.getElem(0, x + (py - 1) * width)) == (0x00FFFFFF & srcColor)) {
                     if (x == px + rx ||
                             (0x00FFFFFF & buffer.getElem(0, (x + 1) + (py - 1) * width)) != (0x00FFFFFF & srcColor)) {
                         if (newBuffer.getElem(0, x + (py - 1) * width) != newColor) {
-                            // 未登録なので登録する
+                            // Not registered, so register it
                             pointList.add(new Point(x, py - 1));
                             newBuffer.setElem(0, x + (py - 1) * width, newColor);
                         }
@@ -1225,15 +1225,15 @@ class PaintBucketTool implements toolInterface {
             }
         }
 
-        // 下のラインを探す
+        // Search for the line below
         if (py + 1 < height) {
             for (int x = px + lx; x < px + rx; x++) {
-                // 右端を探す
+                // Search for the right edge
                 if ((0x00FFFFFF & buffer.getElem(0, x + (py + 1) * width)) == (0x00FFFFFF & srcColor)) {
                     if (x + 1 == px + rx ||
                             (0x00FFFFFF & buffer.getElem(0, (x + 1) + (py + 1) * width)) != (0x00FFFFFF & srcColor)) {
                         if (newBuffer.getElem(0, x + (py + 1) * width) != newColor) {
-                            // 未登録なので登録する
+                            // Not registered, so register it
                             pointList.add(new Point(x, py + 1));
                             newBuffer.setElem(0, x + (py + 1) * width, newColor);
                         }
@@ -1251,10 +1251,10 @@ class PaintBucketTool implements toolInterface {
         // Color c = PaintTool.owner.stack.toolbar.fore.color;
         int newColor = 0xFF000000/*+(c.getRed()<<16)+(c.getGreen()<<8)+c.getBlue()*/;
 
-        // リストをリセット
+        // Reset list
         pointList = new ArrayList<>();
 
-        // 裏画面を透明にする
+        // Make back buffer transparent
         Graphics2D g = (Graphics2D) newSurface.getGraphics();
         g.setColor(new Color(255, 255, 255));
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -1262,7 +1262,7 @@ class PaintBucketTool implements toolInterface {
         g.fill(rect);
 
 
-        // サーフェースの透明部分を#FFFFFFにする
+        // Make transparent parts of surface #FFFFFF
         DataBuffer dbuffer = surface.getRaster().getDataBuffer();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -1280,7 +1280,7 @@ class PaintBucketTool implements toolInterface {
             seedfillH(surface, newSurface, p.x, p.y, srcColor, newColor);
         }
 
-        // パターンを適用
+        // Apply pattern
         PaintTool.setPattern(false);
         DataBuffer fillbuf = newSurface.getRaster().getDataBuffer();
         DataBuffer patbuf = PaintTool.pat.getRaster().getDataBuffer();
@@ -1297,17 +1297,17 @@ class PaintBucketTool implements toolInterface {
             }
         }
 
-        // グラデーションを適用(パターンとの併用は不可)
+        // Apply gradient (cannot be used with pattern)
         if (PaintTool.owner.grad.use) {
             gradfill(newSurface, PaintTool.owner.grad.color1, PaintTool.owner.grad.color2, PaintTool.owner.grad.angle);
         }
 
-        // サーフェースに反映する
+        // Reflect to surface
         Graphics2D g2 = (Graphics2D) surface.getGraphics();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
         g2.drawImage(newSurface, 0, 0, PaintTool.owner.mainPane);
 
-        // 表画面に反映する
+        // Reflect to front screen
         Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         if (!PaintTool.editBackground) {
@@ -1362,7 +1362,7 @@ class PaintBucketTool implements toolInterface {
 
 
 // -------------------
-// 矩形
+// Rectangle
 // -------------------
 class RectTool implements toolInterface {
 
@@ -1392,20 +1392,20 @@ class RectTool implements toolInterface {
         clipRect.width += 2 * (int) lineSize + 3;
         clipRect.height += 2 * (int) lineSize + 3;
 
-        // 裏画面を取得
+        // Get back buffer
         Graphics2D g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         g2.fill(clipRect.union(lastClipRect));
         g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
 
-        // 矩形を裏画面に書く
+        // Write rectangle on back buffer
         if (PaintTool.antialias) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         } else {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         }
 
-        // 線の種類
+        // Line type
         g2.setColor(PaintTool.owner.fore.color);
         if (PaintTool.antialias) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1415,19 +1415,19 @@ class RectTool implements toolInterface {
         g2.setStroke(new BasicStroke(lineSize, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
         if (PaintTool.owner.fill) {
-            // パターン
+            // Pattern
             Rectangle2D.Double r = new Rectangle2D.Double(0, 0, PaintTool.pat.getWidth(), PaintTool.pat.getHeight());
             g2.setPaint(new TexturePaint(PaintTool.pat, r));
             g2.fill(rect);
         }
 
-        // 矩形を描く
+        // Draw rectangle
         g2.draw(rect);
 
 
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
-        // 拡大表示
+        // Zoomed display
         if (PaintTool.owner.bit > 1) {
             AffineTransform af = new AffineTransform();
             af.translate(-((int) PaintTool.owner.bitLeft) * PaintTool.owner.bit, -((int) PaintTool.owner.bitTop) * PaintTool.owner.bit);
@@ -1435,7 +1435,7 @@ class RectTool implements toolInterface {
             g4.transform(af);
         }
 
-        // 透明度を反映して矩形を画面に描画
+        // Reflect transparency and draw rectangle on screen
         g4.setClip(clipRect.union(lastClipRect));
         g4.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
@@ -1444,7 +1444,7 @@ class RectTool implements toolInterface {
         }
         g4.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-        // 拡大表示時の枠線表示
+        // Draw border when zoomed display
         if (PaintTool.owner.bit > 2) {
             Graphics g5 = PaintTool.owner.mainPane.getGraphics();
             MyPanel.bordersDraw(g5, PaintTool.owner.bit, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
@@ -1459,7 +1459,7 @@ class RectTool implements toolInterface {
 
         Rectangle r = (Rectangle) srcRect.clone();
 
-        if (GUI.key[11] > 1) { // Shiftで正方形
+        if (GUI.key[11] > 1) { // Square with Shift
             if (Math.abs(r.x - x) < Math.abs(r.y - y)) {
                 if ((r.x - x) < 0 == (r.y - y) < 0)
                     y = (x - r.x) + r.y;
@@ -1496,7 +1496,7 @@ class RectTool implements toolInterface {
         {
             srcRect = setSelection(x, y);
 
-            // サーフェースに反映
+            // Reflect to surface
             Graphics2D g = PaintTool.owner.getSurface().createGraphics();
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
             g.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
@@ -1512,7 +1512,7 @@ class RectTool implements toolInterface {
 
             PaintTool.setPattern(GUI.key[14] > 0);
 
-            // 新しい選択領域を作る
+            // Create new selection area
             srcRect = new Rectangle(x, y, 0, 0);
         }
     }
@@ -1544,7 +1544,7 @@ class RectTool implements toolInterface {
 
 
 // -------------------
-// 楕円
+// Ellipse
 // -------------------
 class OvalTool implements toolInterface {
 
@@ -1573,20 +1573,20 @@ class OvalTool implements toolInterface {
         clipRect.width += 2 * (int) lineSize + 2;
         clipRect.height += 2 * (int) lineSize + 2;
 
-        // 裏画面を取得
+        // Get back buffer
         Graphics2D g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         g2.fill(clipRect.union(lastClipRect));
         g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
 
-        // 楕円を裏画面に書く
+        // Draw ellipse on back buffer
         if (PaintTool.antialias) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         } else {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         }
 
-        // 線の種類
+        // Line type
         g2.setColor(PaintTool.owner.fore.color);
         if (PaintTool.antialias) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1594,7 +1594,7 @@ class OvalTool implements toolInterface {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         }
         if (PaintTool.owner.fill) {
-            // パターン
+            // Pattern
             Paint savePaint = g2.getPaint();
             Rectangle2D.Double r = new Rectangle2D.Double(0, 0, PaintTool.pat.getWidth(), PaintTool.pat.getHeight());
             g2.setPaint(new TexturePaint(PaintTool.pat, r));
@@ -1602,7 +1602,7 @@ class OvalTool implements toolInterface {
             g2.setPaint(savePaint);
         }
 
-        // 楕円を描く
+        // Draw ellipse
         g2.setStroke(new BasicStroke(lineSize, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
         g2.draw(new Ellipse2D.Float(rect.x, rect.y, rect.width, rect.height));
@@ -1610,7 +1610,7 @@ class OvalTool implements toolInterface {
 
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
-        // 拡大表示
+        // Zoomed display
         if (PaintTool.owner.bit > 1) {
             AffineTransform af = new AffineTransform();
             af.translate(-((int) PaintTool.owner.bitLeft) * PaintTool.owner.bit, -((int) PaintTool.owner.bitTop) * PaintTool.owner.bit);
@@ -1618,7 +1618,7 @@ class OvalTool implements toolInterface {
             g4.transform(af);
         }
 
-        // 透明度を反映して楕円を画面に描画
+        // Reflect transparency and draw ellipse on screen
         g4.setClip(clipRect.union(lastClipRect));
         g4.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
@@ -1627,7 +1627,7 @@ class OvalTool implements toolInterface {
         }
         g4.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-        // 拡大表示時の枠線表示
+        // Draw border when zoomed display
         if (PaintTool.owner.bit > 2) {
             Graphics g5 = PaintTool.owner.mainPane.getGraphics();
             MyPanel.bordersDraw(g5, PaintTool.owner.bit, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
@@ -1642,7 +1642,7 @@ class OvalTool implements toolInterface {
 
         Rectangle r = (Rectangle) srcRect.clone();
 
-        if (GUI.key[11] > 1) { // Shiftで正方形
+        if (GUI.key[11] > 1) { // Square with Shift
             if (Math.abs(r.x - x) < Math.abs(r.y - y)) {
                 if ((r.x - x) < 0 == (r.y - y) < 0)
                     y = (x - r.x) + r.y;
@@ -1680,7 +1680,7 @@ class OvalTool implements toolInterface {
         {
             srcRect = setSelection(x, y);
 
-            // サーフェースに反映
+            // Reflect to surface
             Graphics2D g = PaintTool.owner.getSurface().createGraphics();
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
             g.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
@@ -1696,7 +1696,7 @@ class OvalTool implements toolInterface {
 
             PaintTool.setPattern(GUI.key[14] > 0);
 
-            // 新しい選択領域を作る
+            // Create new selection area
             srcRect = new Rectangle(x, y, 0, 0);
         }
     }
@@ -1728,7 +1728,7 @@ class OvalTool implements toolInterface {
 
 
 // -------------------
-// 線分
+// Line
 // -------------------
 class LineTool implements toolInterface {
 
@@ -1757,15 +1757,15 @@ class LineTool implements toolInterface {
         clipRect.width += 2 * (int) lineSize + 2;
         clipRect.height += 2 * (int) lineSize + 2;
 
-        // 裏画面を取得
+        // Get back buffer
         Graphics2D g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         g2.fill(clipRect.union(lastClipRect));
         g2 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
 
-        // 線を裏画面に書く
+        // Draw line on back buffer
 
-        // 線の種類
+        // Line type
         g2.setColor(PaintTool.owner.fore.color);
         if (PaintTool.antialias) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1774,13 +1774,13 @@ class LineTool implements toolInterface {
         }
         g2.setStroke(new BasicStroke(lineSize, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
-        // 線を引く
+        // Draw line
         g2.drawLine(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
 
 
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
-        // 拡大表示
+        // Zoomed display
         if (PaintTool.owner.bit > 1) {
             AffineTransform af = new AffineTransform();
             af.translate(-((int) PaintTool.owner.bitLeft) * PaintTool.owner.bit, -((int) PaintTool.owner.bitTop) * PaintTool.owner.bit);
@@ -1788,7 +1788,7 @@ class LineTool implements toolInterface {
             g4.transform(af);
         }
 
-        // 透明度を反映して線分を画面に描画
+        // Reflect transparency and draw line segment on screen
         g4.setClip(clipRect.union(lastClipRect));
         g4.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
@@ -1797,7 +1797,7 @@ class LineTool implements toolInterface {
         }
         g4.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-        // 拡大表示時の枠線表示
+        // Draw border when zoomed display
         if (PaintTool.owner.bit > 2) {
             Graphics g5 = PaintTool.owner.mainPane.getGraphics();
             MyPanel.bordersDraw(g5, PaintTool.owner.bit, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
@@ -1813,7 +1813,7 @@ class LineTool implements toolInterface {
 
         Rectangle r = (Rectangle) srcRect.clone();
 
-        if (GUI.key[11] > 1) { // Shiftで45度単位
+        if (GUI.key[11] > 1) { // 45-degree units with Shift
             if (Math.abs(r.x - x) < Math.abs(r.y - y) / 2) {
                 x = r.x;
             } else if (Math.abs(r.x - x) < Math.abs(r.y - y)) {
@@ -1847,10 +1847,10 @@ class LineTool implements toolInterface {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
         g.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-        /*// サーフェースに反映
+        /*// Reflect to surface
         Graphics2D g3 = PaintTool.owner.getSurface().createGraphics();
 
-        // 線の種類
+        // Line type
         g3.setColor(PaintTool.owner.fore.color);
         if(PaintTool.antialias){
             g3.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1860,7 +1860,7 @@ class LineTool implements toolInterface {
         float lineSize = PaintTool.lineSize;
         g3.setStroke(new BasicStroke(lineSize, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
-        // 線を引く
+        // Draw line
         g3.drawLine(srcRect.x, srcRect.y, srcRect.x+srcRect.width, srcRect.y+srcRect.height);
         */
         PaintTool.owner.mainPane.repaint();
@@ -1873,7 +1873,7 @@ class LineTool implements toolInterface {
 
             PaintTool.setPattern(GUI.key[14] > 0);
 
-            // 新しい選択領域を作る
+            // Create new selection area
             srcRect = new Rectangle(x, y, 0, 0);
 
             lastClipRect = new Rectangle(x, y, 0, 0);
@@ -1907,13 +1907,13 @@ class LineTool implements toolInterface {
 
 
 // -------------------
-// 選択
+// Selection
 // -------------------
 class SelectTool implements toolSelectInterface {
-    // srcRect:選択した範囲
-    // moveRect:現在の浮き出しの位置
-    // redoBuf:選択した範囲の浮き出し(0,0,width,height)
-    // move:trueなら浮き出しあり
+    // srcRect: Selected area
+    // moveRect: Current floating position
+    // redoBuf: Floating selection of selected area (0,0,width,height)
+    // move: If true, there is a floating selection
 
     Rectangle srcRect;
     Rectangle moveRect;
@@ -1986,14 +1986,14 @@ class SelectTool implements toolSelectInterface {
     }
 
     void viewSelection() {
-        // 一時バッファの部分を描画
+        // Draw partial temporary buffer
         // Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         // g4.drawImage(PaintTool.owner.redoBuf, moveRect.x, moveRect.y, moveRect.x+moveRect.width, moveRect.y+moveRect.height,
         //        0, 0, moveRect.width, moveRect.height, PaintTool.owner.mainPane);
         // MyPanel.mainPaneDraw(g4, PaintTool.owner.redoBuf, moveRect.x, moveRect.y, moveRect.width, moveRect.height);
         PaintTool.owner.mainPane.repaint();
 
-        // 選択領域の破線を表示
+        // Display selection area dashed line
         strokeDraw();
     }
 
@@ -2007,7 +2007,7 @@ class SelectTool implements toolSelectInterface {
             moveRect = (Rectangle) srcRect.clone();
             move = true;
 
-            // 一時バッファに選択領域を移動
+            // Move selection area to temporary buffer
             Graphics2D g = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
             g.setColor(new Color(255, 255, 255));
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -2016,7 +2016,7 @@ class SelectTool implements toolSelectInterface {
             g.drawImage(PaintTool.owner.getSurface(), 0, 0, srcRect.width, srcRect.height,
                     srcRect.x, srcRect.y, srcRect.x + srcRect.width, srcRect.y + srcRect.height, PaintTool.owner.mainPane);
 
-            // 移動した部分を透明にする
+            // Make the moved part transparent
             Graphics2D g2 = (Graphics2D) PaintTool.owner.getSurface().getGraphics();
             g2.setColor(new Color(255, 255, 255));
             if (!PaintTool.editBackground) {
@@ -2024,7 +2024,7 @@ class SelectTool implements toolSelectInterface {
             }
             g2.fillRect(srcRect.x, srcRect.y, srcRect.width, srcRect.height);
 
-            // 表画面に反映
+            // Reflect to front screen
             /*Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
             g3.setColor(new Color(255,255,255));
             g3.fillRect(0, 0, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
@@ -2047,7 +2047,7 @@ class SelectTool implements toolSelectInterface {
     @Override
     public void mouseDown(int x, int y) {
         if (move == true && moveRect.contains(new Point(x, y))) {
-            // 選択範囲の移動開始
+            // Start moving selection area
             shift = (GUI.key[11] > 0);
             shiftx = x;
             shifty = y;
@@ -2058,11 +2058,11 @@ class SelectTool implements toolSelectInterface {
                         0, 0, srcRect.width, srcRect.height, PaintTool.owner.mainPane);
             }
         } else {
-            // 浮き出し領域を実際の領域に描画
+            // Draw floating area to actual area
             GMenuPaint.setUndo();
             end();
 
-            // 新しい選択領域を作る
+            // Create new selection area
             srcRect = new Rectangle(x, y, 0, 0);
 
             moveRect = null;
@@ -2092,7 +2092,7 @@ class SelectTool implements toolSelectInterface {
     @Override
     public boolean mouseStillDown(int x, int y) {
         if (move == true) {
-            // 選択範囲の移動
+            // Move selection area
 
             if (shift && ((x - shiftx != 0) || (y - shifty != 0))) {
                 if ((shiftx == -1) || (shifty != -1) && (Math.abs(x - shiftx) > Math.abs(y - shifty))) {
@@ -2109,7 +2109,7 @@ class SelectTool implements toolSelectInterface {
             moveRect.x = (int) (moveRect.x + x - PaintTool.lastx[0]);
             moveRect.y = (int) (moveRect.y + y - PaintTool.lasty[0]);
 
-            // 表画面に反映
+            // Reflect to front screen
             /*Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
             g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
             if(!PaintTool.editBackground){
@@ -2127,15 +2127,15 @@ class SelectTool implements toolSelectInterface {
             viewSelection();
 
 
-            // ポインタがウィンドウ外へ出たら
+            // When pointer goes outside the window
            /*PointerInfo pointerInfo = MouseInfo.getPointerInfo();
            Point p = pointerInfo.getLocation();
            Rectangle r = new Rectangle(PaintTool.owner.getLocationOnScreen().x,
                    PaintTool.owner.getLocationOnScreen().y,
                    PaintTool.owner.getWidth(), PaintTool.owner.getHeight());
            if(!r.contains(p) && move==true ){
-                // ファイルへのドラッグアンドドロップ
-                // ドラッグ元を作成する
+                // Drag and drop to file
+                // Create drag source
                 DragSource dragSource = new DragSource();
                 DragGestureRecognizer dgr =
                 dragSource.createDefaultDragGestureRecognizer(
@@ -2167,7 +2167,7 @@ class SelectTool implements toolSelectInterface {
             g.drawImage(newimg, moveRect.x, moveRect.y, moveRect.x + moveRect.width, moveRect.y + moveRect.height,
                     0, 0, srcRect.width, srcRect.height, null);
 
-            // ペーストした場合はバッファの大きさが変わっているので新しくする
+            // When pasting, the buffer size changes, so make a new one
             PaintTool.owner.redoBuf = new BufferedImage(PaintTool.owner.mainImg.getWidth(), PaintTool.owner.mainImg.getHeight(),
                     BufferedImage.TYPE_INT_ARGB);
         }
@@ -2213,7 +2213,7 @@ class SelectTool implements toolSelectInterface {
 
     @Override
     public void dragGestureRecognized(DragGestureEvent e) {
-        // Copy/Moveのアクションならドラッグを開始する
+        // If Copy/Move action, start dragging
         if((e.getDragAction()|DnDConstants.ACTION_COPY_OR_MOVE)!= 0) {
             try{
                 e.startDrag(DragSource.DefaultCopyDrop, this, null);
@@ -2252,13 +2252,13 @@ class SelectTool implements toolSelectInterface {
 }*/
 
 // -------------------
-// 投げなわ
+// Lasso
 // -------------------
 class LassoTool implements toolSelectInterface {
-    // srcbits:選択した範囲
-    // movePoint:現在の浮き出しの移動分
-    // redoBuf:選択した範囲の浮き出し(0,0,width,height)
-    // move:trueなら浮き出しあり
+    // srcbits: Selected area
+    // movePoint: Current floating movement amount
+    // redoBuf: Floating selection of selected area (0,0,width,height)
+    // move: If true, there is a floating selection
 
     ArrayList<Point> srcPoints = new ArrayList<>();
     BufferedImage srcbits;
@@ -2300,7 +2300,7 @@ class LassoTool implements toolSelectInterface {
             for (int x = 0; x < width; x++) {
                 int c = srcbuf.getElem(0, x + y * width);
                 if ((c & 0xFF000000) != 0) {
-                    // 浮き出し範囲に含まれていて、周囲4つのどれかが範囲外の場合
+                    // Included in floating area and one of the surrounding 4 is outside the area
                     int c1 = 0x00FFFFFF;
                     if (x >= 1) c1 = srcbuf.getElem(0, x - 1 + y * width);
                     int c2 = 0x00FFFFFF;
@@ -2357,19 +2357,19 @@ class LassoTool implements toolSelectInterface {
             yPoints[j] = p.y;
         }
 
-        // マスク用バッファを用意する
+        // Prepare mask buffer
         BufferedImage srcsrcbits = new BufferedImage(PaintTool.owner.mainImg.getWidth(), PaintTool.owner.mainImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D) srcsrcbits.getGraphics();
         g.setColor(new Color(255, 255, 255));
         // g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         g.fillRect(0, 0, srcsrcbits.getWidth(), srcsrcbits.getHeight());
 
-        // 多角形を描く
+        // Draw polygon
         g = (Graphics2D) srcsrcbits.getGraphics();
         g.setColor(Color.BLACK);
         g.fillPolygon(xPoints, yPoints, srcPoints.size());
 
-        // その形状に含まれるsurface()をsrcsrcbitsに描画
+        // Draw surface() contained in that shape to srcsrcbits
         DataBuffer mskbuf = srcsrcbits.getRaster().getDataBuffer();
         DataBuffer imgbuf = PaintTool.owner.getSurface().getRaster().getDataBuffer();
         int width = srcsrcbits.getWidth();
@@ -2393,7 +2393,7 @@ class LassoTool implements toolSelectInterface {
         srcg = (Graphics2D) srcbits.getGraphics();
         srcg.drawImage(srcsrcbits, 0, 0, null);
 
-        // 周辺の白色を透明化
+        // Transparentize surrounding white
         pointList = new ArrayList<>();
 
         for (int x = 0; x < width; x++) {
@@ -2411,7 +2411,7 @@ class LassoTool implements toolSelectInterface {
             seedfillH(srcsrcbits, srcbits, p.x, p.y, 0xFFFFFFFF, 0x00FFFFFF);
         }
 
-        // クリア
+        // Clear
         srcPoints = new ArrayList<>();
     }
 
@@ -2423,7 +2423,7 @@ class LassoTool implements toolSelectInterface {
         int width = surface.getWidth();
         int height = surface.getHeight();
 
-        // 左を調べる
+        // Check left
         int lx;
         for (lx = 0; px + lx >= 0; lx--) {
             // System.out.println("<srcColor:"+srcColor);
@@ -2434,7 +2434,7 @@ class LassoTool implements toolSelectInterface {
         }
         lx++;
 
-        // 右を調べる
+        // Check right
         int rx;
         for (rx = 0; px + rx < width; rx++) {
             // System.out.println(">srcColor:"+srcColor);
@@ -2445,22 +2445,22 @@ class LassoTool implements toolSelectInterface {
         }
         rx--;
 
-        // そのラインを塗る
+        // Paint that line
         for (int x = px + lx; x <= px + rx; x++) {
             if (buffer.getElem(0, x + py * width) == srcColor) {
                 newBuffer.setElem(0, x + py * width, newColor);
             }
         }
 
-        // 上のラインを探す
+        // Search for the line above
         if (py - 1 >= 0) {
             for (int x = px + lx; x <= px + rx; x++) {
-                // 右端を探す
+                // Search for the right edge
                 if (buffer.getElem(0, x + (py - 1) * width) == srcColor) {
                     if (x == px + rx ||
                             buffer.getElem(0, (x + 1) + (py - 1) * width) != srcColor) {
                         if (newBuffer.getElem(0, x + (py - 1) * width) != newColor) {
-                            // 未登録なので登録する
+                            // Not registered, so register it
                             pointList.add(new Point(x, py - 1));
                             newBuffer.setElem(0, x + (py - 1) * width, newColor);
                         }
@@ -2469,15 +2469,15 @@ class LassoTool implements toolSelectInterface {
             }
         }
 
-        // 下のラインを探す
+        // Search for the line below
         if (py + 1 < height) {
             for (int x = px + lx; x < px + rx; x++) {
-                // 右端を探す
+                // Search for the right edge
                 if (buffer.getElem(0, x + (py + 1) * width) == srcColor) {
                     if (x + 1 == px + rx ||
                             buffer.getElem(0, (x + 1) + (py + 1) * width) != srcColor) {
                         if (newBuffer.getElem(0, x + (py + 1) * width) != newColor) {
-                            // 未登録なので登録する
+                            // Not registered, so register it
                             pointList.add(new Point(x, py + 1));
                             newBuffer.setElem(0, x + (py + 1) * width, newColor);
                         }
@@ -2510,7 +2510,7 @@ class LassoTool implements toolSelectInterface {
     void viewSelection() {
         PaintTool.owner.mainPane.repaint();
 
-        // 選択領域の破線を表示
+        // Display selection area dashed line
         strokeDraw();
     }
 
@@ -2524,7 +2524,7 @@ class LassoTool implements toolSelectInterface {
             movePoint = new Point(0, 0);
             move = true;
 
-            // 一時バッファに選択領域を移動
+            // Move selection area to temporary buffer
             Graphics2D g = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
             g.setColor(new Color(255, 255, 255));
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -2541,7 +2541,7 @@ class LassoTool implements toolSelectInterface {
                     int c = mskbuf.getElem(0, h + v * width);
                     if ((c & 0xFF000000) != 0) {
                         movbuf.setElem(h + v * width, surbuf.getElem(0, h + v * width));
-                        // 移動した部分を透明にする
+                        // Make the moved part transparent
                         if (!PaintTool.editBackground) {
                             surbuf.setElem(h + v * width, 0x00FFFFFF);
                         } else {
@@ -2551,7 +2551,7 @@ class LassoTool implements toolSelectInterface {
                 }
             }
 
-            // 表画面に反映
+            // Reflect to front screen
             PaintTool.owner.mainPane.repaint();
 
             viewSelection();
@@ -2566,7 +2566,7 @@ class LassoTool implements toolSelectInterface {
             DataBuffer mskbuf = srcbits.getRaster().getDataBuffer();
             if ((x - movePoint.x) >= 0 && (x - movePoint.x) < srcbits.getWidth() &&
                     (y - movePoint.y) >= 0 && (y - movePoint.y) < srcbits.getHeight()) {
-                // 選択範囲の移動開始
+                // Start moving selection area
                 shift = (GUI.key[11] > 0);
                 shiftx = x;
                 shifty = y;
@@ -2583,11 +2583,11 @@ class LassoTool implements toolSelectInterface {
         }
 
         {
-            // 浮き出し領域を実際の領域に描画
+            // Draw floating area to actual area
             GMenuPaint.setUndo();
             end();
 
-            // 新しい選択領域を作る
+            // Create new selection area
             clear();
 
             srcPoints.add(new Point(x, y));
@@ -2624,7 +2624,7 @@ class LassoTool implements toolSelectInterface {
     @Override
     public boolean mouseStillDown(int x, int y) {
         if (move == true) {
-            // 選択範囲の移動
+            // Move selection area
 
             if (shift && ((x - shiftx != 0) || (y - shifty != 0))) {
                 if ((shiftx == -1) || (shifty != -1) && (Math.abs(x - shiftx) > Math.abs(y - shifty))) {
@@ -2662,7 +2662,7 @@ class LassoTool implements toolSelectInterface {
 
             viewSelection();
         } else {
-            // 選択範囲を広げて行く
+            // Expand selection area
             setSelection(x, y);
         }
         return true;
@@ -2683,7 +2683,7 @@ class LassoTool implements toolSelectInterface {
             BufferedImage newimg = MyPanel.makeBlendImage(PaintTool.owner.redoBuf);
             g.drawImage(newimg, movePoint.x, movePoint.y, null);
 
-            // 回転した場合はバッファの大きさが変わっているので新しくする
+            // When rotated, the buffer size changes, so make a new one
             PaintTool.owner.redoBuf = new BufferedImage(PaintTool.owner.mainImg.getWidth(), PaintTool.owner.mainImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
         }
 
@@ -2751,17 +2751,17 @@ class LassoTool implements toolSelectInterface {
 
 
 // -------------------
-// スマート選択
+// Smart Select
 // -------------------
 class SmartSelectTool implements toolSelectInterface {
-    // srcbits:選択した範囲
-    // movePoint:現在の浮き出しの移動分
-    // redoBuf:選択した範囲の浮き出し(0,0,width,height)
-    // move:trueなら浮き出しあり
+    // srcbits: Selected area
+    // movePoint: Current floating movement amount
+    // redoBuf: Floating selection of selected area (0,0,width,height)
+    // move: If true, there is a floating selection
 
-    // cmdを押しながら選択範囲外クリックなら選択範囲を増やす
+    // cmd+click outside selection area adds to selection area
 
-    ArrayList<Point> pointList; // seedFill用
+    ArrayList<Point> pointList; // For seedFill
     ArrayList<Point> srcPoints = new ArrayList<>();
     BufferedImage srcbits;
     Point movePoint;
@@ -2778,7 +2778,7 @@ class SmartSelectTool implements toolSelectInterface {
     private void borderDraw() {
         if (srcbits == null) return;
 
-        /*// 透明度を反映して線分を画面に描画
+        /*// Reflect transparency and draw line segment on screen
         Graphics2D g4 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         g4.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
@@ -2787,10 +2787,10 @@ class SmartSelectTool implements toolSelectInterface {
         }
         g4.drawImage(srcbits, movePoint.x, movePoint.y, PaintTool.owner.mainPane);
 
-        // 選択範囲の元画像を描画
+        // Draw source image of selection area
         Graphics2D g6 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
-        // 拡大表示
+        // Zoomed display
         if(PaintTool.owner.bit>1){
             AffineTransform af = new AffineTransform();
             af.translate(-((int)PaintTool.owner.bitLeft)*PaintTool.owner.bit, -((int)PaintTool.owner.bitTop)*PaintTool.owner.bit);
@@ -2800,16 +2800,16 @@ class SmartSelectTool implements toolSelectInterface {
 
         g6.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-        // 拡大表示時の枠線表示
+        // Draw border when zoomed display
         if(PaintTool.owner.bit>2){
             Graphics g5 = PaintTool.owner.mainPane.getGraphics();
             MyPanel.bordersDraw(g5, PaintTool.owner.bit, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
         }*/
 
-        // 背景および浮き出し部分を描画
+        // Draw background and floating parts
         // PaintTool.owner.mainPane.repaint();
 
-        // 破線描画は画面にダイレクトに
+        // Dashed line drawing is directly on screen
         Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
         if (PaintTool.owner.bit > 1) {
@@ -2819,7 +2819,7 @@ class SmartSelectTool implements toolSelectInterface {
             g3.transform(af);
         }
 
-        // 選択の破線を描画
+        // Draw selection dashed line
         if (srcbits == null) return;
         WritableRaster raster = srcbits.getRaster();
         if (raster == null) return;
@@ -2832,7 +2832,7 @@ class SmartSelectTool implements toolSelectInterface {
             for (int x = 0; x < width; x++) {
                 int c = srcbuf.getElem(0, x + y * width);
                 if ((c & 0xFF000000) != 0) {
-                    // 浮き出し範囲に含まれていて、周囲4つのどれかが範囲外の場合
+                    // Included in floating area and one of the surrounding 4 is outside the area
                     int c1 = 0x00FFFFFF;
                     if (x >= 1) c1 = srcbuf.getElem(0, x - 1 + y * width);
                     int c2 = 0x00FFFFFF;
@@ -2887,7 +2887,7 @@ class SmartSelectTool implements toolSelectInterface {
         int height = surface.getHeight();
         int near = PaintTool.smartSelectPercent * 256 / 100;
 
-        // 左を調べる
+        // Check left
         int lx;
         for (lx = 0; px + lx >= 0; lx--) {
             // System.out.println("<srcColor:"+srcColor);
@@ -2903,7 +2903,7 @@ class SmartSelectTool implements toolSelectInterface {
         }
         lx++;
 
-        // 右を調べる
+        // Check right
         int rx;
         for (rx = 0; px + rx < width; rx++) {
             // System.out.println(">srcColor:"+srcColor);
@@ -2919,17 +2919,17 @@ class SmartSelectTool implements toolSelectInterface {
         }
         rx--;
 
-        // そのラインを塗る
+        // Paint that line
         for (int x = px + lx; x <= px + rx; x++) {
             int c = buffer.getElem(0, x + py * width);
             if (c == 0) c = 1;
             newBuffer.setElem(0, x + py * width, c);
         }
 
-        // 上のラインを探す
+        // Search for the line above
         if (py - 1 >= 0) {
             for (int x = px + lx; x <= px + rx; x++) {
-                // 右端を探す
+                // Search for the right edge
                 boolean isMatch = false;
                 for (Color color : srcColors) {
                     if (isNear(buffer.getElem(0, x + (py - 1) * width), color, near)) {
@@ -2949,7 +2949,7 @@ class SmartSelectTool implements toolSelectInterface {
                     }
                     if (x == px + rx || !isMatch2) {
                         if (newBuffer.getElem(0, x + (py - 1) * width) == 0x00000000) {
-                            // 未登録なので登録する
+                            // Not registered, so register it
                             pointList.add(new Point(x, py - 1));
                             int c = buffer.getElem(0, x + (py - 1) * width);
                             if (c == 0) c = 1;
@@ -2960,10 +2960,10 @@ class SmartSelectTool implements toolSelectInterface {
             }
         }
 
-        // 下のラインを探す
+        // Search for the line below
         if (py + 1 < height) {
             for (int x = px + lx; x <= px + rx; x++) {
-                // 右端を探す
+                // Search for the right edge
                 boolean isMatch = false;
                 for (Color color : srcColors) {
                     if (isNear(buffer.getElem(0, x + (py + 1) * width), color, near)) {
@@ -2983,7 +2983,7 @@ class SmartSelectTool implements toolSelectInterface {
                     }
                     if (x == px + rx || !isMatch2) {
                         if (newBuffer.getElem(0, x + (py + 1) * width) == 0x00000000) {
-                            // 未登録なので登録する
+                            // Not registered, so register it
                             pointList.add(new Point(x, py + 1));
                             int c = buffer.getElem(0, x + (py + 1) * width);
                             if (c == 0) c = 1;
@@ -3001,10 +3001,10 @@ class SmartSelectTool implements toolSelectInterface {
             allScreen = true;
         }
 
-        // 時間がかかるのでカーソルを時計に
+        // Takes time, so change cursor to clock
         PaintTool.owner.mainPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        // 含まれる色を列挙
+        // Enumerate included colors
         ArrayList<Color> srcColors = new ArrayList<>();
         int width = PaintTool.owner.getSurface().getWidth();
         int near = PaintTool.smartSelectPercent * 256 / 100;
@@ -3025,11 +3025,11 @@ class SmartSelectTool implements toolSelectInterface {
             if (!isFound) srcColors.add(c);
         }
 
-        // 塗りつぶし候補リストをリセット
+        // Reset fill candidate list
         pointList = new ArrayList<>();
 
         if (allScreen) {
-            // すべての類似色を検索
+            // Search for all similar colors
             DataBuffer buffer = PaintTool.owner.getSurface().getRaster().getDataBuffer();
             DataBuffer newBuffer = srcbits.getRaster().getDataBuffer();
             int width1 = PaintTool.owner.getSurface().getWidth();
@@ -3058,7 +3058,7 @@ class SmartSelectTool implements toolSelectInterface {
                 }
             }
         } else {
-            // 隣り合った類似色を検索
+            // Search for adjacent similar colors
             for (Point srcPoint : srcPoints) {
                 seedfillH(PaintTool.owner.getSurface(), srcbits,
                         srcPoint.x, srcPoint.y, srcColors);
@@ -3072,10 +3072,10 @@ class SmartSelectTool implements toolSelectInterface {
             }
         }
 
-        // 色リストはもういらないのでクリア
+        // Color list is no longer needed, so clear it
         srcPoints = new ArrayList<>();
 
-        // カーソルを戻す
+        // Restore cursor
         TBCursor.changeCursor(PaintTool.owner);
     }
 
@@ -3109,7 +3109,7 @@ class SmartSelectTool implements toolSelectInterface {
     void viewSelection() {
         // PaintTool.owner.mainPane.repaint();
 
-        // 選択領域を表示
+        // Display selection area
         borderDraw();
     }
 
@@ -3123,7 +3123,7 @@ class SmartSelectTool implements toolSelectInterface {
             movePoint = new Point(0, 0);
             move = true;
 
-            // 一時バッファに選択領域を移動
+            // Move selection area to temporary buffer
             Graphics2D g = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
             g.setColor(new Color(255, 255, 255));
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -3140,7 +3140,7 @@ class SmartSelectTool implements toolSelectInterface {
                     int c = mskbuf.getElem(0, h + v * width);
                     if ((c & 0xFF000000) != 0) {
                         movbuf.setElem(h + v * width, surbuf.getElem(0, h + v * width));
-                        // 移動した部分を透明にする
+                        // Make the moved part transparent
                         if (!PaintTool.editBackground) {
                             surbuf.setElem(h + v * width, 0x00FFFFFF);
                         } else {
@@ -3150,7 +3150,7 @@ class SmartSelectTool implements toolSelectInterface {
                 }
             }
 
-            // 表画面に反映
+            // Reflect to front screen
             PaintTool.owner.mainPane.repaint();
 
             viewSelection();
@@ -3165,7 +3165,7 @@ class SmartSelectTool implements toolSelectInterface {
             DataBuffer mskbuf = srcbits.getRaster().getDataBuffer();
             if ((x - movePoint.x) >= 0 && (x - movePoint.x) < PaintTool.owner.redoBuf.getWidth() &&
                     (y - movePoint.y) >= 0 && (y - movePoint.y) < PaintTool.owner.redoBuf.getHeight()) {
-                // 選択範囲の移動開始
+                // Start moving selection area
                 shift = (GUI.key[11] > 0);
                 shiftx = x;
                 shifty = y;
@@ -3187,17 +3187,17 @@ class SmartSelectTool implements toolSelectInterface {
                 move = false;
                 tmpRect = null;
             } else if (move) {
-                // 浮き出し領域を実際の領域に描画
+                // Draw floating area to actual area
                 GMenuPaint.setUndo();
                 this_end();
 
-                // 新しい選択領域を作る
+                // Create new selection area
                 clear();
             } else {
-                // 新しい選択領域を作る
+                // Create new selection area
                 clear();
 
-                // マスク用バッファを用意する
+                // Prepare mask buffer
                 srcbits = new BufferedImage(PaintTool.owner.mainImg.getWidth(), PaintTool.owner.mainImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g = (Graphics2D) srcbits.getGraphics();
                 g.setColor(new Color(255, 255, 255));
@@ -3243,7 +3243,7 @@ class SmartSelectTool implements toolSelectInterface {
     @Override
     public boolean mouseStillDown(int x, int y) {
         if (move == true) {
-            // 選択範囲の移動
+            // Move selection area
 
             if (shift && ((x - shiftx != 0) || (y - shifty != 0))) {
                 if ((shiftx == -1) || (shifty != -1) && (Math.abs(x - shiftx) - 1 > Math.abs(y - shifty))) {
@@ -3282,7 +3282,7 @@ class SmartSelectTool implements toolSelectInterface {
 
             viewSelection();
         } else if (srcbits != null) {
-            // 選択色を広げて行く
+            // Expand selection color
             for (int i = 0; i < 8; i++) {
                 addSelection((int) ((PaintTool.lastx[0] * i + x * (8 - i)) / 8), (int) ((PaintTool.lasty[0] * i + y * (8 - i)) / 8));
             }
@@ -3311,7 +3311,7 @@ class SmartSelectTool implements toolSelectInterface {
             BufferedImage newimg = MyPanel.makeBlendImage(PaintTool.owner.redoBuf);
             g.drawImage(newimg, movePoint.x, movePoint.y, null);
 
-            // 回転した場合はバッファの大きさが変わっているので新しくする
+            // When rotated, the buffer size changes, so make a new one
             PaintTool.owner.redoBuf = new BufferedImage(PaintTool.owner.mainImg.getWidth(), PaintTool.owner.mainImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
             move = false;
         }
@@ -3354,7 +3354,7 @@ class SmartSelectTool implements toolSelectInterface {
 
 
 // -------------------
-// 文字
+// Text
 // -------------------
 class TypeTool implements toolInterface {
 
@@ -3368,12 +3368,12 @@ class TypeTool implements toolInterface {
     }
 
     void viewRect() {
-        // 一時バッファの部分を描画
+        // Draw partial temporary buffer
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g4.drawImage(PaintTool.owner.redoBuf, typeRect.x, typeRect.y, typeRect.x + typeRect.width, typeRect.y + typeRect.height,
                 0, 0, typeRect.width, typeRect.height, PaintTool.owner.mainPane);
 
-        // 選択領域を表示
+        // Display selection area
         // strokeDraw();
     }
 
@@ -3386,7 +3386,7 @@ class TypeTool implements toolInterface {
 
             type = true;
 
-            // 一時バッファをクリア
+            // Clear temporary buffer
             Graphics2D g = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
             g.setColor(new Color(255, 255, 255));
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -3426,11 +3426,11 @@ class TypeTool implements toolInterface {
         if (type == true && typeRect.contains(new Point(x, y))) {
 
         } else {
-            // 浮き出し領域を実際の領域に描画
+            // Draw floating area to actual area
             GMenuPaint.setUndo();
             end();
 
-            // 新しい選択領域を作る
+            // Create new selection area
             typeRect = new Rectangle(x, y, 1, PCARD.pc.textSize + 5);
             type = false;
         }
@@ -3445,11 +3445,11 @@ class TypeTool implements toolInterface {
     @Override
     public boolean mouseStillDown(int x, int y) {
         if (type == true) {
-            // 移動
+            // Move
             // typeRect.x += x - PaintTool.lastX[0];
             // typeRect.y += y - PaintTool.lastY[0];
 
-            // 表画面に反映
+            // Reflect to front screen
             Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
             g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
             if (!PaintTool.editBackground) {
@@ -3479,7 +3479,7 @@ class TypeTool implements toolInterface {
     @Override
     public void end() {
         if (type) {
-            // textareaを裏画面に描画
+            // Draw textarea on back buffer
             Graphics2D redog = PaintTool.owner.redoBuf.createGraphics();
             area.setCaretColor(new Color(0, 0, 0, 0));
 
@@ -3498,9 +3498,9 @@ class TypeTool implements toolInterface {
             area.paint(redog);
 
             Graphics2D g = PaintTool.owner.getSurface().createGraphics();
-            // 透明度
+            // Transparency
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
-            // サーフェースに反映
+            // Reflect to surface
             g.drawImage(PaintTool.owner.redoBuf, typeRect.x, typeRect.y, null);
 
         }
@@ -3556,7 +3556,7 @@ class PaintIdle extends Thread {
             }
 
             if (PaintTool.lastTime + 100 <= System.currentTimeMillis() && PaintTool.owner.bit == 1) {
-                // 0.1秒以上待ったら
+                // If waited more than 0.1 seconds
                 if (PaintTool.mouse) {
                     PaintTool.mouseStillDown((int) PaintTool.lastx[0], (int) PaintTool.lasty[0]);
                 } else {
@@ -3571,7 +3571,7 @@ class PaintIdle extends Thread {
             GUI.keyEventCheck();
 
             try {
-                sleep(100);// 1000msecに10回
+                sleep(100);// 10 times per 1000msec
             } catch (InterruptedException e) {
                 // Thread.currentThread().interrupt();
             }

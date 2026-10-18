@@ -25,9 +25,9 @@ import javax.swing.JFileChooser;
 public class PictureFile {
 
     // -------------------------------
-    // PPMファイル保存
+    // Save PPM file
     // -------------------------------
-    // 保存→読み込みで画像が崩れるので使ってはいけない
+    // Do not use - images break when saved then reloaded
     public static void saveAsPpm(BufferedImage img, String path) {
         if (img.getType() == BufferedImage.TYPE_INT_ARGB) {
             // main
@@ -41,7 +41,7 @@ public class PictureFile {
             chooser.setSelectedFile(new File("./.ppm"));
             int ret = chooser.showSaveDialog(PCARDFrame.pc);
             if (ret != JFileChooser.APPROVE_OPTION) {
-                // 保存しない
+                // Not saving
                 return;
             }
             path = chooser.getSelectedFile().getName();
@@ -49,7 +49,7 @@ public class PictureFile {
 
         File file = new File(path);
         if (file.exists() && !file.canWrite()) {
-            // 書き込めない
+            // Cannot write
             return;
         }
 
@@ -87,7 +87,7 @@ public class PictureFile {
             }
 
             if (img.getType() == BufferedImage.TYPE_INT_ARGB) {
-                // アルファデータ
+                // Alpha data
                 stream.write('\n');
                 stream.write('P');
                 stream.write('5');
@@ -124,7 +124,7 @@ public class PictureFile {
 
 
     // -------------------------------
-    // PBM/PPMファイル読み込み
+    // Load PBM/PPM file
     // -------------------------------
     public static BufferedImage loadPbm(String path) {
         File file = new File(path);
@@ -138,7 +138,7 @@ public class PictureFile {
             return null;
         }
 
-        // サイズ取得
+        // Get size
         int ver = readPbmVer(stream);
         if (ver == 0) return null;
         Dimension size = readPbmSize(stream);
@@ -150,7 +150,7 @@ public class PictureFile {
 
         byte[] b = null;
         if (ver == 4) {
-            // PBM画像データ
+            // PBM image data
             b = new byte[size.width / 8 * size.height];
             try {
                 for (int i = 0; i < b.length; i++) {
@@ -161,7 +161,7 @@ public class PictureFile {
                 e.printStackTrace();
             }
         } else if (ver == 6) {
-            // PPM画像データ
+            // PPM image data
             b = new byte[size.width * 3 * size.height];
             try {
                 for (int i = 0; i < b.length; i++) {
@@ -173,7 +173,7 @@ public class PictureFile {
             }
         }
 
-        // マスクサイズ取得
+        // Get mask size
         int maskver = readPbmVer(stream);
         Dimension masksize = null;
         int maskdepth = 0;
@@ -184,10 +184,10 @@ public class PictureFile {
             }
         }
 
-        // PBMマスク画像データ
+        // PBM mask image data
         byte[] msk = null;
         if (maskver == 4) {
-            // PBM画像データ
+            // PBM image data
             msk = new byte[masksize.width / 8 * masksize.height];
             try {
                 for (int i = 0; i < msk.length; i++) {
@@ -198,7 +198,7 @@ public class PictureFile {
                 e.printStackTrace();
             }
         } else if (maskver == 5) {
-            // PPM画像データ
+            // PPM image data
             msk = new byte[masksize.width * masksize.height];
             try {
                 for (int i = 0; i < msk.length; i++) {
@@ -212,7 +212,7 @@ public class PictureFile {
 
         BufferedImage img = null;
         if (ver == 4 /*&& maskver==4*/) {
-            // BufferedImageに変換
+            // Convert to BufferedImage
             img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
             img.getGraphics().setColor(Color.WHITE);
             img.getGraphics().fillRect(0, 0, size.width, size.height);
@@ -251,7 +251,7 @@ public class PictureFile {
                 }
             }
         } else if (ver == 6 && /*maskver==5 &&*/ depth == 255 /*&& maskdepth==255*/) {
-            // BufferedImageに変換
+            // Convert to BufferedImage
             img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
             img.getGraphics().setColor(Color.WHITE);
             img.getGraphics().fillRect(0, 0, size.width, size.height);
@@ -272,13 +272,13 @@ public class PictureFile {
         return img;
     }
 
-    // PBMヘッダ読み込み
+    // Read PBM header
     private static int readPbmVer(BufferedInputStream stream) {
         StringBuilder tmpstr = new StringBuilder();
         int ver = 0;
 
         try {
-            // バージョン
+            // Version
             for (int i = 0; i < 2; i++) {
                 tmpstr.append((char) stream.read());
             }
@@ -293,13 +293,13 @@ public class PictureFile {
         return ver;
     }
 
-    // PBMヘッダ読み込み
+    // Read PBM header
     private static Dimension readPbmSize(BufferedInputStream stream) {
         StringBuilder tmpstr = new StringBuilder();
         int width = 0, height = 0;
 
         try {
-            // サイズ
+            // Size
             tmpstr = new StringBuilder();
             while (true) {
                 char c = (char) stream.read();
@@ -323,13 +323,13 @@ public class PictureFile {
         return new Dimension(width, height);
     }
 
-    // PBMヘッダ読み込み
+    // Read PBM header
     private static int readPpmDepth(BufferedInputStream stream) {
         StringBuilder tmpstr = new StringBuilder();
         int depth = 0;
 
         try {
-            // バージョン
+            // Depth
             for (int i = 0; i < 3; i++) {
                 tmpstr.append((char) stream.read());
             }
@@ -344,7 +344,7 @@ public class PictureFile {
 
 
     // -------------------------------
-    // PICTファイル読み込み
+    // Load PICT file
     // -------------------------------
     public static BufferedImage loadPICT(String path) {
         File file = new File(path);
@@ -358,7 +358,7 @@ public class PictureFile {
             return null;
         }
 
-        // サイズ取得
+        // Get size
         Dimension size = readPICTv1Size(stream);
         int version = readPICTVer(stream);
         if (version == 2) size = readPICTv2Size(stream, version);
@@ -368,7 +368,7 @@ public class PictureFile {
             return null;
         }
 
-        // 各データ
+        // Each data
         BufferedImage img = null;
         BufferedImage jpegimg = null;
         int jpgHeight = 0;
@@ -386,7 +386,7 @@ public class PictureFile {
             } catch (IOException e1) {
                 break;
             }
-            if (opcode == 0x0000) { // アライメントずれの暫定措置
+            if (opcode == 0x0000) { // Temporary workaround for alignment shift
                 opcode = readOpcode(stream, 1);
             }
             boolean bitmap_flag = false;
@@ -397,14 +397,14 @@ public class PictureFile {
             if (opcode == 0x8200 || opcode == 0x8201) {
                 // JPEG
                 int filelen = (readOpcode(stream, 2) << 16) + readOpcode(stream, 2);// 00 00 53 60
-                for (int i = 0; i < 100; i++) { // macファイルヘッダ
+                for (int i = 0; i < 100; i++) { // mac file header
                     readOpcode(stream, 1);
                 }
                 /*int width2 =*/
                 readOpcode(stream, 2);
                 /*int height2 =*/
                 readOpcode(stream, 2);
-                for (int i = 0; i < 50; i++) { // macファイルヘッダ2
+                for (int i = 0; i < 50; i++) { // mac file header 2
                     readOpcode(stream, 1);
                 }
                 byte[] b = new byte[filelen - 154];
@@ -428,7 +428,7 @@ public class PictureFile {
                 packbits_flag = true;
                 fullcolor_flag = true;
             } else if (opcode == 0x00a1) {
-                // ロングコメント
+                // Long comment
                 opcode = readOpcode(stream, 2);
                 int length = readOpcode(stream, 2);
                 byte[] b = new byte[length];
@@ -440,11 +440,11 @@ public class PictureFile {
                 System.out.println("long comment:" + s);
                 continue;
             } else if (opcode == 0x00ff || opcode == 0xffff) {
-                break; // 終了コード
+                break; // End code
             } else if (opcode == 0x001e) {
-                continue; // デフォルトのハイライトカラー使用、らしい
+                continue; // Apparently uses default highlight color
             } else if (opcode == 0x0001) {
-                // 領域
+                // Region
                 int length = readOpcode(stream, 2);
                 for (int i = 0; i < length - 2; i++) {
                     readOpcode(stream, 1);
@@ -460,18 +460,18 @@ public class PictureFile {
                 // defHilite
                 continue;
             } else if (opcode == 0x00a0) {
-                // ショートコメント
+                // Short comment
                 readOpcode(stream, 2);
                 continue;
             } else if (opcode == 0x0009) {
-                // ペンパターン
+                // Pen pattern
                 int[] penptn = new int[8];
                 for (int i = 0; i < 8; i++) {
                     penptn[i] = readOpcode(stream, 1);
                 }
                 continue;
             } else if (opcode == 0x0022) {
-                // ペン位置
+                // Pen position
                 int penX = (short) readOpcode(stream, 2);
                 int penY = (short) readOpcode(stream, 2);
                 byte penX2 = (byte) readOpcode(stream, 1);
@@ -486,27 +486,27 @@ public class PictureFile {
                 py = penY + penY2;
                 continue;
             } else if (opcode == 0x0007) {
-                // ペンサイズ
+                // Pen size
                 int penSizeX = readOpcode(stream, 2);
                 int penSizeY = readOpcode(stream, 2);
                 g.setStroke(new BasicStroke((float) (penSizeX + penSizeY) / 2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 continue;
             } else if (opcode == 0x001a) {
-                // RGBcolor｜前景色（RGB）
+                // RGB color | Foreground color (RGB)
                 int cr = readOpcode(stream, 2);
                 int cg = readOpcode(stream, 2);
                 int cb = readOpcode(stream, 2);
                 g.setColor(new Color(cr / 256, cg / 256, cb / 256));
                 continue;
             } else if (opcode == 0x001b) {
-                // RGBcolor｜背景色（RGB）
+                // RGB color | Background color (RGB)
                 int cr = readOpcode(stream, 2);
                 int cg = readOpcode(stream, 2);
                 int cb = readOpcode(stream, 2);
                 g.setBackground(new Color(cr / 256, cg / 256, cb / 256));
                 continue;
             } else if (opcode == 0x002c) {
-                // フォント (2+データ長)
+                // Font (2 + data length)
                 int length = readOpcode(stream, 2);
                 byte[] b = new byte[length];
                 for (int i = 0; i < length; i++) {
@@ -521,20 +521,20 @@ public class PictureFile {
                 // g.drawString(s,px,py);
                 continue;
             } else if (opcode == 0x0003) {
-                // 書体ID
+                // Font style ID
                 readOpcode(stream, 2);
                 continue;
             } else if (opcode == 0x0004) {
-                // 文字形状
+                // Character style
                 readOpcode(stream, 2);
                 continue;
             } else if (opcode == 0x000d) {
-                // 文字サイズ
+                // Character size
                 fontsize = readOpcode(stream, 2);
                 g.setFont(new Font("", 0, fontsize));
                 continue;
             } else if (opcode == 0x002e) {
-                // ? 文字に関する何か
+                // ? Something related to characters
                 int length = readOpcode(stream, 2);
                 for (int i = 0; i < length; i++) {
                     readOpcode(stream, 1);
@@ -543,7 +543,7 @@ public class PictureFile {
                 py = 0;// ###
                 continue;
             } else if (opcode == 0x0028) {
-                // 文字列描画
+                // Draw string
                 int ddx = readOpcode(stream, 2);
                 int ddy = readOpcode(stream, 2);
                 int count = readOpcode(stream, 1);
@@ -566,7 +566,7 @@ public class PictureFile {
                 } while ((s.indexOf('\r') > -1));
                 continue;
             } else if (opcode == 0x0029) {
-                // 文字列描画（水平相対座標）
+                // Draw string (horizontal relative coordinates)
                 int dx = readOpcode(stream, 1);
                 int count = readOpcode(stream, 1);
                 byte[] b = new byte[count];
@@ -588,7 +588,7 @@ public class PictureFile {
                 } while ((s.indexOf('\r') > -1));
                 continue;
             } else if (opcode == 0x002a) {
-                // 文字列描画（垂直相対座標）
+                // Draw string (vertical relative coordinates)
                 int dy = readOpcode(stream, 1);
                 int count = readOpcode(stream, 1);
                 byte[] b = new byte[count];
@@ -610,7 +610,7 @@ public class PictureFile {
                 } while ((s.indexOf('\r') > -1));
                 continue;
             } else if (opcode == 0x002b) {
-                // 文字列描画（水平垂直相対座標）
+                // Draw string (horizontal/vertical relative coordinates)
                 int dx = readOpcode(stream, 1);
                 int dy = readOpcode(stream, 1);
                 int count = readOpcode(stream, 1);
@@ -633,7 +633,7 @@ public class PictureFile {
                 } while ((s.indexOf('\r') > -1));
                 continue;
             } else {
-                // 不明
+                // Unknown
                 continue;
             }
 
@@ -655,13 +655,13 @@ public class PictureFile {
             DataBuffer db = img.getRaster().getDataBuffer();
 
             if (fullcolor_flag) {
-                readOpcode(stream, 2);// ベースアドレス
+                readOpcode(stream, 2);// Base address
                 readOpcode(stream, 2);
             }
 
             int rowBytes = 0x3fff & readOpcode(stream, 2);
 
-            int btop = readOpcode(stream, 2);// 左上Ｙ座標
+            int btop = readOpcode(stream, 2);// Top-left Y coordinate
             int bleft = readOpcode(stream, 2);
             int bbottom = readOpcode(stream, 2);
             int bright = readOpcode(stream, 2);
@@ -673,39 +673,39 @@ public class PictureFile {
             }
 
             if (!bitmap_flag && version == 2 && jpegimg == null) {
-                readOpcode(stream, 2);// バージョン
-                readOpcode(stream, 2);// 圧縮タイプ
-                readOpcode(stream, 2);// 圧縮サイズ
-                readOpcode(stream, 2);// 圧縮サイズ
-                readOpcode(stream, 2);// 水平解像度
-                readOpcode(stream, 2);// 水平解像度
-                readOpcode(stream, 2);// 垂直解像度
-                readOpcode(stream, 2);// 垂直解像度
-                readOpcode(stream, 2);// ピクセルタイプ
-                bpp = readOpcode(stream, 2);// １ピクセルあたりのビット数
+                readOpcode(stream, 2);// Version
+                readOpcode(stream, 2);// Compression type
+                readOpcode(stream, 2);// Compressed size
+                readOpcode(stream, 2);// Compressed size
+                readOpcode(stream, 2);// Horizontal resolution
+                readOpcode(stream, 2);// Horizontal resolution
+                readOpcode(stream, 2);// Vertical resolution
+                readOpcode(stream, 2);// Vertical resolution
+                readOpcode(stream, 2);// Pixel type
+                bpp = readOpcode(stream, 2);// Bits per pixel
                 /*int byteoff =*/
-                readOpcode(stream, 2);// 次のピクセルまでのバイトオフセット
+                readOpcode(stream, 2);// Byte offset to next pixel
                 /*int pixelbytes =*/
-                readOpcode(stream, 2);// コンポーネントサイズ
-                readOpcode(stream, 2);// 次のカラープレーンまでのオフセット
-                readOpcode(stream, 2);// 次のカラープレーンまでのオフセット
-                readOpcode(stream, 2);// 反転
-                readOpcode(stream, 2);// 反転
-                readOpcode(stream, 2);// カラーテーブル識別番号
-                readOpcode(stream, 2);// カラーテーブル識別番号
+                readOpcode(stream, 2);// Component size
+                readOpcode(stream, 2);// Offset to next color plane
+                readOpcode(stream, 2);// Offset to next color plane
+                readOpcode(stream, 2);// Inversion
+                readOpcode(stream, 2);// Inversion
+                readOpcode(stream, 2);// Color table identifier
+                readOpcode(stream, 2);// Color table identifier
                 if (!fullcolor_flag) {
-                    readOpcode(stream, 2);// カラーテーブルID
-                    readOpcode(stream, 2);// カラーテーブルID
-                    readOpcode(stream, 2);// カラーテーブルフラグ
-                    int palette_cnt = 1 + readOpcode(stream, 2);// 登録されているパレット数
+                    readOpcode(stream, 2);// Color table ID
+                    readOpcode(stream, 2);// Color table ID
+                    readOpcode(stream, 2);// Color table flag
+                    int palette_cnt = 1 + readOpcode(stream, 2);// Number of registered palettes
                     // if(palette_cnt > 256) return null;
                     palette = new int[palette_cnt];
                     for (int i = 0; i < palette_cnt; i++) {
                         /*int pidx =*/
-                        readOpcode(stream, 2);// パレット番号
-                        int cr = readOpcode(stream, 2) >> 8;// パレット色データR
-                        int cg = readOpcode(stream, 2) >> 8;// パレット色データG
-                        int cb = readOpcode(stream, 2) >> 8;// パレット色データB
+                        readOpcode(stream, 2);// Palette number
+                        int cr = readOpcode(stream, 2) >> 8;// Palette color data R
+                        int cg = readOpcode(stream, 2) >> 8;// Palette color data G
+                        int cb = readOpcode(stream, 2) >> 8;// Palette color data B
                         palette[i] = 0xFF000000 + (cr << 16) + (cg << 8) + cb;
                     }
                 }
@@ -714,27 +714,27 @@ public class PictureFile {
             if (rowBytes == 0) rowBytes = (bright - bleft) * bpp / 8;
             if (rowBytes < 8) packbits_flag = false;
 
-            int dtop = readOpcode(stream, 2);// 元解像度での左上Ｙ座標
+            int dtop = readOpcode(stream, 2);// Top-left Y coordinate at original resolution
             int dleft = readOpcode(stream, 2);
             int dbottom = readOpcode(stream, 2);
             int dright = readOpcode(stream, 2);
 
-            if (dright > size.width || dbottom > size.height) { // 無理矢理対応・・・
+            if (dright > size.width || dbottom > size.height) { // Forced workaround...
                 dright -= dleft;
                 dleft = 0;
                 dbottom -= dtop;
                 dtop = 0;
                 if (dright > size.width || dbottom > size.height) {
-                    break; // 無理
+                    break; // Impossible
                 }
             }
 
-            readOpcode(stream, 2);// 72dpiでの左上Ｙ座標
+            readOpcode(stream, 2);// Top-left Y coordinate at 72dpi
             readOpcode(stream, 2);
             readOpcode(stream, 2);
             readOpcode(stream, 2);
 
-            int trans_mode = readOpcode(stream, 2);// 転送モード
+            int trans_mode = readOpcode(stream, 2);// Transfer mode
             if (trans_mode != 0) {
                 // System.out.println("trans_mode:"+trans_mode);
             }
@@ -755,18 +755,18 @@ public class PictureFile {
                 }
                 // for(int i=0; i<len-10;i++){readOpcode(stream,1);}
 
-                // リージョンフォーマット
+                // Region format
                 //
-                // 領域の輪郭の線のデータが入っている
-                // 上から見て行って、輪郭に含まれたら1、もう一度含まれたら0
-                // ということをやればビットマップデータに出来る。
+                // Contains contour line data of the region
+                // Going from top to bottom, if included in the contour it's 1, if included again it's 0
+                // Doing this allows converting to bitmap data.
                 //
-                // 最初のwordで上からの行数を示す (飛ばした行は上の行と同じ)
-                // (繰り返し){
-                //  次のwordで輪郭部分の開始位置
-                //  次のwordで輪郭部分の終了位置
+                // The first word indicates the number of rows from the top (skipped rows are the same as the row above)
+                // (repeated){
+                //  Next word is the start position of the contour
+                //  Next word is the end position of the contour
                 // }
-                // 32767でライン終了
+                // Line ends with 32767
                 int scanline = 0;
                 for (int i = 0; i < len - 10; ) {
                     int lastscanline = scanline;
@@ -816,7 +816,7 @@ public class PictureFile {
             }
 
             if (bitmap_flag && !packbits_flag) {
-                // 無圧縮BitMap
+                // Uncompressed BitMap
                 for (int v = 0; v < bbottom - btop; v++) {
                     byte[] data = new byte[rowBytes];
                     for (int i = 0; i < rowBytes; i++) {
@@ -846,7 +846,7 @@ public class PictureFile {
                     }
                 }
             } else if (bitmap_flag && packbits_flag) {
-                // 圧縮BitMap
+                // Compressed BitMap
                 int dlen = 1;
                 if (rowBytes >= 251) dlen = 2;
                 for (int v = 0; v < bbottom - btop; v++) {
@@ -854,12 +854,12 @@ public class PictureFile {
 
                     byte[] data = new byte[rowBytes];
                     int offset = 0;
-                    // packBitsを展開
+                    // Expand packBits
                     int packsize = readOpcode(stream, dlen);
                     for (int i = 0; i < packsize; i++) {
                         int dsize = readOpcode(stream, 1);
                         if (dsize >= 128) {
-                            // 同じデータが連続する場合
+                            // When same data repeats
                             dsize = 256 - dsize + 1;
                             int src = readOpcode(stream, 1);
                             for (int j = 0; j < dsize; j++) {
@@ -867,7 +867,7 @@ public class PictureFile {
                             }
                             offset += dsize;
                         } else {
-                            // データそのまま
+                            // Data as-is
                             dsize++;
                             for (int j = 0; j < dsize; j++) {
                                 try {
@@ -899,21 +899,21 @@ public class PictureFile {
                 System.out.println("bpp:" + bpp);
                 System.out.println("ispalette:" + (palette != null));
                 System.out.println("rowBytes:" + rowBytes);
-                // 圧縮PixMap
+                // Compressed PixMap
                 int dlen = 1;
                 if (rowBytes >= 251) dlen = 2;
                 for (int v = 0; v < bbottom - btop; v++) {
                     // System.out.println(v+"<"+(bbottom-btop));
                     byte[] data = new byte[rowBytes];
                     int offset = 0;
-                    // packBitsを展開
+                    // Expand packBits
                     int packsize = readOpcode(stream, dlen);
                     // System.out.println("packsize:"+packsize);
-                    if (bpp == 16) { // 16bitのpackbitsは違うらしい
+                    if (bpp == 16) { // 16-bit packbits seems different
                         for (int i = 0; i < packsize; i++) {
                             int dsize = readOpcode(stream, 1);
                             if (dsize >= 128) {
-                                // 同じデータが連続する場合
+                                // When same data repeats
                                 // System.out.println("renzoku dsize:"+dsize);
                                 dsize = 256 - dsize + 1;
                                 int src1 = readOpcode(stream, 1);
@@ -926,7 +926,7 @@ public class PictureFile {
                                 }
                                 offset += dsize * 2;
                             } else {
-                                // データそのまま
+                                // Data as-is
                                 // System.out.println("sonomama dsize:"+dsize);
                                 dsize++;
                                 for (int j = 0; j < dsize * 2; j++) {
@@ -944,12 +944,12 @@ public class PictureFile {
                                 offset += dsize * 2;
                             }
                         }
-                    } else { // 16bit以外のpackbits
+                    } else { // packbits other than 16-bit
                         for (int i = 0; i < packsize; i++) {
                             int dsize = readOpcode(stream, 1);
                             if (dsize >= 128) {
                                 // System.out.println("renzoku dsize:"+dsize);
-                                // 同じデータが連続する場合
+                                // When same data repeats
                                 dsize = 256 - dsize + 1;
                                 int src = readOpcode(stream, 1);
                                 // System.out.println("src:"+src);
@@ -963,7 +963,7 @@ public class PictureFile {
                                 }
                                 offset += dsize;
                             } else {
-                                // データそのまま
+                                // Data as-is
                                 // System.out.println("sonomama dsize:"+dsize);
                                 dsize++;
                                 for (int j = 0; j < dsize; j++) {
@@ -981,7 +981,7 @@ public class PictureFile {
                                 offset += dsize;
                             }
                         }
-                    } // packbits終了
+                    } // packbits end
 
                     if (v + dtop >= size.height) {
                         // System.out.println("v+dtop("+(v+dtop)+") > "+size.height);
@@ -1052,7 +1052,7 @@ public class PictureFile {
         return img;
     }
 
-    // PICTヘッダ読み込み
+    // Read PICT header
     private static Dimension readPICTv1Size(BufferedInputStream stream) {
         int width = 0, height = 0;
         try {
@@ -1077,16 +1077,16 @@ public class PictureFile {
         return new Dimension(width, height);
     }
 
-    // PICTヘッダ読み込み
+    // Read PICT header
     private static int readPICTVer(BufferedInputStream stream) {
         int version = 0;
 
-        // バージョン
+        // Version
         int opcode = readOpcode(stream, 2);
-        if (opcode == 0x0011) {// バージョンオプコード2
+        if (opcode == 0x0011) {// Version opcode 2
             opcode = readOpcode(stream, 2);
-            if (opcode == 0x02FF) version = 2;// バージョン2
-        } else if (opcode == 0x1101) version = 1;// バージョン1
+            if (opcode == 0x02FF) version = 2;// Version 2
+        } else if (opcode == 0x1101) version = 1;// Version 1
 
         return version;
     }
@@ -1094,35 +1094,35 @@ public class PictureFile {
     private static Dimension readPICTv2Size(BufferedInputStream stream, int version) {
         int top = 0, left = 0, bottom = 0, right = 0;
 
-        // バージョン2ヘッダ
+        // Version 2 header
         int opcode = readOpcode(stream, version);
-        if (opcode == 0x0C00) ;// バージョン2ヘッダーオプコード
+        if (opcode == 0x0C00) ;// Version 2 header opcode
         else return null;
-        int zahyou = readOpcode(stream, version);// 座標位置指定形式
+        int zahyou = readOpcode(stream, version);// Coordinate specification format
         if (zahyou == 0xfffe) {
-            readOpcode(stream, version);// 予約
-            readOpcode(stream, version);// 水平解像度
-            readOpcode(stream, version);// 水平解像度
-            readOpcode(stream, version);// 垂直解像度
-            readOpcode(stream, version);// 垂直解像度
-            top = readOpcode(stream, version);// 左上Ｙ座標
-            left = readOpcode(stream, version);// 左上Ｘ座標
-            bottom = readOpcode(stream, version);// 右下Ｙ座標
-            right = readOpcode(stream, version);// 右下Ｘ座標
-            readOpcode(stream, version);// 予約（0）
-            readOpcode(stream, version);// 予約（0）
-        } else if (zahyou == 0xffff) { // 固定小数点座標
-            readOpcode(stream, version);// 予約(ffff)
-            left = readOpcode(stream, version);// 左上Ｘ標
-            readOpcode(stream, version);// 左上Ｘ座標(小数点以下)
-            top = readOpcode(stream, version);// 左上Ｙ座標
-            readOpcode(stream, version);// 左上Ｙ座標(小数点以下)
-            right = readOpcode(stream, version);// 右下Ｘ座標
-            readOpcode(stream, version);// 右下Ｘ座標(小数点以下)
-            bottom = readOpcode(stream, version);// 右下Ｙ座標
-            readOpcode(stream, version);// 右下Ｙ座標(小数点以下)
-            readOpcode(stream, version);// 予約（0）
-            readOpcode(stream, version);// 予約（0）
+            readOpcode(stream, version);// Reserved
+            readOpcode(stream, version);// Horizontal resolution
+            readOpcode(stream, version);// Horizontal resolution
+            readOpcode(stream, version);// Vertical resolution
+            readOpcode(stream, version);// Vertical resolution
+            top = readOpcode(stream, version);// Top-left Y coordinate
+            left = readOpcode(stream, version);// Top-left X coordinate
+            bottom = readOpcode(stream, version);// Bottom-right Y coordinate
+            right = readOpcode(stream, version);// Bottom-right X coordinate
+            readOpcode(stream, version);// Reserved (0)
+            readOpcode(stream, version);// Reserved (0)
+        } else if (zahyou == 0xffff) { // Fixed-point coordinates
+            readOpcode(stream, version);// Reserved (ffff)
+            left = readOpcode(stream, version);// Top-left X coordinate
+            readOpcode(stream, version);// Top-left X coordinate (decimal part)
+            top = readOpcode(stream, version);// Top-left Y coordinate
+            readOpcode(stream, version);// Top-left Y coordinate (decimal part)
+            right = readOpcode(stream, version);// Bottom-right X coordinate
+            readOpcode(stream, version);// Bottom-right X coordinate (decimal part)
+            bottom = readOpcode(stream, version);// Bottom-right Y coordinate
+            readOpcode(stream, version);// Bottom-right Y coordinate (decimal part)
+            readOpcode(stream, version);// Reserved (0)
+            readOpcode(stream, version);// Reserved (0)
         }
 
         return new Dimension(right - left, bottom - top);

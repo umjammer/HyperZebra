@@ -30,7 +30,7 @@ class CPButton extends JButton {
     private static final long serialVersionUID = 1L;
 
     static CPButtonListener listener = new CPButtonListener();
-    JPopupMenu popup = new JPopupMenu(); // ポップアップメニューを生成
+    JPopupMenu popup = new JPopupMenu(); // Generate popup menu
     Color color;
 
     CPButton(Color in_color, int y, int x, boolean isback) {
@@ -60,7 +60,7 @@ class CPButton extends JButton {
         }
     }
 
-    // メニュー項目を追加
+    // Add menu item
     private JMenuItem addPopupMenuItem(String name, ActionListener al) {
         JMenuItem item = new JMenuItem(name);
         item.addActionListener(al);
@@ -84,7 +84,7 @@ class CPButton extends JButton {
         this.setIcon(new ImageIcon(bi));
     }
 
-    // paintComponentをオーバーライドすると表示が崩れる
+    // Overriding paintComponent causes display to break
     /*@Override
     protected void paintComponent(Graphics g) {
     }*/
@@ -168,7 +168,7 @@ class GradButton extends JButton {
     private static final long serialVersionUID = 1L;
 
     static GradButtonListener listener = new GradButtonListener();
-    JPopupMenu popup = new JPopupMenu(); // ポップアップメニューを生成
+    JPopupMenu popup = new JPopupMenu(); // Generate popup menu
     Color color1;
     Color color2;
     double angle;
@@ -203,7 +203,7 @@ class GradButton extends JButton {
         }
     }
 
-    // メニュー項目を追加
+    // Add menu item
     private JMenuItem addPopupMenuItem(String name, ActionListener al) {
         JMenuItem item = new JMenuItem(name);
         item.addActionListener(al);
@@ -224,7 +224,7 @@ class GradButton extends JButton {
         }
     }
 
-    // paintComponentをオーバーライドすると表示が崩れる
+    // Overriding paintComponent causes display to break
     /*@Override
     protected void paintComponent(Graphics g) {
     }*/
@@ -281,7 +281,7 @@ class PatButton extends JButton {
     private static final long serialVersionUID = 1L;
 
     static PatButtonListener listener = new PatButtonListener();
-    JPopupMenu popup = new JPopupMenu(); // ポップアップメニューを生成
+    JPopupMenu popup = new JPopupMenu(); // Generate popup menu
     int pattern;
     BufferedImage[] patterns = new BufferedImage[40];
 
@@ -347,7 +347,7 @@ class PatButton extends JButton {
                 if (patterns[i] != null) {
                     icon = new ImageIcon(patterns[i]);
                 } else {
-                    // パターンを./resource/から取ってくる
+                    // Get pattern from ./resource/
                     String fname = "PAT_" + (i + 1) + ".png";
 
                     File ifile = new File("." + File.separatorChar + "resource" + File.separatorChar + fname);
@@ -380,7 +380,7 @@ class PatButton extends JButton {
         }
     }
 
-    // メニュー項目を追加
+    // Add menu item
     private JCheckBoxMenuItem addPopupMenuItem(String name, ImageIcon icon, ActionListener al) {
         JCheckBoxMenuItem item = new JCheckBoxMenuItem(name, icon);
         item.addActionListener(al);
@@ -425,7 +425,7 @@ class TransButton extends JButton {
      */
     @Serial
     private static final long serialVersionUID = 1L;
-    JPopupMenu popup = new JPopupMenu(); // ポップアップメニューを生成
+    JPopupMenu popup = new JPopupMenu(); // Generate popup menu
 
     TransButton(String in_text, int y, int x) {
         super();
@@ -458,7 +458,7 @@ class TransButton extends JButton {
         setFont(new Font("", 0, 10));
     }
 
-    // メニュー項目を追加
+    // Add menu item
     private JMenuItem addPopupMenuItem(String name, ActionListener al, boolean check) {
         JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
         item.addActionListener(al);

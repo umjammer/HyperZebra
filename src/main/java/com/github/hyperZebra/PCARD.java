@@ -66,7 +66,7 @@ class PCARDFrame extends JFrame {
     int blendMode;
     int blendLevel = 100;
 
-    // ペイント
+    // Paint
     BufferedImage mainImg;
     BufferedImage bgImg;
     BufferedImage undoBuf;
@@ -127,7 +127,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     GMenu paintMenu;
     GMsg msg;
     International intl;
-    static boolean useDoubleBuffer = false;// バッファをオフにしてメモリ節約できる？
+    static boolean useDoubleBuffer = false;// Can we save memory by turning off the buffer?
     Pidle pidle;
     PaintIdle paidle;
     DropTarget drop;
@@ -135,12 +135,12 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     GToolBar toolbar;
 
 
-    // プロパティ
+    // Properties
     static boolean lockedScreen = false;
     static int visual = 0;
     static int toVisual = 0; /* to black1 white2 grey3 inverse4 */
     static int visSpd = 3; /* very fast1 fast2 normal3 slow4 veryslow5 */
-    static int editMode = 0; // 0:ブラウジング  1:アウトライン強調
+    static int editMode = 0; // 0:browse  1:outline emphasis
     static String scriptFont = "";
     static int scriptFontSize = 12;
     static int userLevel = 5;
@@ -183,7 +183,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
             }
         });
 
-        // ウィンドウアイコンの設定
+        // Set window icon
         try {
             Image icon = ImageIO.read(new File("." + File.separatorChar + "resource" + File.separatorChar + "icon.png"));
             pc.setIconImage(icon);
@@ -199,7 +199,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         pc.setLayout(new BorderLayout());
         pc.mainPane = new MyPanel(pc);
         pc.mainPane.setDoubleBuffered(false);
-//        pc.setContentPane(pc.mainPane /*, BorderLayout.CENTER */); // こうするとツールバーがおかしくなる
+//        pc.setContentPane(pc.mainPane /*, BorderLayout.CENTER */); // This makes the toolbar broken
         pc.add(pc.mainPane, BorderLayout.CENTER);
 
         Cursor cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
@@ -231,7 +231,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         pc.setJMenuBar(menubar);
         GMenu.menuUpdate(PCARD.pc.menu.mb);
 
-        TTalk.talk = new TTalk(); // TTalkが異常終了したときのためにGUI.javaにスレッド再起動処理あり
+        TTalk.talk = new TTalk(); // There is a thread restart process in GUI.java in case TTalk terminates abnormally
         TTalk.talk.start();
 
         String homepath = "./home";
@@ -260,7 +260,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
 
         HyperZebra.installMacHandler();
 
-        // idle処理
+        // Idle processing
         pc.pidle = new Pidle();
         pc.pidle.start();
 
@@ -278,19 +278,19 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         PaintTool.owner = PCARDFrame.pc;
         PCARDFrame.pc.stack.buildStackFile(false);
 
-        // 最近使ったスタックに追加
+        // Add to recently used stacks
         if (PCARDFrame.pc.stack.path.startsWith("./home")) {
             return;
         }
 
-        // まず読み込み
+        // First, read
         Path recentFile = Path.of("resource_trash", "recent.txt");
         String[] recents = new String[1];
         if (Files.exists(recentFile)) {
             recents = Files.readAllLines(recentFile).toArray(String[]::new);
         }
 
-        // 最初の行に追加
+        // Add to the first line
         String path = PCARDFrame.pc.stack.path;
         if (new File(path).getName().equals("_stack.xml") ||
                 new File(path).getName().equals("toc.xml")) {
@@ -298,7 +298,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         }
         recents[0] = path;
 
-        // ファイルに書き出し
+        // Write to file
         {
             OutputStream fos = null;
             try {
@@ -441,10 +441,10 @@ class Pidle extends Thread {
                     }
                 }
                 GUI.keyEventCheck();
-                // PCARD.pc.stack.pcard.requestFocusInWindow(); // これするとフィールドに文字打てなくなる
+                // PCARD.pc.stack.pcard.requestFocusInWindow(); // This prevents typing in fields
             }
             try {
-                sleep(100);// 1000msecに10回
+                sleep(100);// 10 times per 1000msec
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

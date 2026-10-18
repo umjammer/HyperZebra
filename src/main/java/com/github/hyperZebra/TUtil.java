@@ -39,44 +39,44 @@ public class TUtil {
     static TUtil tutil = new TUtil();
 
 
-    // HyperTalk内蔵関数
+    // HyperTalk built-in functions
     public static Result CallSystemFunction(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
             throws xTalkException {
         Result result = new Result();
-        result.ret = 1;// 見つからなければ1
+        result.ret = 1;// Return 1 if not found
 
         message = message.toLowerCase();
 
         if (0 == message.compareTo("trunc")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Integer.toString((int) v);
             result.ret = 0;
         } else if (0 == message.compareTo("round")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Integer.toString(IEEE_Round(v));
             result.ret = 0;
         } else if (0 == message.compareTo("abs")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             if (v - (int) v == 0) {
                 result.theResult = Integer.toString((int) (v > 0 ? v : -v));
@@ -85,7 +85,7 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("min")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
@@ -93,7 +93,7 @@ public class TUtil {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
@@ -101,7 +101,7 @@ public class TUtil {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
                     if (params[0].equals("∞")) v2 = Double.MAX_VALUE;
-                    else throw new xTalkException("ここには数値が必要です");
+                    else throw new xTalkException("A number is required here");
                 }
                 if (v2 < v) v = v2;
             }
@@ -112,7 +112,7 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("max")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
@@ -120,7 +120,7 @@ public class TUtil {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
@@ -128,7 +128,7 @@ public class TUtil {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
                     if (params[0].equals("∞")) v2 = Double.MAX_VALUE;
-                    else throw new xTalkException("ここには数値が必要です");
+                    else throw new xTalkException("A number is required here");
                 }
                 if (v2 > v) v = v2;
             }
@@ -139,21 +139,21 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("average")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
             try {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
                 try {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
-                    throw new xTalkException("ここには数値が必要です");
+                    throw new xTalkException("A number is required here");
                 }
                 v += v2;
             }
@@ -165,7 +165,7 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("sum")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
@@ -173,7 +173,7 @@ public class TUtil {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
@@ -181,7 +181,7 @@ public class TUtil {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
                     if (params[0].equals("∞")) v2 = Double.MAX_VALUE;
-                    else throw new xTalkException("ここには数値が必要です");
+                    else throw new xTalkException("A number is required here");
                 }
                 v += v2;
             }
@@ -192,96 +192,96 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("random")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Integer.toString((int) (v * Math.random() + 0.999999));
             result.ret = 0;
         } else if (0 == message.compareTo("sqrt")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.sqrt(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("sin")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.sin(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("cos")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.cos(v)));
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("tan")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.tan(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("atan")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("ここには数値が必要です");
+                else throw new xTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.atan(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("chartonum")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             char c = 0;
             if (!params[0].isEmpty()) c = params[0].charAt(0);
             result.theResult = Integer.toString(c);
             result.ret = 0;
         } else if (0 == message.compareTo("length")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             result.theResult = Integer.toString(params[0].length());
             result.ret = 0;
         } else if (0 == message.compareTo("value")) {
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             result.theResult = TTalk.Evalution(params[0], memData, null, null);
             result.ret = 0;
         } else if (0 == message.compareTo("param")) {
             // param of i
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            if (params.length < 1) throw new xTalkException("Argument is required");
             int i = Integer.parseInt(params[0]) - 1;
             if (i >= 0 && i < memData.params.length) {
                 result.theResult = memData.params[i];
             }
             result.ret = 0;
         } else if (0 == message.compareTo("annuity")) {
-            // 年率計算(年金現価係数)
-            if (params.length < 2) throw new xTalkException("引数2つが必要です");
+            // Annual interest rate calculation (present value annuity factor)
+            if (params.length < 2) throw new xTalkException("Two arguments are required");
             double rate = Double.parseDouble(params[0]);
             double periods = Double.parseDouble(params[1]);
             // double base = 0.0;
@@ -297,50 +297,50 @@ public class TUtil {
             result.ret = 0;
         } else if (0 == message.compareTo("compound")) {
             //
-            if (params.length < 2) throw new xTalkException("引数2つが必要です");
+            if (params.length < 2) throw new xTalkException("Two arguments are required");
             double rate = Double.parseDouble(params[0]);
             double periods = Double.parseDouble(params[1]);
             double base = Math.pow((1 + rate), periods);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("exp")) {
-            // 指数
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            // Exponential
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.exp(v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("exp1")) {
-            // 指数-1
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            // Exponential - 1
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.exp(v);
             result.theResult = Double.toString(base - 1.0);
             result.ret = 0;
         } else if (0 == message.compareTo("ln")) {
-            // 自然対数
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            // Natural logarithm
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.log(v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("ln1")) {
-            // 1足した数の自然対数
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            // Natural logarithm of number plus 1
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.log(1.0 + v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("exp2")) {
-            // 2のx乗
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            // 2 to the power of x
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.pow(2, v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("log2")) {
-            // 2のx乗
-            if (params.length < 1) throw new xTalkException("引数が必要です");
+            // 2 to the power of x
+            if (params.length < 1) throw new xTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.log(v) / Math.log(2);
             result.theResult = Double.toString(base);
@@ -376,7 +376,7 @@ public class TUtil {
             result.theResult = System.getProperty("java.vm.version");
         } else if (0 == message.compareTo("mouseclick")) {
             String v = GUI.mouseClicked ? "true" : "false";
-            GUI.mouseClicked = false;// 一度読んだらfalseに戻る
+            GUI.mouseClicked = false;// Returns to false once read
             result.theResult = v;
         } else if (0 == message.compareTo("mouse")) {
             result.theResult = GUI.mouseDown ? "Down" : "Up";
@@ -387,7 +387,7 @@ public class TUtil {
             PointerInfo pointerInfo = MouseInfo.getPointerInfo();
             result.theResult = Integer.toString((pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y - PCARD.pc.getInsets().top) / PCARD.pc.zoom);
         } else if (0 == message.compareTo("mouseloc")) {
-            // カードの左上起点のマウス座標
+            // Mouse coordinates starting from top-left of card
             PointerInfo pointerInfo = MouseInfo.getPointerInfo();
             result.theResult = (pointerInfo.getLocation().x - PCARD.pc.mainPane.getX() - PCARD.pc.getLocationOnScreen().x) / PCARD.pc.zoom + "," +
                     (pointerInfo.getLocation().y - PCARD.pc.mainPane.getY() - PCARD.pc.getLocationOnScreen().y - PCARD.pc.getInsets().top) / PCARD.pc.zoom;
@@ -396,10 +396,10 @@ public class TUtil {
         } else if (0 == message.compareTo("clickv")) {
             result.theResult = Integer.toString(GUI.clickV);
         } else if (0 == message.compareTo("clickloc")) {
-            // カードの左上起点のクリック座標
+            // Click coordinates starting from top-left of card
             result.theResult = GUI.clickH + "," + GUI.clickV;
         } else if (0 == message.compareTo("clickline")) {
-            // 最後にクリックした　行選択可能なフィールドとその行数
+            // Last clicked selectable line field and its line count
             result.theResult = GUI.clickLine;
         } else if (0 == message.compareTo("commandkey") || 0 == message.compareTo("cmdkey")) {
             if (GUI.key[14] >= 1) result.theResult = "Down";
@@ -417,7 +417,7 @@ public class TUtil {
             int freesize = (int) (Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
             result.theResult = Integer.toString(freesize);
         } else if (0 == message.compareTo("stackspace")) {
-            // スタックサイズは調べられないみたいなので固定
+            // Stack size cannot be determined so fixed
             result.theResult = Integer.toString(128000);
         } else if (0 == message.compareTo("diskspace")) {
             try {
@@ -481,10 +481,10 @@ public class TUtil {
             else result.theResult = hr + ":" + min + " AM";
         } else if (0 == message.compareTo("long date")) {
             Calendar cal = Calendar.getInstance();
-            // 年
+            // Year
             int year = cal.get(Calendar.YEAR);
 
-            // 月
+            // Month
             int month = cal.get(Calendar.MONTH) + 1;
             String monthStr = null;
             String[] month_ary = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
@@ -494,10 +494,10 @@ public class TUtil {
                 monthStr = month_ary[month];
             }
 
-            // 日
+            // Day
             int date = cal.get(Calendar.DATE);
 
-            // 曜日
+            // Day of week
             int dow = cal.get(Calendar.DAY_OF_WEEK);
             String[] youbi_ary = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
             if (Locale.getDefault().equals(Locale.JAPANESE)) {
@@ -532,7 +532,7 @@ public class TUtil {
             }
             result.theResult = tmpStr.toString();
         } else if (0 == message.compareTo("stacks")) {
-            result.theResult = PCARD.pc.stack.path; // 一つしか起動しない
+            result.theResult = PCARD.pc.stack.path; // Only one can be started
         } else if (0 == message.compareTo("suspended")) {
             result.theResult = PCARD.pc.isFocused() ? "false" : "true";
         } else if (0 == message.compareTo("foundline")) {
@@ -593,7 +593,7 @@ public class TUtil {
             if (GUI.clickField != null) {
                 result.theResult = GUI.clickField.getSelectedText();
             }
-            // 入力フォーカスのあるフィールドを検索して選択テキストを返す
+            // Search for field with input focus and return selected text
             // cd
             for (int i = 0; i < PCARD.pc.stack.curCard.fldList.size(); i++) {
                 OField field = PCARD.pc.stack.curCard.fldList.get(i);
@@ -622,7 +622,7 @@ public class TUtil {
             }
         }
         //
-        // プロパティも関数と同じ扱い。こいつらはsetできる。
+        // Properties are also treated like functions. These can be set.
         //
         else if (0 == message.compareTo("userlevel")) {
             result.theResult = Integer.toString(PCARD.userLevel);
@@ -640,22 +640,22 @@ public class TUtil {
             result.theResult = Integer.toString(TTalk.dragspeed);
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("checkHCFont")) {
-            // Homeスタックの関数
-            result.theResult = ""; // とにかくemptyで
+            // Home stack function
+            result.theResult = ""; // Anyway return empty
             result.ret = 0;
         } else {
-            System.out.println("未定義の関数/プロパティ:" + message);
+            System.out.println("Undefined function/property: " + message);
         }
 
         return result;
     }
 
 
-    // システムメッセージおよびXCMD,XFCN
+    // System messages and XCMD, XFCN
     public static Result CallSystemMessage(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
             throws xTalkException {
         Result result = new Result();
-        result.ret = 1;// 見つからなければ1
+        result.ret = 1;// Return 1 if not found
 
         if (0 == message.compareToIgnoreCase("mouseDown")) {
             result.ret = 0;
@@ -696,7 +696,7 @@ public class TUtil {
             if (params[0].equals("right")) TTalk.doScriptforMenu("go next");
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("picture")) {
-            // HomeスタックのXCMD
+            // Home stack XCMD
             String typeStr = "resource";
             if (params.length >= 2 && !params[1].isEmpty()) {
                 typeStr = params[1];
@@ -711,11 +711,11 @@ public class TUtil {
             }
             BufferedImage bi = null;
             if (typeStr.equalsIgnoreCase("resource")) {
-                // リソースを探す
+                // Search for resource
                 int rsrcid = PCARD.pc.stack.rsrc.getRsrcIdAll(params[0], "picture");
                 bi = PCARD.pc.stack.rsrc.getImage(rsrcid, "picture");
             } else if (typeStr.equalsIgnoreCase("file")) {
-                // ファイルを探す
+                // Search for file
                 try {
                     Path file = PCARD.pc.stack.file.getParent();
                     Path path = file.getParent().resolve(params[0]);
@@ -733,8 +733,8 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("palette")) {
-            // HomeスタックのXCMD
-            // PLTEリソースを探す
+            // Home stack XCMD
+            // Search for PLTE resource
             for (int i = 0; i < PCARD.pc.stack.rsrc.plteList.size(); i++) {
                 Rsrc.PlteClass plte = PCARD.pc.stack.rsrc.plteList.get(i);
                 if (plte.name.equalsIgnoreCase(params[0])) {
@@ -743,15 +743,15 @@ public class TUtil {
                         bi = PCARD.pc.stack.rsrc.getImage(plte.id, "picture");
                     }
                     if (bi != null) {
-                        // オフセット
+                        // Offset
                         BufferedImage nbi = new BufferedImage(bi.getWidth() - plte.pictHV.x, bi.getHeight() - plte.pictHV.y, BufferedImage.TYPE_INT_ARGB);
                         nbi.getGraphics().drawImage(bi, -plte.pictHV.x, -plte.pictHV.y, PCARD.pc);
-                        // ウィンドウ作成
+                        // Create window
                         GPictWindow gpw = new GPictWindow(PCARD.pc, params[0], nbi, "document", true);
                         new OWindow(gpw);
                         gpw.setResizable(false);
                         gpw.setLayout(null);
-                        // ボタン作成
+                        // Create button
                         for (int j = 0; j < plte.objList.size(); j++) {
                             PlteBtnObject obj = plte.objList.get(j);
                             AbstractButton btn;
@@ -786,8 +786,8 @@ public class TUtil {
             } else {
                 result = CallSystemFunction(message.toLowerCase(), params, target, memData, isFunc);
                 if (result.theResult == null || result.theResult.isEmpty()) {
-                    System.out.println("未定義の関数:" + message);
-                    throw new xTalkException(message + "がわかりません");
+                    System.out.println("Undefined function: " + message);
+                    throw new xTalkException(message + " is unknown");
                 }
             }
         }
@@ -810,7 +810,7 @@ public class TUtil {
         }
     }
 
-    // 偶数丸め
+    // Even rounding
     static int IEEE_Round(double v) {
         int i;
         i = (int) v;
@@ -875,7 +875,7 @@ public class TUtil {
             if (btn != null) return "line " + btn.getSelectedLine() + " of " + obj.getShortName();
             else return "";
         } else if (0 == prpty.compareTo("selectedfield")) {
-            // 入力フォーカスのあるフィールドを検索
+            // Search for field with input focus
             // cd
             for (int i = 0; i < PCARD.pc.stack.curCard.fldList.size(); i++) {
                 OField field = PCARD.pc.stack.curCard.fldList.get(i);
@@ -895,7 +895,7 @@ public class TUtil {
             return "";
         }
         /*else if(0==prpty.compareTo("selectedbutton")){
-            // ファミリーの中で選択されたボタン
+            // Button selected within family
             return "";
         }*/
         else if (0 == prpty.compareTo("autohilite")) {
@@ -924,11 +924,11 @@ public class TUtil {
         } else if (0 == prpty.compareTo("locktext")) {
             if (obj.objectType.equals("field")) {
                 return (obj.enabled) ? "true" : "false";
-            } else throw new xTalkException("lockTextはフィールドのみ参照できます");
+            } else throw new xTalkException("lockText can only be referenced by fields");
         } else if (0 == prpty.compareTo("showpict")) {
             if (obj.objectType.equals("card") || obj.objectType.equals("background")) {
                 return (((OCardBase) obj).showPict == true) ? "true" : "false";
-            } else throw new xTalkException("showPictはカードとバックグラウンドのみ参照できます");
+            } else throw new xTalkException("showPict can only be referenced by cards and backgrounds");
         } else if (0 == prpty.compareTo("short name")) {
             if (!obj.name.isEmpty()) return obj.name;
             return obj.getShortName();
@@ -955,7 +955,7 @@ public class TUtil {
             if (cd != null) return Integer.toString(cd.stack.GetNumberof(cd));
             if (bg != null) return Integer.toString(bg.stack.GetNumberof(bg));
             else {
-                System.out.println("未定義のオブジェクトプロパティ:" + prpty);
+                System.out.println("Undefined object property: " + prpty);
                 return "";
             }
         } else if (0 == prpty.compareTo("script")) {
@@ -968,7 +968,7 @@ public class TUtil {
         } else if (0 == prpty.compareTo("freesize")) {
             if (obj.objectType.equals("stack")) {
                 return "0";
-            } else System.out.println("未定義のオブジェクトプロパティ:" + prpty);
+            } else System.out.println("Undefined object property: " + prpty);
         } else if (0 == prpty.compareTo("style")) {
             if (fld != null) {
                 return switch (fld.style) {
@@ -995,7 +995,7 @@ public class TUtil {
                     case 10 -> "radio";
                     default -> "???";
                 };
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("textstyle")) {
             String styleStr = "";
             if (fld != null) {
@@ -1022,25 +1022,25 @@ public class TUtil {
                 if (styleStr.isEmpty()) styleStr = "plain";
                 else styleStr = styleStr.substring(0, styleStr.length() - 1);
                 return styleStr;
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("cantmodify")) {
             if (obj.objectType.equals("stack")) {
                 return (((OStack) obj).cantModify == true) ? "true" : "false";
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("cantabort")) {
             if (obj.objectType.equals("stack")) {
                 return (((OStack) obj).cantAbort == true) ? "true" : "false";
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("blendingmode")) {
             if (obj.objectType.equals("button")) {
                 if (((OButton) obj).blendMode == 0) return "copy";
                 else if (((OButton) obj).blendMode == 1) return "blend";
                 else return "";
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("blendinglevel")) {
             if (obj.objectType.equals("button")) {
                 return Integer.toString(((OButton) obj).blendLevel);
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("color")) {
             if (obj.objectType.equals("button")) {
                 Color col = ((OButton) obj).color;
@@ -1049,7 +1049,7 @@ public class TUtil {
             if (obj.objectType.equals("field")) {
                 Color col = ((OField) obj).color;
                 return col.getRed() * 256 + "," + col.getGreen() * 256 + "," + col.getBlue() * 256;
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("backcolor")) {
             if (obj.objectType.equals("button")) {
                 Color col = ((OButton) obj).bgColor;
@@ -1058,7 +1058,7 @@ public class TUtil {
             if (obj.objectType.equals("field")) {
                 Color col = ((OField) obj).bgColor;
                 return col.getRed() * 256 + "," + col.getGreen() * 256 + "," + col.getBlue() * 256;
-            } else System.out.println("このオブジェクトにプロパティ" + prpty + "はありません");
+            } else System.out.println("This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("size")) {
             File parent = PCARD.pc.stack.file.getParent().toFile();
             int size = 0;
@@ -1070,7 +1070,7 @@ public class TUtil {
             }
             return Integer.toString(size);
         } else {
-            System.out.println("未定義のオブジェクトプロパティ:" + prpty);
+            System.out.println("Undefined object property: " + prpty);
         }
         return "";
     }
@@ -1086,14 +1086,14 @@ public class TUtil {
         OStack stk=null;*/
 
         if (obj == null) {
-            // HyperCardのプロパティ
+            // HyperCard properties
             if (0 == prpty.compareTo("scripttextfont")) {
                 PCARD.scriptFont = value;
             } else if (0 == prpty.compareTo("scripttextsize")) {
                 try {
                     PCARD.scriptFontSize = Integer.parseInt(value);
                 } catch (Exception err) {
-                    throw new xTalkException("ここには数値が必要です");
+                    throw new xTalkException("A number is required here");
                 }
             } else if (0 == prpty.compareTo("textfont")) {
                 PCARD.pc.textFont = value;
@@ -1117,7 +1117,7 @@ public class TUtil {
                 try {
                     PCARD.pc.textSize = Integer.parseInt(value);
                 } catch (Exception err) {
-                    throw new xTalkException("ここには数値が必要です");
+                    throw new xTalkException("A number is required here");
                 }
             } else if (0 == prpty.compareTo("itemdelimiter")) {
                 if (value.length() == 1) {
@@ -1125,13 +1125,13 @@ public class TUtil {
                 } else if (value.isEmpty()) {
                     TTalk.itemDelimiter = ",";
                 } else {
-                    throw new xTalkException("itemDelimiterには1文字を設定してください");
+                    throw new xTalkException("Set one character for itemDelimiter");
                 }
             } else if (0 == prpty.compareTo("userlevel")) {
                 try {
                     PCARD.userLevel = Integer.parseInt(value);
                 } catch (Exception err) {
-                    throw new xTalkException("userLevelには1から5の数値を指定してください");
+                    throw new xTalkException("Specify a number from 1 to 5 for userLevel");
                 }
             } else if (0 == prpty.compareTo("cursor")) {
                 Cursor cr = null;
@@ -1184,7 +1184,7 @@ public class TUtil {
                             e.printStackTrace();
                         }
                     } else {
-                        throw new xTalkException("カーソル" + value + "がありません");
+                        throw new xTalkException("Cursor " + value + " does not exist");
                     }
                 }
                 if (cr != null)
@@ -1212,7 +1212,7 @@ public class TUtil {
                     TTalk.lockErrorDialogs = true;
                 } else if (value.equalsIgnoreCase("false")) {
                     TTalk.lockErrorDialogs = false;
-                } else throw new xTalkException("ここには真偽値が必要です");
+                } else throw new xTalkException("A boolean value is required here");
             } else if (0 == prpty.compareTo("dragspeed")) {
                 TTalk.dragspeed = Integer.parseInt(value);
             } else if (0 == prpty.compareTo("editbkgnd")) {
@@ -1220,8 +1220,8 @@ public class TUtil {
                     PaintTool.editBackground = true;
                 } else if (value.equalsIgnoreCase("false")) {
                     PaintTool.editBackground = false;
-                } else throw new xTalkException("ここには真偽値が必要です");
-            } else throw new xTalkException("プロパティ" + prpty + "がわかりません");
+                } else throw new xTalkException("A boolean value is required here");
+            } else throw new xTalkException("Property " + prpty + " is unknown");
             return;
         }
 
@@ -1251,7 +1251,7 @@ public class TUtil {
                         }
                     }
                 }
-            } else throw new xTalkException("ボタン以外にはアイコンを設定できません");
+            } else throw new xTalkException("Cannot set icon for non-buttons");
         } else if (0 == prpty.compareTo("visible")) {
             if (btn != null) {
                 btn.setVisible(0 == value.compareToIgnoreCase("true"));
@@ -1263,14 +1263,14 @@ public class TUtil {
                 // PCARD.pc.setVisible(true);
             } else if (0 == obj.objectType.compareTo("menubar")) {
                 /*GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                GraphicsDevice device = ge.getDefaultScreenDevice();  // GraphicsDeviceの取得
+                GraphicsDevice device = ge.getDefaultScreenDevice();  // Get GraphicsDevice
 
                 if (device.isFullScreenSupported()) {
-                    // フルスクリーン化！
+                    // Fullscreen!
                     device.setFullScreenWindow(PCARD.pc);
                 }*/
 
-                // これではメニューを消せないので、メニューがないウィンドウを作ってそちらに移動とか？Macでは無意味だが。
+                // Cannot hide menu with this, so create a window without menu and move there? Meaningless on Mac.
                 /*if(0==value.compareToIgnoreCase("true")){
                     PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
                 }else{
@@ -1300,9 +1300,9 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setVisible(0 == value.compareToIgnoreCase("true"));
                 } else {
-                    throw new xTalkException("このオブジェクトには可視を設定できません??");
+                    throw new xTalkException("Cannot set visible for this object??");
                 }
-            } else throw new xTalkException("このオブジェクトには可視を設定できません");
+            } else throw new xTalkException("Cannot set visible for this object");
         } else if (0 == prpty.compareTo("enabled")) {
             if (btn != null) {
                 btn.setEnabled(0 == value.compareToIgnoreCase("true"));
@@ -1310,20 +1310,20 @@ public class TUtil {
                 fld.setEnabled(0 == value.compareToIgnoreCase("true"));
             } else if (obj.objectType.equals("menu")) {
                 GMenu.changeMEnabled(value, 0 == value.compareToIgnoreCase("true"));
-            } else throw new xTalkException("このオブジェクトにはenabledを設定できません");
+            } else throw new xTalkException("Cannot set enabled for this object");
         } else if (0 == prpty.compareTo("hilite") || 0 == prpty.compareTo("highlight") || 0 == prpty.compareTo("highlite") || 0 == prpty.compareTo("hilight")) {
             if (btn != null) {
                 btn.setHilite(0 == value.compareToIgnoreCase("true"));
             } else if (fld != null) {
                 fld.setHilite(0 == value.compareToIgnoreCase("true"));
-            } else throw new xTalkException("このオブジェクトにはhiliteを設定できません");
+            } else throw new xTalkException("Cannot set hilite for this object");
         } else if (0 == prpty.compareTo("text")) {
             if (btn != null) btn.setText(value);
             else if (fld != null) fld.setText(value);
             else if (obj.objectType.equals("menu")) {
                 OMenu om = (OMenu) obj;
                 om.menu.add(new JMenuItem(value));
-            } else throw new xTalkException("ボタンとフィールド以外にはテキストを格納できません");
+            } else throw new xTalkException("Cannot store text for non-buttons and fields");
         } else if (0 == prpty.compareTo("name")) {
             if (btn != null) btn.setName(value);
             else if (fld != null) fld.setName(value);
@@ -1334,7 +1334,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v, btn.getTop());
             else if (fld != null) fld.setTopLeft(v, fld.getTop());
@@ -1345,16 +1345,16 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v, ((OWindow) obj).gpw.getY(), ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
                 } else {
-                    throw new xTalkException("このオブジェクトにはleftを設定できません??");
+                    throw new xTalkException("Cannot set left for this object??");
                 }
-            } else throw new xTalkException("このオブジェクトにはleftを設定できません");
+            } else throw new xTalkException("Cannot set left for this object");
         } else if (0 == prpty.compareTo("top")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(btn.getLeft(), v);
             else if (fld != null) fld.setTopLeft(fld.getLeft(), v);
@@ -1365,44 +1365,44 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(((OWindow) obj).gpw.getX(), PCARD.pc.getY() + PCARD.pc.getInsets().top + v, ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
                 } else {
-                    throw new xTalkException("このオブジェクトにはtopを設定できません??");
+                    throw new xTalkException("Cannot set top for this object??");
                 }
-            } else throw new xTalkException("このオブジェクトにはtopを設定できません");
+            } else throw new xTalkException("Cannot set top for this object");
         } else if (0 == prpty.compareTo("right")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v - btn.getWidth(), btn.getTop());
             else if (fld != null) fld.setTopLeft(v - fld.getWidth(), fld.getTop());
             else if (cd != null) PCARD.pc.stack.setTopLeft(v - PCARD.pc.stack.getWidth(), PCARD.pc.stack.getTop());
-            else throw new xTalkException("このオブジェクトにはrightを設定できません");
+            else throw new xTalkException("Cannot set right for this object");
         } else if (0 == prpty.compareTo("bottom")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(btn.getLeft(), v - btn.getHeight());
             else if (fld != null) fld.setTopLeft(fld.getLeft(), v - fld.getHeight());
             else if (cd != null) PCARD.pc.stack.setTopLeft(PCARD.pc.stack.getLeft(), v - PCARD.pc.stack.getHeight());
-            else throw new xTalkException("このオブジェクトにはbottomを設定できません");
+            else throw new xTalkException("Cannot set bottom for this object");
         } else if (0 == prpty.compareTo("topleft")) {
             int v1, v2;
             String[] strAry = value.split(",");
-            if (strAry.length != 2) throw new xTalkException("ここには座標が必要です");
+            if (strAry.length != 2) throw new xTalkException("Coordinates are required here");
             try {
                 double d = Double.parseDouble(strAry[0]);
                 v1 = (int) d;
                 d = Double.parseDouble(strAry[1]);
                 v2 = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v1, v2);
             else if (fld != null) fld.setTopLeft(v1, v2);
@@ -1413,20 +1413,20 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v1, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2, ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
                 } else {
-                    throw new xTalkException("このオブジェクトにはtopleftを設定できません??");
+                    throw new xTalkException("Cannot set topleft for this object??");
                 }
-            } else throw new xTalkException("このオブジェクトにはtopleftを設定できません");
+            } else throw new xTalkException("Cannot set topleft for this object");
         } else if (0 == prpty.compareTo("loc") || 0 == prpty.compareTo("location")) {
             int v1, v2;
             String[] strAry = value.split(",");
-            if (strAry.length != 2) throw new xTalkException("ここには座標が必要です");
+            if (strAry.length != 2) throw new xTalkException("Coordinates are required here");
             try {
                 double d = Double.parseDouble(strAry[0]);
                 v1 = (int) d;
                 d = Double.parseDouble(strAry[1]);
                 v2 = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v1 - btn.getWidth() / 2, v2 - btn.getHeight() / 2);
             else if (fld != null) fld.setTopLeft(v1 - fld.getWidth() / 2, v2 - fld.getHeight() / 2);
@@ -1446,7 +1446,7 @@ public class TUtil {
                 }
             }
             /*else{
-                throw new xTalkException("このオブジェクトにはlocを設定できません??");
+                throw new xTalkException("Cannot set loc for this object??");
             }*/
             /*else if(0==obj.objectType.compareTo("window")){
                 if(((OWindow)obj).frame!=null){
@@ -1456,7 +1456,7 @@ public class TUtil {
                     ((OWindow)obj).gpw.setBounds(PCARD.pc.getX()+v1-((OWindow)obj).gpw.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-((OWindow)obj).gpw.getHeight()/2, ((OWindow)obj).gpw.getWidth(), ((OWindow)obj).gpw.getHeight());
                 }
                 else{
-                    throw new xTalkException("このオブジェクトにはlocを設定できません??");
+                    throw new xTalkException("Cannot set loc for this object??");
                 }
             }
             else if(0==obj.objectType.compareTo("msg")){
@@ -1464,11 +1464,11 @@ public class TUtil {
                     GMsg.msg.setBounds(PCARD.pc.getX()+v1-GMsg.msg.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-GMsg.msg.getHeight()/2, GMsg.msg.getWidth(), GMsg.msg.getHeight());
                 }
             }*/
-            else throw new xTalkException("このオブジェクトにはlocを設定できません");
+            else throw new xTalkException("Cannot set loc for this object");
         } else if (0 == prpty.compareTo("rect") || 0 == prpty.compareTo("rectangle")) {
             int v1, v2, v3, v4;
             String[] strAry = value.split(",");
-            if (strAry.length != 4) throw new xTalkException("ここには矩形指定が必要です");
+            if (strAry.length != 4) throw new xTalkException("Rectangle specification is required here");
             try {
                 double d = Double.parseDouble(strAry[0]);
                 v1 = (int) d;
@@ -1479,7 +1479,7 @@ public class TUtil {
                 d = Double.parseDouble(strAry[3]);
                 v4 = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null) btn.setRect(v1, v2, v3, v4);
             else if (fld != null) fld.setRect(v1, v2, v3, v4);
@@ -1493,16 +1493,16 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v1, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2, v3 - v1, v4 - v2);
                 } else {
-                    throw new xTalkException("このオブジェクトにはrectを設定できません??");
+                    throw new xTalkException("Cannot set rect for this object??");
                 }
-            } else throw new xTalkException("このオブジェクトにはrectを設定できません");
+            } else throw new xTalkException("Cannot set rect for this object");
         } else if (0 == prpty.compareTo("width")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null)
                 btn.setRect(btn.getLeft() + btn.getWidth() / 2 - v / 2, btn.getTop(), btn.getLeft() + btn.getWidth() / 2 + (v + 1) / 2, btn.getTop() + btn.getHeight());
@@ -1516,7 +1516,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (btn != null)
                 btn.setRect(btn.getLeft(), btn.getTop() + btn.getHeight() / 2 - v / 2, btn.getLeft() + btn.getWidth(), btn.getTop() + btn.getHeight() / 2 + (v + 1) / 2);
@@ -1530,28 +1530,28 @@ public class TUtil {
                     if (0 == value.compareToIgnoreCase("true")) {
                         PCARD.pc.setLocationRelativeTo(null);
                     }
-                } else throw new xTalkException("このウィンドウにはzoomedを設定できません");
-            } else throw new xTalkException("このオブジェクトにはzoomedを設定できません");
+                } else throw new xTalkException("Cannot set zoomed for this window");
+            } else throw new xTalkException("Cannot set zoomed for this object");
         } else if (0 == prpty.compareTo("cantpeek")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).cantPeek = (0 == value.compareToIgnoreCase("true"));
                 ((OStack) obj).changed = true;
-            } else throw new xTalkException("cantpeekはスタック以外に設定できません");
+            } else throw new xTalkException("cantpeek can only be set for stacks");
         } else if (0 == prpty.compareTo("cantabort")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).cantAbort = (0 == value.compareToIgnoreCase("true"));
                 ((OStack) obj).changed = true;
-            } else throw new xTalkException("cantabortはスタック以外に設定できません");
+            } else throw new xTalkException("cantabort can only be set for stacks");
         } else if (0 == prpty.compareTo("cantdelete")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).cantDelete = (0 == value.compareToIgnoreCase("true"));
                 ((OStack) obj).changed = true;
-            } else throw new xTalkException("cantdeleteはスタック以外に設定できません");
+            } else throw new xTalkException("cantdelete can only be set for stacks");
         } else if (0 == prpty.compareTo("cantmodify")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).changed = true;
                 if (PCARD.pc.stack.saveXML != null && PCARD.pc.stack.saveXML.saveThread != null) {
-                    // cantmodifyにした/外したことを保存する
+                    // Save whether cantmodify was set/removed
                     PCARD.pc.stack.saveXML.saveThread.interrupt();
                     try {
                         Thread.sleep(100);
@@ -1559,7 +1559,7 @@ public class TUtil {
                     }
                 }
                 ((OStack) obj).cantModify = (0 == value.compareToIgnoreCase("true"));
-            } else throw new xTalkException("cantmodifyはスタック以外に設定できません");
+            } else throw new xTalkException("cantmodify can only be set for stacks");
         } else if (0 == prpty.compareTo("script")) {
             if (obj != null) {
                 obj.setScript(value);
@@ -1570,7 +1570,7 @@ public class TUtil {
                     ((OCardBase) obj).picture.setVisible(value.equalsIgnoreCase("true"));
                     // ((OCardBase)obj).stack.pcard.repaint();
                     ((OCardBase) obj).changed = true;
-                } else throw new xTalkException("showPictはカードとバックグラウンド以外には設定できません");
+                } else throw new xTalkException("showPict can only be set for cards and backgrounds");
             }
         } else if (0 == prpty.compareTo("textsize")) {
             int v;
@@ -1578,7 +1578,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (fld != null) fld.setTextSize(v);
         } else if (0 == prpty.compareTo("textheight")) {
@@ -1587,35 +1587,35 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (fld != null) fld.setTextHeight(v);
         } else if (0 == prpty.compareTo("audiolevel")) {
-            // Movie XCMDのウィンドウ用プロパティ(0-256)
+            // Window property for Movie XCMD (0-256)
             int v;
             if (value.isEmpty()) value = "0";
             try {
                 v = Integer.parseInt(value);
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (obj.objectType.equals("window") && ((OWindow) obj).mp3 != null) {
                 ((OWindow) obj).mp3.setVolume(v);
-            } else throw new xTalkException(obj.getShortName() + "にはaudiolevelを設定できません");
+            } else throw new xTalkException(obj.getShortName() + " cannot set audiolevel");
         } else if (0 == prpty.compareTo("timeformat")) {
-            // Movie XCMDのウィンドウ用プロパティ
+            // Window property for Movie XCMD
         } else if (0 == prpty.compareTo("currtime")) {
-            // Movie XCMDのウィンドウ用プロパティ
+            // Window property for Movie XCMD
             int v;
             if (value.isEmpty()) value = "0";
             try {
                 v = Integer.parseInt(value);
             } catch (Exception err) {
-                throw new xTalkException("ここには数値が必要です");
+                throw new xTalkException("A number is required here");
             }
             if (obj.objectType.equals("window") && ((OWindow) obj).mp3 != null) {
                 ((OWindow) obj).mp3.setTime(v);
-            } else throw new xTalkException(obj.getShortName() + "にはcurrTimeを設定できません");
+            } else throw new xTalkException(obj.getShortName() + " cannot set currTime");
         } else if (0 == prpty.compareTo("scroll")) {
             if (fld != null && fld.style == 5) {
                 int v;
@@ -1623,14 +1623,14 @@ public class TUtil {
                     double d = Double.parseDouble(value);
                     v = (int) d;
                 } catch (Exception err) {
-                    throw new xTalkException("ここには数値が必要です");
+                    throw new xTalkException("A number is required here");
                 }
                 fld.setScroll(v);
             } else if (cd != null) {
                 int v1, v2;
                 String[] strAry = value.split(",");
                 if (strAry.length != 2) {
-                    throw new xTalkException("ここには座標が必要です");
+                    throw new xTalkException("Coordinates are required here");
                 }
                 try {
                     double d = Double.parseDouble(strAry[0]);
@@ -1638,7 +1638,7 @@ public class TUtil {
                     d = Double.parseDouble(strAry[1]);
                     v2 = (int) d;
                 } catch (Exception err) {
-                    throw new xTalkException("ここには数値が必要です");
+                    throw new xTalkException("A number is required here");
                 }
                 PCARD.pc.stack.setScroll(v1, v2);
             }
@@ -1655,7 +1655,7 @@ public class TUtil {
                 else if (value.equalsIgnoreCase("popup")) btn.style = 8;
                 else if (value.equalsIgnoreCase("radio")) btn.style = 9;
                 else if (value.equalsIgnoreCase("checkbox")) btn.style = 10;
-                else throw new xTalkException("このスタイルが分かりません");
+                else throw new xTalkException("This style is unknown");
                 OCard.reloadCurrentCard();
             } else if (fld != null) {
                 if (value.equalsIgnoreCase("standard")) fld.style = 0;
@@ -1664,9 +1664,9 @@ public class TUtil {
                 else if (value.equalsIgnoreCase("rectangle")) fld.style = 3;
                 else if (value.equalsIgnoreCase("shadow")) fld.style = 4;
                 else if (value.equalsIgnoreCase("scroll")) fld.style = 5;
-                else throw new xTalkException("このスタイルが分かりません");
+                else throw new xTalkException("This style is unknown");
                 OCard.reloadCurrentCard();
-            } else throw new xTalkException("このオブジェクトにはスタイルを設定できません");
+            } else throw new xTalkException("Cannot set style for this object");
         } else if (prpty.equals("showname")) {
             if (btn != null) {
                 btn.showName = value.equalsIgnoreCase("true");
@@ -1680,20 +1680,20 @@ public class TUtil {
             int v = 0;
             v = Integer.parseInt(value);
             if (v < 0 || v > 100) {
-                throw new xTalkException(obj.getShortName() + "のプロパティ" + prpty + "の値が不正です");
+                throw new xTalkException(obj.getShortName() + "'s property " + prpty + " has invalid value");
             }
             if (btn != null) btn.setBlendLevel(v);
         } else if (prpty.equals("color")) {
             int r = 0, g = 0, b = 0;
             String[] strs = value.split(",");
             if (strs.length != 3) {
-                throw new xTalkException("色はr,g,bで指定してください");
+                throw new xTalkException("Specify color with r,g,b");
             }
             r = Integer.parseInt(strs[0]);
             g = Integer.parseInt(strs[1]);
             b = Integer.parseInt(strs[2]);
             if (r < 0 || r > 65535 || g < 0 || g > 65535 || b < 0 || b > 65535) {
-                throw new xTalkException("色は0から65535の範囲で指定してください");
+                throw new xTalkException("Specify color in range 0 to 65535");
             }
             if (btn != null) {
                 btn.setColor(new Color(r / 256, g / 256, b / 256));
@@ -1706,13 +1706,13 @@ public class TUtil {
             int r = 0, g = 0, b = 0;
             String[] strs = value.split(",");
             if (strs.length != 3) {
-                throw new xTalkException("色はr,g,bで指定してください");
+                throw new xTalkException("Specify color with r,g,b");
             }
             r = Integer.parseInt(strs[0]);
             g = Integer.parseInt(strs[1]);
             b = Integer.parseInt(strs[2]);
             if (r < 0 || r > 65535 || g < 0 || g > 65535 || b < 0 || b > 65535) {
-                throw new xTalkException("色は0から65535の範囲で指定してください");
+                throw new xTalkException("Specify color in range 0 to 65535");
             }
             if (btn != null) {
                 btn.setBgColor(new Color(r / 256, g / 256, b / 256));
@@ -1722,7 +1722,7 @@ public class TUtil {
             }
             OCard.reloadCurrentCard();
         } else if (prpty.equals("scale")) {
-            // picture windowのプロパティ
+            // Picture window properties
             int v = 0;
             v = Integer.parseInt(value);
             float vv = switch (v) {
@@ -1743,11 +1743,11 @@ public class TUtil {
                     ((OWindow) obj).gpw.label.scale = vv;
                     ((OWindow) obj).gpw.repaint();
                 } else {
-                    throw new xTalkException("このオブジェクトにはscaleを設定できません");
+                    throw new xTalkException("Cannot set scale for this object");
                 }
-            } else throw new xTalkException("このオブジェクトにはscaleを設定できません");
+            } else throw new xTalkException("Cannot set scale for this object");
         } else {
-            throw new xTalkException(obj.getShortName() + "のプロパティ" + prpty + "がわかりません");
+            throw new xTalkException(obj.getShortName() + "'s property " + prpty + " is unknown");
         }
     }
 
@@ -1774,8 +1774,8 @@ public class TUtil {
                 } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("close")) {
                     mode = 2;
                     next++;
-                } else throw new xTalkException("視覚効果が分かりません");
-            } else throw new xTalkException("視覚効果が分かりません");
+                } else throw new xTalkException("Visual effect is unknown");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("dissolve")) {
             mode = 3;
             next++;
@@ -1784,7 +1784,7 @@ public class TUtil {
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("blinds")) {
                 mode = 4;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("checkerboard")) {
             mode = 5;
             next++;
@@ -1796,7 +1796,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("close")) {
                 mode = 7;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("scroll")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("left")) {
@@ -1811,7 +1811,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("down")) {
                 mode = 11;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("wipe")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("left")) {
@@ -1826,7 +1826,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("down")) {
                 mode = 15;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("zoom")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("open")) {
@@ -1841,7 +1841,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("out")) {
                 mode = 17;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("shrink")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("to")) {
@@ -1855,8 +1855,8 @@ public class TUtil {
                 } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("center")) {
                     mode = 20;
                     next++;
-                } else throw new xTalkException("視覚効果が分かりません");
-            } else throw new xTalkException("視覚効果が分かりません");
+                } else throw new xTalkException("Visual effect is unknown");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("stretch")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("from")) {
@@ -1870,8 +1870,8 @@ public class TUtil {
                 } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("center")) {
                     mode = 23;
                     next++;
-                } else throw new xTalkException("視覚効果が分かりません");
-            } else throw new xTalkException("視覚効果が分かりません");
+                } else throw new xTalkException("Visual effect is unknown");
+            } else throw new xTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("push")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("left")) {
@@ -1886,7 +1886,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("down")) {
                 mode = 27;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         }
 
         if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("to")) {
@@ -1906,7 +1906,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("inverse")) {
                 to = 4;
                 next++;
-            } else throw new xTalkException("視覚効果が分かりません");
+            } else throw new xTalkException("Visual effect is unknown");
         }
 
         if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("fast")) {

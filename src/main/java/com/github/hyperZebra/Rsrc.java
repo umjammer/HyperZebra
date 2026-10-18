@@ -33,7 +33,7 @@ public class Rsrc {
         this.ownerstack = owner;
     }
 
-    // このスタック内のリソースを検索
+    // Search for resources in this stack
     public int getRsrcId1(String name, String type) {
         RsrcClass r = rsrcNameMap.get(type + name.toLowerCase());
         if (r != null) return r.id;
@@ -63,7 +63,7 @@ public class Rsrc {
         return r;
     }
 
-    // usingしているスタックすべてのリソースを検索
+    // Search for resources in all stacks being used
     public int getRsrcIdAll(String name, String type) {
         RsrcClass r = rsrcNameMap.get(type + name.toLowerCase());
         if (r != null) return r.id;
@@ -230,7 +230,7 @@ public class Rsrc {
         return reader;
     }
 
-    // XML保存
+    // Save as XML
     public void writeXML(XMLStreamWriter writer) throws XMLStreamException {
 
         for (RsrcClass rsrcClass : rsrcIdMap.values()) {
@@ -525,7 +525,7 @@ public class Rsrc {
 
 
     // ----------------
-    // for icon
+    // For icons
     // ----------------
     public BufferedImage getImage(int id) {
         BufferedImage bi = null;
@@ -547,7 +547,7 @@ public class Rsrc {
 
 
     // ----------------
-    // for PICT etc
+    // For PICT and similar resources
     // ----------------
     public BufferedImage getImage(int id, String type) {
         BufferedImage bi = null;
@@ -564,7 +564,7 @@ public class Rsrc {
     }
 
     // ----------------
-    // for FONT
+    // For fonts
     // ----------------
     static class FontInfo extends OptionInfo {
 
@@ -592,7 +592,7 @@ public class Rsrc {
     }
 
     // ----------------
-    // XCMD
+    // External commands and functions
     // ----------------
     public int getxcmdId(String name, String type) {
         xcmdClass r = xcmdNameMap.get(type + name.toLowerCase());
@@ -664,7 +664,7 @@ public class Rsrc {
 
 
     // -------------
-    // AddColor関連
+    // AddColor-related functionality
     // -------------
     public XMLStreamReader readAddColorXML(XMLStreamReader reader, boolean isBg) throws Exception {
         String idStr = "0";
@@ -770,7 +770,7 @@ public class Rsrc {
 
 
     public static void setEnabledACObj(int number, boolean enabled) {
-        // addcolorClassを探す
+        // Find the addcolorClass
         List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
         addcolorClass accd = null;
         for (Rsrc.addcolorClass addcolorClass : cdList) {
@@ -1009,7 +1009,7 @@ public class Rsrc {
     }
 
 
-    // XML保存
+    // Save as XML
     public void writeAddColorXML(XMLStreamWriter writer) throws XMLStreamException {
         List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
         for (Rsrc.addcolorClass addcolorClass : cdList) {
@@ -1019,7 +1019,7 @@ public class Rsrc {
 
 
     // -------------
-    // PLTE関連
+    // PLTE-related functionality
     // -------------
     public XMLStreamReader readPlteXML(XMLStreamReader reader) throws Exception {
         int id = 0;
@@ -1250,7 +1250,7 @@ public class Rsrc {
         }
     }
 
-    // XML保存
+    // Save as XML
     public void writePlteXml(XMLStreamWriter writer) throws XMLStreamException {
         List<PlteClass> plteList = PCARD.pc.stack.rsrc.plteList;
         for (PlteClass plteClass : plteList) {

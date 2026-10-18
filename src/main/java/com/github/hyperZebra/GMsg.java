@@ -32,7 +32,7 @@ public class GMsg extends JDialog {
         setLayout(null);// new BorderLayout());
         // this.setBackground(Color.WHITE);
 
-        // パネルを追加する
+        // Add panel
         // JPanel topPanel = new JPanel();
         // topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         // getContentPane().add("North",topPanel);
@@ -54,7 +54,7 @@ public class GMsg extends JDialog {
 
         area.addKeyListener(new GMsgListener());
 
-        addKeyListener(GUI.gui);// キー入力は共通で使う
+        addKeyListener(GUI.gui);// Key input is shared
 
         msg = this;
 

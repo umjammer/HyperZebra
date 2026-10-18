@@ -36,12 +36,12 @@ public class VEffect {
 
             /* to black1 white2 grey3 inverse4 */
             if (toEffect == 0) {
-                // オフスクリーンに描画
+                // Draw to offscreen
                 // PCARD.lockedScreen = false;
                 PCARDFrame.pc.mainPane.paintUnscaled(offg);
                 PCARD.lockedScreen = true;
             } else if (toEffect == 4) {
-                // オフスクリーンに描画
+                // Draw to offscreen
                 // PCARD.lockedScreen = false;
                 PCARDFrame.pc.mainPane.paintUnscaled(offg);
                 PCARD.lockedScreen = true;
@@ -291,7 +291,7 @@ public class VEffect {
             }
         }
 
-        // 移動後のカードの表示
+        // Display card after movement
         PCARD.lockedScreen = false;
         // PCARD.pc.mainPane.paintImmediately(0, 0, PCARD.pc.stack.width, PCARD.pc.stack.height);
         PCARDFrame.pc.mainPane.repaint();

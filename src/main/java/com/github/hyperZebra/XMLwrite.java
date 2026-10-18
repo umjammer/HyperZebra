@@ -65,7 +65,7 @@ public class XMLwrite {
                 for (int i = 0; i < stack.cdCacheList.size(); i++) {
                     stack.cdCacheList.get(i).writeXML(writer);
                     stack.cdCacheList.get(i).changed = false;
-                } // これでは順番が狂ってしまう
+                } // This would disrupt the order
             }
             stack.rsrc.writeXML(writer);
             stack.rsrc.writePlteXml(writer);
@@ -92,20 +92,20 @@ public class XMLwrite {
 
     class saveThread extends Thread {
 
-        // 暇なときは変更を監視
+        // Monitor changes when idle
         @Override
         public void run() {
             setName("saveXMLThread");
             setPriority(MIN_PRIORITY);
 
             if (!Files.exists(stack.file)) {
-                // xmlファイルがないときは即作成
+                // Create immediately if XML file doesn't exist
                 saveStackNow();
             }
 
             while (true) {
                 try {
-                    sleep(1000);// 1秒1回
+                    sleep(1000);// Once per second
                 } catch (InterruptedException e) {
                     // this.interrupt();
                 }

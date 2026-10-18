@@ -30,7 +30,7 @@ import com.github.hyperZebra.Rsrc.PlteBtnObject;
 
 public class HCResource {
 
-    // AppleDoubleHeaderFileの中にリソースフォークのデータがある
+    // Resource fork data is inside AppleDoubleHeaderFile
     public static boolean readAppleDoubleHeader(DataInputStream dis, OStack stack) {
         // System.out.println("readAppleDoubleHeader");
 
@@ -51,9 +51,9 @@ public class HCResource {
             theOffset += 12;
 
             if (entryId == 2) {
-                // リソースフォークのID
+                // Resource fork ID
 
-                // リソースフォークまで読み飛ばす
+                // Skip to resource fork
                 int length = (entryOffset - theOffset);
                 for (int j = 0; j < length; j++) {
                     try {
@@ -63,7 +63,7 @@ public class HCResource {
                     }
                 }
 
-                // リソースフォーク部分を読み込む
+                // Read resource fork portion
                 byte[] b = new byte[entryLength];
                 for (int j = 0; j < entryLength; j++) {
                     try {
@@ -73,10 +73,10 @@ public class HCResource {
                     }
                 }
 
-                // リソースフォークのデータを解析
+                // Parse resource fork data
                 readResourceFork(b, stack);
 
-                java.lang.System.gc();// GCをなるべく呼ぶ
+                java.lang.System.gc();// Call GC as much as possible
 
                 break;
             } else {
@@ -116,7 +116,7 @@ public class HCResource {
     }
 
 
-    // リソースフォーク内に各リソースのデータが含まれる
+    // Each resource's data is contained within the resource fork
     static boolean readResourceFork(byte[] b, OStack stack) {
         // System.out.println("readResourceFork");
 
@@ -147,7 +147,7 @@ public class HCResource {
 
         for (int i = 0; i < typesCount && offset + 8 <= b.length; i++) {
             // System.out.println("========");
-            // 各タイプと個数、位置
+            // Each type, count, and position
             offset = typeListOffset + 8 * i;
             String type = str4(b, offset);
             // System.out.println("type:"+type);
@@ -158,14 +158,14 @@ public class HCResource {
             int rsrcoffset = u2(b, offset) + typeListOffset - 2;
             offset += 2;
 
-            // 各リソースのヘッダー
+            // Each resource header
             offset = rsrcoffset;
             for (int j = 0; j < count; j++) {
                 stack.bar.setValue(stack.barOffset + (25 * i) / typesCount + (25 * 1) * j / count / typesCount);
                 stack.bar.setString("Converting " + type + " resource " + j + "/" + count);
                 stack.bar.paintImmediately(stack.bar.getBounds());
                 // System.out.println("====");
-                // ヘッダ部分
+                // Header portion
                 int id = s2(b, offset);
                 offset += 2;
                 int nameoffset = s2(b, offset);
@@ -181,7 +181,7 @@ public class HCResource {
                 offset += 3;
                 offset += 4; // reserved
 
-                // 名前
+                // Name
                 String name = "";
                 if (nameoffset >= 0) {
                     int namelen = u1(b, nameoffset);
@@ -190,7 +190,7 @@ public class HCResource {
                 }
                 // System.out.println("name:"+name);
 
-                // データ
+                // Data
                 int datalen = u4(b, dataoffset);
                 readResourceData(stack, b, dataoffset + 4, datalen, type, id, name);
             }
@@ -241,7 +241,7 @@ public class HCResource {
     }
 
 
-    // 各リソースのデータをファイルに変換する
+    // Convert each resource's data to file
     private static void readResourceData(OStack stack,
                                          byte[] in_b, int start, int datalen,
                                          String type, int id, String name) {
@@ -250,7 +250,7 @@ public class HCResource {
         byte[] b = new byte[datalen];
         System.arraycopy(in_b, start, b, 0, datalen);
 
-        // ファイルに変換
+        // Convert to file
         String filename = null;
         String mytype = type;
         switch (type) {
@@ -271,7 +271,7 @@ public class HCResource {
                 mytype = "sound";
             }
             case "CURS" -> {
-                // CURSは関数内で登録する
+                // CURS is registered inside the function
                 filename = null;
                 convertCURS2Cursor(b, parentPath, id, name, stack.rsrc);
             }
@@ -289,7 +289,7 @@ public class HCResource {
                 stack.rsrc.plteList.add(plteOwner);
             }
             case "XCMD", "xcmd", "XFCN", "xfcn" ->
-                // XCMDは関数内で登録する
+                // XCMD is registered inside the function
                     convertXCMD2file(b, type, id, name, stack);
             default -> {
                 filename = convertRsrc2file(b, type, parentPath, id, name);
@@ -298,7 +298,7 @@ public class HCResource {
             }
         }
 
-        // リソースとして登録
+        // Register as resource
         if (filename != null) {
             stack.rsrc.addResource(id, mytype, name, filename);
         }
@@ -308,8 +308,8 @@ public class HCResource {
     // ICON
     // -----------
     private static String convertICON2PNG(byte[] b, String parentPath, int id) {
-        // アイコンデータの取り込み
-        // 単なる32*32bitの固定データ
+        // Load icon data
+        // Simply fixed 32*32-bit data
         BufferedImage bi = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         DataBuffer db = bi.getRaster().getDataBuffer();
         for (int y = 0; y < 32; y++) {
@@ -320,7 +320,7 @@ public class HCResource {
             }
         }
 
-        // 周辺の白色を透明化
+        // Make surrounding white transparent
         for (int y = 0; y < 32; y++) {
             int x = 0;
             if (db.getElem(0, y * 32 + x) == 0xFFFFFFFF) {
@@ -342,7 +342,7 @@ public class HCResource {
             }
         }
 
-        // PNG形式に変換してファイルに保存
+        // Convert to PNG format and save to file
         File ofile = new File(parentPath + File.separatorChar + "ICON_" + id + ".png");
         try {
             ImageIO.write(bi, "png", ofile);
@@ -351,7 +351,7 @@ public class HCResource {
         }
 
         if (ofile.exists()) {
-            // 変換成功
+            // Conversion successful
             return ofile.getName();
         }
 
@@ -390,7 +390,7 @@ public class HCResource {
         BufferedImage bi;
         int offset = 0;
 
-        // カラーアイコンデータの取り込み
+        // Load color icon data
         {
             // iconPMap
             /*int baseAddr =*/
@@ -491,7 +491,7 @@ public class HCResource {
             // int iconData = u4(b,offset);
             // offset+=4;
 
-            // 画像データ
+            // Image data
             BufferedImage maskbi = new BufferedImage(right, bottom, BufferedImage.TYPE_INT_ARGB);
             DataBuffer maskdb = maskbi.getRaster().getDataBuffer();
             for (int y = 0; y < bottom; y++) {
@@ -511,7 +511,7 @@ public class HCResource {
                 }
             }
 
-            // 画像データ
+            // Image data
             bi = new BufferedImage(right, bottom, BufferedImage.TYPE_INT_ARGB);
             DataBuffer monodb = bi.getRaster().getDataBuffer();
             for (int y = 0; y < bottom; y++) {
@@ -532,7 +532,7 @@ public class HCResource {
                 /*int iconData =*/
                 u4(b, offset);
                 offset += 4;
-                // cTableヘッダ
+                // cTable header
                 /*int ctSeed =*/
                 u4(b, offset);
                 offset += 4;
@@ -561,7 +561,7 @@ public class HCResource {
                     }
                 }
 
-                // 画像データ
+                // Image data
                 bi = new BufferedImage(right, bottom, BufferedImage.TYPE_INT_ARGB);
                 DataBuffer db = bi.getRaster().getDataBuffer();
                 for (int y = 0; y < bottom; y++) {
@@ -572,13 +572,13 @@ public class HCResource {
                             offset++;
                         }
                     } else {
-                        // packBitsを展開
+                        // Expand packBits
                         for (int i = 0; i < packSize; i++) {
                             int dsize = 0x00FF & b[offset];
                             offset++;
                             int doffset = 0;
                             if (dsize >= 128) {
-                                // 同じデータが連続する場合
+                                // When same data is continuous
                                 dsize = 256 - dsize + 1;
                                 int src = b[offset];
                                 offset++;
@@ -588,7 +588,7 @@ public class HCResource {
                                 }
                                 doffset += dsize;
                             } else {
-                                // データそのまま
+                                // Data as-is
                                 dsize++;
                                 for (int j = 0; j < dsize; j++) {
                                     if (rowBytes <= j + doffset) {
@@ -620,7 +620,7 @@ public class HCResource {
         }
 
 
-        // PNG形式に変換してファイルに保存
+        // Convert to PNG format and save to file
         File ofile = new File(parentPath + File.separatorChar + "cicn_" + id + ".png");
         try {
             ImageIO.write(bi, "png", ofile);
@@ -629,7 +629,7 @@ public class HCResource {
         }
 
         if (ofile.exists()) {
-            // 変換成功
+            // Conversion successful
             return ofile.getName();
         }
 
@@ -643,7 +643,7 @@ public class HCResource {
     private static String convertPICT2PICTfile(byte[] b, String parentPath, int id) {
         byte[] header = new byte[512];
 
-        // FileOutputStream作成
+        // Create FileOutputStream
         File ofile = new File(parentPath + File.separatorChar + "PICT_" + id + ".pict");
         FileOutputStream stream = null;
         try {
@@ -655,7 +655,7 @@ public class HCResource {
             return null;
         }
 
-        // 512byteのヘッダーを追加してファイルに保存
+        // Add 512-byte header and save to file
         try {
             stream.write(header);
             stream.write(b);
@@ -670,7 +670,7 @@ public class HCResource {
         }
 
         if (ofile.exists()) {
-            // 変換成功
+            // Conversion successful
             return ofile.getName();
         }
 
@@ -717,7 +717,7 @@ public class HCResource {
     private static String convertSND2AIFF(byte[] b, String parentPath, int id) {
         // System.out.println("SND_"+id+".aiff");
 
-        // FileInputStream作成
+        // Create FileInputStream
         FileOutputStream stream = null;
         File ofile = new File(parentPath + File.separatorChar + "SND_" + id + ".aiff");
         try {
@@ -730,7 +730,7 @@ public class HCResource {
         }
 
 
-        // デバッグ表示
+        // Debug display
         /*for(int i=0; i<b.length; ){
             String str1="";
             String str2="";
@@ -833,7 +833,7 @@ public class HCResource {
                     // System.out.println("baseFrequency:"+baseFrequency);
                     int dataOffset = in_offset;
 
-                    // AIFF形式に変換
+                    // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,
                             false/*signed*/, true/*big-endian*/);
                     InputStream in = new ByteArrayInputStream(b, dataOffset, length);
@@ -851,7 +851,7 @@ public class HCResource {
                     int sampleRate = 11025 * 65536;
                     int dataOffset = 54;// offset+22;
                     int length = b.length - dataOffset;
-                    // AIFF形式に変換
+                    // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,
                             false/*signed*/, true/*big-endian*/);
                     InputStream in = new ByteArrayInputStream(b, dataOffset, length);
@@ -864,11 +864,11 @@ public class HCResource {
                         e.printStackTrace();
                     }
 
-                    // 圧縮された音声の場合はデータを書き込み直す
+                    // Rewrite data for compressed audio
                     try {
                         RandomAccessFile raf = new RandomAccessFile(ofile, "rw");
 
-                        // 'FORM'のckSizeを圧縮ヘッダ分増やす
+                        // Increase 'FORM' ckSize by compressed header amount
                         raf.seek(4);
                         byte[] ckSizeByte = new byte[4];
                         raf.read(ckSizeByte, 0, 4);
@@ -889,7 +889,7 @@ public class HCResource {
                         raf.seek(11);
                         raf.write((byte) 'C');
 
-                        // 'COMM'のckSizeを圧縮ヘッダ分増やす
+                        // Increase 'COMM' ckSize by compressed header amount
                         raf.seek(12 + 4);
                         byte[] cmSizeByte = new byte[4];
                         raf.read(cmSizeByte, 0, 4);
@@ -906,7 +906,7 @@ public class HCResource {
                         System.out.println("cmSizeByte2:" + cmSizeByte2[0] + "," + cmSizeByte2[1] + "," + cmSizeByte2[2] + "," + cmSizeByte2[3]);
                         raf.write(cmSizeByte2, 0, 4);
 
-                        // 'SSND'の前に圧縮情報を入れる
+                        // Insert compression info before 'SSND'
                         raf.seek(38);
                         byte[] saveHeader = new byte[16];
                         raf.read(saveHeader, 0, 16);
@@ -920,7 +920,7 @@ public class HCResource {
                         raf.write(typebyte);
                         raf.write(saveHeader);
 
-                        // 音声データを入れる
+                        // Insert audio data
                         // length = Math.min(length, b.length-dataOffset);
                         raf.write(b, dataOffset, b.length - dataOffset);
                         raf.close();
@@ -989,7 +989,7 @@ public class HCResource {
                     int channel = 1;
                     int length = numofSamples;
 
-                    // AIFF形式に変換
+                    // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,
                             false/*signed*/, true/*big-endian*/);
                     InputStream in = new ByteArrayInputStream(b, dataOffset, length);
@@ -1006,11 +1006,11 @@ public class HCResource {
                     }
 
                     if (baseNote > 32767) {
-                        // 圧縮された音声の場合はデータを書き込み直す
+                        // Rewrite data for compressed audio
                         try {
                             RandomAccessFile raf = new RandomAccessFile(ofile, "rw");
 
-                            // 'FORM'のckSizeを圧縮ヘッダ分増やす
+                            // Increase 'FORM' ckSize by compressed header amount
                             raf.seek(4);
                             byte[] ckSizeByte = new byte[4];
                             raf.read(ckSizeByte, 0, 4);
@@ -1031,7 +1031,7 @@ public class HCResource {
                             raf.seek(11);
                             raf.write((byte) 'C');
 
-                            // 'COMM'のckSizeを圧縮ヘッダ分増やす
+                            // Increase 'COMM' ckSize by compressed header amount
                             raf.seek(12 + 4);
                             byte[] cmSizeByte = new byte[4];
                             raf.read(cmSizeByte, 0, 4);
@@ -1048,7 +1048,7 @@ public class HCResource {
                             // System.out.println("cmSizeByte2:"+cmSizeByte2[0]+","+cmSizeByte2[1]+","+cmSizeByte2[2]+","+cmSizeByte2[3]);
                             raf.write(cmSizeByte2, 0, 4);
 
-                            // 'SSND'の前に圧縮情報を入れる
+                            // Insert compression info before 'SSND'
                             raf.seek(38);
                             byte[] saveHeader = new byte[16];
                             raf.read(saveHeader, 0, 16);
@@ -1062,7 +1062,7 @@ public class HCResource {
                             raf.write(typebyte);
                             raf.write(saveHeader);
 
-                            // 音声データを入れる
+                            // Insert audio data
                             length = Math.min(length, b.length - dataOffset);
                             raf.write(b, dataOffset, length);
                             raf.close();
@@ -1081,7 +1081,7 @@ public class HCResource {
         }
 
         if (ofile.exists()) {
-            // 変換成功
+            // Conversion successful
             return ofile.getName();
         }
 
@@ -1094,8 +1094,8 @@ public class HCResource {
     // -----------
     private static void convertCURS2Cursor(byte[] b, String parentPath, int id,
                                            String name, Rsrc rsrc) {
-        // カーソルデータの取り込み
-        // 16*16bitの画像、マスク、Point型
+        // Load cursor data
+        // 16*16-bit image, mask, Point type
 
         BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
         DataBuffer db = bi.getRaster().getDataBuffer();
@@ -1114,7 +1114,7 @@ public class HCResource {
             }
         }
 
-        // PNG形式に変換してファイルに保存
+        // Convert to PNG format and save to file
         File ofile = new File(parentPath + File.separatorChar + "CURS_" + id + ".png");
         try {
             ImageIO.write(bi, "png", ofile);
@@ -1123,7 +1123,7 @@ public class HCResource {
         }
 
         if (ofile.exists()) {
-            // 変換成功
+            // Conversion successful
             int y = u2(b, (16 * 16 * 2) / 8);
             int x = u2(b, (16 * 16 * 2) / 8);
             rsrc.addResource(id, "cursor", name, ofile.getName(),
@@ -1138,11 +1138,11 @@ public class HCResource {
     // -----------
     @SuppressWarnings("unused")
     private static void convertFONT2PNG(byte[] b, String parentPath, int id, String name, Rsrc rsrc) {
-        // フォントデータの取り込み
+        // Load font data
         int offset = 0;
 
         if (b.length == 0) {
-            // フォント名のためだけに作られるダミー
+            // Dummy created only for font name
             rsrc.addResource(id, "font", name, "", "0", "0");
             return;
         }
@@ -1223,7 +1223,7 @@ public class HCResource {
             }
         }
 
-        // PNG形式に変換してファイルに保存
+        // Convert to PNG format and save to file
         File ofile = new File(parentPath + File.separatorChar + "FONT_" + id + ".png");
         try {
             ImageIO.write(bi, "png", ofile);
@@ -1232,7 +1232,7 @@ public class HCResource {
         }
 
         if (ofile.exists()) {
-            // 変換成功
+            // Conversion successful
             int x = firstChar;
             int y = lastChar;
             rsrc.addFontResource(id, "font", name, ofile.getName(),
@@ -1271,7 +1271,7 @@ public class HCResource {
             e.printStackTrace();
         }
 
-        // XCMDマップに追加
+        // Add to XCMD map
         Rsrc.xcmdClass xcmd = new Rsrc.xcmdClass(
                 Integer.toString(id), funcStr, name, path, "mac" + platform, Integer.toString(b.length));
         stack.rsrc.addXcmd(xcmd);
@@ -1435,7 +1435,7 @@ public class HCResource {
         }
 
         if (file.exists()) {
-            // 変換成功
+            // Conversion successful
             return file.getName();
         }
 

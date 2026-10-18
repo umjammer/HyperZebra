@@ -63,8 +63,8 @@ public class IconEditor extends PCARDFrame {
     private static final long serialVersionUID = 1L;
     IconEditor iconeditor;
     Rsrc rsrc;
-    int rsrcid; // 現在のid。可変。
-    int orgrsrcid; // 最初に開いたときに記録。不変。
+    int rsrcid; // Current id. Variable.
+    int orgrsrcid; // Recorded when first opened. Immutable.
     JTextField namefld;
     JTextField idfld;
     JFrame owner;
@@ -103,7 +103,7 @@ public class IconEditor extends PCARDFrame {
 
         System.gc();
 
-        // 画像を読み込む
+        // Load image
         BufferedImage bi = null;
         BufferedImage srcimg = rsrc.getImage(id, type);
         if (srcimg == null) {
@@ -136,7 +136,7 @@ public class IconEditor extends PCARDFrame {
         setBounds(owner.getX() + owner.getWidth() / 2 - w / 2, owner.getY() + owner.getHeight() / 2 - h / 2, w, h);
 
         {
-            // ペイント用バッファ
+            // Paint buffer
             mainImg = bi;
             bgImg = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
             Graphics2D g = (Graphics2D) bgImg.getGraphics();
@@ -326,7 +326,7 @@ public class IconEditor extends PCARDFrame {
             mainPane.setLayout(null);
             mainPane.setPreferredSize(new Dimension(bi.getWidth() * bit, bi.getHeight() * bit));
             mainPane.setBounds(0, 0, bi.getWidth() * bit, bi.getHeight() * bit);
-            mainPane.setOpaque(false); // 隅の画像が消えないのを抑止。
+            mainPane.setOpaque(false); // Prevent corner images from disappearing.
             scrollpane.setViewportView(mainPane);
 
             IconGUI gui = new IconGUI(this);
@@ -370,7 +370,7 @@ public class IconEditor extends PCARDFrame {
         try {
             id = Integer.parseInt(this.idfld.getText());
 
-            // 名前とidを反映
+            // Reflect name and id
             RsrcClass iconres;
 
             if (this.orgrsrcid == id) {
@@ -434,7 +434,7 @@ public class IconEditor extends PCARDFrame {
                 typeeditor.selectedId = new int[1];
                 typeeditor.selectedId[0] = id;
                 int scroll = typeeditor.scrollpane.getVerticalScrollBar().getValue();
-                // 開き直す
+                // Reload
                 typeeditor.open(typeeditor.pcard, scroll);
             } else {
                 typeeditor.updateContent(this.rsrcid);
@@ -463,7 +463,7 @@ public class IconEditor extends PCARDFrame {
             jfld.setPreferredSize(new Dimension(fldWidth, jfld.getPreferredSize().height));
             jfld.setName(name);
 
-            // textfieldに不要なフォーカスを取られないようにする
+            // Prevent textfield from getting unwanted focus
             jfld.setFocusable(false);
             for (int i = 0; i < textfields.length; i++) {
                 if (textfields[i] == null) {
@@ -687,7 +687,7 @@ class IEActionListener implements ActionListener {
     }
 
     public boolean ChangeTool(String cmd) {
-        // 前のツールの終了処理
+        // End processing of previous tool
         if (owner.tool != null) {
             owner.tool.end();
         }
@@ -752,7 +752,7 @@ class IEActionListener implements ActionListener {
             }
         }*/
         else {
-            return false;// 見つからない
+            return false;// Not found
         }
 
         return true;
@@ -781,7 +781,7 @@ class IEMenu {
 
         listener = new IEMenuListener(in_owner);
 
-        // メニューバーの設定
+        // Set menu bar
         JMenuBar mb = new JMenuBar();
         owner.setJMenuBar(mb);
 
@@ -794,14 +794,14 @@ class IEMenu {
         }
         int s_shift = s + InputEvent.SHIFT_DOWN_MASK;
 
-        // Fileメニュー
+        // File menu
         m = new JMenu(PCARD.pc.intl.getText("File"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Close")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
         mi.addActionListener(listener);
 
-        // Editメニュー
+        // Edit menu
         m = new JMenu(PCARD.pc.intl.getText("Edit"));
         mb.add(m);
         m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo Paint")));
@@ -833,7 +833,7 @@ class IEMenu {
             mi.addActionListener(listener);
         }
 
-        // Paintメニュー
+        // Paint menu
         m = new JMenu(PCARD.pc.intl.getText("Paint"));
         mb.add(m);
         // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
@@ -920,7 +920,7 @@ class IEMenu {
     }
 }
 
-// メニュー動作
+// Menu actions
 class IEMenuListener implements ActionListener {
 
     IconEditor editor;
@@ -963,7 +963,7 @@ class IconSizeDialog extends JDialog implements ActionListener {
         editor = owner;
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new GridLayout(2, 1));
         topPanel.setPreferredSize(new Dimension(200, 80));
@@ -998,7 +998,7 @@ class IconSizeDialog extends JDialog implements ActionListener {
             topPanel.add(panel);
         }
 
-        // パネルを追加する
+        // Add panel
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
 
@@ -1017,7 +1017,7 @@ class IconSizeDialog extends JDialog implements ActionListener {
         }
 
         setBounds(owner.getX() + owner.getWidth() / 2 - 120, owner.getY() + owner.getHeight() / 2 - 120, 240, 160);
-        setUndecorated(true);// タイトルバー非表示
+        setUndecorated(true);// Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();
@@ -1065,7 +1065,7 @@ class HotSpotDialog extends JDialog implements ActionListener {
         editor = owner;
         getContentPane().setLayout(new BorderLayout());
 
-        // パネルを追加する
+        // Add panel
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new GridLayout(2, 1));
         topPanel.setPreferredSize(new Dimension(200, 80));
@@ -1102,7 +1102,7 @@ class HotSpotDialog extends JDialog implements ActionListener {
             topPanel.add(panel);
         }
 
-        // パネルを追加する
+        // Add panel
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
 
@@ -1121,7 +1121,7 @@ class HotSpotDialog extends JDialog implements ActionListener {
         }
 
         setBounds(owner.getX() + owner.getWidth() / 2 - 120, owner.getY() + owner.getHeight() / 2 - 120, 240, 160);
-        setUndecorated(true);// タイトルバー非表示
+        setUndecorated(true);// Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();

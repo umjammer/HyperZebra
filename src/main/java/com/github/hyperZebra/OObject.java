@@ -91,7 +91,7 @@ public class OObject {
 
     public String getLongName() {
         if (objectType.equals("stack")) {
-            // スタックの場合は Stack "スタックのパス"になる
+            // For stacks, it becomes Stack "stack path"
             String path = ((OStack) this).file.toAbsolutePath().toString();
             for (int i = 0; i < path.length(); i++) {
                 if (path.charAt(i) == File.separatorChar) path = path.substring(0, i) + ":" + path.substring(i + 1);
@@ -153,7 +153,7 @@ class OHyperCard extends OObject {
 
     static OHyperCard hc = new OHyperCard();
 
-    // メイン
+    // Main
     public OHyperCard() {
         objectType = "hypercard";
     }
@@ -163,7 +163,7 @@ class OTitlebar extends OObject {
 
     static OTitlebar titlebar = new OTitlebar();
 
-    // メイン
+    // Main
     public OTitlebar() {
         objectType = "titlebar";
     }
@@ -173,7 +173,7 @@ class OMenubar extends OObject {
 
     static OMenubar menubar = new OMenubar();
 
-    // メイン
+    // Main
     public OMenubar() {
         objectType = "menubar";
     }
@@ -189,7 +189,7 @@ class OWindow extends OObject {
     TMP3 mp3;
     GPictWindow gpw;
 
-    // メイン
+    // Main
     public OWindow(JFrame inframe, boolean isCdWindow) {
         objectType = "window";
         frame = inframe;
@@ -201,7 +201,7 @@ class OWindow extends OObject {
         list.add(this);
     }
 
-    // メイン(Msg)
+    // Main (Msg)
     public OWindow(JDialog inframe) {
         objectType = "window";
         dlog = inframe;
@@ -210,7 +210,7 @@ class OWindow extends OObject {
         list.add(this);
     }
 
-    // メイン(Movieウィンドウ)
+    // Main (Movie Window)
     public OWindow(TMP3 in_mp3) {
         objectType = "window";
         mp3 = in_mp3;
@@ -247,7 +247,7 @@ class OMsg extends OObject {
 
     static OMsg msg = new OMsg();
 
-    // メイン
+    // Main
     public OMsg() {
         objectType = "msg";
     }
@@ -257,7 +257,7 @@ class OToolWindow extends OObject {
 
     static OToolWindow toolwindow = new OToolWindow();
 
-    // メイン
+    // Main
     public OToolWindow() {
         objectType = "tool window";
     }
@@ -267,7 +267,7 @@ class OPicture extends OObject {
 
     OCardBase parent;
 
-    // メイン
+    // Main
     public OPicture(OCardBase prt) {
         objectType = "picture";
         parent = prt;
@@ -291,7 +291,7 @@ class OMenu extends OObject {
 
     JMenu menu;
 
-    // メイン
+    // Main
     public OMenu(JMenu menu) {
         objectType = "menu";
         this.menu = menu;
@@ -303,7 +303,7 @@ class OMonitor extends OObject {
 
     static OMonitor monitor = new OMonitor();
 
-    // メイン
+    // Main
     public OMonitor() {
         objectType = "monitor";
     }

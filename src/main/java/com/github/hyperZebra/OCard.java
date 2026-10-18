@@ -31,15 +31,15 @@ public class OCard extends OCardBase {
     ArrayList<OBgButtonData> bgbtnList;
     ArrayList<OBgFieldData> bgfldList;
 
-    // プロパティ
+    // Properties
     Boolean cantDelete = false;
     Boolean cantModify = false;
     Boolean dontSearch = false;
     Boolean marked = false;
-    // number (スタックの情報から求める)
-    // rect (スタック情報)
+    // number (calculated from stack information)
+    // rect (stack information)
 
-    // 追加プロパティ
+    // Additional properties
 
     // toc.xml
     @SuppressWarnings("unused")
@@ -66,7 +66,7 @@ public class OCard extends OCardBase {
         changed = true;
     }
 
-    // メイン
+    // Main
     public static OCard getOCard(OStack st, int cardId, boolean dataonly) throws xTalkException {
         for (int i = 0; i < st.cdCacheList.size(); i++) {
             OCard cd = st.cdCacheList.get(i);
@@ -96,7 +96,7 @@ public class OCard extends OCardBase {
         this.bgfldList = new ArrayList<>();
 
         {
-            throw new xTalkException("そのidのカードのデータファイルがありません");
+            throw new xTalkException("No card data file with that id exists");
         }
     }
 
@@ -483,7 +483,7 @@ public class OCard extends OCardBase {
     }
 
 
-    // HCのスタックを変換
+    // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readCardBlock(DataInputStream dis, int blockSize) {
         // System.out.println("====readCardBlock====");
@@ -494,7 +494,7 @@ public class OCard extends OCardBase {
 
         int offset = 54;
 
-        // ブロックのデータを順次読み込み
+        // Read block data sequentially
         id = HCData.readCode(dis, 4);
         // HCStackDebug.debuginfo("id:"+Integer.toString(id));
         // System.out.println("id:"+id);
@@ -592,7 +592,7 @@ public class OCard extends OCardBase {
             // HCStackDebug.debuginfo("==cd content "+i+"==");
 
             int pid;
-            /*{// アライメント調整
+            /*{// Alignment adjustment
                 pid = HCData.readCode(dis, 1);
                 while(pid<=0 || (pid==255 && i<255) || (pid==254 && i<255)){
                     pid = (pid<<8) + HCData.readCode(dis, 1);
@@ -663,7 +663,7 @@ public class OCard extends OCardBase {
                 contLen -= formattingLength;
             }
 
-            // テキスト
+            // Text
             resultStr contentResult;
             if (orgcontLen % 2 == 1) {
                 // System.out.println("readText(contLen+1="+(contLen+1)+")");
@@ -757,7 +757,7 @@ public class OCard extends OCardBase {
             }
         }
 
-        // スクリプト
+        // Script
         String[] scriptAry = scriptStr.split("\n");
         Collections.addAll(scriptList, scriptAry);
         stringList = new ArrayList[scriptList.size()];
@@ -770,11 +770,11 @@ public class OCard extends OCardBase {
     private static OCard buildOCard(OCard cd) {
         cd.picture = new OPicture(cd);
 
-        // ピクチャ読み込み(pbm)
+        // Load picture (pbm)
         if (cd.bitmapName != null) {
             try {
                 Path path = cd.stack.file.getParent().resolve(cd.bitmapName);
-                // 読み込まれるまで待つ
+                // Wait until loaded
                 for (int i = 0; HCData.threadList != null && i < HCData.threadList.size(); i++) {
                     Thread p = HCData.threadList.get(i);
                     if (p != null && p.getName().equals(cd.bitmapName)) {
@@ -810,7 +810,7 @@ public class OCard extends OCardBase {
             }
         }
 
-        // ピクチャ読み込み
+        // Load picture
         File file = new File(cd.stack.file.getParent() + "/resource/cdp" + cd.id + ".png");
         try {
             if (file.exists()) {
@@ -831,7 +831,7 @@ public class OCard extends OCardBase {
                 }
             }
         } catch (Exception err1) {
-            // アルファを使用したピクチャが無い場合はマスク画像を使用して作成
+            // If there's no picture with alpha, create it using the mask image
             try {
                 cd.pict = ImageIO.read(new File(cd.stack.file.getParent() + "/resource/cdp" + cd.id + "_img.png"));
                 file = new File(cd.stack.file.getParent() + "/resource/cdp" + cd.id + "_mask.png");
@@ -902,7 +902,7 @@ public class OCard extends OCardBase {
     static void reloadCurrentCard() {
         if (PCARD.pc.stack.curCard == null) return;
 
-        // 画面作り直し
+        // Rebuild display
         int id = PCARD.pc.stack.curCard.id;
         PCARD.pc.stack.curCard.removeData();
         if (PCARD.pc.stack.curCard.bg != null) PCARD.pc.stack.curCard.bg.removeData();
@@ -915,7 +915,7 @@ public class OCard extends OCardBase {
             e1.printStackTrace();
         }
 
-        // バックグラウンド編集の場合、カードのコンポーネントを外す
+        // When editing background, remove card components
         if (PaintTool.editBackground) {
             for (int i = 0; i < PCARD.pc.stack.curCard.btnList.size(); i++) {
                 PCARD.pc.mainPane.remove(PCARD.pc.stack.curCard.btnList.get(i).getComponent());
@@ -927,9 +927,9 @@ public class OCard extends OCardBase {
 
         PCARD.pc.mainPane.repaint();
 
-        // リスナーも付け直し
+        // Reattach listeners
         if (AuthTool.tool != null) {
-            // オーサリングモード
+            // Authoring mode
             if (AuthTool.tool.getClass() == ButtonTool.class) {
                 GUI.removeAllListener();
                 ButtonGUI.gui.addListenerToParts();
@@ -939,9 +939,9 @@ public class OCard extends OCardBase {
                 FieldGUI.gui.target = null;
             }
         } else if (PCARD.pc.tool != null) {
-            // ペイントモード
+            // Paint mode
         } else {
-            // ブラウズモード
+            // Browse mode
             GUI.removeAllListener();
             GUI.addAllListener();
             if (PCARD.pc.stack.addColor != null) {
@@ -1014,7 +1014,7 @@ class MyLabel extends JLabel {
 
         g.drawImage(cd.pict, 0, 0, PCARD.pc.mainPane);
 
-        // addColor用
+        // For addColor
         /*if(PCARD.pc.stack.addColor != null){
             Graphics2D g2 = (Graphics2D) g;
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));

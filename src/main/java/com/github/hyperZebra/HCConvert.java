@@ -31,7 +31,7 @@ public class HCConvert {
     public static boolean openHCStack(String path, OStack stack) {
         // System.out.println("openHCStack...");
 
-        // 進捗表示を開始
+        // Start progress display
         stack.barDialog = new JDialog(stack.pcard);
         stack.barDialog.setUndecorated(true);
         stack.barDialog.getContentPane().setLayout(new BorderLayout());
@@ -47,10 +47,10 @@ public class HCConvert {
         stack.bar.paintImmediately(stack.bar.getBounds());
         stack.bar.setString("Make tar archive");
 
-        // Javaからリソースを読むために、Apple-Doubleフォーマットでtar
+        // Create tar in Apple-Double format to read resources from Java
         File tarFile = MakeAppleDoubleTar(path);
 
-        // ディレクトリを作成
+        // Create directory
         if (!CreateStackFolder(stack, Paths.get(path))) {
             tarFile.delete();
             stack.barDialog.remove(stack.bar);
@@ -60,11 +60,11 @@ public class HCConvert {
 
         if (tarFile != null) {
             stack.bar.setString("readFromTar");
-            // tarされたデータフォークとリソースフォークを取り出す
+            // Extract data fork and resource fork from tar
             if (!readFromTar(tarFile, stack)) {
                 System.out.println("Error occured at read data from tar file.");
             } else {
-                // 読み込み成功
+                // Read successful
                 tarFile.delete();
                 stack.barDialog.remove(stack.bar);
                 stack.barDialog.dispose();
@@ -76,7 +76,7 @@ public class HCConvert {
 
                 return true;
             }
-        } else { // リソースフォーク無しで直接読み込む
+        } else { // Read directly without resource fork
             // System.out.println("Load File Direct");
             stack.bar.setString("Load File Direct");
 
@@ -88,14 +88,14 @@ public class HCConvert {
                 e.printStackTrace();
             }
 
-            // データフォーク読み込み
+            // Read data fork
             if (dis == null || !HCData.readDataFork(dis, stack)) {
                 System.out.println("Error occured at reading data from file.");
                 new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Error occured at reading HyperCard stack data."),
                         null, "OK", null, null);
             } else {
-                // リソースフォークっぽい名前のファイルがあればリソースフォーク読み込み
-                // 1.AppleDoubleHeaderの解凍時のファイル
+                // If there's a file with a resource fork-like name, read resource fork
+                // 1. File when decompressing AppleDoubleHeader
                 String searchPath = new File(path).getParent() + File.separatorChar + "._" + new File(path).getName();
                 File rsrcFile = new File(searchPath);
                 if (!rsrcFile.exists()) {
@@ -110,14 +110,14 @@ public class HCConvert {
                         e.printStackTrace();
                     }
 
-                    // AppleDoubleのヘッダファイルとして読み込み
+                    // Read as AppleDouble header file
                     HCResource.readAppleDoubleHeader(rsrc_dis, stack);
                 } else {
                     System.out.println("Resource file is not found.");
                     new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Resource data is not found."),
                             null, "OK", null, null);
                 }
-                // リソースファイルがなくても成功
+                // Success even without resource file
                 stack.barDialog.remove(stack.bar);
                 stack.barDialog.dispose();
 
@@ -129,7 +129,7 @@ public class HCConvert {
             }
         }
 
-        // 読み込みエラー
+        // Read error
         if (tarFile != null) {
             tarFile.delete();
         }
@@ -142,7 +142,7 @@ public class HCConvert {
     public static boolean openMacBinaryStack(String path, OStack stack) {
         // System.out.println("openMacBinaryHCStack...");
 
-        // 進捗表示を開始
+        // Start progress display
         stack.barDialog = new JDialog(stack.pcard);
         stack.barDialog.setUndecorated(true);
         stack.bar = new JProgressBar();
@@ -156,18 +156,18 @@ public class HCConvert {
         stack.barDialog.setVisible(true);
         stack.bar.paintImmediately(stack.bar.getBounds());
 
-        // ディレクトリを作成
+        // Create directory
         if (!CreateStackFolder(stack, Paths.get(path))) {
             stack.barDialog.remove(stack.bar);
             stack.barDialog.dispose();
         }
 
-        // MacBinaryは128バイトのヘッダ
-        // + データフォーク  (データフォークの長さを128byteで切り上げる)
-        // + リソースフォーク
+        // MacBinary has 128-byte header
+        // + data fork (data fork length rounded up to 128 bytes)
+        // + resource fork
         //
-        // lzh形式のファイルを解凍するとMacBinary形式だったりする。
-        // Windows版StuffItExpanderでは解凍後にMacBinaryにするオプションがある
+        // Decompressing lzh format files may result in MacBinary format.
+        // Windows version of StuffItExpander has an option to convert to MacBinary after decompression
 
         FileInputStream fis = null;
         try {
@@ -188,10 +188,10 @@ public class HCConvert {
                     ((0x00FF & header[84]) << 16) +
                     ((0x00FF & header[85]) << 8) +
                     ((0x00FF & header[86]));
-            // データフォーク部分をbyte配列に読み込む
+            // Read data fork portion into byte array
             if (dataForkLen > 100 * 1000 * 1000) {
-                // 100M以上のはずがない
-                dataForkLen = 10 * 1000 * 1000;// とりあえず10Mで。
+                // Shouldn't be more than 100M
+                dataForkLen = 10 * 1000 * 1000;// For now, set to 10M.
             }
             byte[] dataBytes = new byte[dataForkLen];
             try {
@@ -201,7 +201,7 @@ public class HCConvert {
             }
             DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dataBytes));
 
-            // データフォーク読み込み
+            // Read data fork
             if (HCData.readDataFork(dis, stack)) {
                 dataBytes = null;
 
@@ -211,8 +211,8 @@ public class HCConvert {
                         ((0x00FF & header[90]));
 
                 byte[] rsrcBytes = null;
-                if (rsrcForkLen > 0) { // リソースフォークがあるか？
-                    // データフォークの次のブロックまで読み飛ばす
+                if (rsrcForkLen > 0) { // Is there a resource fork?
+                    // Skip to the next block after data fork
                     byte[] nullBytes = new byte[128 - ((dataForkLen - 1) % 128 + 1)];
                     try {
                         fis.read(nullBytes, 0, 128 - ((dataForkLen - 1) % 128 + 1));
@@ -220,10 +220,10 @@ public class HCConvert {
                         e.printStackTrace();
                     }
 
-                    // リソースフォーク部分をbyte配列に読み込む
+                    // Read resource fork portion into byte array
                     if (rsrcForkLen > 300 * 1000 * 1000) {
-                        // 300M以上のはずがない
-                        rsrcForkLen = 10 * 1000 * 1000;// とりあえず10Mで。
+                        // Shouldn't be more than 300M
+                        rsrcForkLen = 10 * 1000 * 1000;// For now, set to 10M.
                     }
                     rsrcBytes = new byte[rsrcForkLen];
                     try {
@@ -254,7 +254,7 @@ public class HCConvert {
             }
         }
 
-        // 読み込みエラー
+        // Read error
         stack.barDialog.remove(stack.bar);
         stack.barDialog.dispose();
         return false;
@@ -266,7 +266,7 @@ public class HCConvert {
         stack.bar.setString("Create a new folder");
         stack.bar.paintImmediately(stack.bar.getBounds());
 
-        // ディレクトリを作成
+        // Create directory
         Path newdir = Paths.get("/tmp", path.getFileName() + ".hzb");
         int i = 2;
         while (Files.exists(newdir)) {
@@ -288,7 +288,7 @@ public class HCConvert {
 
 
     public static File MakeAppleDoubleTar(String path) {
-        // MacOSXであること
+        // Must be on MacOSX
         String os = System.getProperty("os.name");
         if (os != null && os.startsWith("Mac OS X")) {
         } else {
@@ -300,7 +300,7 @@ public class HCConvert {
         String srcpath = path;
         String tarpath = path;
         for (int i = 0; i < srcpath.length(); i++) {
-            if (srcpath.charAt(i) >= 128 || srcpath.length() >= 100 - 2) { // 2byte文字やパスがtarに格納できるより長かったら
+            if (srcpath.charAt(i) >= 128 || srcpath.length() >= 100 - 2) { // If 2-byte characters or path is longer than tar can store
                 String renameStr;
                 int j = 1;
                 while (true) {
@@ -314,9 +314,9 @@ public class HCConvert {
                 srcpath = renameStr;
 
                 {
-                    // コピーを作るとリソースフォークが失われてしまう
+                    // Creating a copy will lose the resource fork
 
-                    // 日本語パス対策でテンポラリにスタックのコピーを作る
+                    // Create stack copy in temp directory as a workaround for Japanese paths
 //                    srcpath = System.getProperty("java.io.tmpdir") + File.separatorChar + "hyperzebra_stack";
 //
 //                    try {
@@ -335,7 +335,7 @@ public class HCConvert {
 //                    }
                 }
 
-                // 日本語パス対策でテンポラリにtarアーカイブを作る
+                // Create tar archive in temp directory as a workaround for Japanese paths
                 tarpath = System.getProperty("java.io.tmpdir") + File.separatorChar + "hyperzebra_work";
                 break;
             }
@@ -350,7 +350,7 @@ public class HCConvert {
             i++;
         }
 
-        // Appleのtarで保存
+        // Save with Apple's tar
         try {
             ProcessBuilder pb = new ProcessBuilder("tar", "-cvf", path2 + ".tar", srcpath);
             // ProcessBuilder pb = new ProcessBuilder("tar", "-cvf", path+".tar", path);
@@ -369,7 +369,7 @@ public class HCConvert {
                 }
             }
             if (!isSuccess) {
-                // successしない
+                // Not successful
                 // System.out.println("Error occured at creating tar archive.");
             }
         } catch (IOException | InterruptedException e1) {
@@ -378,7 +378,7 @@ public class HCConvert {
         }
 
         if (!srcpath.equals(path)) {
-            // ファイルを移動していたら元に戻す
+            // Restore if file was moved
             new File(srcpath).renameTo(new File(path));
         }
 
@@ -415,7 +415,7 @@ public class HCConvert {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        // Apache antのライブラリでtarを扱う
+        // Handle tar with Apache ant library
         if (tin == null) return false;
         try {
             MyTarEntry tarEnt = tin.getNextEntry();
@@ -428,13 +428,13 @@ public class HCConvert {
                 DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
                 if (name.contains("._")) {
-                    // Apple Double Header File(リソースフォークを含む)
+                    // Apple Double Header File (includes resource fork)
                     if (!HCResource.readAppleDoubleHeader(dis, stack)) {
                         System.out.println("Error occured at reading resouce fork from tar file.");
                     }
                     stack.barOffset += 25;
                 } else if (!name.contains("PaxHeader")) {
-                    // データフォーク
+                    // Data fork
                     if (!HCData.readDataFork(dis, stack)) {
                         System.out.println("Error occured at reading data fork from tar file.");
                         new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Error occured at reading HyperCard stack data."),
@@ -467,7 +467,7 @@ public class HCConvert {
             for (int i = 0; i < size; i++) {
                 bos.write(fis.read());
             }
-            // パディング
+            // Padding
             if (512 - ((size - 1) % 512 + 1) > 0) {
                 for (int i = 0; i < 512 - ((size - 1) % 512 + 1); i++) {
                     fis.read();
@@ -476,7 +476,7 @@ public class HCConvert {
         }
 
         public MyTarEntry getNextEntry() throws IOException {
-            // ヘッダ512byte読み込み
+            // Read 512-byte header
             StringBuilder name = new StringBuilder(100);
             for (int i = 0; i < 100; i++) {
                 name.append((char) fis.read());
@@ -485,7 +485,7 @@ public class HCConvert {
                 fis.read();
             }
             if (name.toString().isEmpty()) {
-                return null; // 終端っぽい
+                return null; // Seems to be end
             }
 
             StringBuilder sizeStrbldr = new StringBuilder(12);
@@ -507,14 +507,14 @@ public class HCConvert {
             }
             String sizeStr = sizeStrbldr.toString();
             if (sizeStr.isEmpty()) {
-                return null; // 終端っぽい
+                return null; // Seems to be end
             }
             size = Integer.valueOf(sizeStr, 8);
             for (int i = 0; i < 512 - 100 - 24 - 11; i++) {
                 fis.read();
             }
 
-            // MyTarEntryクラスを作成して名前とサイズを返す
+            // Create MyTarEntry class and return name and size
             MyTarEntry entry = new MyTarEntry(name.toString(), size);
             return entry;
         }

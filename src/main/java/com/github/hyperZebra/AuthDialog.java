@@ -26,9 +26,9 @@ import javax.swing.event.DocumentListener;
 
 
 /**
- * 情報ダイアログに関するコード
+ * Information dialog related code
  * <p>
- * ツールそのものの機能はGUI.javaのButtonGUIなどにあります
+ * The tool's own functionality is in ButtonGUI etc. in GUI.java
  */
 public class AuthDialog extends JDialog {
 
@@ -83,7 +83,7 @@ public class AuthDialog extends JDialog {
             OButton obtn = (OButton) obj;
             AuthButtonListener btnlistener = new AuthButtonListener();
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
@@ -100,7 +100,7 @@ public class AuthDialog extends JDialog {
                 namePanel.setPreferredSize(new Dimension(w, jfield.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel infoPanel = new JPanel();
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -122,7 +122,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setPreferredSize(new Dimension(w, 24 * 3));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel stylePanel = new JPanel();
                 stylePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -151,7 +151,7 @@ public class AuthDialog extends JDialog {
                 stylePanel.setPreferredSize(new Dimension(w, popup.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel famiPanel = new JPanel();
                 famiPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -171,7 +171,7 @@ public class AuthDialog extends JDialog {
                 famiPanel.setPreferredSize(new Dimension(w, popup.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel propPanel = new JPanel();
                 propPanel.setLayout(new GridLayout(3, 2));
@@ -207,7 +207,7 @@ public class AuthDialog extends JDialog {
                 propPanel.setPreferredSize(new Dimension(w, check.getPreferredSize().height * 3));
             }
 
-            // パネルを追加する
+            // Add panel
 //            {
 //                JPanel emptyPanel = new JPanel();
 //                authDialog.getContentPane().add(emptyPanel);
@@ -215,7 +215,7 @@ public class AuthDialog extends JDialog {
 //                emptyPanel.setPreferredSize(new Dimension(w, 8));
 //            }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel colorPanel = new JPanel();
                 authDialog.getContentPane().add(colorPanel);
@@ -229,7 +229,7 @@ public class AuthDialog extends JDialog {
                 colorPanel.setPreferredSize(new Dimension(w, 32));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel buttonPanel = new JPanel();
                 buttonPanel.setLayout(new GridLayout(3, 2));
@@ -271,7 +271,7 @@ public class AuthDialog extends JDialog {
 
             AuthFieldListener fldlistener = new AuthFieldListener(multiplelinesbtn, fixedlineheightbtn);
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
@@ -288,7 +288,7 @@ public class AuthDialog extends JDialog {
                 namePanel.setPreferredSize(new Dimension(w, jfield.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel infoPanel = new JPanel();
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -310,7 +310,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setPreferredSize(new Dimension(w, 24 * 3));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel stylePanel = new JPanel();
                 stylePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -334,7 +334,7 @@ public class AuthDialog extends JDialog {
                 stylePanel.setPreferredSize(new Dimension(w, popup.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel propPanel = new JPanel();
                 propPanel.setLayout(new GridLayout(6, 2));
@@ -391,14 +391,14 @@ public class AuthDialog extends JDialog {
                 propPanel.setPreferredSize(new Dimension(w, check.getPreferredSize().height * 5));
             }
 
-            // パネルを追加する
+            // Add panel
 //            {
 //                JPanel emptyPanel = new JPanel();
 //                authDialog.getContentPane().add(emptyPanel);
 //
 //                emptyPanel.setPreferredSize(new Dimension(w, 8));
 //            }
-            // パネルを追加する
+            // Add panel
             {
                 JPanel colorPanel = new JPanel();
                 authDialog.getContentPane().add(colorPanel);
@@ -412,7 +412,7 @@ public class AuthDialog extends JDialog {
                 colorPanel.setPreferredSize(new Dimension(w, 32));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel buttonPanel = new JPanel();
                 buttonPanel.setLayout(new GridLayout(1, 2));
@@ -434,7 +434,7 @@ public class AuthDialog extends JDialog {
             OCard ocard = (OCard) obj;
             AuthCardListener cardlistener = new AuthCardListener();
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
@@ -451,7 +451,7 @@ public class AuthDialog extends JDialog {
                 namePanel.setPreferredSize(new Dimension(w, jfield.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel infoPanel = new JPanel();
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -470,7 +470,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setPreferredSize(new Dimension(w, 24 * 2));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel propPanel = new JPanel();
                 propPanel.setLayout(new GridLayout(4, 1));
@@ -496,7 +496,7 @@ public class AuthDialog extends JDialog {
                 propPanel.setPreferredSize(new Dimension(w, check.getPreferredSize().height * 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel buttonPanel = new JPanel();
                 // buttonPanel.setLayout(new GridLayout(1,1));
@@ -515,7 +515,7 @@ public class AuthDialog extends JDialog {
             OBackground obkgnd = (OBackground) obj;
             AuthBgListener bglistener = new AuthBgListener();
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
@@ -532,7 +532,7 @@ public class AuthDialog extends JDialog {
                 namePanel.setPreferredSize(new Dimension(w, jfield.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel infoPanel = new JPanel();
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -551,7 +551,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setPreferredSize(new Dimension(w, 24 * 2));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel propPanel = new JPanel();
                 propPanel.setLayout(new GridLayout(3, 1));
@@ -573,7 +573,7 @@ public class AuthDialog extends JDialog {
                 propPanel.setPreferredSize(new Dimension(w, check.getPreferredSize().height * 3));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel buttonPanel = new JPanel();
                 // buttonPanel.setLayout(new GridLayout(1,1));
@@ -592,7 +592,7 @@ public class AuthDialog extends JDialog {
             OStack ostack = (OStack) obj;
             AuthStackListener stacklistener = new AuthStackListener();
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
@@ -609,7 +609,7 @@ public class AuthDialog extends JDialog {
                 namePanel.setPreferredSize(new Dimension(w, jfield.getPreferredSize().height + 4));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel infoPanel = new JPanel();
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -623,7 +623,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setPreferredSize(new Dimension(w, 64 * 1));
             }
 
-            // パネルを追加する
+            // Add panel
             {
                 JPanel buttonPanel = new JPanel();
                 buttonPanel.setLayout(new GridLayout(1, 2));
@@ -997,7 +997,7 @@ public class AuthDialog extends JDialog {
             super(owner, true);
             getContentPane().setLayout(new BorderLayout());
 
-            // パネルを追加する
+            // Add panel
             JPanel topPanel = new JPanel();
             topPanel.setLayout(new GridLayout(2, 1));
             topPanel.setPreferredSize(new Dimension(200, 80));
@@ -1032,7 +1032,7 @@ public class AuthDialog extends JDialog {
                 topPanel.add(panel);
             }
 
-            // パネルを追加する
+            // Add panel
             JPanel btmPanel = new JPanel();
             getContentPane().add("South", btmPanel);
 
@@ -1051,7 +1051,7 @@ public class AuthDialog extends JDialog {
             }
 
             setBounds(owner.getX() + owner.getWidth() / 2 - 120, owner.getY() + owner.getHeight() / 2 - 120, 240, 160);
-            setUndecorated(true);// タイトルバー非表示
+            setUndecorated(true);// Hide title bar
 
             SwingUtilities.invokeLater(() -> {
                 if (defaultButton != null) defaultButton.requestFocus();

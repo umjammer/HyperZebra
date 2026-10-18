@@ -28,7 +28,7 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
         super(owner, true);
         getContentPane().setLayout(null);
 
-        // 説明文
+        // Description
         JTextArea area = new JTextArea(text);
         area.setBounds(8, 8, 304, 32);
         area.setMargin(new Insets(0, 0, 0, 0));
@@ -37,14 +37,14 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
         area.setFocusable(false);
         getContentPane().add(area);
 
-        // スクロール
+        // Scroll
         JScrollPane scrl = new JScrollPane();
         scrl.setBounds(8, 48, 304, 264);
         scrl.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrl.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         getContentPane().add(scrl);
 
-        // リスト
+        // List
         MyTextArea area2 = new MyTextArea(list);
         area2.pr_scrl = scrl;
         area2.setMargin(new Insets(0, 0, 0, 0));
@@ -53,7 +53,7 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
         area2.addMouseListener(this);
         scrl.setViewportView(area2);
 
-        // ボタン
+        // Buttons
         JButton btn = null;
         int i = 0;
         for (; i < btnlist.length; i++) {
@@ -75,7 +75,7 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
         } else {
             setBounds(owner.getX() + x, owner.getY() + y, 420, 320);
         }
-        setUndecorated(true);// タイトルバー非表示
+        setUndecorated(true);// Hide title bar
         setVisible(true);
     }
 

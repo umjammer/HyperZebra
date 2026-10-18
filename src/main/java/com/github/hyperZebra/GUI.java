@@ -31,13 +31,13 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-// マウス、キーボードを使うものをここに集めています。
+// Collects mouse and keyboard related items here.
 
 public class GUI implements MouseListener, MouseMotionListener, KeyListener {
 
     public static GUI gui = new GUI();
 
-    // マウス
+    // Mouse
     static int mouseH = 0;
     static int mouseV = 0;
     static int clickH = 0;
@@ -47,7 +47,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
     static String clickLine = "";
     static OField clickField;
 
-    // キー
+    // Key
     static int[] key = new int[256];
 
 
@@ -99,13 +99,13 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
     public void mousePressed(MouseEvent e) {
         if (PCARD.pc.stack == null || PCARD.pc.stack.curCard == null) return;
 
-        // フィールドからフォーカスを取り戻す
+        // Regain focus from field
         if (PCARD.pc.getFocusOwner() != null &&
                 PCARD.pc.getFocusOwner().getClass() == MyTextArea.class) {
             lastFocusArea = (MyTextArea) PCARD.pc.getFocusOwner();
             PCARD.pc.requestFocusInWindow();
             SwingUtilities.invokeLater(() -> {
-                // 一度消してやらないと最前面に描画されたまま後始末しない
+                // Must clear once, otherwise it stays drawn in front and isn't cleaned up
                 lastFocusArea.setVisible(false);
                 lastFocusArea.setVisible(true);
             });
@@ -141,17 +141,17 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
         mouseV = e.getY();
     }
 
-    // Key[]について
-    // 0:押されてないとき
-    // 3:押された直後
-    // 2:押された(3の後)
-    // 1:離された直後
+    // About Key[]
+    // 0: Not pressed
+    // 3: Just pressed
+    // 2: Pressed (after 3)
+    // 1: Just released
 
     @Override
     public void keyPressed(KeyEvent e) {
         // System.out.println("keyPressed:"+e.getKeyCode());
         int k = e.getKeyCode();
-        if (k >= 32 && k < 128) { // 数字、記号はそのまま、アルファベットは大文字のcode
+        if (k >= 32 && k < 128) { // Numbers and symbols as-is, alphabets are uppercase code
             if (k > 'a' && k <= 'z')
                 k -= 'a' - 'A';
             if (key[k] == 0) key[k] = 3;
@@ -182,8 +182,8 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
             case KeyEvent.VK_NUMPAD7 -> 107;
             case KeyEvent.VK_NUMPAD8 -> 108;
             case KeyEvent.VK_NUMPAD9 -> 109;
-            // cが110-116は左shift,alt,ctrl,meta用
-            // cが116-122は右shift,alt,ctrl,meta用
+            // c values 110-116 are for left shift, alt, ctrl, meta
+            // c values 116-122 are for right shift, alt, ctrl, meta
             case 107 -> '+';
             case 109 -> '-';
             default -> -1;
@@ -191,7 +191,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
         if (c >= 0) {
             if (key[c] == 0) key[c] = 3;
             if (c == 13 && !System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
-                c = 14; // OSX以外ではctrlキーをcmdキーとしても認識
+                c = 14; // On non-OSX, Ctrl key is also recognized as Cmd key
                 if (key[c] == 0) key[c] = 3;
             }
             if (e.getKeyLocation() == KeyEvent.KEY_LOCATION_LEFT && c >= 11 && c <= 16) {
@@ -267,8 +267,8 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
             case KeyEvent.VK_NUMPAD7 -> 107;
             case KeyEvent.VK_NUMPAD8 -> 108;
             case KeyEvent.VK_NUMPAD9 -> 109;
-            // cが110-116は左shift,alt,ctrl,meta用
-            // cが116-122は右shift,alt,ctrl,meta用
+            // c values 110-116 are for left shift, alt, ctrl, meta
+            // c values 116-122 are for right shift, alt, ctrl, meta
             case 107 -> '+';
             case 109 -> '-';
             default -> -1;
@@ -277,7 +277,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
             if (key[c] == 2) key[c] = 0;
             if (key[c] == 3) key[c] = 1;
             if (c == 13 && !System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
-                c = 14; // OSX以外ではctrlキーをcmdキーとしても認識
+                c = 14; // On non-OSX, Ctrl key is also recognized as Cmd key
                 if (key[c] == 2) key[c] = 0;
                 if (key[c] == 3) key[c] = 1;
             }
@@ -295,7 +295,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
-        // 文字が入力された場合に来るらしい
+        // Seems to be called when a character is input
 
         /*int k = e.getKeyCode();
         if(k>=32 && k<128){
@@ -311,7 +311,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
         for (int i = 0; i < 128; i++) {
             if (key[i] == 1 || key[i] == 3) {
                 if (TTalk.idle) {
-                    // 特殊ショートカットキー
+                    // Special shortcut keys
                     if (i >= 0 && i <= 3) {
                         if (i == 0) TTalk.CallMessage("arrowKey", "up", PCARDFrame.pc.stack.curCard, true, false);
                         else if (i == 1)
@@ -323,11 +323,11 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
                     }
                 }
                 if (key[12] == 0 && key[14] == 2 && i == '.') {
-                    // スクリプト強制停止
+                    // Force stop script
                     if (false == PCARDFrame.pc.stack.cantAbort) TTalk.stop = true;
                 }
                 if (key[12] == 2 && key[14] == 2 && i == '.') {
-                    // スクリプトトレース
+                    // Script trace
                     /*if(false==PCARDFrame.pc.stack.cantAbort)*/
                     TTalk.tracemode = 2;
                     ScriptEditor.setTracemode();
@@ -366,7 +366,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
         //    }
         // }
 
-        // optとcmd同時押しでボタンを破線で浮かび上がらせる
+        // Press opt and cmd simultaneously to highlight buttons with dashed lines
         if (TTalk.idle && false == PCARDFrame.pc.stack.cantPeek) outlineStrokeCheck();
 
         if (AuthTool.tool != null && AuthTool.tool instanceof ButtonGUI &&
@@ -446,7 +446,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
         }
     }
 
-    // アウトライン強調モードから通常状態に移行
+    // Transition from outline emphasis mode to normal state
     static void addAllListener() {
         PCARDFrame.pc.mainPane.repaint();
         // PCARDFrame.pc.removeMouseListener(outlineListen);
@@ -473,7 +473,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
         PCARDFrame.pc.getJMenuBar().setEnabled(true);
     }
 
-    // アウトライン強調モードに移行
+    // Transition to outline emphasis mode
     static void removeAllListener() {
         PCARDFrame.pc.stack.pcard.removeMouseListener(gui);
         PCARDFrame.pc.mainPane.removeMouseListener(gui);
@@ -710,7 +710,7 @@ class GPopup implements ActionListener, PopupMenuListener {
             GUI.mouseClicked();
             hidePopup = ((MyPopup) e.getSource());
             SwingUtilities.invokeLater(() -> {
-                hidePopup.setPopupVisible(false);// スクリプト実行中にメニューが開いたら取り消す
+                hidePopup.setPopupVisible(false);// Cancel if menu opens during script execution
             });
         }
     }
@@ -1006,7 +1006,7 @@ class paintGUI implements MouseListener, MouseMotionListener/*, WindowListener*/
     }
 
     /*public void windowActivated(WindowEvent arg0) {
-        // なぜフォーカスがツールバーに移るとmenuがdisabledになったままになる？？
+        // Why does the menu stay disabled when focus moves to toolbar??
         JMenuBar mb = PCARD.pc.getJMenuBar();
         int count = mb.getMenuCount();
         for(int i=0; i<count; i++){

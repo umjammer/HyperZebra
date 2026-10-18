@@ -17,7 +17,7 @@ public class OCardBase extends OObject {
 
     boolean changed;
 
-    // ボタン、フィールド情報
+    // Button, field information
     ArrayList<OObject> partsList;
     ArrayList<OButton> btnList;
     ArrayList<OField> fldList;
@@ -25,7 +25,7 @@ public class OCardBase extends OObject {
 
     @Override
     public void clean() {
-        // stack.mainPane.removeAll(); // すでに新しいスタックを読み込んでいるのでremoveしてはいけない
+        // stack.mainPane.removeAll(); // Don't remove since a new stack is already being loaded
         stack = null;
         pict = null;
         label = null;

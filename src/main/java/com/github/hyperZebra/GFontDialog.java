@@ -42,7 +42,7 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
         getContentPane().setLayout(null);
         setTitle(PCARD.pc.intl.getDialogText("Font"));
 
-        // サンプル表示
+        // Display sample
         sampleArea = new MyTextArea(rb.getString("font-dialog.sample"));
         sampleArea.fldData = new OField(null, 0);
         sampleArea.fldData.width = 400;
@@ -54,14 +54,14 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
         setStyleSample(defaultFont, defaultSize, defaultStyle, defaultAlign);
         getContentPane().add(sampleArea);
 
-        // フォント用スクロール
+        // Font scroll
         JScrollPane scrl = new JScrollPane();
         scrl.setBounds(4, 96, 192, 156);
         scrl.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrl.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         getContentPane().add(scrl);
 
-        // フォントリスト
+        // Font list
         String[] fontFamilyNames = GraphicsEnvironment
                 .getLocalGraphicsEnvironment()
                 .getAvailableFontFamilyNames();
@@ -78,21 +78,21 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
         fontarea.addMouseListener(this);
         scrl.setViewportView(fontarea);
 
-        // 行選択
+        // Select line
         for (int i = 0; i < fontFamilyNames.length; i++) {
             if (defaultFont.equals(fontFamilyNames[i])) {
                 lineSelect(i + 1, fontarea);
             }
         }
 
-        // サイズ用スクロール
+        // Size scroll
         JScrollPane sizeScrl = new JScrollPane();
         sizeScrl.setBounds(200, 96, 54, 156);
         sizeScrl.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         sizeScrl.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         getContentPane().add(sizeScrl);
 
-        // サイズリスト
+        // Size list
         StringBuilder sizeStrings = new StringBuilder();
         for (int i = 1; i <= 127; i++) {
             sizeStrings.append(i).append("\n");
@@ -106,16 +106,16 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
         sizearea.addMouseListener(this);
         sizeScrl.setViewportView(sizearea);
 
-        // 行選択
+        // Select line
         lineSelect(defaultSize, sizearea);
 
-        // パネル
+        // Panel
         JPanel stylePanel = new JPanel();
         stylePanel.setBounds(254, 96, 140, 156);
         stylePanel.setLayout(new GridLayout(7, 1));
         getContentPane().add(stylePanel);
 
-        // スタイル
+        // Style
         JCheckBox check = new JCheckBox(PCARD.pc.intl.getDialogText("Bold"));
         check.setSelected((defaultStyle & 1) > 0);
         check.addActionListener(this);
@@ -154,7 +154,7 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
         selectedStyle = defaultStyle;
 
         if (defaultAlign != -1) {
-            // パネル
+            // Panel
             JPanel alignPanel = new JPanel();
             alignPanel.setBounds(0, 250, 400, 300);
             alignPanel.setLayout(new FlowLayout());

@@ -53,7 +53,7 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        // ダイアログ内を作る
+        // Build dialog content
         makeDialog();
 
         setBounds(owner.getX() + owner.getWidth() / 2 - 150, owner.getY() + 20, 300, 200);
@@ -261,7 +261,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage getBigImage(BufferedImage bi) {
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = new BufferedImage(bi.getWidth() + 4, bi.getHeight() + 4, BufferedImage.TYPE_INT_ARGB);
 
         if (owner.tool.getClass() == SelectTool.class) {
@@ -292,7 +292,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage getBigImage(BufferedImage bi, int awidth, int aheight) {
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = new BufferedImage(bi.getWidth() + awidth * 2, bi.getHeight() + aheight * 2, BufferedImage.TYPE_INT_ARGB);
 
         if (owner.tool.getClass() == SelectTool.class) {
@@ -348,7 +348,7 @@ class PaintFilter extends JDialog implements ActionListener {
         newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         newg.fillRect(0, 0, newbi.getWidth(), newbi.getHeight());
 
-        // 処理 (8マス)
+        // Processing (8 cells)
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newbi.getRaster().getDataBuffer();
         int width = srcbi.getWidth();
@@ -390,13 +390,13 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
 
                 if (mode == 1) {
-                    // 周りで最も薄い色にする
+                    // Make the lightest color around
                     newdb.setElem(h + v * width, maxc);
                 } else if (mode == 0) {
-                    // 周りで最も濃い色にする
+                    // Make the darkest color around
                     newdb.setElem(h + v * width, minc);
                 } else {
-                    // 平均色にする
+                    // Make the average color
                     int cc = 0xFF000000 + (((((minc >> 17) & 0x7F) + ((maxc >> 17) & 0x7F))) << 16) + (((((minc >> 9) & 0x7F) + ((maxc >> 9) & 0x7F))) << 8) + ((((minc >> 1) & 0x7F) + ((maxc >> 1) & 0x7F)));
                     newdb.setElem(h + v * width, cc);
                 }
@@ -408,7 +408,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage TraceEdges(BufferedImage bi) {
-        // 選択範囲の縁取り
+        // Border the selected area
 
         BufferedImage bigbi = getBigImage(bi);
 
@@ -417,7 +417,7 @@ class PaintFilter extends JDialog implements ActionListener {
         newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         newg.fillRect(0, 0, newbigbi.getWidth(), newbigbi.getHeight());
 
-        // 処理 (8マス)
+        // Processing (8 cells)
         DataBuffer srcdb = bigbi.getRaster().getDataBuffer();
         DataBuffer newdb = newbigbi.getRaster().getDataBuffer();
         int width = bigbi.getWidth();
@@ -459,10 +459,10 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
 
                 if (d[4] * 8 <= d[0] + d[1] + d[2] + d[3] + d[5] + d[6] + d[7] + d[8]) {
-                    // 周りで最も薄い色にする
+                    // Make the lightest color around
                     newdb.setElem(h + v * width, maxc);
                 } else {
-                    // 周りで最も濃い色にする
+                    // Make the darkest color around
                     newdb.setElem(h + v * width, minc);
                 }
             }
@@ -478,12 +478,12 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage TraceEdges2(BufferedImage bi) {
-        // フィルタによる縁取り
+        // Border with filter
 
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
 
-        // フィルター処理
+        // Filter processing
         float[] operator = {
                 0.00f, 0.00f, 0.50f, 0.00f, 0.00f,
                 0.00f, 0.00f, 0.00f, 0.00f, 0.00f,
@@ -505,14 +505,14 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage Median(BufferedImage srcbi) {
-        // 選択範囲のメディアン(中央値を取りますよ)
+        // Median of selected area (taking the median value)
 
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D newg = newbi.createGraphics();
         newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         newg.fillRect(0, 0, newbi.getWidth(), newbi.getHeight());
 
-        // 処理 (8マス)
+        // Processing (8 cells)
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newbi.getRaster().getDataBuffer();
         int width = srcbi.getWidth();
@@ -553,7 +553,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     continue;
                 }
 
-                // 中央値を使う
+                // Use median value
                 newdb.setElem(h + v * width, c[4]);
             }
         }
@@ -563,14 +563,14 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage Median5(BufferedImage srcbi) {
-        // 選択範囲のメディアン(中央値を取りますよ)(5近傍)
+        // Median of selected area (taking the median value)(5 neighbors)
 
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D newg = newbi.createGraphics();
         newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         newg.fillRect(0, 0, newbi.getWidth(), newbi.getHeight());
 
-        // 処理 (4マス)
+        // Processing (4 cells)
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newbi.getRaster().getDataBuffer();
         int width = srcbi.getWidth();
@@ -617,7 +617,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     continue;
                 }
 
-                // 中央値を使う
+                // Use median value
                 newdb.setElem(h + v * width, c[2]);
             }
         }
@@ -627,14 +627,14 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage Median25(BufferedImage srcbi) {
-        // 選択範囲のメディアン(中央値を取りますよ)
+        // Median of selected area (taking the median value)
 
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D newg = newbi.createGraphics();
         newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         newg.fillRect(0, 0, newbi.getWidth(), newbi.getHeight());
 
-        // 処理 (24マス)
+        // Processing (24 cells)
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newbi.getRaster().getDataBuffer();
         int width = srcbi.getWidth();
@@ -675,7 +675,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     continue;
                 }
 
-                // 中央値を使う
+                // Use median value
                 newdb.setElem(h + v * width, c[12]);
             }
         }
@@ -686,10 +686,10 @@ class PaintFilter extends JDialog implements ActionListener {
 
     private BufferedImage MotionBlur(BufferedImage bi) {
 
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
 
-        // フィルター処理
+        // Filter processing
         float[] operator = {
                 0.00f, 0.00f, 0.00f, 0.00f, 0.00f,
                 0.00f, -0.06f, -0.08f, -0.06f, 0.00f,
@@ -711,7 +711,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage GlassTile(BufferedImage bi) {
-        // myフィルター処理
+        // my filter processing
         int patWidth = 10;
         int patHeight = 10;
 
@@ -723,10 +723,10 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi, patWidth, patHeight);
 
-        // 処理
+        // Processing
         BufferedImage bignewimg = new BufferedImage(bi.getWidth() + patWidth * 2, bi.getHeight() + patHeight * 2, BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = bigbi.getRaster().getDataBuffer();
         DataBuffer newdb = bignewimg.getRaster().getDataBuffer();
@@ -747,7 +747,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage WaveH(BufferedImage bi) {
-        // myフィルター処理
+        // my filter processing
         int patWidth = 20;
         int patHeight = 20;
 
@@ -761,10 +761,10 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi, patWidth, patHeight);
 
-        // 処理
+        // Processing
         BufferedImage bignewimg = new BufferedImage(bi.getWidth() + patWidth * 2, bi.getHeight() + patHeight * 2, BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = bigbi.getRaster().getDataBuffer();
         DataBuffer newdb = bignewimg.getRaster().getDataBuffer();
@@ -787,7 +787,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage WaveV(BufferedImage bi) {
-        // myフィルター処理
+        // my filter processing
         int patWidth = 20;
         int patHeight = 20;
 
@@ -801,10 +801,10 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi, patWidth, patHeight);
 
-        // 処理
+        // Processing
         BufferedImage bignewimg = new BufferedImage(bi.getWidth() + patWidth * 2, bi.getHeight() + patHeight * 2, BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = bigbi.getRaster().getDataBuffer();
         DataBuffer newdb = bignewimg.getRaster().getDataBuffer();
@@ -838,10 +838,10 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi, patWidth, patHeight);
 
-        // 処理
+        // Processing
         BufferedImage bignewimg = new BufferedImage(bi.getWidth() + patWidth * 2, bi.getHeight() + patHeight * 2, BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = bigbi.getRaster().getDataBuffer();
         DataBuffer newdb = bignewimg.getRaster().getDataBuffer();
@@ -864,7 +864,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage Noise(BufferedImage srcbi) {
-        // 処理
+        // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
@@ -898,7 +898,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage HighContrast(BufferedImage srcbi) {
-        // 処理
+        // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
@@ -932,7 +932,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage LowContrast(BufferedImage srcbi) {
-        // 処理
+        // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
@@ -960,7 +960,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage HighSaturation(BufferedImage srcbi) {
-        // 処理
+        // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
@@ -990,7 +990,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage LowSaturation(BufferedImage srcbi) {
-        // 処理
+        // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
@@ -1020,7 +1020,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private static BufferedImage Grayscale(BufferedImage srcbi) {
-        // 処理
+        // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
         DataBuffer newdb = newimg.getRaster().getDataBuffer();
@@ -1047,7 +1047,7 @@ class PaintFilter extends JDialog implements ActionListener {
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
         if (dithermode == -1) {
-            // ディザ無し
+            // No dither
             DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
             DataBuffer newdb = newimg.getRaster().getDataBuffer();
             int width = srcbi.getWidth();
@@ -1085,12 +1085,12 @@ class PaintFilter extends JDialog implements ActionListener {
                     int color = srcdb.getElem(h + v * width);
                     int alpha = color & 0xFF000000;
 
-                    // 明るさを求める
+                    // Calculate brightness
                     int brightness = (int) (0.29891f * ((color >> 16) & 0xFF) + 0.58661f * ((color >> 8) & 0xFF) + 0.1144f * ((color) & 0xFF));
-                    // ガンマ調整 brightness = (int) (Math.pow(brightness/256f, 1.8)*256);
+                    // Gamma adjustment brightness = (int) (Math.pow(brightness/256f, 1.8)*256);
                     brightness += newdb.getElem(h + v * width);
 
-                    // ピクセルを白か黒にする
+                    // Make pixel white or black
                     if (brightness >= 128) {
                         brightness -= 256;
                         newdb.setElem(h + v * width, alpha + 0x00FFFFFF);
@@ -1098,7 +1098,7 @@ class PaintFilter extends JDialog implements ActionListener {
                         newdb.setElem(h + v * width, alpha + 0x00000000);
                     }
 
-                    // 誤差を拡散する
+                    // Spread error
                     if (h + 1 < width)
                         newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + brightness * 7 / 16);
                     if (v + 1 >= height) continue;
@@ -1128,12 +1128,12 @@ class PaintFilter extends JDialog implements ActionListener {
                     int color = srcdb.getElem(h + v * width);
                     int alpha = color & 0xFF000000;
 
-                    // 明るさを求める
+                    // Calculate brightness
                     int brightness = (int) (0.29891f * ((color >> 16) & 0xFF) + 0.58661f * ((color >> 8) & 0xFF) + 0.1144f * ((color) & 0xFF));
-                    // ガンマ調整 brightness = (int) (Math.pow(brightness/256f, 1.8)*256);
+                    // Gamma adjustment brightness = (int) (Math.pow(brightness/256f, 1.8)*256);
                     brightness += newdb.getElem(h + v * width);
 
-                    // ピクセルを白か黒にする
+                    // Make pixel white or black
                     if (brightness >= 128) {
                         brightness -= 256;
                         newdb.setElem(h + v * width, alpha + 0x00FFFFFF);
@@ -1141,7 +1141,7 @@ class PaintFilter extends JDialog implements ActionListener {
                         newdb.setElem(h + v * width, alpha + 0x00000000);
                     }
 
-                    // 誤差を拡散する
+                    // Spread error
                     int carry = brightness / 8;
                     if (h + 1 < width) newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + carry);
                     if (h + 2 < width) newdb.setElem(h + 2 + v * width, newdb.getElem(h + 2 + v * width) + carry);
@@ -1153,7 +1153,7 @@ class PaintFilter extends JDialog implements ActionListener {
                         newdb.setElem(h + 1 + (v + 1) * width, newdb.getElem(h + 1 + (v + 1) * width) + carry);
                     if (v + 2 < height) newdb.setElem(h + (v + 2) * width, carry);
 
-                    // 誤差を拡散する(Burkes)
+                    // Spread error(Burkes)
                     /*int carry = brightness;
                     if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*4/16);
                     if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*2/16);
@@ -1164,7 +1164,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     if(h+1<width) newdb.setElem(h+1+(v+1)*width, newdb.getElem(h+1+(v+1)*width)+carry*2/16);
                     if(h+2<width) newdb.setElem(h+2+(v+1)*width, newdb.getElem(h+2+(v+1)*width)+carry*1/16);
                     */
-                    // 誤差を拡散する(Stucki)
+                    // Spread error(Stucki)
                     /*int carry = brightness;
                     if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*8/42);
                     if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*4/42);
@@ -1181,7 +1181,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     if(h+1<width) newdb.setElem(h+1+(v+2)*width, newdb.getElem(h+1+(v+2)*width)+carry*2/42);
                     if(h+2<width) newdb.setElem(h+2+(v+2)*width, newdb.getElem(h+2+(v+2)*width)+carry*1/42);
                     */
-                    // 誤差を拡散する(JaJuNi)
+                    // Spread error(JaJuNi)
                     /*int carry = brightness;
                     if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*7/48);
                     if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*5/48);
@@ -1198,7 +1198,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     if(h+1<width) newdb.setElem(h+1+(v+2)*width, newdb.getElem(h+1+(v+2)*width)+carry*3/48);
                     if(h+2<width) newdb.setElem(h+2+(v+2)*width, newdb.getElem(h+2+(v+2)*width)+carry*1/48);
                     */
-                    // 誤差を拡散する(Sierra 2line)
+                    // Spread error(Sierra 2line)
                     /*int carry = brightness;
                     if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*4/16);
                     if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*3/16);
@@ -1209,7 +1209,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     if(h+1<width) newdb.setElem(h+1+(v+1)*width, newdb.getElem(h+1+(v+1)*width)+carry*2/16);
                     if(h+2<width) newdb.setElem(h+2+(v+1)*width, newdb.getElem(h+2+(v+1)*width)+carry*1/16);
                     */
-                    // 誤差を拡散する(Sierra lite)
+                    // Spread error(Sierra lite)
                     /*int carry = brightness;
                     if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*2/4);
                     if(v+1>=height) continue;
@@ -1220,7 +1220,7 @@ class PaintFilter extends JDialog implements ActionListener {
             }
 
         } else if (dithermode == 2) {
-            // パターン処理はJavaのdrawImageに任せる
+            // Leave pattern processing to Java's drawImage
             byte[] r_a = new byte[] {(byte) 0, (byte) 254};
             byte[] g_a = new byte[] {(byte) 0, (byte) 255};
             byte[] b_a = new byte[] {(byte) 0, (byte) 254};
@@ -1249,11 +1249,11 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage Blur(BufferedImage bi) {
-        // 処理
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Processing
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
 
-        // フィルター処理
+        // Filter processing
         float[] operator = {
                 0.00f, 0.01f, 0.02f, 0.01f, 0.00f,
                 0.01f, 0.03f, 0.08f, 0.03f, 0.01f,
@@ -1275,11 +1275,11 @@ class PaintFilter extends JDialog implements ActionListener {
 
 
     private BufferedImage Sharpen(BufferedImage bi) {
-        // 処理
-        // 端の処理をさせるため、画像サイズを大きくする
+        // Processing
+        // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
 
-        // フィルター処理
+        // Filter processing
         float[] operator = {
                 -0.00f, -0.01f, -0.02f, -0.01f, -0.00f,
                 -0.01f, -0.03f, -0.08f, -0.03f, -0.01f,
@@ -1311,7 +1311,7 @@ class PaintFilter extends JDialog implements ActionListener {
             this.count = cnt;
         }
 
-        int redmin; // 色空間エリア
+        int redmin; // Color space area
         int redmax;
         int greenmin;
         int greenmax;
@@ -1323,7 +1323,7 @@ class PaintFilter extends JDialog implements ActionListener {
         int reddist;
         int greendist;
         int bluedist;
-        int count; // エリア内にあるピクセル数
+        int count; // Number of pixels in the area
 
         int[] initArea = new int[6];
 
@@ -1344,7 +1344,7 @@ class PaintFilter extends JDialog implements ActionListener {
             this.redavr = 0;
             float pixtotal = 0;
             for (int i = this.redmin; i < this.redmax; i++) {
-                // ピクセル数を数える
+                // Count pixels
                 countHist[i] = 0;
                 for (int g = this.greenmin; g < this.greenmax; g++) {
                     for (int b = this.bluemin; b < this.bluemax; b++) {
@@ -1354,7 +1354,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 pixtotal += countHist[i];
                 this.redavr += i * countHist[i];
                 if (countHist[i] > 0) {
-                    // ピクセルがあるのでminとmaxに反映
+                    // There are pixels, reflect in min and max
                     if (iredmin == -1) {
                         iredmin = i;
                         this.redmin = i;
@@ -1364,7 +1364,7 @@ class PaintFilter extends JDialog implements ActionListener {
             }
             this.redmax = iredmax;
             this.redavr /= (pixtotal);
-            // 平均値との乖離の合計を求める
+            // Calculate total deviation from average value
             this.reddist = 0;
             for (int i = this.redmin; i < this.redmax; i++) {
                 this.reddist = (int) (this.reddist + countHist[i] * Math.abs(i - this.redavr))/*/(this.redmax-this.redmin)*/;
@@ -1378,7 +1378,7 @@ class PaintFilter extends JDialog implements ActionListener {
             this.greenavr = 0;
             pixtotal = 0;
             for (int i = this.greenmin; i < this.greenmax; i++) {
-                // ピクセル数を数える
+                // Count pixels
                 countHist[i] = 0;
                 for (int r = this.redmin; r < this.redmax; r++) {
                     for (int b = this.bluemin; b < this.bluemax; b++) {
@@ -1388,7 +1388,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 pixtotal += countHist[i];
                 this.greenavr += i * countHist[i];
                 if (countHist[i] > 0) {
-                    // ピクセルがあるのでminとmaxに反映
+                    // There are pixels, reflect in min and max
                     if (igreenmin == -1) {
                         igreenmin = i;
                         this.greenmin = i;
@@ -1398,7 +1398,7 @@ class PaintFilter extends JDialog implements ActionListener {
             }
             this.greenmax = igreenmax;
             this.greenavr /= (pixtotal);
-            // 平均値との乖離の合計を求める
+            // Calculate total deviation from average value
             this.greendist = 0;
             for (int i = this.greenmin; i < this.greenmax; i++) {
                 this.greendist = (int) (this.greendist + countHist[i] * Math.abs(i - this.greenavr))/*/(this.greenmax-this.greenmin)*/;
@@ -1413,7 +1413,7 @@ class PaintFilter extends JDialog implements ActionListener {
             this.blueavr = 0;
             pixtotal = 0;
             for (int i = this.bluemin; i < this.bluemax; i++) {
-                // ピクセル数を数える
+                // Count pixels
                 countHist[i] = 0;
                 for (int r = this.redmin; r < this.redmax; r++) {
                     for (int g = this.greenmin; g < this.greenmax; g++) {
@@ -1423,7 +1423,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 pixtotal += countHist[i];
                 this.blueavr += i * countHist[i];
                 if (countHist[i] > 0) {
-                    // ピクセルがあるのでminとmaxに反映
+                    // There are pixels, reflect in min and max
                     if (ibluemin == -1) {
                         ibluemin = i;
                         this.bluemin = i;
@@ -1433,7 +1433,7 @@ class PaintFilter extends JDialog implements ActionListener {
             }
             this.bluemax = ibluemax;
             this.blueavr /= (pixtotal);
-            // 平均値との乖離の合計を求める
+            // Calculate total deviation from average value
             this.bluedist = 0;
             for (int i = this.bluemin; i < this.bluemax; i++) {
                 this.bluedist = (int) (this.bluedist + countHist[i] * Math.abs(i - this.blueavr))/*/(this.bluemax-this.bluemin)*/;
@@ -1442,10 +1442,10 @@ class PaintFilter extends JDialog implements ActionListener {
                 this.bluedist = 0;
             }
 
-            // 明るさの変化度合いを調べる
+            // Check the degree of brightness change
             int countBright = 0;
             if (reddist > this.bluedist) {
-                // 両方とも明るい領域の数
+                // Number of areas that are both bright
                 for (int r = ((int) this.redavr + this.redmax) / 2; r < this.redmax; r++) {
                     for (int g = ((int) this.greenavr + this.greenmax) / 2; g < this.greenmax; g++) {
                         for (int b = this.bluemin; b < this.bluemax; b++) {
@@ -1453,7 +1453,7 @@ class PaintFilter extends JDialog implements ActionListener {
                         }
                     }
                 }
-                // 両方とも暗い領域の数
+                // Number of areas that are both dark
                 for (int r = this.redmin; r < ((int) this.redavr + this.redmin) / 2; r++) {
                     for (int g = this.greenmin; g < ((int) this.greenavr + this.greenmax) / 2; g++) {
                         for (int b = this.bluemin; b < this.bluemax; b++) {
@@ -1462,7 +1462,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     }
                 }
             } else {
-                // 両方とも明るい領域の数
+                // Number of areas that are both bright
                 for (int r = this.redmin; r < this.redmax; r++) {
                     for (int g = ((int) this.greenavr + this.greenmax) / 2; g < this.greenmax; g++) {
                         for (int b = ((int) this.blueavr + this.bluemax) / 2; b < this.bluemax; b++) {
@@ -1470,7 +1470,7 @@ class PaintFilter extends JDialog implements ActionListener {
                         }
                     }
                 }
-                // 両方とも暗い領域の数
+                // Number of areas that are both dark
                 for (int r = this.redmin; r < this.redmax; r++) {
                     for (int g = this.greenmin; g < ((int) this.greenavr + this.greenmax) / 2; g++) {
                         for (int b = this.bluemin; b < ((int) this.blueavr + this.bluemin) / 2; b++) {
@@ -1480,9 +1480,9 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
 
-            // 人間の視覚に合わせる処理
+            // Processing to match human vision
 
-            // 全てのdistが大きければ明るさの違い
+            // If all dist values are large, it's a brightness difference
             // if(this.redavr<58 && (float)this.reddist/this.greendist/2<1.2f && (float)this.bluedist/this.greendist/2<1.2f){
 
 
@@ -1491,28 +1491,28 @@ class PaintFilter extends JDialog implements ActionListener {
                 float grad = 1.0f;
                 // System.out.println("gradarea[c565]:"+gradarea[c565]);
                 if (colorsize > 32) {
-                    // グラデーションエリアでは明るさを優先
+                    // Prioritize brightness in gradient area
                     if (gradarea[c565] >= 64) grad = 1.3f;
                     else if (gradarea[c565] >= 8) grad = 1.2f;
                     else if (gradarea[c565] >= 4) grad = 1.1f;
                     else grad = 0.9f;
                 }
 
-                // 二つの領域がともに高いところにピクセルが集中していれば明るさの違い
+                // If pixels are concentrated in both areas at high levels, it's a brightness difference
                 if (this.greenavr / 4 > 1 && this.greendist > this.reddist / 2 && this.greendist > this.bluedist / 2) {
-                    // 緑を強化(緑が明るさに影響大)
+                    // Enhance green (green has large impact on brightness)
                     this.reddist = (int) (this.reddist * 1.0 / grad);
                     if (dithermode != -1 || colorsize <= 16) this.greendist = (int) (this.greendist * 1.2);
                     else this.greendist = (int) (this.greendist * (1.4f + colorsize / 256.0f) * grad);
                     this.bluedist = (int) (this.bluedist * 1.0 / grad);
                 } else if (this.reddist > this.bluedist) {
-                    // 赤を強化
+                    // Enhance red
                     if (dithermode != -1 || colorsize <= 16) this.reddist = (int) (this.reddist * 1.2);
                     else this.reddist = (int) (this.reddist * (1.4f + colorsize / 256.0f) * grad);
                     this.greendist = (int) (this.greendist * 1.0 / grad);
                     this.bluedist = (int) (this.bluedist * 1.0 / grad);
                 } else {
-                    // 青を強化
+                    // Enhance blue
                     this.reddist = (int) (this.reddist * 1.0 / grad);
                     this.greendist = (int) (this.greendist * 1.0 / grad);
                     if (dithermode != -1 || colorsize <= 16) this.bluedist = (int) (this.bluedist * 1.2);
@@ -1521,77 +1521,77 @@ class PaintFilter extends JDialog implements ActionListener {
             }
 
             if (countBright < pixtotal * 1 / 32 && colorsize < 24) {
-                // 色数の少ない場合はむしろ色相を優先
+                // If few colors, prioritize hue instead
                 this.reddist = (int) (this.reddist * 1.8);
                 this.greendist = (int) (this.greendist * 1.8);
                 this.bluedist = (int) (this.bluedist * 1.8);
             }
 
             if (this.blueavr + this.greenavr / 4 + this.redavr < 60 && this.blueavr > this.greenavr / 4 * 1.5 && this.blueavr > this.redavr * 1.5) {
-                // 暗くて青が大
+                // Dark with blue dominant
                 this.reddist = (int) (this.reddist * 0.8);
                 this.greendist = (int) (this.greendist * 0.6);
             }
 
             if (this.redavr > this.blueavr * 2 && this.redavr > this.greenavr / 4 * 2 * 1.2) {
-                // 赤が大で他が弱い場合は他の変化を無視
+                // When red is dominant and others are weak, ignore other changes
                 this.reddist = (int) (this.reddist * 1.0);
                 this.greendist = (int) (this.greendist * 0.8);
                 this.bluedist = (int) (this.bluedist * 0.2);
             }
             if (this.greenavr / 4 * 1.2 > this.blueavr * 2 && this.greenavr / 4 * 1.2 > this.redavr * 2) {
-                // 緑が大で他が弱い場合は他の変化を無視
+                // When green is dominant and others are weak, ignore other changes
                 this.greendist = (int) (this.greendist * 1.1);
                 this.reddist = (int) (this.reddist * 0.2);
                 this.bluedist = (int) (this.bluedist * 0.2);
             }
             if (this.blueavr > this.redavr * 2 && this.blueavr > this.greenavr / 4 * 1.2) {
-                // 青が大で他が弱い場合は他の変化を無視、やっぱり青の変化を無視
+                // When blue is dominant and others are weak, ignore other changes, still ignore blue changes
                 this.reddist *= 1;
                 this.greendist *= 1;
                 this.bluedist = (int) (this.bluedist * 0.8);
             }
 
             if ((this.greenmax / 4 > 48 && this.redmax > 54) && this.blueavr < 32) {
-                // 赤and緑が大で青が弱い場合は青の変化を無視
+                // When red and green are dominant and blue is weak, ignore blue changes
                 this.bluedist = (int) (this.bluedist * 0.1);
                 this.greendist = (int) (this.greendist * 0.8);
                 this.reddist = (int) (this.reddist * 0.7);
             } else if ((this.greenmax / 4 > 48 || this.redmax > 54) && this.blueavr < 32) {
-                // 赤or緑が大で青が弱い場合は青の変化を無視
+                // When red or green is dominant and blue is weak, ignore blue changes
                 this.bluedist = (int) (this.bluedist * 0.3);
                 this.greendist = (int) (this.greendist * 1.0);
                 this.reddist = (int) (this.reddist * 0.9);
             } else if ((this.greenmax / 4 > 36 && this.bluemax > 54) && this.redavr < 32) {
-                // 緑and青が大で赤が弱い場合は赤の変化を無視
+                // When green and blue are dominant and red is weak, ignore red changes
                 this.reddist = (int) (this.reddist * 0.3);
                 this.greendist = (int) (this.greendist * 1.0);
                 this.bluedist = (int) (this.bluedist * 0.9);
             } else if ((this.redmax > 48 && this.redmax > 54) && this.greenavr / 4 < 12) {
-                // 赤and青が大で緑が弱い場合は緑の変化を無視
+                // When red and blue are dominant and green is weak, ignore green changes
                 this.greendist = (int) (this.greendist * 0.50);
             }
 
             if (this.redavr + this.greenavr / 4 + this.blueavr >= 188) {
-                // 白色エリア
+                // White area
                 this.reddist = this.reddist * 3 / 4;
                 this.greendist = this.greendist * 3 / 4;
                 this.bluedist = this.bluedist * 3 / 4;
             } else if (this.redavr > this.greenavr / 4 + 5 && this.greenavr / 4 > this.blueavr + 5 &&
                     this.greenavr / 4 * 1.5 >= this.redavr && this.blueavr * 2 >= this.greenavr / 4) {
-                // 肌色エリア
+                // Skin tone area
                 // this.reddist *= 1.3;
                 this.greendist = (int) (this.greendist * 1.3);
                 // this.bluedist *= 1.3;
             } else if ((this.redmin > 48 && this.redavr <= 55 || this.bluemin > 48 && this.blueavr <= 55) &&
                     (this.greendist > this.reddist) && (this.greendist > this.bluedist)) {
-                // 緑の変化大
+                // Large green change
                 this.greendist = (int) (this.greendist * 1.5);
             } else if (this.greenavr / 4 > 54 && this.greenmin / 2 > this.bluemax && this.greenmin / 4 > this.redmax && (this.greenmax / 4 - this.greenmin / 4 <= 8)) {
-                // 緑が大で緑が狭い
+                // Green is dominant and green is narrow
                 this.greendist = this.greendist * 3 / 4;
             } else if (this.redmax + this.greenmax / 4 + this.bluemax <= 32) {
-                // 暗色エリア
+                // Dark color area
                 if (this.reddist > this.greendist / 2) {
                     this.reddist = (int) (this.reddist * 0.6);
                     this.greendist = (int) (this.greendist * 0.1);
@@ -1606,13 +1606,13 @@ class PaintFilter extends JDialog implements ActionListener {
                     this.bluedist = (int) (this.bluedist * 0.05);
                 }
                 if (this.redmax + this.greenmax / 4 + this.bluemax <= 16) {
-                    // かなり暗色エリアの場合はさらに半分
+                    // In quite dark areas, halve it further
                     this.reddist = (int) (this.reddist * 0.5);
                     this.greendist = (int) (this.greendist * 0.5);
                     this.bluedist = (int) (this.bluedist * 0.5);
                 }
             } else if (this.redmax + this.greenmax / 4 + this.bluemax <= 64) {
-                // やや暗色エリア
+                // Somewhat dark area
                 // this.reddist *= 0.9;
                 // this.greendist *= 0.9;
                 // this.bluedist *= 0.8;
@@ -1622,7 +1622,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
     private static BufferedImage IndexColor(BufferedImage srcbi,
                                             int colors, int dithermode) {
-        // 6+8+6の20bitに変換
+        // Convert to 20bit of 6+8+6
         int width = srcbi.getWidth();
         int height = srcbi.getHeight();
         BufferedImage minibi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -1642,9 +1642,9 @@ class PaintFilter extends JDialog implements ActionListener {
 
         int[] counts = new int[1 << 20];
 
-        byte[] gradarea = new byte[1 << 16];// 5,6,5でグラデーションのエリアを記憶
+        byte[] gradarea = new byte[1 << 16];// Store gradient area with 5,6,5
 
-        // 含まれる色をカウント
+        // Count included colors
         // DataBuffer db = srcbi.getRaster().getDataBuffer();
         // DataBuffer minidb = minibi.getRaster().getDataBuffer();
         int[] grad_d = new int[8];
@@ -1653,7 +1653,7 @@ class PaintFilter extends JDialog implements ActionListener {
             cnt_renzoku = 0;
             for (int h = 0; h < width; h++) {
                 int orgd = db.getElem(h + v * width);
-                if (((orgd >> 24) & 0xFF) == 0) continue;// 透明色は含まない
+                if (((orgd >> 24) & 0xFF) == 0) continue;// Skip transparent color
                 int d = minidb.getElem(h + v * width);
                 grad_d[cnt_renzoku % 8] = d;
                 counts[d] += 1;
@@ -1661,11 +1661,11 @@ class PaintFilter extends JDialog implements ActionListener {
                 int g = ((d >> 6) & 0xFF);
                 int b = ((d) & 0x3F);
                 if (r >= 54 && r < g / 4 + 24 && r > g / 4 + 4 && g / 4 < b + 16 && g / 4 > b + 2) {
-                    // 肌色エリア
+                    // Skin tone area
                     counts[d] += 1;
                 }
                 if ((colors == -1 || colors >= 32) && h - 1 >= 0 && v - 1 >= 0 && /*r+g+b<364 &&*/ r + g + b > 24) {
-                    // 面
+                    // Plane
                     int dd1 = minidb.getElem(h - 1 + v * width);
                     int dd2 = minidb.getElem(h + (v - 1) * width);
                     int cnt = 0;
@@ -1683,7 +1683,7 @@ class PaintFilter extends JDialog implements ActionListener {
                         cnt_renzoku++;
                         if (cnt_renzoku >= 2 && h - cnt_renzoku >= 0) {
                             int dd3 = minidb.getElem(h - cnt_renzoku + v * width);
-                            // グラデーションの方向が変わっていないか
+                            // Whether the gradient direction has changed
                             int houkou = 0;
                             if (((r - ((dd1 >> 14) & 0x3F)) > 0) == ((((dd1 >> 14) & 0x3F) - ((dd3 >> 14) & 0x3F)) < 0)) {
                                 houkou++;
@@ -1699,12 +1699,12 @@ class PaintFilter extends JDialog implements ActionListener {
                             }
                         }
                         if (cnt_renzoku >= 8) {
-                            // 8個以上連続して類似した色が続くとより優先度を高くする
+                            // Higher priority if 8 or more similar colors continue in a row
                             int add = 1;
 
                             int dd3 = minidb.getElem(h - cnt_renzoku + v * width);
                             if ((r - ((dd3 >> 14) & 0x3F)) <= 3 && (g - ((dd3 >> 6) & 0xFF)) <= 7 && (b - ((dd3) & 0x3F)) <= 3) {
-                                // 微妙な差の場合はむしろ量子化誤差かもしれない
+                                // In case of subtle difference, it might be quantization error instead
                                 add = -1;
                             }
 
@@ -1724,20 +1724,20 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        // 縦向きに走査してグラデーションを調べる
+        // Scan vertically to check for gradients
         if (colors == -1 || colors >= 128) {
             for (int h = 0; h < width; h += 2) {
                 cnt_renzoku = 0;
                 for (int v = 0; v < height; v++) {
                     int orgd = db.getElem(h + v * width);
-                    if (((orgd >> 24) & 0xFF) == 0) continue;// 透明色は含まない
+                    if (((orgd >> 24) & 0xFF) == 0) continue;// Skip transparent color
                     int d = minidb.getElem(h + v * width);
                     grad_d[cnt_renzoku % 8] = d;
                     int r = ((d >> 14) & 0x3F);
                     int g = ((d >> 6) & 0xFF);
                     int b = ((d) & 0x3F);
                     if ((colors == -1 || colors >= 32) && v - 1 >= 0 && /*r+g+b<364 &&*/ r + g + b > 24) {
-                        // 面
+                        // Plane
                         int dd1 = minidb.getElem(h + (v - 1) * width);
                         int cnt = 0;
                         if (Math.abs(r - ((dd1 >> 14) & 0x3F)) <= 3) {
@@ -1753,7 +1753,7 @@ class PaintFilter extends JDialog implements ActionListener {
                             cnt_renzoku++;
                             if (cnt_renzoku >= 2 && v - cnt_renzoku >= 0) {
                                 int dd3 = minidb.getElem(h + (v - cnt_renzoku) * width);
-                                // グラデーションの方向が変わっていないか
+                                // Whether the gradient direction has changed
                                 int houkou = 0;
                                 if (((r - ((dd1 >> 14) & 0x3F)) > 0) == ((((dd1 >> 14) & 0x3F) - ((dd3 >> 14) & 0x3F)) < 0)) {
                                     houkou++;
@@ -1769,12 +1769,12 @@ class PaintFilter extends JDialog implements ActionListener {
                                 }
                             }
                             if (cnt_renzoku >= 8) {
-                                // 8個以上連続して類似した色が続くとより優先度を高くする
+                                // Higher priority if 8 or more similar colors continue in a row
                                 int add = 1;
 
                                 int dd3 = minidb.getElem(h + (v - cnt_renzoku) * width);
                                 if ((r - ((dd3 >> 14) & 0x3F)) <= 3 && (g - ((dd3 >> 6) & 0xFF)) <= 7 && (b - ((dd3) & 0x3F)) <= 3) {
-                                    // 微妙な差の場合はむしろ量子化誤差かもしれない
+                                    // In case of subtle difference, it might be quantization error instead
                                     add = -1;
                                 }
 
@@ -1803,7 +1803,7 @@ class PaintFilter extends JDialog implements ActionListener {
             autoColors = true;
         }
 
-        // カラーの配置を分析し、どこかで分ける
+        // Analyze color distribution and split somewhere
         ArrayList<colorCnt> colorList = new ArrayList<>();
         int total = 0;
         for (int k : counts) {
@@ -1823,13 +1823,13 @@ class PaintFilter extends JDialog implements ActionListener {
         colorList.get(0).initArea[3] = 256;
         colorList.get(0).initArea[4] = 0;
         colorList.get(0).initArea[5] = 64;
-        // 最初のエリアの範囲を締める
+        // Narrow the range of the first area
         colorList.get(0).setDist(countHist, counts, dithermode, colorList.size(), gradarea);
 
         while (colorList.size() < colors) {
-            // 色空間をメディアンカット法で切り分けて行く
+            // Divide color space using median cut method
 
-            // 分割対象のエリアを決める。範囲が広くピクセルの多いエリア。
+            // Determine the area to split. The area with a wide range and many pixels.
             float maxdist = 0;
             colorCnt maxarea = null;
             for (int i = 0; i < colorList.size(); i++) {
@@ -1860,9 +1860,9 @@ class PaintFilter extends JDialog implements ActionListener {
                     +" greendist:"+maxarea.greendist
                     +" bluedist:"+maxarea.bluedist);*/
 
-            // 分割方向(r,g,b)を決める ピクセルがその色方向に偏っていてピクセルを多く分割できる位置
+            // Determine split direction (r,g,b) Position where pixels are biased in that color direction and can be split into many pixels
             if (maxarea.reddist == 0 && maxarea.greendist == 0 && maxarea.bluedist == 0) {
-                // 分割不可能
+                // Cannot split
                 if (maxarea.count == -10000) {
                     break;
                 }
@@ -1880,11 +1880,11 @@ class PaintFilter extends JDialog implements ActionListener {
             newarea = new colorCnt(maxarea.redmin, maxarea.redmax, maxarea.greenmin, maxarea.greenmax, maxarea.bluemin, maxarea.bluemax, 0);
 
             if (maxarea.reddist >= maxarea.greendist && maxarea.reddist >= maxarea.bluedist) {
-                // 赤を分割
+                // Split red
 
-                // 分割に都合が良い場所を求める。
+                // Find a convenient place to split.
 
-                // ヒストグラムを求める
+                // Create histogram
                 float average = 0;
                 int counttotal = 0;
                 for (int r = maxarea.redmin; r < maxarea.redmax; r++) {
@@ -1900,7 +1900,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 average /= counttotal;
                 int areawidth = (maxarea.redmax - maxarea.redmin) * 4;
                 if (areawidth > 32) {
-                    // ヒストグラムをぼかす
+                    // Smooth histogram
                     for (int j = 0; j < areawidth / 32; j++) {
                         for (int i = newarea.redmin + 1; i < newarea.redmax - 1; i++) {
                             countHist[i] = (countHist[i - 1] + 2 * countHist[i] + countHist[i + 1]) / 4;
@@ -1909,7 +1909,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
                 // System.out.println("average"+average+"    counttotal:"+counttotal);
 
-                // 平均値に近くてピクセルの少ないところを探す
+                // Find a place near the average value with few pixels
                 float maxrank = -1000000;
                 for (int i = maxarea.redmin + 1; i < maxarea.redmax; i++) {
                     float rank = (((float) counttotal) / (countHist[i] + (float) (1 * counttotal) / areawidth) - (5 + 32.0f / areawidth) * Math.abs(average - i));
@@ -1920,7 +1920,7 @@ class PaintFilter extends JDialog implements ActionListener {
                             splitcount += countHist[j];
                         }
                         if (splitcount > maxarea.count * 2 / 8 && splitcount < maxarea.count * 6 / 8) {
-                            // 分割
+                            // Split
                             maxrank = rank;
                             newarea.redmin = i;
                         }
@@ -1929,15 +1929,15 @@ class PaintFilter extends JDialog implements ActionListener {
                 if (maxrank == -1000000) newarea.redmin = (int) average + 1;
                 maxarea.redmax = newarea.redmin;
 
-                newarea.setInitArea(maxarea); // 初期の色空間を記憶
+                newarea.setInitArea(maxarea); // Remember initial color space
                 newarea.initArea[0] = newarea.redmin;
                 maxarea.initArea[1] = maxarea.redmax;
             } else if (maxarea.greendist >= maxarea.reddist && maxarea.greendist >= maxarea.bluedist) {
-                // 緑を分割
+                // Split green
 
-                // 分割に都合が良い場所を求める。
+                // Find a convenient place to split.
 
-                // ヒストグラムを求める
+                // Create histogram
                 float average = 0;
                 int counttotal = 0;
                 for (int g = maxarea.greenmin; g < maxarea.greenmax; g++) {
@@ -1953,7 +1953,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 average /= counttotal;
                 int areawidth = (maxarea.greenmax - maxarea.greenmin) * 1;
                 if (areawidth > 32) {
-                    // ヒストグラムをぼかす
+                    // Smooth histogram
                     for (int j = 0; j < areawidth / 32 / 4; j++) {
                         for (int i = newarea.greenmin + 1; i < newarea.greenmax - 1; i++) {
                             countHist[i] = (countHist[i - 1] + 2 * countHist[i] + countHist[i + 1]) / 4;
@@ -1962,7 +1962,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
                 // System.out.println("average"+average+"    counttotal:"+counttotal);
 
-                // 平均値に近くてピクセルの少ないところを探す
+                // Find a place near the average value with few pixels
                 float maxrank = -1000000;
                 for (int i = maxarea.greenmin + 1; i < maxarea.greenmax; i++) {
                     float rank = (((float) counttotal) / (countHist[i] + (float) (1 * counttotal) / areawidth) - (5 + 32.0f / areawidth) * Math.abs(average - i));
@@ -1973,7 +1973,7 @@ class PaintFilter extends JDialog implements ActionListener {
                             splitcount += countHist[j];
                         }
                         if (splitcount > maxarea.count * 2 / 8 && splitcount < maxarea.count * 6 / 8) {
-                            // 分割
+                            // Split
                             maxrank = rank;
                             newarea.greenmin = i;
                         }
@@ -1982,15 +1982,15 @@ class PaintFilter extends JDialog implements ActionListener {
                 if (maxrank == -1000000) newarea.greenmin = (int) average + 1;
                 maxarea.greenmax = newarea.greenmin;
 
-                newarea.setInitArea(maxarea); // 初期の色空間を記憶
+                newarea.setInitArea(maxarea); // Remember initial color space
                 newarea.initArea[2] = newarea.greenmin;
                 maxarea.initArea[3] = maxarea.greenmax;
             } else {
-                // 青を分割
+                // Split blue
 
-                // 分割に都合が良い場所を求める。
+                // Find a convenient place to split.
 
-                // ヒストグラムを求める
+                // Create histogram
                 float average = 0;
                 int counttotal = 0;
                 for (int b = maxarea.bluemin; b < maxarea.bluemax; b++) {
@@ -2006,7 +2006,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 average /= counttotal;
                 int areawidth = (maxarea.bluemax - maxarea.bluemin) * 4;
                 if (areawidth > 32) {
-                    // ヒストグラムをぼかす
+                    // Smooth histogram
                     for (int j = 0; j < areawidth / 32; j++) {
                         if (j % 2 == 0) {
                             for (int i = newarea.greenmin + 1; i < newarea.greenmax - 1; i++) {
@@ -2021,7 +2021,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
                 // System.out.println("average"+average+"    counttotal:"+counttotal);
 
-                // 平均値に近くてピクセルの少ないところを探す
+                // Find a place near the average value with few pixels
                 float maxrank = -1000000;
                 for (int i = maxarea.bluemin + 1; i < maxarea.bluemax; i++) {
                     float rank = (((float) counttotal) / (countHist[i] + (float) (1 * counttotal) / areawidth) - (5 + 32.0f / areawidth) * Math.abs(average - i));
@@ -2032,7 +2032,7 @@ class PaintFilter extends JDialog implements ActionListener {
                             splitcount += countHist[j];
                         }
                         if (splitcount > maxarea.count * 2 / 8 && splitcount < maxarea.count * 6 / 8) {
-                            // 分割
+                            // Split
                             maxrank = rank;
                             newarea.bluemin = i;
                         }
@@ -2041,13 +2041,13 @@ class PaintFilter extends JDialog implements ActionListener {
                 if (maxrank == -1000000) newarea.bluemin = (int) average + 1;
                 maxarea.bluemax = newarea.bluemin;
 
-                newarea.setInitArea(maxarea); // 初期の色空間を記憶
+                newarea.setInitArea(maxarea); // Remember initial color space
                 newarea.initArea[4] = newarea.bluemin;
                 maxarea.initArea[5] = maxarea.bluemax;
             }
 
 
-            // 新しい領域のピクセル数を数える
+            // Count pixels in new area
             int count = 0;
             for (int r = newarea.redmin; r < newarea.redmax; r++) {
                 for (int g = newarea.greenmin; g < newarea.greenmax; g++) {
@@ -2067,11 +2067,11 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
 
-            // 範囲を締める
+            // Narrow the range
             newarea.setDist(countHist, counts, dithermode, colorList.size(), gradarea);
             maxarea.setDist(countHist, counts, dithermode, colorList.size(), gradarea);
 
-            // リストに追加
+            // Add to list
             colorList.add(newarea);
 
             /*System.out.println("newarea.count:"+newarea.count);
@@ -2094,7 +2094,7 @@ class PaintFilter extends JDialog implements ActionListener {
         Color[] srcColorBest = new Color[colors];
 
         if (dithermode == -1) {
-            // 色を決める。エリア内のピクセルの色の平均値 ピクセルの差が十分にあれば代表値
+            // Determine the color. Average color of pixels in the area. If pixel difference is sufficient, use representative value
             for (int i = 0; i < colorList.size(); i++) {
                 int red = 0;
                 int green = 0;
@@ -2110,7 +2110,7 @@ class PaintFilter extends JDialog implements ActionListener {
                             int c = counts[r * 256 * 64 + g * 64 + b];
                             if (c == 0) continue;
                             /*if(r>=28*2 && r<g/2+12*2 && r>g/2+2*2 &&g/2<b+8*2 && g/2>b+1*2){
-                                // 肌色エリア  はここではなく最初のピクセル数を数えるときに考慮する
+                                // Skin tone area is considered when counting the first number of pixels, not here
                                 c *= 2;
                             }*/
                             red += r * c;
@@ -2127,17 +2127,17 @@ class PaintFilter extends JDialog implements ActionListener {
                 if (totalpix == 0) totalpix = 1;
 
                 if (maxpix >= totalpix / 2) {
-                    // 代表値
+                    // Representative value
                     srcColorBest[i] = new Color((maxrgb >> 14) * 255 / 63, ((maxrgb >> 6) & 0xFF) * 255 / 255, (maxrgb & 0x3F) * 255 / 63);
                 } else {
-                    // 平均値
+                    // Average value
                     srcColorBest[i] = new Color(red / totalpix * 255 / 63, green / totalpix * 255 / 255, blue / totalpix * 255 / 63);
                 }
 
-                // srcColorBest[i] = new Color(i, (i*4)%256, (i*16)%256); // indexで色分け
+                // srcColorBest[i] = new Color(i, (i*4)%256, (i*16)%256); // Color by index
             }
 
-            // 色空間にどの色に近いのかを書き込む
+            // Write which color in color space is closest
             short[] colorAry = new short[1 << 20];
             Arrays.fill(colorAry, (short) -1);
             for (short i = 0; i < colorList.size(); i++) {
@@ -2151,7 +2151,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
 
-            // 元画像を指定色のみに変換する
+            // Convert original image to only specified colors
             width = srcbi.getWidth();
             height = srcbi.getHeight();
             for (int v = 0; v < height; v++) {
@@ -2185,7 +2185,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
 
-            // 明るさソート
+            // Brightness sort
             for (int i = 0; i < srcColorBest.length - 1; i++) {
                 if (srcColorBest[i] == null) continue;
                 for (int j = i + 1; j < srcColorBest.length; j++) {
@@ -2199,7 +2199,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
 
-            // パレット表示
+            // Palette display
             /*for(int y=0; y<8; y++){
                 for(int x=0; x<srcColorBest.length/8; x++){
                     if(srcColorBest[x+y*srcColorBest.length/8]==null) continue;
@@ -2236,11 +2236,11 @@ class PaintFilter extends JDialog implements ActionListener {
         }
 
         //
-        // ディザを使用する場合
+        // When using dither
         //
 
 
-        // 色を決める。エリア内のピクセルの色の平均値 ピクセルの差が十分にあれば代表値
+        // Determine the color. Average color of pixels in the area. If pixel difference is sufficient, use representative value
         for (int i = 0; i < colorList.size(); i++) {
             double red = 0;
             double green = 0;
@@ -2269,15 +2269,15 @@ class PaintFilter extends JDialog implements ActionListener {
             if (totalpix == 0) totalpix = 1;
 
             if (maxpix >= totalpix * 3 / 4) {
-                // 代表値
+                // Representative value
                 srcColorBest[i] = new Color((0x003F & (maxrgb >> 14)) * 255 / 63, ((maxrgb >> 6) & 0x00FF) * 255 / 255, (maxrgb & 0x003F) * 255 / 63);
             } else {
-                // 平均値を基本にする
+                // Use average value as the basis
                 int cred = ((int) (red / totalpix) * 255 / 63);
                 int cgreen = ((int) (green / totalpix) * 255 / 255);
                 int cblue = ((int) (blue / totalpix) * 255 / 63);
 
-                // 全空間でrgbの彩度が最も高い場合はそれを採用する
+                // If saturation is highest in the entire space, use that
                 int minbright = 1000;
                 int maxbright = 0;
                 int redsat = -255;
@@ -2315,12 +2315,12 @@ class PaintFilter extends JDialog implements ActionListener {
                     }
                 }
                 if (area.redavr + area.greenavr / 4 + area.blueavr < minbright) {
-                    // 明るい
+                    // Bright
                     cred = (cred * 3 + area.redmin * 255 / 63) / 4;
                     cgreen = (cgreen * 3 + area.greenmin * 255 / 255) / 4;
                     cblue = (cblue * 3 + area.bluemin * 255 / 63) / 4;
                 } else if (area.redavr + area.greenavr / 4 + area.blueavr > maxbright) {
-                    // 暗い
+                    // Dark
                     cred = (cred * 3 + area.redmax * 255 / 63) / 4;
                     cgreen = (cgreen * 3 + area.greenmax * 255 / 255) / 4;
                     cblue = (cblue * 3 + area.bluemax * 255 / 63) / 4;
@@ -2343,7 +2343,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 srcColorBest[i] = new Color(cred, cgreen, cblue);
             }
 
-            // srcColorBest[i] = new Color(i, (i*4)%256, (i*16)%256); // indexで色分け
+            // srcColorBest[i] = new Color(i, (i*4)%256, (i*16)%256); // Color by index
         }
 
         counts = null;
@@ -2351,7 +2351,7 @@ class PaintFilter extends JDialog implements ActionListener {
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
         if (dithermode == 0 || dithermode == 1) {
-            // 色空間にどの色に近いのかを書き込む
+            // Write which color in color space is closest
             short[] colorAry = new short[1 << 20];
             /*for(int i=0; i<colorAry.length; i++){
                 colorAry[i] = -1;
@@ -2379,7 +2379,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
             DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
             for (int v = 0; v < height; v++) {
-                // 横方向はジグザグにスキャンする
+                // Scan horizontally in a zigzag pattern
                 int hstart = 0;
                 int hend = width;
                 int add = 1;
@@ -2391,7 +2391,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 for (int h = hstart; h != hend; h += add) {
                     int color = srcdb.getElem(h + v * width);
 
-                    // r,g,bを求める
+                    // Get r, g, b
                     int carrycolor = newdb.getElem(h + v * width);
                     int r = ((color >> 16) & 0xFF) + (byte) ((carrycolor >> 16) & 0xFF);
                     int g = ((color >> 8) & 0xFF) + (byte) ((carrycolor >> 8) & 0xFF);
@@ -2416,11 +2416,11 @@ class PaintFilter extends JDialog implements ActionListener {
                         b = 0;
                     }
 
-                    // ピクセルをインデックスカラーの近いものにする
+                    // Make pixel close to indexed color
                     int index = colorAry[(r >> 2) * 256 * 64 + (g >> 0) * 64 + (b >> 2)];
                     Color newcolor = srcColorBest[index];
                     if (colorList.size() <= 32) {
-                        // 力技検索
+                        // Brute force search
                         int rrr = (r + newcolor.getRed()) / 2;
                         int ggg = (g + newcolor.getGreen()) / 2;
                         int bbb = (b + newcolor.getBlue()) / 2;
@@ -2439,10 +2439,10 @@ class PaintFilter extends JDialog implements ActionListener {
                         }
                     }
 
-                    // あまりにもかけ離れている場合は採用しない
+                    // If too far off, don't adopt
                     if (colorList.size() >= 4 && Math.abs(((color >> 16) & 0xFF) - newcolor.getRed()) + Math.abs(((color >> 8) & 0xFF) - newcolor.getGreen()) + Math.abs(((color) & 0xFF) - newcolor.getBlue()) > 48 * 544 / (32 + colorList.size())) {
                         if (colorList.size() <= 256) {
-                            // 力技検索
+                            // Brute force search
                             boolean isFound = false;
                             int nearoffset = 1;
                             while (!isFound) {
@@ -2465,11 +2465,11 @@ class PaintFilter extends JDialog implements ActionListener {
                         }
                     }
 
-                    // ピクセルに反映
+                    // Reflect in pixel
                     int d = (color & 0xFF000000) + (newcolor.getRed() << 16) + (newcolor.getGreen() << 8) + (newcolor.getBlue());
                     newdb.setElem(h + v * width, d);
 
-                    // 余りを求める
+                    // Get the remainder
                     int cr = rr - newcolor.getRed();
                     if (cr > 127) cr = 127;
                     if (cr < -127) cr = -127;
@@ -2480,7 +2480,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     if (cb > 127) cb = 127;
                     if (cb < -127) cb = -127;
 
-                    // 誤差を拡散する
+                    // Spread error
                     if (dithermode == 0) {
                         // Floyd-Steinburg Algorithm
                         if (h + add >= 0 && h + add < width) {
@@ -2561,9 +2561,9 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
         } else if (dithermode == 2) {
-            // パターン処理はdrawImageに任せる
+            // Leave pattern processing to drawImage
 
-            // IndexColorModelを作成
+            // Create IndexColorModel
             byte[] r_a = new byte[256];
             byte[] g_a = new byte[256];
             byte[] b_a = new byte[256];
@@ -2576,7 +2576,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
             IndexColorModel colorModel = new IndexColorModel(8, colors, r_a, g_a, b_a);
 
-            // TYPE_BYTE_INDEXEDのBufferedImageを作る
+            // Create TYPE_BYTE_INDEXED BufferedImage
             BufferedImage indeximg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, colorModel);
             Graphics2D indexg = indeximg.createGraphics();
             indexg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));

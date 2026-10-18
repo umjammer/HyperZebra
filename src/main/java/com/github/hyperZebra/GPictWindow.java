@@ -23,7 +23,7 @@ public class GPictWindow extends JDialog {
         super(owner);
         this.name = name;
 
-        // パネルを追加する
+        // Add panel
         if (bi != null) {
             label = new MyLabel3(name, bi);
             getContentPane().add(label);

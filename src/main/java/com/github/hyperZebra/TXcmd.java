@@ -48,14 +48,14 @@ public class TXcmd {
     public static Result CallExternalCommand(String message, String[] params, OObject target, MemoryData memData, boolean isFunc, Result result)
             throws xTalkException {
         if (0 == message.compareToIgnoreCase("UxBack")) {
-            System.out.println("未定義のXCMD:" + message);
+            System.out.println("Undefined XCMD: " + message);
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("Movie")) {
-            // QuickTime for Javaは64bitで使えないし、サポートもしないみたいだしどうしようもない。
-            // BGMならiTunesでmp3に変換してもらおう。
+            // QuickTime for Java cannot be used in 64-bit and does not seem to be supported, so nothing can be done.
+            // For BGM, let's convert to mp3 with iTunes.
 
-            // +.mp3ファイルがあれば再生
-            // MP3SPIを使う
+            // Play if +.mp3 file exists
+            // Use MP3SPI
             // Movie (path1&TheMovieName),"borderLess","0,0","invisible","floating"
             if (params.length >= 1) {
                 String path = params[0];
@@ -68,14 +68,14 @@ public class TXcmd {
                     f = new File(path);
                 }
                 if (!f.exists()) {
-                    result.theResult = "ファイル" + path + "がありません";
+                    result.theResult = "File " + path + " does not exist";
                     result.ret = 0;
                 } else {
                     TMP3 mp3 = new TMP3(path, params[0]);
                     if (mp3.mp3ok() == true) {
                         new OWindow(mp3);
                     } else {
-                        result.theResult = "ファイル" + path + "を再生できません";
+                        result.theResult = "Cannot play file " + path;
                         result.ret = 0;
                     }
                 }
@@ -205,7 +205,7 @@ public class TXcmd {
             result.theResult = ret;
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("showList")) {
-            // Power ToolsのshowList XFCN
+            // Power Tools' showList XFCN
             if (params.length >= 5) {
                 new GshowList(PCARD.pc, params[0], params[1], false, false, params[4].split(","), 0, 0, 0);
                 result.theResult = GshowList.clicked + "\n" + GshowList.selectList;
@@ -542,9 +542,9 @@ public class TXcmd {
                     if (socket.isClosed()) {
                         result.theResult = "closed";
                     } else if (socket.isConnected()) {
-                        result.theResult = "established";// てけとー
+                        result.theResult = "established";// rough estimate
                     } else {
-                        result.theResult = "opening";// てけとー
+                        result.theResult = "opening";// rough estimate
                     }
                 }
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("close")) {
@@ -579,7 +579,7 @@ public class TXcmd {
                     e.printStackTrace();
                 }
             } else {
-                System.out.println("SentTCP:未実装のコマンド:" + params[0]);
+                System.out.println("SentTCP:Unimplemented command:" + params[0]);
             }
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("pgcolorx") || 0 == message.compareToIgnoreCase("mirage")) {
@@ -608,10 +608,10 @@ public class TXcmd {
                         }
                     }
                 } else if (params[0].equalsIgnoreCase("CopyBits") || params[0].equalsIgnoreCase("BufToBuf")) {
-                    // PgColorX "CopyBits",転送元port,転送先port,<*転送元rect>,<*転送先topleft/rect>,<*mode>,<*opColor>
+                    // PgColorX "CopyBits",sourcePort,destinationPort,<*sourceRect>,<*destinationTopLeft/rect>,<*mode>,<*opColor>
 
                     if (params.length >= 5 && params[4].split("\n").length >= 2) {
-                        // 改行で繋げて高速化とか厄介なことを・・・
+                        // Join with newlines for speedup and other complicated stuff...
                         String[] srcparam = params[4].split("\n");
                         String[] newparams = new String[params.length];
                         for (int i = 0; i < srcparam.length; i++) {
@@ -641,7 +641,7 @@ public class TXcmd {
                         PgColorXBuf.CopyBits(params);
                     }
                 } else if (params[0].equalsIgnoreCase("OnDraw")) {
-                    // PgColorX "OnDraw",転送元port,<*転送元rect>,<*転送先topleft/rect>,<*mode>,<*opColor>
+                    // PgColorX "OnDraw",sourcePort,<*sourceRect>,<*destinationTopLeft/rect>,<*mode>,<*opColor>
                     int srcport = getPort(params[1]);
 
                     Rectangle srcRect;
@@ -683,7 +683,7 @@ public class TXcmd {
                             dstRect.x, dstRect.y, dstRect.x + dstRect.width, dstRect.y + dstRect.height,
                             srcRect.x, srcRect.y, srcRect.x + srcRect.width, srcRect.y + srcRect.height, PCARD.pc);
                 } else if (params[0].equalsIgnoreCase("Tiling")) {
-                    // PgColorX "Tiling",転送元port,転送先port,<*転送元rect>,<*転送先topleft/rect>,<*mode>,<*opColor>
+                    // PgColorX "Tiling",sourcePort,destinationPort,<*sourceRect>,<*destinationTopLeft/rect>,<*mode>,<*opColor>
                     int srcport = getPort(params[1]);
                     int dstport = getPort(params[2]);
 
@@ -739,7 +739,7 @@ public class TXcmd {
                         }
                     }
                 } else if (params[0].equalsIgnoreCase("PicFont")) {
-                    // PgColorX "PicFont",転送元port,転送先port,string,<*転送先topleft>,<*mode>,<*opColor>
+                    // PgColorX "PicFont",sourcePort,destinationPort,string,<*destinationTopLeft>,<*mode>,<*opColor>
                     int srcport = getPort(params[1]);
                     int dstport = getPort(params[2]);
 
@@ -874,7 +874,7 @@ public class TXcmd {
                         Arrays.fill(PgColorX, null);
                     }
                 } else {
-                    System.out.println("PgColorX:未実装のコマンド:" + params[0]);
+                    System.out.println("PgColorX:Unimplemented command:" + params[0]);
                 }
             }
             result.ret = 0;
@@ -950,13 +950,13 @@ public class TXcmd {
             }
         }*/
         else if (0 == message.compareToIgnoreCase("UxSetDialogFont")) {
-            // 何もしない
+            // Do nothing
         } else if (0 == message.compareToIgnoreCase("UxShowHideCS")) {
-            // コントロールストリップ? 何もしない
+            // Control strip? Do nothing
         } else {
-            System.out.println("未実装のXCMD/XFCN:" + message);
+            System.out.println("Unimplemented XCMD/XFCN: " + message);
             result.ret = 0;
-            throw new xTalkException("未実装のXCMD/XFCN:" + message);
+            throw new xTalkException("Unimplemented XCMD/XFCN:" + message);
         }
 
         return result;
@@ -1156,7 +1156,7 @@ public class TXcmd {
 
 
         static void colorCard(String effect, int time) {
-            // addcolorClassを探す
+            // Find addcolorClass
             List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
             Rsrc.addcolorClass accd = null;
             for (Rsrc.addcolorClass addcolorClass : cdList) {
@@ -1167,7 +1167,7 @@ public class TXcmd {
             }
             if (accd == null) return;
 
-            // addcolorClassにあるオブジェクトを描画
+            // Draw objects in addcolorClass
             BufferedImage bi = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
 
             ArrayList<Rsrc.addcolorObjClass> objList = accd.objList;
@@ -1215,10 +1215,10 @@ public class TXcmd {
 
             VEffect.setOldOff();
 
-            // AddColorの表示用コンポーネントを追加
+            // Add display component for AddColor
             addToMainPane();
 
-            // 裏画面を表画面に描画
+            // Draw back buffer to front buffer
             PCARD.pc.stack.addColor = bi;
             // PCARD.pc.mainPane.repaint();
 
@@ -1240,7 +1240,7 @@ public class TXcmd {
 
 
         static void colorPict(String pict, Point p, Rectangle r, String mode, String effect, int time) {
-            // 裏画面を準備
+            // Prepare back buffer
             BufferedImage bi = PCARD.pc.stack.addColor;
             if (bi == null) {
                 bi = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
@@ -1248,7 +1248,7 @@ public class TXcmd {
 
             VEffect.setOldOff();
 
-            // PICTを描画
+            // Draw PICT
             int pictid = PCARD.pc.stack.rsrc.getRsrcIdAll(pict, "picture");
             String path = PCARD.pc.stack.rsrc.getFilePathAll(pictid, "picture");
             // String path = (PCARD.pc.stack.file.getParent()+File.separatorChar+fileName);
@@ -1266,11 +1266,11 @@ public class TXcmd {
                 }
             }
 
-            // AddColorの表示用コンポーネントを追加
+            // Add display component for AddColor
             addToMainPane();
             addColorPanel.mode = mode;
 
-            // 裏画面を表画面に描画
+            // Draw back buffer to front buffer
             PCARD.pc.stack.addColor = bi;
             PCARD.pc.mainPane.repaint();
 
@@ -1292,7 +1292,7 @@ public class TXcmd {
 
 
         static void colorFill(Color color, Rectangle r, String mode, String effect, int time) {
-            // 裏画面を準備
+            // Prepare back buffer
             BufferedImage bi = PCARD.pc.stack.addColor;
             if (bi == null) {
                 bi = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
@@ -1304,11 +1304,11 @@ public class TXcmd {
             g.setColor(color);
             g.fillRect(r.x, r.y, r.width, r.height);
 
-            // AddColorの表示用コンポーネントを追加
+            // Add display component for AddColor
             addToMainPane();
             addColorPanel.mode = mode;
 
-            // 裏画面を表画面に描画
+            // Draw back buffer to front buffer
             PCARD.pc.stack.addColor = bi;
             PCARD.pc.mainPane.repaint();
 
@@ -1424,8 +1424,8 @@ public class TXcmd {
 
         static AddColorPanel addColorPanel;
 
-        // AddColorの表示用コンポーネント。
-        // この裏にあるコンポーネントの描画を横取りして、加算合成して表示する
+        // Display component for AddColor.
+        // Intercept drawing of components behind it, additively compose, and display
         static class AddColorPanel extends JPanel {
 
             @Serial
@@ -1559,7 +1559,7 @@ public class TXcmd {
             java.util.Iterator<ImageWriter> it = ImageIO.getImageWritersByFormatName("gif");
             ImageWriter iw = it.hasNext() ? it.next() : null;
 
-            // ファイル用意
+            // Prepare file
             ImageOutputStream imageOutputStream = null;
             try {
                 imageOutputStream = ImageIO.createImageOutputStream(new File("./anime.gif"));
@@ -1579,10 +1579,10 @@ public class TXcmd {
                 ImageWriteParam iwp = null;
                 BufferedImage image = null;
                 while (!endFlag) {
-                    // 画像取り込み
+                    // Capture image
                     image = robot.createScreenCapture(rect);
 
-                    // 違いを比較
+                    // Compare differences
                     boolean isDifferent = false;
                     Rectangle updateRect = new Rectangle(rect.width - 1, rect.height - 1, 0, 0);
                     int updateRight = 0;
@@ -1621,10 +1621,10 @@ public class TXcmd {
                     }
 
                     if (isDifferent) {
-                        // 前の画像書き込み
+                        // Write previous image
                         iw.writeToSequence(new IIOImage(image, null, meta), iwp);
 
-                        // パラメータを設定
+                        // Set parameters
                         iwp = iw.getDefaultWriteParam();
 
                         meta = iw.getDefaultImageMetadata(
@@ -1662,13 +1662,13 @@ public class TXcmd {
                 }
 
                 if (image != null) {
-                    // 画像書き込み
+                    // Write image
                     iw.writeToSequence(new IIOImage(image, null, meta), iwp);
                 }
 
                 iw.endWriteSequence();
 
-                // ファイル書き込み
+                // Write file
                 imageOutputStream.close();
                 iw.dispose();
             } catch (IOException e) {
