@@ -498,6 +498,12 @@ public class OButton extends OObject {
                 if (oButton != this && oButton.group == group) {
                     oButton.check_hilite = false;
                     oButton.hilite = false;
+                    if (oButton.btn != null) {
+                        oButton.btn.setHilite(false);
+                        if (!PCARD.lockedScreen) {
+                            PCARD.pc.mainPane.paintImmediately(oButton.left, oButton.top, oButton.width, oButton.height);
+                        }
+                    }
                 }
             }
         }

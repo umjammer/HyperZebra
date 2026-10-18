@@ -41,11 +41,18 @@ class MyPanel extends JPanel {
         }
     }
 
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance();
+
     @Override
     public Graphics getGraphics() {
         Graphics g = super.getGraphics();
         if (g != null && owner != null && owner.zoom > 1) {
-            ((Graphics2D) g).scale(owner.zoom, owner.zoom);
+            boolean fromSwing = STACK_WALKER.walk(s -> s.skip(1).findFirst()
+                    .map(f -> f.getClassName().startsWith("javax.swing.") || f.getClassName().startsWith("java.awt."))
+                    .orElse(false));
+            if (!fromSwing) {
+                ((Graphics2D) g).scale(owner.zoom, owner.zoom);
+            }
         }
         return g;
     }
@@ -53,7 +60,12 @@ class MyPanel extends JPanel {
     @Override
     public void paintImmediately(int x, int y, int w, int h) {
         int z = (owner != null && owner.zoom > 1) ? owner.zoom : 1;
-        super.paintImmediately(x * z, y * z, w * z, h * z);
+        if (owner != null && owner.getRootPane() != null && owner.zoom > 1) {
+            Point pt = javax.swing.SwingUtilities.convertPoint(this, x * z, y * z, owner.getRootPane());
+            owner.getRootPane().paintImmediately(pt.x, pt.y, w * z, h * z);
+        } else {
+            super.paintImmediately(x * z, y * z, w * z, h * z);
+        }
     }
 
     @Override
