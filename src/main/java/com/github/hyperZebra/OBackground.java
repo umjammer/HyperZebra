@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -550,6 +549,7 @@ public class OBackground extends OCardBase {
             for (OObject oObject : partsList) {
                 if (oObject.id == pid) {
                     oObject.setText(contentResult.str);
+                    oObject.rawTextBytes = contentResult.rawBytes;
                     break;
                 }
             }
@@ -568,10 +568,12 @@ public class OBackground extends OCardBase {
 
         resultStr nameResult = HCData.readTextToZero(dis, blockSize - offset);
         name = nameResult.str;
+        rawNameBytes = nameResult.rawBytes;
         // System.out.println("name:"+name);
 
         resultStr scriptResult = HCData.readTextToZero(dis, blockSize - offset - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
+        rawScriptBytes = scriptResult.rawBytes;
         // System.out.println("scriptStr:"+scriptStr);
 
         int remainLength = blockSize - (offset + (nameResult.length_in_src) + (scriptResult.length_in_src));
@@ -586,6 +588,7 @@ public class OBackground extends OCardBase {
             if (remainLength - 1 > 30 && nameResult.length_in_src == 0) {
                 resultStr scriptResult2 = HCData.readText(dis, remainLength - 1);
                 scriptStr = scriptResult2.str;
+                rawScriptBytes = scriptResult2.rawBytes;
             } else {
                 /*String padding =*/
                 HCData.readStr(dis, remainLength - 1);
@@ -593,6 +596,7 @@ public class OBackground extends OCardBase {
             }
             if (nameResult.length_in_src == 0 && scriptResult.length_in_src < 200) {
                 name = scriptResult.str;
+                rawNameBytes = scriptResult.rawBytes;
             }
         }
         /*if((nameResult.length_in_src+1+scriptResult.length_in_src+1)%2 != 0){
@@ -726,6 +730,7 @@ class OBgFieldData {
     OCardBase card;
     OField fld;
     String text;
+    byte[] rawTextBytes;
     int id;
     ArrayList<styleClass> styleList;
 

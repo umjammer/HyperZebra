@@ -205,11 +205,7 @@ public class HCResource {
             str.append((char)b[offset+i]);
         }
         return str.toString();*/
-        if (Locale.getDefault().equals(Locale.JAPANESE)) {
-            return new String(b, offset, length, Charset.forName("SJIS"));
-        } else {
-            return new String(b, offset, length);
-        }
+        return HCData.decodeBytes(b, offset, length);
     }
 
     private static String str4(byte[] b, int offset) {

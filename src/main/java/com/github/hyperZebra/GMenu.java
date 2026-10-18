@@ -501,7 +501,64 @@ public class GMenu {
         m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x4")));
         cb.setSelected(pcard.zoom == 4);
         cb.addActionListener(listener);
+
+        // Font menu
+        m = new JMenu(PCARD.pc.intl.getText("Font"));
+        mb.add(m);
+        for (String fontName : FONT_MENU_ITEMS) {
+            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText(fontName)));
+            if (fontName.equals("Default")) {
+                cb.setSelected(pcard.selectedFont == null);
+            } else {
+                cb.setSelected(fontName.equals(pcard.selectedFont));
+            }
+            cb.addActionListener(listener);
+        }
+        m.addSeparator();
+        for (int offset : FONT_SIZE_OFFSETS) {
+            String label = "Size " + (offset > 0 ? "+" + offset : Integer.toString(offset));
+            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText(label)));
+            cb.setSelected(pcard.fontSizeOffset == offset);
+            cb.addActionListener(listener);
+        }
+
+        // Encoding menu
+        m = new JMenu(PCARD.pc.intl.getText("Encoding"));
+        mb.add(m);
+        for (String encName : ENCODING_MENU_ITEMS) {
+            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText(encName)));
+            cb.setSelected(encName.equalsIgnoreCase(pcard.textEncoding));
+            cb.addActionListener(listener);
+        }
     }
+
+    static final String[] FONT_MENU_ITEMS = {
+        "Default",
+        "SansSerif",
+        "Serif",
+        "Monospaced",
+        "Dialog",
+        "Geneva",
+        "Helvetica",
+        "Monaco",
+        "Palatino",
+        "Osaka",
+        "Hiragino Sans",
+        "Hiragino Maru Gothic ProN",
+        "Hiragino Mincho ProN",
+        "YuGothic"
+    };
+
+    static final int[] FONT_SIZE_OFFSETS = { -4, -2, -1, 0, 1, 2 };
+
+    static final String[] ENCODING_MENU_ITEMS = {
+        "Auto",
+        "Shift_JIS",
+        "MacRoman",
+        "UTF-8",
+        "EUC-JP",
+        "ISO-8859-1"
+    };
 
     static boolean isMacOSX() {
         return System.getProperty("os.name").toLowerCase().startsWith("mac os x");
@@ -667,6 +724,20 @@ class GMenuBrowse implements ActionListener {
         }
     }
 
+    private static boolean isFontMenuItem(String cmd) {
+        for (String f : GMenu.FONT_MENU_ITEMS) {
+            if (f.equalsIgnoreCase(cmd)) return true;
+        }
+        return false;
+    }
+
+    private static boolean isEncodingMenuItem(String cmd) {
+        for (String enc : GMenu.ENCODING_MENU_ITEMS) {
+            if (enc.equalsIgnoreCase(cmd)) return true;
+        }
+        return false;
+    }
+
     public static void doMenu(String in_cmd)
             throws xTalkException {
         String cmd = PCARD.pc.intl.getEngText(in_cmd);
@@ -773,6 +844,35 @@ class GMenuBrowse implements ActionListener {
             if (PCARD.pc.stack != null && PCARD.pc.mainPane != null) {
                 PCARD.pc.mainPane.setBounds(PCARD.pc.stack.left * newZoom, PCARD.pc.stack.top * newZoom, PCARD.pc.stack.width * newZoom, PCARD.pc.stack.height * newZoom + PCARD.pc.getInsets().top);
                 PCARD.pc.mainPane.repaint();
+            }
+        } else if (isFontMenuItem(cmd)) {
+            PCARD.pc.selectedFont = cmd.equalsIgnoreCase("Default") ? null : cmd;
+            for (String f : GMenu.FONT_MENU_ITEMS) {
+                GMenu.changeSelected("Font", f, f.equalsIgnoreCase(cmd));
+            }
+            if (PCARD.pc.stack != null) {
+                OCard.reloadCurrentCard();
+            }
+        } else if (cmd.startsWith("Size ")) {
+            try {
+                int newOffset = Integer.parseInt(cmd.substring(5).replace("+", "").trim());
+                PCARD.pc.fontSizeOffset = newOffset;
+                for (int offset : GMenu.FONT_SIZE_OFFSETS) {
+                    String label = "Size " + (offset > 0 ? "+" + offset : Integer.toString(offset));
+                    GMenu.changeSelected("Font", label, offset == newOffset);
+                }
+                if (PCARD.pc.stack != null) {
+                    OCard.reloadCurrentCard();
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        } else if (isEncodingMenuItem(cmd)) {
+            PCARD.pc.textEncoding = cmd;
+            for (String enc : GMenu.ENCODING_MENU_ITEMS) {
+                GMenu.changeSelected("Encoding", enc, enc.equalsIgnoreCase(cmd));
+            }
+            if (PCARD.pc.stack != null) {
+                HCData.redecodeStack(PCARD.pc.stack);
             }
         } else if (cmd.equalsIgnoreCase("Button Info…")) {
             if (ButtonGUI.gui.target != null) {

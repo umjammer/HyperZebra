@@ -12,6 +12,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 
@@ -279,17 +281,9 @@ label:
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (Locale.getDefault().equals(Locale.JAPANESE)) {
-            result.str = new String(b, 0, i, Charset.forName("SJIS"));
-        } else {
-            result.str = new String(b, 0, i);
-        }
-        // Change line ending
-        for (int j = 0; j < result.str.length(); j++) {
-            if (result.str.charAt(j) == '\r') {
-                result.str = result.str.substring(0, j) + "\n" + result.str.substring(j + 1);
-            }
-        }
+        byte[] raw = Arrays.copyOf(b, i);
+        result.rawBytes = raw;
+        result.str = decodeBytes(raw, 0, raw.length);
         return result;
     }
 
@@ -316,21 +310,121 @@ label:
             e.printStackTrace();
         }
 
-        try {
-            result.str = new String(b, 0, i, "SJIS");
-            // Change line ending
-            for (int j = 0; j < result.str.length(); j++) {
-                if (result.str.charAt(j) == '\r') {
-                    result.str = result.str.substring(0, j) + "\n" + result.str.substring(j + 1);
+        byte[] raw = Arrays.copyOf(b, i);
+        result.rawBytes = raw;
+        result.str = decodeBytes(raw, 0, raw.length);
+        return result;
+    }
+
+    static String decodeBytes(byte[] b, int offset, int len) {
+        if (b == null || len <= 0) return "";
+        String enc = (PCARD.pc != null && PCARD.pc.textEncoding != null) ? PCARD.pc.textEncoding : "Auto";
+        String charsetName = null;
+        if (!enc.equalsIgnoreCase("Auto")) {
+            if (enc.equalsIgnoreCase("Shift_JIS") || enc.equalsIgnoreCase("SJIS")) {
+                charsetName = "MS932";
+            } else {
+                charsetName = enc;
+            }
+        } else {
+            int sjisMultiByteCount = 0;
+            int isolatedKatakanaCount = 0;
+            int invalidSjisCount = 0;
+            for (int idx = offset; idx < offset + len; idx++) {
+                int c = b[idx] & 0xFF;
+                if (c < 0x80) continue;
+                if ((c >= 0x81 && c <= 0x9F) || (c >= 0xE0 && c <= 0xEF)) {
+                    if (idx + 1 < offset + len) {
+                        int c2 = b[idx + 1] & 0xFF;
+                        if ((c2 >= 0x40 && c2 <= 0x7E) || (c2 >= 0x80 && c2 <= 0xFC)) {
+                            sjisMultiByteCount++;
+                            idx++;
+                        } else {
+                            invalidSjisCount++;
+                        }
+                    } else {
+                        invalidSjisCount++;
+                    }
+                } else if (c >= 0xA1 && c <= 0xDF) {
+                    isolatedKatakanaCount++;
+                } else {
+                    invalidSjisCount++;
                 }
             }
-            return result;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            if (invalidSjisCount > 0 || (sjisMultiByteCount == 0 && isolatedKatakanaCount > 0)) {
+                charsetName = "MacRoman";
+            } else {
+                charsetName = "MS932";
+            }
         }
+        String str;
+        try {
+            str = new String(b, offset, len, Charset.forName(charsetName));
+        } catch (Exception e) {
+            str = new String(b, offset, len, Charset.forName("MS932"));
+        }
+        // Change line ending
+        return str.replace('\r', '\n');
+    }
 
-        result.str = "";
-        return result;
+    @SuppressWarnings("unchecked")
+    private static void redecodeObject(OObject obj) {
+        if (obj == null) return;
+        if (obj.rawNameBytes != null) {
+            obj.name = decodeBytes(obj.rawNameBytes, 0, obj.rawNameBytes.length);
+        }
+        if (obj.rawTextBytes != null) {
+            obj.setTextInternal(decodeBytes(obj.rawTextBytes, 0, obj.rawTextBytes.length));
+        }
+        if (obj.rawScriptBytes != null && obj.scriptList != null) {
+            String scriptStr = decodeBytes(obj.rawScriptBytes, 0, obj.rawScriptBytes.length);
+            obj.scriptList.clear();
+            Collections.addAll(obj.scriptList, scriptStr.split("\n"));
+            obj.stringList = new ArrayList[obj.scriptList.size()];
+            obj.typeList = new ArrayList[obj.scriptList.size()];
+            obj.handlerList = null;
+            obj.handlerLineList = null;
+        }
+    }
+
+    public static void redecodeStack(OStack stack) {
+        if (stack == null) return;
+        if (stack.fontList != null) {
+            for (OStack.fontClass fc : stack.fontList) {
+                if (fc.rawNameBytes != null) {
+                    fc.name = decodeBytes(fc.rawNameBytes, 0, fc.rawNameBytes.length);
+                }
+            }
+        }
+        redecodeObject(stack);
+        if (stack.bgCacheList != null) {
+            for (OBackground bg : stack.bgCacheList) {
+                redecodeObject(bg);
+                if (bg.partsList != null) {
+                    for (OObject part : bg.partsList) {
+                        redecodeObject(part);
+                    }
+                }
+            }
+        }
+        if (stack.cdCacheList != null) {
+            for (OCard cd : stack.cdCacheList) {
+                redecodeObject(cd);
+                if (cd.partsList != null) {
+                    for (OObject part : cd.partsList) {
+                        redecodeObject(part);
+                    }
+                }
+                if (cd.bgfldList != null) {
+                    for (OBgFieldData bgfld : cd.bgfldList) {
+                        if (bgfld.rawTextBytes != null) {
+                            bgfld.text = decodeBytes(bgfld.rawTextBytes, 0, bgfld.rawTextBytes.length);
+                        }
+                    }
+                }
+            }
+        }
+        OCard.reloadCurrentCard();
     }
 
     static String[] readPatterns(DataInputStream dis, String parentPath) {
@@ -877,6 +971,7 @@ class resultStr {
 
     String str;
     int length_in_src;
+    byte[] rawBytes;
 }
 
 

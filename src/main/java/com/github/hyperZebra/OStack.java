@@ -10,8 +10,6 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -575,10 +573,17 @@ Debug.println(file + " is MacBinary type?");
 
         int id;
         String name;
+        byte[] rawNameBytes;
 
         public fontClass(int id, String name) {
             this.id = id;
             this.name = name;
+        }
+
+        public fontClass(int id, String name, byte[] rawNameBytes) {
+            this.id = id;
+            this.name = name;
+            this.rawNameBytes = rawNameBytes;
         }
     }
 
@@ -1009,6 +1014,7 @@ Debug.println(file + " is MacBinary type?");
             result = HCData.readTextToZero(dis, remainLength1);
         }
         String scriptStr = result.str;
+        rawScriptBytes = result.rawBytes;
         // //System.out.println("scriptStr:"+scriptStr);
         int remainLength = blockSize - ((1538) + (result.length_in_src));
         // System.out.println("remainLength:"+remainLength);
@@ -1167,7 +1173,7 @@ Debug.println(file + " is MacBinary type?");
             }
 
             // Register font ID and name
-            fontList.add(new fontClass(fontId, nameResult.str));
+            fontList.add(new fontClass(fontId, nameResult.str, nameResult.rawBytes));
         }
 
         int remainLength = blockSize - offset;

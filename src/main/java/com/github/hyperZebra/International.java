@@ -97,6 +97,9 @@ class International {
             putHash(menuHash, menuRHash, "Zoom x4", "ズーム x4");
 
             putHash(menuHash, menuRHash, "Font", "フォント");
+            putHash(menuHash, menuRHash, "Default", "デフォルト");
+            putHash(menuHash, menuRHash, "Encoding", "エンコーディング");
+            putHash(menuHash, menuRHash, "Auto", "自動");
 
             putHash(menuHash, menuRHash, "Paint", "ペイント");
             putHash(menuHash, menuRHash, "Select", "選択");

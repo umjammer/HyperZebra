@@ -632,7 +632,7 @@ public class OButton extends OObject {
     public void setTextFont(String in) {
         textFont = in;
         if (btn != null) {
-            btn.setFont(new Font(textFont, textStyle & 0x03, textSize));
+            btn.setFont(new Font(PCARDFrame.getFontName(textFont), textStyle & 0x03, PCARDFrame.getFontSize(textSize)));
         }
         if (!PCARD.lockedScreen) {
             PCARD.pc.mainPane.paintImmediately(left, top, width, height);
@@ -1386,12 +1386,14 @@ public class OButton extends OObject {
         // System.out.println("textHeight:"+textHeight);
         resultStr nameResult = HCData.readTextToZero(dis, partSize - 30);
         name = nameResult.str;
+        rawNameBytes = nameResult.rawBytes;
         // HCStackDebug.debuginfo("name:"+name);
         // System.out.println("name:"+name);
         /*int filler2 =*/ // HCData.readCode(dis, 1);
         // System.out.println("filler2:"+filler2);
         resultStr scriptResult = HCData.readText(dis, partSize - 30 - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
+        rawScriptBytes = scriptResult.rawBytes;
         // System.out.println("scriptStr:"+scriptStr);
 
         // Search for font name from table
@@ -1452,7 +1454,7 @@ public class OButton extends OObject {
             obtn.btn.setEnabled(obtn.enabled);
             obtn.btn.setAutoHilite(obtn.autoHilite);
             obtn.btn.setHilite(obtn.hilite);
-            obtn.btn.setFont(new Font(obtn.textFont, obtn.textStyle & 0x03, obtn.textSize));
+            obtn.btn.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle & 0x03, PCARDFrame.getFontSize(obtn.textSize)));
             if (!obtn.showName) obtn.btn.setText("");
             if ((obtn.textStyle & 8) > 0 || (obtn.textStyle & 16) > 0) { // outline,shadow
                 obtn.btn.setText("");
@@ -1565,7 +1567,7 @@ public class OButton extends OObject {
             } catch (Exception e) {
                 System.out.println("err: popup.setSelectedIndex(selectedLine-1)");
             }
-            obtn.popup.setFont(new Font(obtn.textFont, obtn.textStyle, obtn.textSize));
+            obtn.popup.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle, PCARDFrame.getFontSize(obtn.textSize)));
             if (obtn.showName) obtn.popup.setToolTipText(obtn.name);
             obtn.popup.setFocusable(false);
             obtn.popup.setMaximumRowCount(20);
@@ -1582,7 +1584,7 @@ public class OButton extends OObject {
             obtn.chkbox.setEnabled(obtn.enabled);
             // chkbox.setAutoHilite(autoHilite);
             obtn.chkbox.setSelected(obtn.hilite);
-            obtn.chkbox.setFont(new Font(obtn.textFont, obtn.textStyle, obtn.textSize));
+            obtn.chkbox.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle, PCARDFrame.getFontSize(obtn.textSize)));
             obtn.chkbox.setVisible(obtn.getVisible());
             if (!obtn.showName) obtn.chkbox.setText("");
             obtn.chkbox.setFocusable(false);
@@ -1597,7 +1599,7 @@ public class OButton extends OObject {
             obtn.radio.setEnabled(obtn.enabled);
             // chkbox.setAutoHilite(autoHilite);
             obtn.radio.setSelected(obtn.hilite);
-            obtn.radio.setFont(new Font(obtn.textFont, obtn.textStyle, obtn.textSize));
+            obtn.radio.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle, PCARDFrame.getFontSize(obtn.textSize)));
             obtn.radio.setVisible(obtn.getVisible());
             obtn.radio.setFocusable(false);
             if (!obtn.showName) obtn.radio.setText("");
@@ -1893,30 +1895,32 @@ class RoundedCornerButton extends MyButton {
         g2.setColor(getBackground());
         super.paintComponent(g2);
         if ((btnData.textStyle & 8) > 0) { // outline
-            g2.setFont(new Font(btnData.textFont, Font.PLAIN, btnData.textSize));
+            int fSize = PCARDFrame.getFontSize(btnData.textSize);
+            g2.setFont(new Font(PCARDFrame.getFontName(btnData.textFont), Font.PLAIN, fSize));
             FontMetrics fo = g2.getFontMetrics();
             int w = fo.stringWidth(btnData.name);
             g2.setPaintMode();
             g2.setColor(Color.BLACK);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 - 1, (btnData.height + btnData.textSize) / 2 - 0);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 - 0, (btnData.height + btnData.textSize) / 2 - 1);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 + 1, (btnData.height + btnData.textSize) / 2 + 0);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 + 0, (btnData.height + btnData.textSize) / 2 + 1);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 - 1, (btnData.height + fSize) / 2 - 0);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 - 0, (btnData.height + fSize) / 2 - 1);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 + 1, (btnData.height + fSize) / 2 + 0);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 + 0, (btnData.height + fSize) / 2 + 1);
             g2.setColor(Color.WHITE);
-            g2.drawString(btnData.name, (btnData.width - w) / 2, (btnData.height + btnData.textSize) / 2);
+            g2.drawString(btnData.name, (btnData.width - w) / 2, (btnData.height + fSize) / 2);
             g2.setColor(getBackground());
             return;
         }
         if ((btnData.textStyle & 16) > 0) { // shadow
-            g2.setFont(new Font(btnData.textFont, Font.PLAIN, btnData.textSize));
+            int fSize = PCARDFrame.getFontSize(btnData.textSize);
+            g2.setFont(new Font(PCARDFrame.getFontName(btnData.textFont), Font.PLAIN, fSize));
             FontMetrics fo = g2.getFontMetrics();
             int w = fo.stringWidth(btnData.name);
             g2.setColor(Color.BLACK);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 + 0, (btnData.height + btnData.textSize) / 2 + 1);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 + 1, (btnData.height + btnData.textSize) / 2 + 0);
-            g2.drawString(btnData.name, (btnData.width - w) / 2 + 1, (btnData.height + btnData.textSize) / 2 + 1);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 + 0, (btnData.height + fSize) / 2 + 1);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 + 1, (btnData.height + fSize) / 2 + 0);
+            g2.drawString(btnData.name, (btnData.width - w) / 2 + 1, (btnData.height + fSize) / 2 + 1);
             g2.setColor(Color.WHITE);
-            g2.drawString(btnData.name, (btnData.width - w) / 2, (btnData.height + btnData.textSize) / 2);
+            g2.drawString(btnData.name, (btnData.width - w) / 2, (btnData.height + fSize) / 2);
             g2.setColor(getBackground());
         }
     }

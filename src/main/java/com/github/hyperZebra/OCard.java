@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.Serial;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -685,6 +684,7 @@ public class OCard extends OCardBase {
                 for (OObject oObject : partsList) {
                     if (oObject.id == pid) {
                         oObject.setText(contentResult.str);
+                        oObject.rawTextBytes = contentResult.rawBytes;
                         isFound = true;
                         break;
                     }
@@ -694,6 +694,7 @@ public class OCard extends OCardBase {
                 }
             } else {
                 bgfld.text = contentResult.str;
+                bgfld.rawTextBytes = contentResult.rawBytes;
                 bgfldList.add(bgfld);
             }
 
@@ -721,11 +722,13 @@ public class OCard extends OCardBase {
 
         resultStr nameResult = HCData.readTextToZero(dis, blockSize - offset);
         name = nameResult.str;
+        rawNameBytes = nameResult.rawBytes;
         // System.out.println("name:"+name);
         // HCStackDebug.debuginfo("name:"+name);
 
         resultStr scriptResult = HCData.readTextToZero(dis, blockSize - offset - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
+        rawScriptBytes = scriptResult.rawBytes;
         // System.out.println("scriptStr:"+scriptStr);
         // HCStackDebug.debuginfo("scriptStr:"+scriptStr);
 
@@ -745,6 +748,7 @@ public class OCard extends OCardBase {
             if (remainLength - 1 > 30 && nameResult.length_in_src == 0) {
                 resultStr scriptResult2 = HCData.readText(dis, remainLength - 1);
                 scriptStr = scriptResult2.str;
+                rawScriptBytes = scriptResult2.rawBytes;
                 // HCStackDebug.debuginfo("set to script.");
             } else {
                 /*String padding =*/
@@ -754,6 +758,7 @@ public class OCard extends OCardBase {
             }
             if (nameResult.length_in_src == 0 && scriptResult.length_in_src < 100) {
                 name = scriptResult.str;
+                rawNameBytes = scriptResult.rawBytes;
             }
         }
 

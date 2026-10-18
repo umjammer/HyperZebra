@@ -46,10 +46,25 @@ class PCARDFrame extends JFrame {
     static boolean useGrid = true;
     static int gridSize = 1;
     int zoom = 2;
+    String selectedFont = null;
+    int fontSizeOffset = -2;
+    String textEncoding = "Auto";
     MyPanel mainPane;
     OStack stack;
     static OStack home;
     int bit = 1;
+
+    public static String getFontName(String origFont) {
+        if (pc != null && pc.selectedFont != null && !pc.selectedFont.isEmpty()) {
+            return pc.selectedFont;
+        }
+        return origFont;
+    }
+
+    public static int getFontSize(int origSize) {
+        int offset = (pc != null) ? pc.fontSizeOffset : -2;
+        return Math.max(6, origSize + offset);
+    }
     float bitLeft;
     float bitTop;
     ToolInterface tool;

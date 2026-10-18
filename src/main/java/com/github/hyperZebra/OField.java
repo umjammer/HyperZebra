@@ -953,12 +953,14 @@ public class OField extends OObject {
         // System.out.println("textHeight:"+textHeight);
         resultStr nameResult = HCData.readTextToZero(dis, partSize - 30);
         name = nameResult.str;
+        rawNameBytes = nameResult.rawBytes;
         // System.out.println("name:"+name);
         // HCStackDebug.debuginfo("name:"+name);
         /*int filler2 =*/ // HCData.readCode(dis, 1);
         // System.out.println("filler2:"+filler2);
         resultStr scriptResult = HCData.readText(dis, partSize - 30 - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
+        rawScriptBytes = scriptResult.rawBytes;
         // System.out.println("scriptStr:"+scriptStr);
 
         // Search for font name from table
@@ -1010,11 +1012,14 @@ public class OField extends OObject {
         ofld.fld.setBounds(ofld.left, ofld.top, ofld.width, ofld.height);
         // ofld.fld.setSelectionColor(ofld.selectColor);
 
-        if (Font.decode(ofld.textFont).getFontName().equals(ofld.textFont)) {
-            Font font = new Font(ofld.textFont, ofld.textStyle, ofld.textSize);
+        String resolvedFont = PCARDFrame.getFontName(ofld.textFont);
+        int resolvedSize = PCARDFrame.getFontSize(ofld.textSize);
+        if (Font.decode(resolvedFont).getFontName().equals(resolvedFont) || (PCARD.pc != null && PCARD.pc.selectedFont != null)) {
+            Font font = new Font(resolvedFont, ofld.textStyle, resolvedSize);
             ofld.fld.setFont(font);
+            ofld.fontPict2 = null;
         } else {
-            Font font = new Font(Font.MONOSPACED, ofld.textStyle, ofld.textSize);
+            Font font = new Font(Font.MONOSPACED, ofld.textStyle, resolvedSize);
             ofld.fld.setFont(font);
             // File file=new File(ofld.card.stack.file.getParent()+"/resource/FONT"+ofld.textFont+".jpeg");
             BufferedImage bi = null;
@@ -1241,7 +1246,7 @@ class MyTextArea extends JTextArea {
         // super.paintComponent(g);
         if (fldData != null) {
             // Normal field
-            if (fldData.fontPict2 != null) {
+            if (fldData.fontPict2 != null && (PCARD.pc == null || PCARD.pc.selectedFont == null)) {
                 if (fldData.style != 1) {
                     g.setColor(fldData.bgColor);
                     Rectangle r = g.getClipBounds();
@@ -1289,9 +1294,9 @@ class MyTextArea extends JTextArea {
                     }
                 }
 
-                String textFont = fldData.textFont;
+                String textFont = PCARDFrame.getFontName(fldData.textFont);
                 int textStyle = fldData.textStyle;
-                int textSize = fldData.textSize;
+                int textSize = PCARDFrame.getFontSize(fldData.textSize);
                 if (smallfont && textSize > 6) textSize--;
                 Color textColor = fldData.color;
                 int nextStyle = 0;
@@ -1344,10 +1349,10 @@ class MyTextArea extends JTextArea {
                     String drawStr = readingStr.toString();
                     int w = 0;
                     if (fldData.dontWrap == false) {
-                        w = fo.stringWidth(drawStr);
+                        w = lft + fo.stringWidth(drawStr);
                     }
 
-                    int add = textSize;
+                    int add = 4;
                     if (nextc == '\n') add = 0;
                     if (c == '\r' || c == '\n' || w > fldWidth - add + 1 || (isStyleChange && i != 0)) { // Draw this line
 
@@ -1414,7 +1419,7 @@ class MyTextArea extends JTextArea {
                             }
                         }
 
-                        if (!isStyleChange) {
+                        if (!isStyleChange || c == '\r' || c == '\n') {
                             // v++; // Newline
                             lft = 0;
                             top += textHeight;
@@ -1424,6 +1429,8 @@ class MyTextArea extends JTextArea {
                                 smallfont = true;
                                 repaint();
                             }*/
+                        } else {
+                            lft += drawWidth;
                         }
 
                         if (c == '\r' && i + 1 < getText().length() && getText().charAt(i + 1) == '\n') {
@@ -1441,7 +1448,7 @@ class MyTextArea extends JTextArea {
                                     for (int k = 0; k < fldData.card.stack.fontList.size(); k++) {
                                         OStack.fontClass fontClass = fldData.card.stack.fontList.get(k);
                                         if (fontClass.id == styleClass.font) {
-                                            textFont = fontClass.name;
+                                            textFont = PCARDFrame.getFontName(fontClass.name);
                                             break;
                                         }
                                     }
@@ -1450,7 +1457,7 @@ class MyTextArea extends JTextArea {
                                     textStyle = styleClass.style;
                                 }
                                 if (styleClass.size != -1) {
-                                    textSize = styleClass.size;
+                                    textSize = PCARDFrame.getFontSize(styleClass.size);
                                 }
                                 if (!fldData.fixedLineHeight) {
                                     textHeight = textSize + 1;

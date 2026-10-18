@@ -16,6 +16,9 @@ public class OObject {
     int id;
     String name = "";
     private String text = "";
+    byte[] rawNameBytes;
+    byte[] rawTextBytes;
+    byte[] rawScriptBytes;
     boolean wrapFlag;
     ArrayList<String> scriptList;
     TreeSet<String> handlerList;
