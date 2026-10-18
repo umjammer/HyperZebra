@@ -3,7 +3,7 @@
 
   <groupId>com.guthub.pgostation</groupId>
   <artifactId>HyperZebra</artifactId>
-  <version>3.0a5</version>
+  <version>3.0.5</version>
 
   <build>
     <plugins>
