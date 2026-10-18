@@ -23,7 +23,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -380,7 +379,7 @@ public class PaintTool {
 }
 
 
-interface toolInterface {
+interface ToolInterface {
 
     void mouseUp(int x, int y);
 
@@ -397,7 +396,7 @@ interface toolInterface {
     String getName();
 }
 
-interface toolTabletInterface extends toolInterface {
+interface toolTabletInterface extends ToolInterface {
 
     void penUp(float x, float y, float pressure, boolean eraser);
 
@@ -406,7 +405,7 @@ interface toolTabletInterface extends toolInterface {
     boolean penStillDown(float x, float y, float pressure, boolean eraser);
 }
 
-interface toolSelectInterface extends toolInterface {
+interface ToolSelectInterface extends ToolInterface {
 
     BufferedImage getSelectedSurface(PCARDFrame owner);
 
@@ -417,10 +416,10 @@ interface toolSelectInterface extends toolInterface {
     boolean isMove();
 }
 
-// -------------------
-// Pencil
-// -------------------
-class PencilTool implements toolInterface {
+/**
+ * Pencil
+ */
+class PencilTool implements ToolInterface {
 
     boolean invert;
     boolean shift;
@@ -461,7 +460,7 @@ class PencilTool implements toolInterface {
                 } else if (PaintTool.owner.mainImg.getWidth() < 320 && PaintTool.owner.mainImg.getHeight() < 320) {
                     PaintTool.owner.bit = 4;
                 } else {
-                    PaintTool.owner.bit = 4;// 2;
+                    PaintTool.owner.bit = 4; // 2;
                 }
             }
             if (PaintTool.owner.bit > 1 && PCARDFrame.pc == PaintTool.owner) {
@@ -476,8 +475,8 @@ class PencilTool implements toolInterface {
                     PaintTool.owner.bitTop = (float) (PaintTool.owner.redoBuf.getHeight() * (PaintTool.owner.bit - 1)) / PaintTool.owner.bit;
                 }
             }
-            if (PCARDFrame.pc != PaintTool.owner) {// IconEditor
-                // PaintTool.owner.mainPane.setBounds(0, 0, PaintTool.owner.mainImg.getWidth()*PaintTool.owner.bit,
+            if (PCARDFrame.pc != PaintTool.owner) { // IconEditor
+                //PaintTool.owner.mainPane.setBounds(0, 0, PaintTool.owner.mainImg.getWidth()*PaintTool.owner.bit,
                 //        PaintTool.owner.mainImg.getHeight()*PaintTool.owner.bit);
                 PaintTool.owner.mainPane.setPreferredSize(new Dimension(PaintTool.owner.mainImg.getWidth() * PaintTool.owner.bit,
                         PaintTool.owner.mainImg.getHeight() * PaintTool.owner.bit));
@@ -497,7 +496,7 @@ class PencilTool implements toolInterface {
                 vp.getParent().setBounds(((size.width - 160) - sw) / 2, ((size.height - PaintTool.owner.getInsets().top) - sh) / 2, sw, sh);
             }
 
-            // PaintTool.owner.getRootPane().repaint();
+            //PaintTool.owner.getRootPane().repaint();
             PaintTool.owner.mainPane.repaint();
             return;
         }
@@ -589,9 +588,9 @@ class PencilTool implements toolInterface {
         g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
         g3.setClip(new Rectangle(left, top, right - left, bottom - top));
         if (!PaintTool.editBackground) {
-            // g3.setColor(new Color(255,128,128));
-            // g3.fillRect(0,0,640,480);
-            // g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
+            //g3.setColor(new Color(255,128,128));
+            //g3.fillRect(0,0,640,480);
+            //g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         }
 
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
@@ -621,15 +620,14 @@ class PencilTool implements toolInterface {
     }
 }
 
-
-// -------------------
-//   Brush
-// -------------------
+/**
+ * Brush
+ */
 class BrushTool implements toolTabletInterface {
 
     Cursor cursor;
     boolean shift;
-    float shiftx, shifty;
+    float shiftX, shiftY;
 
     @Override
     public String getName() {
@@ -640,18 +638,18 @@ class BrushTool implements toolTabletInterface {
         PaintTool.tabletinit();
 
         if (PaintTool.canTablet) {
-            // TabletManager.getDefaultManager().addTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
-            // PaintTool.tabletListener.tool = this;
+            //TabletManager.getDefaultManager().addTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
+            //PaintTool.tabletListener.tool = this;
         }
-        // PaintTool.owner.bit = 1;
-        // PaintTool.owner.mainPane.repaint();
+        //PaintTool.owner.bit = 1;
+        //PaintTool.owner.mainPane.repaint();
     }
 
     @Override
     public void mouseUp(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return;
+//        }
         penUp(x, y, 0.5f, false);
     }
 
@@ -689,9 +687,9 @@ class BrushTool implements toolTabletInterface {
 
     @Override
     public void mouseDown(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return;
+//        }
         penDown(x, y, 0.501f, false);
     }
 
@@ -702,8 +700,8 @@ class BrushTool implements toolTabletInterface {
             return;
         }
         shift = (GUI.key[11] > 0);
-        shiftx = x;
-        shifty = y;
+        shiftX = x;
+        shiftY = y;
 
         GMenuPaint.setUndo();
 
@@ -723,9 +721,9 @@ class BrushTool implements toolTabletInterface {
 
     @Override
     public boolean mouseWithin(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return false;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return false;
+//        }
         return penWithin(x, y, 0.5f);
     }
 
@@ -735,9 +733,9 @@ class BrushTool implements toolTabletInterface {
 
     @Override
     public boolean mouseStillDown(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return false;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return false;
+//        }
         if (GUI.key[12] > 0) {
             PaintTool.owner.mainPane.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         } else {
@@ -748,23 +746,23 @@ class BrushTool implements toolTabletInterface {
 
     @Override
     public boolean penStillDown(float x, float y, float pressure, boolean eraser) {
-        /*if(PaintTool.antialias && pressure==0.5f && Math.pow(x-PaintTool.lastX[0],2) + Math.pow(y-PaintTool.lastY[0],2) < PaintTool.brushSize*15){
-            if(PaintTool.owner.bit==1&&PaintTool.lastTime+500>=System.currentTimeMillis()){
-                return false;// Don't draw short lines to make anti-aliasing look cleaner
-            }
-        }*/
+//        if (PaintTool.antialias && pressure == 0.5f && Math.pow(x - PaintTool.lastX[0], 2) + Math.pow(y - PaintTool.lastY[0], 2) < PaintTool.brushSize * 15) {
+//            if (PaintTool.owner.bit == 1 && PaintTool.lastTime + 500 >= System.currentTimeMillis()) {
+//                return false; // Don't draw short lines to make anti-aliasing look cleaner
+//            }
+//        }
 
-        if (shift && ((x - shiftx != 0) || (y - shifty != 0))) {
-            if ((shiftx == -1) || (shifty != -1) && (Math.abs(x - shiftx) > Math.abs(y - shifty))) {
-                shiftx = -1;
-                y = shifty;
-                PaintTool.lasty[0] = (int) shifty;
-                PaintTool.lasty[1] = (int) shifty;
-            } else if ((shifty == -1) || (shiftx != -1)) {
-                shifty = -1;
-                x = shiftx;
-                PaintTool.lastx[0] = (int) shiftx;
-                PaintTool.lastx[1] = (int) shiftx;
+        if (shift && ((x - shiftX != 0) || (y - shiftY != 0))) {
+            if ((shiftX == -1) || (shiftY != -1) && (Math.abs(x - shiftX) > Math.abs(y - shiftY))) {
+                shiftX = -1;
+                y = shiftY;
+                PaintTool.lasty[0] = (int) shiftY;
+                PaintTool.lasty[1] = (int) shiftY;
+            } else if ((shiftY == -1) || (shiftX != -1)) {
+                shiftY = -1;
+                x = shiftX;
+                PaintTool.lastx[0] = (int) shiftX;
+                PaintTool.lastx[1] = (int) shiftX;
             }
         }
 
@@ -823,9 +821,9 @@ class BrushTool implements toolTabletInterface {
         }
         g3.setClip(new Rectangle(left, top, right - left, bottom - top));
         if (!PaintTool.editBackground) {
-            // g3.setColor(new Color(255,128,128));
-            // g3.fillRect(0,0,640,480);
-            // g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
+            //g3.setColor(new Color(255,128,128));
+            //g3.fillRect(0,0,640,480);
+            //g3.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         }
 
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
@@ -883,19 +881,18 @@ class BrushTool implements toolTabletInterface {
 
     @Override
     public void clear() {
-
     }
 
     @Override
     public void end() {
-        // TabletManager.getDefaultManager().removeTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
+        //TabletManager.getDefaultManager().removeTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
     }
 }
 
 
-// -------------------
-// Eraser
-// -------------------
+/**
+ * Eraser
+ */
 class EraserTool implements toolTabletInterface {
 
     Cursor cursor;
@@ -906,8 +903,8 @@ class EraserTool implements toolTabletInterface {
         PaintTool.tabletinit();
 
         if (PaintTool.canTablet) {
-            // TabletManager.getDefaultManager().addTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
-            // PaintTool.tabletListener.tool = this;
+            //TabletManager.getDefaultManager().addTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
+            //PaintTool.tabletListener.tool = this;
         }
     }
 
@@ -918,9 +915,9 @@ class EraserTool implements toolTabletInterface {
 
     @Override
     public void mouseUp(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return;
+//        }
         penUp(x, y, 0.5f, false);
     }
 
@@ -937,14 +934,14 @@ class EraserTool implements toolTabletInterface {
                     int src = srcdb.getElem(0, h * width + w);
                     int tgt = tgtdb.getElem(0, h * width + w);
                     int c = tgt;
-                    if ((src & 0xFF000000) != 0) {
-                        // int a = (c&0xFF000000)>>24;
-                        // a = (a * (0xFF-((src&0xFF000000)>>24)))/0xFF;
-                        // c = (a<<24) + tgt&0x00FFFFFF;
+                    if ((src & 0xFF00_0000) != 0) {
+                        //int a = (c & 0xFF00_0000)>>24;
+                        //a = (a * (0xFF - ((src & 0xFF00_0000) >> 24))) / 0xFF;
+                        //c = (a << 24) + tgt & 0x00FF_FFFF;
                         if (PaintTool.editBackground) {
-                            c = 0xFFFFFFFF;
+                            c = 0xFFFF_FFFF;
                         } else {
-                            c = 0x00FFFFFF;
+                            c = 0x00FF_FFFF;
                         }
                     }
                     tgtdb.setElem(0, h * width + w, c);
@@ -985,9 +982,9 @@ class EraserTool implements toolTabletInterface {
 
     @Override
     public boolean mouseWithin(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return false;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return false;
+//        }
         return penWithin(x, y, 0.5f);
     }
 
@@ -997,9 +994,9 @@ class EraserTool implements toolTabletInterface {
 
     @Override
     public boolean mouseStillDown(int x, int y) {
-        /*if(PaintTool.tabletListener.in_stroke){
-            return false;
-        }*/
+//        if (PaintTool.tabletListener.in_stroke) {
+//            return false;
+//        }
         return penStillDown(x, y + 0.5f, 0.5f, false);
     }
 
@@ -1086,11 +1083,11 @@ class EraserTool implements toolTabletInterface {
             g4.setClip(new Rectangle(left, top, right - left, bottom - top));
             g4.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
             g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
-            /*if(eraser){
-                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-            }else{
-                g4.setComposite( AlphaComposite.getInstance(AlphaComposite.SRC_OVER,PaintTool.alpha/100.0F) );
-            }*/
+//            if (eraser) {
+//                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+//            } else {
+//                g4.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
+//            }
             g4.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
             // Draw border when zoomed display
@@ -1112,15 +1109,15 @@ class EraserTool implements toolTabletInterface {
 
     @Override
     public void end() {
-        // TabletManager.getDefaultManager().removeTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
+        //TabletManager.getDefaultManager().removeTabletListener(PaintTool.owner.mainPane, PaintTool.tabletListener);
     }
 }
 
 
-// -------------------
-// Paint Bucket
-// -------------------
-class PaintBucketTool implements toolInterface {
+/**
+ * Paint Bucket
+ */
+class PaintBucketTool implements ToolInterface {
 
     ArrayList<Point> pointList;
 
@@ -1139,8 +1136,8 @@ class PaintBucketTool implements toolInterface {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if ((0xFF000000 & buffer.getElem(0, x + y * width)) != 0) {
-                    // System.out.println((0xFF000000&buffer.getElem(0, x+y*width))+" "+(buffer.getElem(0, x+y*width)));
+                if ((0xFF00_0000 & buffer.getElem(0, x + y * width)) != 0) {
+                    //System.out.println((0xFF00_0000 & buffer.getElem(0, x + y * width)) + " " + (buffer.getElem(0, x + y * width)));
                     if (topPoint == null) {
                         topPoint = new Point(x, y);
                         bottomPoint = new Point(x, y);
@@ -1175,7 +1172,7 @@ class PaintBucketTool implements toolInterface {
         }
     }
 
-    private void seedfillH(BufferedImage surface, BufferedImage newSurface, int px, int py, int srcColor, int newColor) {
+    private void seedFillH(BufferedImage surface, BufferedImage newSurface, int px, int py, int srcColor, int newColor) {
         DataBuffer buffer = surface.getRaster().getDataBuffer();
         DataBuffer newBuffer = newSurface.getRaster().getDataBuffer();
         int width = surface.getWidth();
@@ -1184,8 +1181,8 @@ class PaintBucketTool implements toolInterface {
         // Check left
         int lx;
         for (lx = -1; px + lx >= 0; lx--) {
-            // System.out.println("<srcColor:"+srcColor);
-            // System.out.println("<getElem("+(px+lx)+","+py+"):"+buffer.getElem(0, px+lx+py*width));
+//            System.out.println("<srcColor:" + srcColor);
+//            System.out.println("<getElem(" + (px + lx) + "," + py + "):" + buffer.getElem(0, px + lx + py * width));
             if ((0x00FFFFFF & buffer.getElem(0, px + lx + py * width)) != (0x00FFFFFF & srcColor)) {
                 break;
             }
@@ -1195,8 +1192,8 @@ class PaintBucketTool implements toolInterface {
         // Check right
         int rx;
         for (rx = 1; px + rx < width; rx++) {
-            // System.out.println(">srcColor:"+srcColor);
-            // System.out.println(">getElem("+(px+rx)+","+py+"):"+buffer.getElem(0, px+lx+py*width));
+//            System.out.println(">srcColor:" + srcColor);
+//            System.out.println(">getElem(" + (px + rx) + "," + py + "):" + buffer.getElem(0, px + lx + py * width));
             if ((0x00FFFFFF & buffer.getElem(0, px + rx + py * width)) != (0x00FFFFFF & srcColor)) {
                 break;
             }
@@ -1212,9 +1209,9 @@ class PaintBucketTool implements toolInterface {
         if (py - 1 >= 0) {
             for (int x = px + lx; x <= px + rx; x++) {
                 // Search for the right edge
-                if ((0x00FFFFFF & buffer.getElem(0, x + (py - 1) * width)) == (0x00FFFFFF & srcColor)) {
+                if ((0x00FF_FFFF & buffer.getElem(0, x + (py - 1) * width)) == (0x00FF_FFFF & srcColor)) {
                     if (x == px + rx ||
-                            (0x00FFFFFF & buffer.getElem(0, (x + 1) + (py - 1) * width)) != (0x00FFFFFF & srcColor)) {
+                            (0x00FF_FFFF & buffer.getElem(0, (x + 1) + (py - 1) * width)) != (0x00FF_FFFF & srcColor)) {
                         if (newBuffer.getElem(0, x + (py - 1) * width) != newColor) {
                             // Not registered, so register it
                             pointList.add(new Point(x, py - 1));
@@ -1229,9 +1226,9 @@ class PaintBucketTool implements toolInterface {
         if (py + 1 < height) {
             for (int x = px + lx; x < px + rx; x++) {
                 // Search for the right edge
-                if ((0x00FFFFFF & buffer.getElem(0, x + (py + 1) * width)) == (0x00FFFFFF & srcColor)) {
+                if ((0x00FF_FFFF & buffer.getElem(0, x + (py + 1) * width)) == (0x00FF_FFFF & srcColor)) {
                     if (x + 1 == px + rx ||
-                            (0x00FFFFFF & buffer.getElem(0, (x + 1) + (py + 1) * width)) != (0x00FFFFFF & srcColor)) {
+                            (0x00FF_FFFF & buffer.getElem(0, (x + 1) + (py + 1) * width)) != (0x00FF_FFFF & srcColor)) {
                         if (newBuffer.getElem(0, x + (py + 1) * width) != newColor) {
                             // Not registered, so register it
                             pointList.add(new Point(x, py + 1));
@@ -1248,8 +1245,8 @@ class PaintBucketTool implements toolInterface {
         int width = surface.getWidth();
         int height = surface.getHeight();
         int srcColor = buffer.getElem(0, px + py * width);
-        // Color c = PaintTool.owner.stack.toolbar.fore.color;
-        int newColor = 0xFF000000/*+(c.getRed()<<16)+(c.getGreen()<<8)+c.getBlue()*/;
+        //Color c = PaintTool.owner.stack.toolbar.fore.color;
+        int newColor = 0xFF00_0000 /* + (c.getRed() << 16) + (c.getGreen() << 8) + c.getBlue() */;
 
         // Reset list
         pointList = new ArrayList<>();
@@ -1261,38 +1258,37 @@ class PaintBucketTool implements toolInterface {
         Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, width, height);
         g.fill(rect);
 
-
         // Make transparent parts of surface #FFFFFF
         DataBuffer dbuffer = surface.getRaster().getDataBuffer();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if ((dbuffer.getElem(x + y * width) & -0xFF000000) == 0) {
-                    dbuffer.setElem(x + y * width, 0x00FFFFFF);
+                if ((dbuffer.getElem(x + y * width) & -0xFF00_0000) == 0) {
+                    dbuffer.setElem(x + y * width, 0x00FF_FFFF);
                 }
             }
         }
 
-        seedfillH(surface, newSurface, px, py, srcColor, newColor);
+        seedFillH(surface, newSurface, px, py, srcColor, newColor);
 
         while (!pointList.isEmpty()) {
             Point p = pointList.get(0);
             pointList.remove(0);
-            seedfillH(surface, newSurface, p.x, p.y, srcColor, newColor);
+            seedFillH(surface, newSurface, p.x, p.y, srcColor, newColor);
         }
 
         // Apply pattern
         PaintTool.setPattern(false);
-        DataBuffer fillbuf = newSurface.getRaster().getDataBuffer();
-        DataBuffer patbuf = PaintTool.pat.getRaster().getDataBuffer();
+        DataBuffer fillBuf = newSurface.getRaster().getDataBuffer();
+        DataBuffer patBuf = PaintTool.pat.getRaster().getDataBuffer();
         int patW = PaintTool.pat.getWidth();
         int patH = PaintTool.pat.getHeight();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int c1 = fillbuf.getElem(0, x + y * width);
-                if ((c1 & 0xFF000000) != 0) {
-                    int c2 = patbuf.getElem(x % patW + (y % patH) * patW);
-                    // c2 = (c2&0x00FFFFFF) + ((((c1&0xFF000000)>>24)*((c2&0xFF000000)>>24))/0xFF)<<24;
-                    fillbuf.setElem(0, x + y * width, c2);
+                int c1 = fillBuf.getElem(0, x + y * width);
+                if ((c1 & 0xFF00_0000) != 0) {
+                    int c2 = patBuf.getElem(x % patW + (y % patH) * patW);
+                    //c2 = (c2 & 0x00FF_FFFF) + ((((c1 & 0xFF00_0000) >> 24) * ((c2 & 0xFF00_0000) >> 24)) / 0xFF) << 24;
+                    fillBuf.setElem(0, x + y * width, c2);
                 }
             }
         }
@@ -1361,14 +1357,13 @@ class PaintBucketTool implements toolInterface {
 }
 
 
-// -------------------
-// Rectangle
-// -------------------
-class RectTool implements toolInterface {
+/**
+ * Rectangle
+ */
+class RectTool implements ToolInterface {
 
     private Rectangle srcRect;
     private Rectangle lastClipRect = new Rectangle();
-
 
     @Override
     public String getName() {
@@ -1424,7 +1419,6 @@ class RectTool implements toolInterface {
         // Draw rectangle
         g2.draw(rect);
 
-
         Graphics2D g4 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
         // Zoomed display
@@ -1451,11 +1445,10 @@ class RectTool implements toolInterface {
         }
 
         lastClipRect = clipRect;
-
     }
 
     private Rectangle setSelection(int x, int y) {
-        // Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
+        //Graphics2D g3 = (Graphics2D) PaintTool.owner.mainPane.getGraphics();
 
         Rectangle r = (Rectangle) srcRect.clone();
 
@@ -1493,28 +1486,24 @@ class RectTool implements toolInterface {
 
     @Override
     public void mouseUp(int x, int y) {
-        {
-            srcRect = setSelection(x, y);
+        srcRect = setSelection(x, y);
 
-            // Reflect to surface
-            Graphics2D g = PaintTool.owner.getSurface().createGraphics();
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
-            g.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
+        // Reflect to surface
+        Graphics2D g = PaintTool.owner.getSurface().createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
+        g.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-            PaintTool.owner.mainPane.repaint();
-        }
+        PaintTool.owner.mainPane.repaint();
     }
 
     @Override
     public void mouseDown(int x, int y) {
-        {
-            GMenuPaint.setUndo();
+        GMenuPaint.setUndo();
 
-            PaintTool.setPattern(GUI.key[14] > 0);
+        PaintTool.setPattern(GUI.key[14] > 0);
 
-            // Create new selection area
-            srcRect = new Rectangle(x, y, 0, 0);
-        }
+        // Create new selection area
+        srcRect = new Rectangle(x, y, 0, 0);
     }
 
     @Override
@@ -1543,10 +1532,10 @@ class RectTool implements toolInterface {
 }
 
 
-// -------------------
-// Ellipse
-// -------------------
-class OvalTool implements toolInterface {
+/**
+ * Ellipse
+ */
+class OvalTool implements ToolInterface {
 
     private Rectangle srcRect;
     private Rectangle lastClipRect = new Rectangle();
@@ -1730,7 +1719,7 @@ class OvalTool implements toolInterface {
 // -------------------
 // Line
 // -------------------
-class LineTool implements toolInterface {
+class LineTool implements ToolInterface {
 
     private Rectangle srcRect;
     private Rectangle lastClipRect = new Rectangle();
@@ -1847,7 +1836,7 @@ class LineTool implements toolInterface {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PaintTool.alpha / 100.0F));
         g.drawImage(PaintTool.owner.redoBuf, 0, 0, PaintTool.owner.mainPane);
 
-        /*// Reflect to surface
+        /* // Reflect to surface
         Graphics2D g3 = PaintTool.owner.getSurface().createGraphics();
 
         // Line type
@@ -1909,7 +1898,7 @@ class LineTool implements toolInterface {
 // -------------------
 // Selection
 // -------------------
-class SelectTool implements toolSelectInterface {
+class SelectTool implements ToolSelectInterface {
     // srcRect: Selected area
     // moveRect: Current floating position
     // redoBuf: Floating selection of selected area (0,0,width,height)
@@ -2254,7 +2243,7 @@ class SelectTool implements toolSelectInterface {
 // -------------------
 // Lasso
 // -------------------
-class LassoTool implements toolSelectInterface {
+class LassoTool implements ToolSelectInterface {
     // srcbits: Selected area
     // movePoint: Current floating movement amount
     // redoBuf: Floating selection of selected area (0,0,width,height)
@@ -2753,7 +2742,7 @@ class LassoTool implements toolSelectInterface {
 // -------------------
 // Smart Select
 // -------------------
-class SmartSelectTool implements toolSelectInterface {
+class SmartSelectTool implements ToolSelectInterface {
     // srcbits: Selected area
     // movePoint: Current floating movement amount
     // redoBuf: Floating selection of selected area (0,0,width,height)
@@ -2778,7 +2767,7 @@ class SmartSelectTool implements toolSelectInterface {
     private void borderDraw() {
         if (srcbits == null) return;
 
-        /*// Reflect transparency and draw line segment on screen
+        /* // Reflect transparency and draw line segment on screen
         Graphics2D g4 = (Graphics2D) PaintTool.owner.redoBuf.getGraphics();
         g4.drawImage(PaintTool.owner.bgImg, 0, 0, PaintTool.owner.mainPane);
         g4.drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
@@ -3182,7 +3171,7 @@ class SmartSelectTool implements toolSelectInterface {
         }
 
         {
-            if (GUI.key[14] > 1 && srcbits != null && srcbits.getWidth() > 1) {// cmd
+            if (GUI.key[14] > 1 && srcbits != null && srcbits.getWidth() > 1) { // cmd
                 this_end();
                 move = false;
                 tmpRect = null;
@@ -3293,7 +3282,7 @@ class SmartSelectTool implements toolSelectInterface {
 
     @Override
     public void clear() {
-        srcbits = null;// new BufferedImage(1,1,BufferedImage.TYPE_INT_ARGB);
+        srcbits = null; // new BufferedImage(1,1,BufferedImage.TYPE_INT_ARGB);
         srcPoints = new ArrayList<>();
         move = false;
         tmpRect = null;
@@ -3328,7 +3317,7 @@ class SmartSelectTool implements toolSelectInterface {
     @Override
     public BufferedImage getSelectedSurface(PCARDFrame owner) {
         if (move) {
-            return /*srcbits;// PaintTool.*/owner.redoBuf;
+            return /*srcbits; // PaintTool.*/owner.redoBuf;
         }
         return null;
     }
@@ -3356,7 +3345,7 @@ class SmartSelectTool implements toolSelectInterface {
 // -------------------
 // Text
 // -------------------
-class TypeTool implements toolInterface {
+class TypeTool implements ToolInterface {
 
     MyTextArea area;
     Rectangle typeRect;
@@ -3571,7 +3560,7 @@ class PaintIdle extends Thread {
             GUI.keyEventCheck();
 
             try {
-                sleep(100);// 10 times per 1000msec
+                sleep(100); // 10 times per 1000msec
             } catch (InterruptedException e) {
                 // Thread.currentThread().interrupt();
             }

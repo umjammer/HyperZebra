@@ -42,8 +42,8 @@ class PaintFilter extends JDialog implements ActionListener {
         getContentPane().setLayout(new BorderLayout());
         setTitle(PCARD.pc.intl.getDialogText("Filter"));
 
-        if (!(owner.tool instanceof toolSelectInterface) ||
-                ((toolSelectInterface) owner.tool).getSelectedSurface(owner) == null) {
+        if (!(owner.tool instanceof ToolSelectInterface) ||
+                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) == null) {
             GMenuPaint.setUndo();
             GMenuPaint.doMenu("Select All");
 
@@ -66,8 +66,8 @@ class PaintFilter extends JDialog implements ActionListener {
         this.getContentPane().removeAll();
         this.getContentPane().repaint();
 
-        if (owner.tool instanceof toolSelectInterface tl &&
-                ((toolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
+        if (owner.tool instanceof ToolSelectInterface tl &&
+                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
             save_bi = tl.getSelectedSurface(owner);
         } else return;
 
@@ -251,8 +251,8 @@ class PaintFilter extends JDialog implements ActionListener {
         }
 
         if (newbi != null) {
-            if (owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
+            if (owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
                 owner.redoBuf = newbi;
             }
         }
@@ -1111,7 +1111,7 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         } else if (dithermode == 1) {
             // Bill Atkinson's HyperScan Algorithm
-            // http:// verlagmartinkoch.at/software/dither/index.html
+            // http: // verlagmartinkoch.at/software/dither/index.html
 
             DataBuffer newdb = newimg.getRaster().getDataBuffer();
             int width = srcbi.getWidth();
@@ -1642,7 +1642,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
         int[] counts = new int[1 << 20];
 
-        byte[] gradarea = new byte[1 << 16];// Store gradient area with 5,6,5
+        byte[] gradarea = new byte[1 << 16]; // Store gradient area with 5,6,5
 
         // Count included colors
         // DataBuffer db = srcbi.getRaster().getDataBuffer();
@@ -1653,7 +1653,7 @@ class PaintFilter extends JDialog implements ActionListener {
             cnt_renzoku = 0;
             for (int h = 0; h < width; h++) {
                 int orgd = db.getElem(h + v * width);
-                if (((orgd >> 24) & 0xFF) == 0) continue;// Skip transparent color
+                if (((orgd >> 24) & 0xFF) == 0) continue; // Skip transparent color
                 int d = minidb.getElem(h + v * width);
                 grad_d[cnt_renzoku % 8] = d;
                 counts[d] += 1;
@@ -1730,7 +1730,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 cnt_renzoku = 0;
                 for (int v = 0; v < height; v++) {
                     int orgd = db.getElem(h + v * width);
-                    if (((orgd >> 24) & 0xFF) == 0) continue;// Skip transparent color
+                    if (((orgd >> 24) & 0xFF) == 0) continue; // Skip transparent color
                     int d = minidb.getElem(h + v * width);
                     grad_d[cnt_renzoku % 8] = d;
                     int r = ((d >> 14) & 0x3F);

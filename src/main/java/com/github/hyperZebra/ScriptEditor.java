@@ -131,7 +131,7 @@ public class ScriptEditor extends JFrame {
                 if (scrPane.isValid() == false) {
                     PCARD.pc.stack.scriptEditor.dispose();
                     PCARD.pc.stack.scriptEditor = new ScriptEditor(owner);
-                    return;// Corrupted
+                    return; // Corrupted
                 }
                 ScriptArea area = (ScriptArea) scrPane.getViewport().getComponent(0);
                 if (area.compareObject(obj) == true) {
@@ -252,7 +252,7 @@ public class ScriptEditor extends JFrame {
             if (scrPane.getViewport().getComponentCount() == 0) return;
             ScriptArea area = (ScriptArea) scrPane.getViewport().getComponent(0);
             if (false == saveAlert(area)) {
-                return;// Cancel close
+                return; // Cancel close
             }
         }
         PCARD.pc.stack.scriptEditor.setVisible(false);
@@ -437,7 +437,7 @@ class ScriptArea extends JTextPane {
                 }*/
 
                 /*
-                 * http:// webcache.googleusercontent.com/search?q=cache:fm8Klx9_kTAJ:gline.zapto.org/log/read.php/tech/1227234261/101-200+UndoableEditEvent+color+change+is&cd=2&hl=ja&ct=clnk&gl=jp&client=safari&source=www.google.co.jp
+                 * http: // webcache.googleusercontent.com/search?q=cache:fm8Klx9_kTAJ:gline.zapto.org/log/read.php/tech/1227234261/101-200+UndoableEditEvent+color+change+is&cd=2&hl=ja&ct=clnk&gl=jp&client=safari&source=www.google.co.jp
                  * Note on getting stuck with javax.swing.undo.
                     For example, when you want to undo multiple operations like deletion and insertion (such as string replacement) in one go,
                     nest UndoManagers.
@@ -849,9 +849,9 @@ class ScriptArea extends JTextPane {
                     str.setLength(0);
                 }
                 if (inFunc) {
-                    typeList.add(TTalk.wordType.COMMA_FUNC);// Function argument specification
+                    typeList.add(TTalk.wordType.COMMA_FUNC); // Function argument specification
                 } else {
-                    typeList.add(TTalk.wordType.COMMA);// loc/rect or global, or handler arguments
+                    typeList.add(TTalk.wordType.COMMA); // loc/rect or global, or handler arguments
                 }
                 stringList.add(",");
             } else if (code == '"') {
@@ -1302,7 +1302,7 @@ class ScriptArea extends JTextPane {
                     return true;
                 }
             }else if(obj.objectType.equals("stack")){
-                return true;// Always matches since each stack has its own editor window
+                return true; // Always matches since each stack has its own editor window
             }
         }
         return false;

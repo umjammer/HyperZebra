@@ -455,7 +455,7 @@ public class TTalk extends Thread {
         commandSet.add("export");
         commandSet.add("find");
         commandSet.add("get");
-        commandSet.add("global");// Special handling
+        commandSet.add("global"); // Special handling
         commandSet.add("go");
         commandSet.add("help");
         commandSet.add("hide");
@@ -493,8 +493,8 @@ public class TTalk extends Thread {
         commandSet.add("wait");
         commandSet.add("write");
 
-        commandSet.add("flash");// add
-        commandSet.add("about");// add
+        commandSet.add("flash"); // add
+        commandSet.add("about"); // add
 
         funcSet = new TreeSet<>();
         funcSet.add("abs");//
@@ -571,10 +571,10 @@ public class TTalk extends Thread {
         funcSet.add("value");//
         funcSet.add("windows");//
 
-        funcSet.add("systemname");// add
-        funcSet.add("javaversion");// add
-        funcSet.add("javavmversion");// add
-        funcSet.add("controlkey");// add
+        funcSet.add("systemname"); // add
+        funcSet.add("javaversion"); // add
+        funcSet.add("javavmversion"); // add
+        funcSet.add("controlkey"); // add
 
         propertySet = new TreeSet<>();
         propertySet.add("address");
@@ -583,18 +583,18 @@ public class TTalk extends Thread {
         propertySet.add("autotab");
         propertySet.add("blindtyping");
         propertySet.add("botright");
-        propertySet.add("bottom");// set
+        propertySet.add("bottom"); // set
         propertySet.add("bottomright");
         propertySet.add("brush");
-        propertySet.add("cantabort");// set
-        propertySet.add("cantdelete");// set
-        propertySet.add("cantmodify");// set
-        propertySet.add("cantpeek");// set
+        propertySet.add("cantabort"); // set
+        propertySet.add("cantdelete"); // set
+        propertySet.add("cantmodify"); // set
+        propertySet.add("cantpeek"); // set
         propertySet.add("centered");
         propertySet.add("checkmark");
         propertySet.add("cmdchar");
         propertySet.add("commandchar");
-        propertySet.add("cursor");// set
+        propertySet.add("cursor"); // set
         propertySet.add("debugger");
         propertySet.add("dialingtime");
         propertySet.add("dialingvolume");
@@ -602,30 +602,30 @@ public class TTalk extends Thread {
         propertySet.add("dontwrap");
         propertySet.add("dragspeed");
         propertySet.add("editbkgnd");
-        propertySet.add("enabled");// set
+        propertySet.add("enabled"); // set
         propertySet.add("environment");
         propertySet.add("family");
         propertySet.add("filled");
         propertySet.add("fixedlineheight");
         propertySet.add("freesize");
         propertySet.add("grid");
-        propertySet.add("height");// set
-        propertySet.add("highlight");// set
-        propertySet.add("hilight");// set
-        propertySet.add("hilite");// set
-        propertySet.add("highlite");// set
-        propertySet.add("icon");// set
+        propertySet.add("height"); // set
+        propertySet.add("highlight"); // set
+        propertySet.add("hilight"); // set
+        propertySet.add("hilite"); // set
+        propertySet.add("highlite"); // set
+        propertySet.add("icon"); // set
         propertySet.add("id");
-        propertySet.add("itemdelimiter");// set
+        propertySet.add("itemdelimiter"); // set
         propertySet.add("language");
-        propertySet.add("left");// set
+        propertySet.add("left"); // set
         propertySet.add("linesize");
-        propertySet.add("loc");// set
-        propertySet.add("location");// set
-        propertySet.add("lockerrordialogs");// set
-        propertySet.add("lockmessages");// set
-        propertySet.add("lockrecent");// set
-        propertySet.add("lockscreen");// set
+        propertySet.add("loc"); // set
+        propertySet.add("location"); // set
+        propertySet.add("lockerrordialogs"); // set
+        propertySet.add("lockmessages"); // set
+        propertySet.add("lockrecent"); // set
+        propertySet.add("lockscreen"); // set
         propertySet.add("locktext");
         propertySet.add("longwindowtitles");
         propertySet.add("markchar");
@@ -636,7 +636,7 @@ public class TTalk extends Thread {
         propertySet.add("multiple");
         propertySet.add("multiplelines");
         propertySet.add("multispace");
-        propertySet.add("name");// set
+        propertySet.add("name"); // set
         propertySet.add("numberformat");
         propertySet.add("owner");
         propertySet.add("partnumber");
@@ -649,57 +649,57 @@ public class TTalk extends Thread {
         propertySet.add("printtextheight");
         propertySet.add("printtextsize");
         propertySet.add("printtextstyle");
-        propertySet.add("rect");// set
-        propertySet.add("rectangle");// set
+        propertySet.add("rect"); // set
+        propertySet.add("rectangle"); // set
         propertySet.add("reporttemplates");
-        propertySet.add("right");// set
-        propertySet.add("script");// set
+        propertySet.add("right"); // set
+        propertySet.add("script"); // set
         propertySet.add("scripteditor");
         propertySet.add("scriptinglanguage");
-        propertySet.add("scripttextfont");// get,set
-        propertySet.add("scripttextsize");// get,set
-        propertySet.add("scroll");// set
+        propertySet.add("scripttextfont"); // get,set
+        propertySet.add("scripttextsize"); // get,set
+        propertySet.add("scroll"); // set
         propertySet.add("sharedhilite");
         propertySet.add("sharedtext");
         propertySet.add("showlines");
         propertySet.add("showname");
-        propertySet.add("showpict");// set
+        propertySet.add("showpict"); // set
         propertySet.add("size");
         propertySet.add("stacksinuse");
         propertySet.add("style");
         propertySet.add("suspended");
         propertySet.add("textalign");
         propertySet.add("textarrows");
-        propertySet.add("textfont");// set
-        propertySet.add("textheight");// set
-        propertySet.add("textsize");// set
-        propertySet.add("textstyle");// set
+        propertySet.add("textfont"); // set
+        propertySet.add("textheight"); // set
+        propertySet.add("textsize"); // set
+        propertySet.add("textstyle"); // set
         propertySet.add("titelwidth");
-        propertySet.add("top");// set
-        propertySet.add("topleft");// set
+        propertySet.add("top"); // set
+        propertySet.add("topleft"); // set
         propertySet.add("tracedelay");
-        propertySet.add("userlevel");// set
+        propertySet.add("userlevel"); // set
         propertySet.add("usermodify");
         propertySet.add("variablewatcher");
         propertySet.add("version");
-        propertySet.add("visible");// set
+        propertySet.add("visible"); // set
         propertySet.add("widemargins");
-        propertySet.add("width");// set
-        propertySet.add("zoomed");// set
+        propertySet.add("width"); // set
+        propertySet.add("zoomed"); // set
 
         propertySet.add("text");// (add) set
-        propertySet.add("systemlang");// add get
-        propertySet.add("blendingmode");// add set
-        propertySet.add("blendinglevel");// add set
-        propertySet.add("color");// add set
-        propertySet.add("backColor");// add set
+        propertySet.add("systemlang"); // add get
+        propertySet.add("blendingmode"); // add set
+        propertySet.add("blendinglevel"); // add set
+        propertySet.add("color"); // add set
+        propertySet.add("backColor"); // add set
         propertySet.add("selectedfield");//
         propertySet.add("selectedline");//
         propertySet.add("selectedtext");//
 
-        propertySet.add("audiolevel");// xcmd set
-        propertySet.add("currtime");// xcmd set
-        propertySet.add("scale");// xcmd set
+        propertySet.add("audiolevel"); // xcmd set
+        propertySet.add("currtime"); // xcmd set
+        propertySet.add("scale"); // xcmd set
 
         globalData.treeset = new TreeSet<>();
         globalData.nameList = new ArrayList<>();
@@ -784,7 +784,7 @@ public class TTalk extends Thread {
         memData.treeset = new TreeSet<>();
         memData.nameList = new ArrayList<>();
         memData.valueList = new ArrayList<>();
-        result = talk.doScriptLine(script, /*PCARD.pc.stack.curCard*/null, null, memData, 0);
+        result = talk.doScriptLine(script, /* PCARD.pc.stack.curCard */ null, null, memData, 0);
 
         if (result == null) return "";
         return result.theResult;
@@ -1052,7 +1052,7 @@ public class TTalk extends Thread {
             }
         }
 
-        return result;// 0 if found, 1 if not found so look for next object
+        return result; // 0 if found, 1 if not found so look for next object
     }
 
 
@@ -1347,7 +1347,7 @@ label:
                         // resolution(str, stringList, typeList,false);
 
                         int next = -1;
-                        String prm = "";// String of if condition
+                        String prm = ""; // String of if condition
 
                         int iftype = 0;
                         int iftype2 = 0;
@@ -2463,7 +2463,7 @@ label:
                 if (!lockMessages) {
                     talk.ReceiveMessage("closeCard", new String[0], PCARD.pc.stack.curCard, PCARD.pc.stack.curCard, null);
                 }
-                OCard cd = OCard.getOCard(PCARD.pc.stack, id, true);// Read only data
+                OCard cd = OCard.getOCard(PCARD.pc.stack, id, true); // Read only data
 
                 if (!lockMessages) {
                     if (cd.bgid != PCARD.pc.stack.curCard.bgid) {
@@ -2483,9 +2483,9 @@ label:
                 for (int i = PCARD.pc.mainPane.getComponentCount() - 1; i >= 0; i--) {
                     // PCARD.pc.mainPane.remove(PCARD.pc.mainPane.getComponent(i));
                 }
-                cd = OCard.getOCard(PCARD.pc.stack, id, false);// Read both components and pictures
+                cd = OCard.getOCard(PCARD.pc.stack, id, false); // Read both components and pictures
 
-                cd.bg = OBackground.getOBackground(PCARD.pc.stack, cd, cd.bgid, false);// new OBackground(PCARD.pc.stack, cd, cd.bgid, false);
+                cd.bg = OBackground.getOBackground(PCARD.pc.stack, cd, cd.bgid, false); // new OBackground(PCARD.pc.stack, cd, cd.bgid, false);
 
                 cd.parent = cd.bg;
                 if (PCARD.pc.stack.curCard.label != null) {
@@ -6357,7 +6357,7 @@ label:
 
         int next = start;
 
-        if (next >= stringList.size()) return null;// throw new xTalkException("Object is unknown");
+        if (next >= stringList.size()) return null; // throw new xTalkException("Object is unknown");
         String str = stringList.get(next);
         if (0 == str.compareToIgnoreCase("HyperCard")) {
             objres.cnt = 1;
@@ -6385,7 +6385,7 @@ label:
             return objres;
         }
         next++;
-        if (next >= stringList.size()) return null;// throw new xTalkException("Object is unknown");
+        if (next >= stringList.size()) return null; // throw new xTalkException("Object is unknown");
         String str2 = stringList.get(next);
         if (0 == str.compareToIgnoreCase("the") && 0 == str2.compareToIgnoreCase("target")) {
             objres.cnt = 2;
@@ -7242,7 +7242,7 @@ label:
         } else if (0 == stringList.get(next).compareToIgnoreCase("the") &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("target")) {
             obj = target;
-            next++;// next+=2;
+            next++; // next+=2;
         } else if (0 == stringList.get(next).compareToIgnoreCase("window")) {
             String str = Evalution(stringList, typeAry, next + 1, end, memData, object, target);
             for (int i = 0; i < OWindow.list.size(); i++) {
@@ -7278,11 +7278,11 @@ label:
         } else if ((0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card")) &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("picture")) {
             obj = PCARD.pc.stack.curCard.picture;
-            next++;// next+=2;
+            next++; // next+=2;
         } else if ((0 == stringList.get(next).compareToIgnoreCase("bg") || 0 == stringList.get(next).compareToIgnoreCase("bkgnd") || 0 == stringList.get(next).compareToIgnoreCase("background")) &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("picture")) {
             obj = PCARD.pc.stack.curCard.bg.picture;
-            next++;// next+=2;
+            next++; // next+=2;
         } else if (0 == stringList.get(next).compareToIgnoreCase("picture") &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("of") &&
                 next + 2 <= end) {
@@ -7290,7 +7290,7 @@ label:
             if (result != null) {
                 if (result.obj.objectType.equals("card") || result.obj.objectType.equals("background")) {
                     obj = ((OCardBase) result.obj).picture;
-                    next++;// next+=2;
+                    next++; // next+=2;
                     next += result.cnt;
                 }
             }
@@ -7344,7 +7344,7 @@ label:
             cdbase = PCARD.pc.stack.curCard;
 
             boolean bg_flag = false;
-            // boolean cdbg_flag = false;// Search both card and BG
+            // boolean cdbg_flag = false; // Search both card and BG
             int flag = 0; // 1 is button, 2 is field
             for (int i = next; i <= end; i++) {
                 // Parentheses
@@ -7466,7 +7466,7 @@ label:
                     // cdbg_flag = true;
                     bg_flag = true;
                 } else {
-                    return null;// Not an object
+                    return null; // Not an object
                 }
                 if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
                 if (typeAry[next] != wordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn"))) {

@@ -117,7 +117,7 @@ class MyPanel extends JPanel {
             AffineTransform saveAT = ((Graphics2D) g).getTransform();
 
             if (owner.tool != null && owner.redoBuf != null &&
-                    owner.tool instanceof toolSelectInterface && ((toolSelectInterface) owner.tool).isMove()) {
+                    owner.tool instanceof ToolSelectInterface && ((ToolSelectInterface) owner.tool).isMove()) {
                 BufferedImage flowImage = owner.redoBuf;
 
                 // Blend mode

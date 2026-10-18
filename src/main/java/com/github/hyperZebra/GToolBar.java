@@ -722,7 +722,7 @@ class TBButtonListener implements ActionListener, MouseListener {
         } else if (cmd.equals("DummyPaint")) {
             TBCursor.changeCursor(PCARD.pc);
         } else {
-            return false;// Not found
+            return false; // Not found
         }
 
         if (PCARD.pc.stack.curCard != null && PCARD.pc.mainImg == null) {

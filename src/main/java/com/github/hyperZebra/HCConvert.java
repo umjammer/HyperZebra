@@ -191,7 +191,7 @@ public class HCConvert {
             // Read data fork portion into byte array
             if (dataForkLen > 100 * 1000 * 1000) {
                 // Shouldn't be more than 100M
-                dataForkLen = 10 * 1000 * 1000;// For now, set to 10M.
+                dataForkLen = 10 * 1000 * 1000; // For now, set to 10M.
             }
             byte[] dataBytes = new byte[dataForkLen];
             try {
@@ -223,7 +223,7 @@ public class HCConvert {
                     // Read resource fork portion into byte array
                     if (rsrcForkLen > 300 * 1000 * 1000) {
                         // Shouldn't be more than 300M
-                        rsrcForkLen = 10 * 1000 * 1000;// For now, set to 10M.
+                        rsrcForkLen = 10 * 1000 * 1000; // For now, set to 10M.
                     }
                     rsrcBytes = new byte[rsrcForkLen];
                     try {

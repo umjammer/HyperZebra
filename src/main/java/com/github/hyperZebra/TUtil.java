@@ -43,7 +43,7 @@ public class TUtil {
     public static Result CallSystemFunction(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
             throws xTalkException {
         Result result = new Result();
-        result.ret = 1;// Return 1 if not found
+        result.ret = 1; // Return 1 if not found
 
         message = message.toLowerCase();
 
@@ -376,7 +376,7 @@ public class TUtil {
             result.theResult = System.getProperty("java.vm.version");
         } else if (0 == message.compareTo("mouseclick")) {
             String v = GUI.mouseClicked ? "true" : "false";
-            GUI.mouseClicked = false;// Returns to false once read
+            GUI.mouseClicked = false; // Returns to false once read
             result.theResult = v;
         } else if (0 == message.compareTo("mouse")) {
             result.theResult = GUI.mouseDown ? "Down" : "Up";
@@ -655,7 +655,7 @@ public class TUtil {
     public static Result CallSystemMessage(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
             throws xTalkException {
         Result result = new Result();
-        result.ret = 1;// Return 1 if not found
+        result.ret = 1; // Return 1 if not found
 
         if (0 == message.compareToIgnoreCase("mouseDown")) {
             result.ret = 0;

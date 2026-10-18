@@ -592,7 +592,7 @@ public class OCard extends OCardBase {
             // HCStackDebug.debuginfo("==cd content "+i+"==");
 
             int pid;
-            /*{// Alignment adjustment
+            /*{ // Alignment adjustment
                 pid = HCData.readCode(dis, 1);
                 while(pid<=0 || (pid==255 && i<255) || (pid==254 && i<255)){
                     pid = (pid<<8) + HCData.readCode(dis, 1);
@@ -995,7 +995,7 @@ class MyLabel extends JLabel {
             //    e.printStackTrace();
         }
         try {
-            //    if(PCARD.lockedScreen&&(f.get(paneg)==f.get(g)||f.get(mainpaneg)==f.get(g))) return;// g.drawImage(VEffect.oldoff,0,0,PCARD.pc.mainPane);
+            //    if(PCARD.lockedScreen&&(f.get(paneg)==f.get(g)||f.get(mainpaneg)==f.get(g))) return; // g.drawImage(VEffect.oldoff,0,0,PCARD.pc.mainPane);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             // } catch (IllegalAccessException e) {

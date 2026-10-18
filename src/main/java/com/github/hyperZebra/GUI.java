@@ -710,7 +710,7 @@ class GPopup implements ActionListener, PopupMenuListener {
             GUI.mouseClicked();
             hidePopup = ((MyPopup) e.getSource());
             SwingUtilities.invokeLater(() -> {
-                hidePopup.setPopupVisible(false);// Cancel if menu opens during script execution
+                hidePopup.setPopupVisible(false); // Cancel if menu opens during script execution
             });
         }
     }

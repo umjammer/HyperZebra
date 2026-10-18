@@ -8,6 +8,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -17,25 +19,22 @@ import javax.swing.border.EmptyBorder;
 
 public class GMsg extends JDialog {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     static GMsg msg = null;
     static JTextField area;
 
     GMsg(Frame owner, String text) {
         super(owner);
         OWindow.msgwindow = new OWindow(this);
-        /*getContentPane().*/
-        setLayout(null);// new BorderLayout());
-        // this.setBackground(Color.WHITE);
+        /* getContentPane(). */setLayout(null); // new BorderLayout());
+        //this.setBackground(Color.WHITE);
 
         // Add panel
-        // JPanel topPanel = new JPanel();
-        // topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        // getContentPane().add("North",topPanel);
+        //JPanel topPanel = new JPanel();
+        //topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        //getContentPane().add("North", topPanel);
 
         area = new JTextField(text);
         area.setPreferredSize(new Dimension(480, 28));
@@ -43,18 +42,17 @@ public class GMsg extends JDialog {
         area.setBorder(new EmptyBorder(0, 8, 0, 0));
         area.setBounds(0, 0, 480, 28);
         area.setOpaque(false);
-        // topPanel.add(area);
-        /*getContentPane().*/
-        add(area);
+        //topPanel.add(area);
+        /* getContentPane(). */add(area);
 
-        setBounds(owner.getX() + owner.getWidth() / 2 - 240, owner.getY() + owner.getHeight(), 480, 48/*+PCARD.pc.getInsets().top*/);
+        setBounds(owner.getX() + owner.getWidth() / 2 - 240, owner.getY() + owner.getHeight(), 480, 48 /* + PCARD.pc.getInsets().top */);
         setResizable(false);
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        // setVisible(true);
+        //setVisible(true);
 
         area.addKeyListener(new GMsgListener());
 
-        addKeyListener(GUI.gui);// Key input is shared
+        addKeyListener(GUI.gui); // Key input is shared
 
         msg = this;
 
@@ -94,6 +92,8 @@ public class GMsg extends JDialog {
 
 class GMsgListener implements KeyListener {
 
+    private static final Logger logger = System.getLogger(GMsgListener.class.getName());
+
     @Override
     public void keyPressed(KeyEvent e) {
 
@@ -105,12 +105,12 @@ class GMsgListener implements KeyListener {
                 try {
                     res = TTalk.doScriptforMenu(str);
                 } catch (xTalkException e1) {
-                    e1.printStackTrace();
+                    logger.log(Level.ERROR, e1.getMessage(), e1);
                     Object[] options = {"OK"};
                     JOptionPane.showOptionDialog(PCARDFrame.pc.stack.pcard,
                             "Script Error: " + e1.getMessage(),
                             "Script Error",
-                            JOptionPane.YES_OPTION,
+                            JOptionPane.YES_NO_OPTION,
                             JOptionPane.WARNING_MESSAGE, null, options, options[0]);
                 }
                 if (res != null && !res.isEmpty()) GMsg.setText(res);
@@ -134,5 +134,4 @@ class GMsgListener implements KeyListener {
     @Override
     public void keyTyped(KeyEvent e) {
     }
-
 }

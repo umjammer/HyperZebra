@@ -37,7 +37,7 @@ public class XMLwrite {
 
             writer.writeStartDocument("utf-8", "1.0");
             writer.writeCharacters("\n");
-            // writer.writeDTD("<!DOCTYPE stackfile PUBLIC \"-// Apple, Inc.// DTD stackfile V 2.0// EN\" \"\" >");
+            // writer.writeDTD("<!DOCTYPE stackfile PUBLIC \"- // Apple, Inc. // DTD stackfile V 2.0 // EN\" \"\" >");
             writer.writeCharacters("\n");
             writer.writeStartElement("stackfile");
             writer.writeCharacters("\n\t");
@@ -105,7 +105,7 @@ public class XMLwrite {
 
             while (true) {
                 try {
-                    sleep(1000);// Once per second
+                    sleep(1000); // Once per second
                 } catch (InterruptedException e) {
                     // this.interrupt();
                 }

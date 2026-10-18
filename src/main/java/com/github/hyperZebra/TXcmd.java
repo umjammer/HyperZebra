@@ -542,9 +542,9 @@ public class TXcmd {
                     if (socket.isClosed()) {
                         result.theResult = "closed";
                     } else if (socket.isConnected()) {
-                        result.theResult = "established";// rough estimate
+                        result.theResult = "established"; // rough estimate
                     } else {
-                        result.theResult = "opening";// rough estimate
+                        result.theResult = "opening"; // rough estimate
                     }
                 }
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("close")) {

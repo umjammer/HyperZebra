@@ -45,6 +45,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     private final PCARDFrame owner;
     private final Color[] srcColorBest = new Color[16];
     private final Color[] dstColorBest = new Color[16];
@@ -58,8 +59,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         getContentPane().setLayout(null);
         setTitle(PCARD.pc.intl.getDialogText("Color Convert"));
 
-        if (owner.tool instanceof toolSelectInterface &&
-                ((toolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
+        if (owner.tool instanceof ToolSelectInterface &&
+                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
         } else {
             GMenuPaint.setUndo();
         }
@@ -81,8 +82,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         this.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         BufferedImage bi;
-        if (owner.tool instanceof toolSelectInterface tl &&
-                ((toolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
+        if (owner.tool instanceof ToolSelectInterface tl &&
+                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
             bi = tl.getSelectedSurface(owner);
             save_bi = tl.getSelectedSurface(owner);
         } else {
@@ -105,7 +106,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         for (int v = 0; v < height; v++) {
             for (int h = 0; h < width; h++) {
                 int d = db.getElem(h + v * width);
-                if (((d >> 24) & 0xFF) == 0) continue;// Exclude transparent colors
+                if (((d >> 24) & 0xFF) == 0) continue; // Exclude transparent colors
                 Color c = new Color((d >> 16) & 0xFF, (d >> 8) & 0xFF, (d >> 0) & 0xFF);
                 boolean isFound = false;
                 if (lasti >= 0 && isNearHSV(d, srcColors.get(lasti), near)) {
@@ -145,9 +146,9 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                     for (int m = 0; m < j; m++) {
                         if (isNearHSV(srcColors.get(i), srcColorBest[m], near)) {
                             nearColorFound = true;
-                            /*srcColorBest[m] = srcColors.get(i);
-                            dstColorBest[m] = srcColors.get(i);
-                            srcColorCountBest[m] = srcColorCount.get(i);*/
+//                            srcColorBest[m] = srcColors.get(i);
+//                            dstColorBest[m] = srcColors.get(i);
+//                            srcColorCountBest[m] = srcColorCount.get(i);
                             break;
                         }
                     }
@@ -235,7 +236,6 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         this.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
 
-
     private static boolean isNear(int argb, Color color, int near) {
         if (Math.abs(color.getRed() - ((argb >> 16) & 0xFF)) > near) {
             return false;
@@ -249,7 +249,6 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         return true;
     }
 
-
     private static boolean isNearHSV(Color color1, Color color2, int near) {
         float[] hsb1 = Color.RGBtoHSB(color1.getRed(), color1.getGreen(), color1.getBlue(), null);
         float[] hsb2 = Color.RGBtoHSB(color2.getRed(), color2.getGreen(), color2.getBlue(), null);
@@ -258,10 +257,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 + 3 * Math.abs(hsb1[1] - hsb2[1]) * Math.max(0.0f, hsb1[2] + hsb2[2] - 0.1f)
                 + 2 * Math.abs(hsb1[2] - hsb2[2]);
 
-        if ((int) (d * 30) > near) return false;
-        return true;
+        return (int) (d * 30) <= near;
     }
-
 
     private static boolean isNearHSV(int color1, Color color2, int near) {
         float[] hsb1 = Color.RGBtoHSB((color1 >> 16) & 0xFF, (color1 >> 8) & 0xFF, (color1 >> 0) & 0xFF, null);
@@ -271,10 +268,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 + 3 * Math.abs(hsb1[1] - hsb2[1]) * Math.max(0.0f, hsb1[2] + hsb2[2] - 0.1f)
                 + 2 * Math.abs(hsb1[2] - hsb2[2]);
 
-        if ((int) (d * 30) > near) return false;
-        return true;
+        return (int) (d * 30) <= near;
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -304,7 +299,6 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         ActionEvent e;
 
         ColorConvertThread(ColorConvertDialog owner, String name, String cmd, ActionEvent e) {
-            super();
             this.owner = owner;
             this.name = name;
             this.cmd = cmd;
@@ -340,8 +334,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 }
             }
 
-            if (owner.owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) owner.owner.tool).getSelectedSurface(owner.owner) != null) {
+            if (owner.owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) owner.owner.tool).getSelectedSurface(owner.owner) != null) {
                 // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(save_bi.getWidth(), save_bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D dst_g = bi2.createGraphics();
@@ -354,7 +348,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 // Operation
                 DataBuffer surbuf = bi2.getRaster().getDataBuffer();
                 if (cmd.equals("OK")) {
-                    toolSelectInterface tl = (toolSelectInterface) owner.owner.tool;
+                    ToolSelectInterface tl = (ToolSelectInterface) owner.owner.tool;
                     surbuf = tl.getSelectedSurface(owner.owner).getRaster().getDataBuffer();
                 }
                 int width = bi2.getWidth();
@@ -391,7 +385,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 }
 
                 if (cmd.equals("OK")) {
-                    owner.dispose();// this.dispose();
+                    owner.dispose(); // this.dispose();
                     owner.owner.mainPane.repaint();
                     return;
                 }
@@ -478,7 +472,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                     if (savebi != null) {
                         owner.owner.redoBuf = savebi;
                     }
-                    owner.dispose();// this.dispose();
+                    owner.dispose(); // this.dispose();
                     owner.owner.mainPane.repaint();
                     return;
                 }
@@ -522,8 +516,8 @@ class EmbossDialog extends JFrame implements ActionListener {
     private void SetDialogContents() {
         this.getContentPane().removeAll();
 
-        if (!(owner.tool instanceof toolSelectInterface) ||
-                ((toolSelectInterface) owner.tool).getSelectedSurface(owner) == null) {
+        if (!(owner.tool instanceof ToolSelectInterface) ||
+                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) == null) {
             GMenuPaint.setUndo();
 
             GMenuPaint.doMenu("Select All");
@@ -709,7 +703,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Highlight-Brightness");
-                combo.setSelectedIndex(highlBright);
+                combo.setSelectedIndex(highLBright);
                 combo.setMaximumRowCount(16);
                 combo.addActionListener(this);
                 panel.add(combo);
@@ -720,7 +714,7 @@ class EmbossDialog extends JFrame implements ActionListener {
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Highlight-Area");
-                combo.setSelectedIndex(highlArea);
+                combo.setSelectedIndex(highLArea);
                 combo.setMaximumRowCount(16);
                 combo.addActionListener(this);
                 panel.add(combo);
@@ -889,9 +883,9 @@ class EmbossDialog extends JFrame implements ActionListener {
     private float gradAngle = 0.0f;
 
     private boolean useHighlight = true;
-    private int highlBright = 3;
-    private int highlArea = 3;
-    private final Point highlOffset = new Point(0, 0);
+    private int highLBright = 3;
+    private int highLArea = 3;
+    private final Point highLOffset = new Point(0, 0);
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -941,17 +935,17 @@ class EmbossDialog extends JFrame implements ActionListener {
                 SetDialogContents();
             }
             case "Highlight-Brightness" -> {
-                highlBright = ((JComboBox<?>) e.getSource()).getSelectedIndex();
+                highLBright = ((JComboBox<?>) e.getSource()).getSelectedIndex();
                 SetDialogContents();
             }
             case "Highlight-Area" -> {
-                highlArea = ((JComboBox<?>) e.getSource()).getSelectedIndex();
+                highLArea = ((JComboBox<?>) e.getSource()).getSelectedIndex();
                 SetDialogContents();
             }
-            case "Highlight-Up" -> highlOffset.y--;
-            case "Highlight-Down" -> highlOffset.y++;
-            case "Highlight-Left" -> highlOffset.x--;
-            case "Highlight-Right" -> highlOffset.x++;
+            case "Highlight-Up" -> highLOffset.y--;
+            case "Highlight-Down" -> highLOffset.y++;
+            case "Highlight-Left" -> highLOffset.x--;
+            case "Highlight-Right" -> highLOffset.x++;
         }
 
         this.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -961,7 +955,7 @@ class EmbossDialog extends JFrame implements ActionListener {
 
 
     private void previewImage(String cmd) {
-        toolSelectInterface tl = (toolSelectInterface) owner.tool;
+        ToolSelectInterface tl = (ToolSelectInterface) owner.tool;
         BufferedImage srcimg = saveImage;
         if (saveImage == null) {
             srcimg = tl.getSelectedSurface(owner);
@@ -1437,7 +1431,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
         mainpanel.setLayout(new GridLayout(3, 1));
         getContentPane().add("Center", mainpanel);
 
-        toolSelectInterface tl = (toolSelectInterface) owner.tool;
+        ToolSelectInterface tl = (ToolSelectInterface) owner.tool;
         Rectangle rect = tl.getSelectedRect();
 
         {
@@ -1508,7 +1502,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-            toolSelectInterface tl = (toolSelectInterface) owner.tool;
+            ToolSelectInterface tl = (ToolSelectInterface) owner.tool;
             Rectangle rect = tl.getSelectedRect();
 
             String widthstr = widthfield.getText();
@@ -1595,7 +1589,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             int newheight = Integer.parseInt(heightstr);
             if (newwidth == 0 || newheight == 0) return;
 
-            toolSelectInterface tl = (toolSelectInterface) owner.tool;
+            ToolSelectInterface tl = (ToolSelectInterface) owner.tool;
             if (tl.getClass() == SelectTool.class) {
                 Image img = owner.redoBuf
                         .getScaledInstance(newwidth, newheight, Image.SCALE_SMOOTH);

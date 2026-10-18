@@ -19,10 +19,7 @@ import java.awt.event.WindowListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serial;
 import java.nio.file.Files;
@@ -55,7 +52,7 @@ class PCARDFrame extends JFrame {
     int bit = 1;
     float bitLeft;
     float bitTop;
-    toolInterface tool;
+    ToolInterface tool;
     CPButton fore;
     CPButton back;
     GradButton grad;
@@ -127,7 +124,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     GMenu paintMenu;
     GMsg msg;
     International intl;
-    static boolean useDoubleBuffer = false;// Can we save memory by turning off the buffer?
+    static boolean useDoubleBuffer = false; // Can we save memory by turning off the buffer?
     Pidle pidle;
     PaintIdle paidle;
     DropTarget drop;
@@ -444,7 +441,7 @@ class Pidle extends Thread {
                 // PCARD.pc.stack.pcard.requestFocusInWindow(); // This prevents typing in fields
             }
             try {
-                sleep(100);// 10 times per 1000msec
+                sleep(100); // 10 times per 1000msec
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

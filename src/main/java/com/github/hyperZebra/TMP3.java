@@ -151,7 +151,7 @@ public class TMP3 extends Thread {
                 if (nBytesRead != -1)
                     /* nBytesWritten = */ line.write(data, 0, nBytesRead);
             }
-            line.drain();// Wait until playback ends
+            line.drain(); // Wait until playback ends
             line.stop();
         }
     }
@@ -162,7 +162,7 @@ public class TMP3 extends Thread {
         DataLine.Info info = new DataLine.Info(SourceDataLine.class,
                 audioFormat);
         res = (SourceDataLine) AudioSystem.getLine(info);
-        res.open(audioFormat, 524288);// 512KB should be enough?
+        res.open(audioFormat, 524288); // 512KB should be enough?
         return res;
     }
 }

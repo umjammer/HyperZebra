@@ -214,7 +214,7 @@ class GMenuPaint implements ActionListener {
                 } else if (PaintTool.owner.mainImg.getWidth() < 320 && PaintTool.owner.mainImg.getHeight() < 320) {
                     PaintTool.owner.bit = 4;
                 } else {
-                    PaintTool.owner.bit = 4;// 2;
+                    PaintTool.owner.bit = 4; // 2;
                 }
             }
 
@@ -242,8 +242,8 @@ class GMenuPaint implements ActionListener {
             GMenu.changeSelected("Paint", "FatBits", (PaintTool.owner.bit > 1));
         } else if (cmd.equalsIgnoreCase("Flip Horizontal")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
                 // First create and clear a new buffer
@@ -360,8 +360,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Flip Vertical")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
                 // First create and clear a new buffer
@@ -480,8 +480,8 @@ class GMenuPaint implements ActionListener {
             new ColorConvertDialog(PaintTool.owner);
         } else if (cmd.equalsIgnoreCase("Rotate Left")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
                 // First create and clear a new buffer
@@ -597,8 +597,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Rotate Right")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
                 // First create and clear a new buffer
@@ -717,8 +717,8 @@ class GMenuPaint implements ActionListener {
             new EmbossDialog(PaintTool.owner);
         } else if (cmd.equalsIgnoreCase("Blur")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
@@ -822,8 +822,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Sharpen")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
 
@@ -927,8 +927,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Invert")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
@@ -993,8 +993,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Darken")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Darken selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
@@ -1077,8 +1077,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Lighten")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Lighten selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
@@ -1161,8 +1161,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Pickup")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Make selection area items go behind
                 BufferedImage bi;
                 if (tl.getClass() == LassoTool.class) {
@@ -1228,8 +1228,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Fill")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Fill selection area
                 BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                 if (bi.hasTileWriters()) {
@@ -1327,13 +1327,13 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Transparent")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Make white in selection area transparent
 
                 // Processing
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
-                    toolSelectInterface tl = (toolSelectInterface) PaintTool.owner.tool;
+                    ToolSelectInterface tl = (ToolSelectInterface) PaintTool.owner.tool;
                     BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                     if (bi.hasTileWriters()) {
                         BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1384,13 +1384,13 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Opaque")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Make transparent in selection area white
 
                 // Processing
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
-                    toolSelectInterface tl = (toolSelectInterface) PaintTool.owner.tool;
+                    ToolSelectInterface tl = (ToolSelectInterface) PaintTool.owner.tool;
                     BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                     if (bi.hasTileWriters()) {
                         BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1444,8 +1444,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Reverse Selection")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface tl &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null &&
+            if (PaintTool.owner.tool instanceof ToolSelectInterface tl &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null &&
                     (PaintTool.owner.tool.getClass() == LassoTool.class ||
                             PaintTool.owner.tool.getClass() == SmartSelectTool.class)) {
                 // Invert selection area and make its image go behind
@@ -1534,9 +1534,9 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Scale Selection…")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
-                if (((toolSelectInterface) PaintTool.owner.tool).getSelectedRect().width > 0) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+                if (((ToolSelectInterface) PaintTool.owner.tool).getSelectedRect().width > 0) {
                     new PaintScaleDialog(PaintTool.owner);
                 }
             } else {
@@ -1544,13 +1544,13 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Opaque")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
                 // Make transparent in selection area white
 
                 // Processing
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
-                    toolSelectInterface tl = (toolSelectInterface) PaintTool.owner.tool;
+                    ToolSelectInterface tl = (ToolSelectInterface) PaintTool.owner.tool;
                     BufferedImage bi = tl.getSelectedSurface(PaintTool.owner);
                     if (bi.hasTileWriters()) {
                         BufferedImage bi2 = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -1604,8 +1604,8 @@ class GMenuPaint implements ActionListener {
             }
         } else if (cmd.equalsIgnoreCase("Expand Selection")) {
 
-            if (PaintTool.owner.tool instanceof toolSelectInterface &&
-                    ((toolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
+            if (PaintTool.owner.tool instanceof ToolSelectInterface &&
+                    ((ToolSelectInterface) PaintTool.owner.tool).getSelectedSurface(PaintTool.owner) != null) {
 
                 if (PaintTool.owner.tool.getClass() == SelectTool.class) {
                     // Expand selection area by 1 pixel

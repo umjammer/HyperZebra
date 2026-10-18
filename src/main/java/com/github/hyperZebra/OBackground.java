@@ -477,7 +477,7 @@ public class OBackground extends OCardBase {
             // System.out.println("==content "+i+"==");
 
             int pid;
-            {// Alignment adjustment
+            { // Alignment adjustment
                 pid = HCData.readCode(dis, 1);
                 while (pid <= i) {
                     pid = (pid << 8) + HCData.readCode(dis, 1);
@@ -653,7 +653,7 @@ public class OBackground extends OCardBase {
         // Load picture
         File file = new File(bg.stack.file.getParent() + "/resource/bgp" + bg.id + ".png");
         // bg.showPict = false;
-        bg.label = MyLabel.getMyBgLabel(bg);// Background has nothing behind it, so label is required
+        bg.label = MyLabel.getMyBgLabel(bg); // Background has nothing behind it, so label is required
         bg.label.setBounds(0, 0, bg.stack.width, bg.stack.height);
         PCARD.pc.mainPane.add(bg.label);
         try {

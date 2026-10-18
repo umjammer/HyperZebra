@@ -92,7 +92,7 @@ public class GDialog extends JDialog implements ActionListener {
             setBounds(0, 0, 400, h + 48);
             setLocationRelativeTo(null);
         }
-        setUndecorated(true);// Hide title bar
+        setUndecorated(true); // Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();
@@ -114,11 +114,9 @@ public class GDialog extends JDialog implements ActionListener {
 
 class GScrollDialog extends JDialog implements ActionListener {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     static String clicked = "";
     static String inputText = "";
     static JTextField inputArea;
@@ -131,8 +129,8 @@ class GScrollDialog extends JDialog implements ActionListener {
         // Add panel
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
-        // JPanel topPanel = new JPanel();
-        // topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        //JPanel topPanel = new JPanel();
+        //topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
 
         String[] texts2 = text.split("\r");
@@ -143,13 +141,13 @@ class GScrollDialog extends JDialog implements ActionListener {
         JTextArea area = new JTextArea(text2.toString());
         String[] texts = text2.toString().split("\n");
         area.setSize(380, 18 + 18 * texts.length);
-        // area.setPreferredSize(new Dimension(380, 18+18*texts.length));
+        //area.setPreferredSize(new Dimension(380, 18 + 18 * texts.length));
         area.setMargin(new Insets(16, 16, 2, 16));
         area.setLineWrap(true);
         area.setOpaque(false);
         area.setEditable(false);
         area.setFocusable(false);
-        // topPanel.add(area);
+        //topPanel.add(area);
         JScrollPane scrollpane = new JScrollPane(area);
         getContentPane().add("North", scrollpane);
         scrollpane.setSize(new Dimension(380, 400));
@@ -181,14 +179,13 @@ class GScrollDialog extends JDialog implements ActionListener {
             setBounds(0, 0, 400, h + 48);
             setLocationRelativeTo(null);
         }
-        setUndecorated(true);// Hide title bar
+        setUndecorated(true); // Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();
         });
 
         setVisible(true);
-
     }
 
     @Override
@@ -205,6 +202,7 @@ class GUxAnswer extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     static String clicked = "";
     static String inputText = "";
     static JTextField inputArea;
@@ -218,7 +216,7 @@ class GUxAnswer extends JDialog implements ActionListener {
         JPanel btmPanel = new JPanel();
         getContentPane().add("South", btmPanel);
         JPanel topPanel = new JPanel();
-        // topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        //topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         getContentPane().add("North", topPanel);
 
         JPanel topPanel2 = new JPanel();
@@ -242,7 +240,7 @@ class GUxAnswer extends JDialog implements ActionListener {
         JTextArea area = new JTextArea(text2.toString());
         String[] texts = text2.toString().split("\n");
         area.setSize(360, 18 + 18 * texts.length);
-        // area.setPreferredSize(new Dimension(380, 18+18*texts.length));
+        //area.setPreferredSize(new Dimension(380, 18 + 18 * texts.length));
         area.setMargin(new Insets(16, 16, 2, 16));
         area.setLineWrap(true);
         area.setOpaque(false);
@@ -277,14 +275,13 @@ class GUxAnswer extends JDialog implements ActionListener {
             setBounds(0, 0, 400, h + 48);
             setLocationRelativeTo(null);
         }
-        setUndecorated(true);// Hide title bar
+        setUndecorated(true); // Hide title bar
 
         SwingUtilities.invokeLater(() -> {
             if (defaultButton != null) defaultButton.requestFocus();
         });
 
         setVisible(true);
-
     }
 
     @Override

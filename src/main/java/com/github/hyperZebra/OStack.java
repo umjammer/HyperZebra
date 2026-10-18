@@ -40,8 +40,8 @@ public class OStack extends OObject {
 
     PCARDFrame pcard;
 
-    Charset charset = StandardCharsets.UTF_8;// Character encoding
-    String path = "";// Stack file path
+    Charset charset = StandardCharsets.UTF_8; // Character encoding
+    String path = ""; // Stack file path
     Path file;
     OCard curCard;
     GButton GUI_btn;
@@ -69,17 +69,17 @@ public class OStack extends OObject {
     boolean cantDelete = false;
     boolean cantModify = false;
     boolean cantPeek = false;
-    int firstCard;// toc.xml
-    int userLevel;// TODO: Limit to this level and below
-    private boolean privateAccess;// toc.xml
-    String createdByVersion;// toc.xml
-    String lastCompactedVersion;// toc.xml
-    String lastEditedVersion;// toc.xml
-    String firstEditedVersion;// toc.xml
-    private int fontTableID;// toc.xml
-    private int styleTableID;// toc.xml
-    private int nextStyleID;// toc.xml
-    private int listId;// toc.xml
+    int firstCard; // toc.xml
+    int userLevel; // TODO: Limit to this level and below
+    private boolean privateAccess; // toc.xml
+    String createdByVersion; // toc.xml
+    String lastCompactedVersion; // toc.xml
+    String lastEditedVersion; // toc.xml
+    String firstEditedVersion; // toc.xml
+    private int fontTableID; // toc.xml
+    private int styleTableID; // toc.xml
+    private int nextStyleID; // toc.xml
+    private int listId; // toc.xml
     private int passwordHash;
     Rectangle screenRect;
     Rectangle windowRect;
@@ -1396,7 +1396,7 @@ Debug.println(file + " is MacBinary type?");
             int j;
             for (j = 0; j < list.size(); j++) {
                 if (cd.bgid == list.get(j)) {
-                    break;// bg ID already searched
+                    break; // bg ID already searched
                 }
             }
             if (j < list.size()) continue;

@@ -61,11 +61,11 @@ public class OField extends OObject {
     Boolean sharedText = false;
     Boolean showLines = false;
     int style = 0;// (0 standard) 1 transparent 2 opaque 3 rectangle 4 shadow 5 scrolling
-    int textAlign = 0;// 0 left 1 center 2 right
+    int textAlign = 0; // 0 left 1 center 2 right
     String textFont = "";
     int textHeight = 16;
     int textSize = 12;
-    int textStyle = 0;// 0 plain
+    int textStyle = 0; // 0 plain
     boolean wideMargins = false;
     int selectedLine = 0;
     int selectedStart = 0;
@@ -901,26 +901,26 @@ public class OField extends OObject {
         switch (style) {
             case 0:
                 this.style = 1;
-                break;// transparent
+                break; // transparent
             case 1:
                 this.style = 2;
-                break;// opaque
+                break; // opaque
             case 2:
                 this.style = 3;
-                break;// rectangle
-            // case 3: this.style = 5; break;// roundRect
+                break; // rectangle
+            // case 3: this.style = 5; break; // roundRect
             case 4:
                 this.style = 4;
-                break;// shadow
-            // case 5: this.style = 9; break;// checkBox
-            // case 6: this.style = 10; break;// radioButton
+                break; // shadow
+            // case 5: this.style = 9; break; // checkBox
+            // case 6: this.style = 10; break; // radioButton
             case 7:
                 this.style = 5;
-                break;// scrolling
-            // case 8: this.style = 0; break;// standard
-            // case 9: this.style = 6; break;// default
-            // case 10: this.style = 7; break;// oval
-            // case 11: this.style = 8; break;// popup
+                break; // scrolling
+            // case 8: this.style = 0; break; // standard
+            // case 9: this.style = 6; break; // default
+            // case 10: this.style = 7; break; // oval
+            // case 11: this.style = 8; break; // popup
         }
         selectedEnd = HCData.readCode(dis, 2);
         // System.out.println("selectedEnd:"+selectedEnd);
@@ -1024,7 +1024,7 @@ public class OField extends OObject {
             }*/
             if (bi == null) {
                 int rsrcid = ofld.card.stack.rsrc.getRsrcIdAll(ofld.textFont, "font");
-                rsrcid += ofld.textSize;// base ID + text size = ID
+                rsrcid += ofld.textSize; // base ID + text size = ID
                 String path = ofld.card.stack.rsrc.getFilePathAll(rsrcid, "font");
                 if (path != null) {
                     File file = new File(path/*ofld.card.stack.file.getParent()+File.separatorChar+rsrcName*/);
@@ -1217,7 +1217,7 @@ class MyTextArea extends JTextArea {
     private static final long serialVersionUID = 1L;
     OField fldData = null;
     JScrollPane pr_scrl;
-    int pr_selLine;// For showLine xfcn
+    int pr_selLine; // For showLine xfcn
     boolean smallfont;
 
     MyTextArea(String str) {
@@ -1250,7 +1250,7 @@ class MyTextArea extends JTextArea {
 
                 // Custom font using picture
                 int rsrcid = fldData.card.stack.rsrc.getRsrcIdAll(fldData.textFont, "font");
-                rsrcid += fldData.textSize;// base ID + text size = ID
+                rsrcid += fldData.textSize; // base ID + text size = ID
                 RsrcClass fontrsrc = fldData.card.stack.rsrc.getResourceAll(rsrcid, "font");
                 Rsrc.FontInfo fontinfo = (Rsrc.FontInfo) fontrsrc.optionInfo;
 
@@ -1418,7 +1418,7 @@ class MyTextArea extends JTextArea {
                             // v++; // Newline
                             lft = 0;
                             top += textHeight;
-                            /*// Absorb font size differences from OS9
+                            /* // Absorb font size differences from OS9
                             if(PCARD.pc.stack.createdByVersion.charAt(0)=='2' &&
                                     fldData.style!=5 && !smallfont && top+textHeight>fldData.height+4){
                                 smallfont = true;

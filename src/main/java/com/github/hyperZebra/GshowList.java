@@ -75,7 +75,7 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
         } else {
             setBounds(owner.getX() + x, owner.getY() + y, 420, 320);
         }
-        setUndecorated(true);// Hide title bar
+        setUndecorated(true); // Hide title bar
         setVisible(true);
     }
 

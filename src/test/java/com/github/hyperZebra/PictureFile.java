@@ -396,7 +396,7 @@ public class PictureFile {
             System.out.println("opcode:0x" + Integer.toHexString(opcode));
             if (opcode == 0x8200 || opcode == 0x8201) {
                 // JPEG
-                int filelen = (readOpcode(stream, 2) << 16) + readOpcode(stream, 2);// 00 00 53 60
+                int filelen = (readOpcode(stream, 2) << 16) + readOpcode(stream, 2); // 00 00 53 60
                 for (int i = 0; i < 100; i++) { // mac file header
                     readOpcode(stream, 1);
                 }
@@ -452,9 +452,9 @@ public class PictureFile {
                 continue;
             } else if (opcode == 0x001f) {
                 // OpColor
-                readOpcode(stream, 2);// r
-                readOpcode(stream, 2);// g
-                readOpcode(stream, 2);// b
+                readOpcode(stream, 2); // r
+                readOpcode(stream, 2); // g
+                readOpcode(stream, 2); // b
                 continue;
             } else if (opcode == 0x001e) {
                 // defHilite
@@ -655,13 +655,13 @@ public class PictureFile {
             DataBuffer db = img.getRaster().getDataBuffer();
 
             if (fullcolor_flag) {
-                readOpcode(stream, 2);// Base address
+                readOpcode(stream, 2); // Base address
                 readOpcode(stream, 2);
             }
 
             int rowBytes = 0x3fff & readOpcode(stream, 2);
 
-            int btop = readOpcode(stream, 2);// Top-left Y coordinate
+            int btop = readOpcode(stream, 2); // Top-left Y coordinate
             int bleft = readOpcode(stream, 2);
             int bbottom = readOpcode(stream, 2);
             int bright = readOpcode(stream, 2);
@@ -673,39 +673,39 @@ public class PictureFile {
             }
 
             if (!bitmap_flag && version == 2 && jpegimg == null) {
-                readOpcode(stream, 2);// Version
-                readOpcode(stream, 2);// Compression type
-                readOpcode(stream, 2);// Compressed size
-                readOpcode(stream, 2);// Compressed size
-                readOpcode(stream, 2);// Horizontal resolution
-                readOpcode(stream, 2);// Horizontal resolution
-                readOpcode(stream, 2);// Vertical resolution
-                readOpcode(stream, 2);// Vertical resolution
-                readOpcode(stream, 2);// Pixel type
-                bpp = readOpcode(stream, 2);// Bits per pixel
+                readOpcode(stream, 2); // Version
+                readOpcode(stream, 2); // Compression type
+                readOpcode(stream, 2); // Compressed size
+                readOpcode(stream, 2); // Compressed size
+                readOpcode(stream, 2); // Horizontal resolution
+                readOpcode(stream, 2); // Horizontal resolution
+                readOpcode(stream, 2); // Vertical resolution
+                readOpcode(stream, 2); // Vertical resolution
+                readOpcode(stream, 2); // Pixel type
+                bpp = readOpcode(stream, 2); // Bits per pixel
                 /*int byteoff =*/
-                readOpcode(stream, 2);// Byte offset to next pixel
+                readOpcode(stream, 2); // Byte offset to next pixel
                 /*int pixelbytes =*/
-                readOpcode(stream, 2);// Component size
-                readOpcode(stream, 2);// Offset to next color plane
-                readOpcode(stream, 2);// Offset to next color plane
-                readOpcode(stream, 2);// Inversion
-                readOpcode(stream, 2);// Inversion
-                readOpcode(stream, 2);// Color table identifier
-                readOpcode(stream, 2);// Color table identifier
+                readOpcode(stream, 2); // Component size
+                readOpcode(stream, 2); // Offset to next color plane
+                readOpcode(stream, 2); // Offset to next color plane
+                readOpcode(stream, 2); // Inversion
+                readOpcode(stream, 2); // Inversion
+                readOpcode(stream, 2); // Color table identifier
+                readOpcode(stream, 2); // Color table identifier
                 if (!fullcolor_flag) {
-                    readOpcode(stream, 2);// Color table ID
-                    readOpcode(stream, 2);// Color table ID
-                    readOpcode(stream, 2);// Color table flag
-                    int palette_cnt = 1 + readOpcode(stream, 2);// Number of registered palettes
+                    readOpcode(stream, 2); // Color table ID
+                    readOpcode(stream, 2); // Color table ID
+                    readOpcode(stream, 2); // Color table flag
+                    int palette_cnt = 1 + readOpcode(stream, 2); // Number of registered palettes
                     // if(palette_cnt > 256) return null;
                     palette = new int[palette_cnt];
                     for (int i = 0; i < palette_cnt; i++) {
                         /*int pidx =*/
-                        readOpcode(stream, 2);// Palette number
-                        int cr = readOpcode(stream, 2) >> 8;// Palette color data R
-                        int cg = readOpcode(stream, 2) >> 8;// Palette color data G
-                        int cb = readOpcode(stream, 2) >> 8;// Palette color data B
+                        readOpcode(stream, 2); // Palette number
+                        int cr = readOpcode(stream, 2) >> 8; // Palette color data R
+                        int cg = readOpcode(stream, 2) >> 8; // Palette color data G
+                        int cb = readOpcode(stream, 2) >> 8; // Palette color data B
                         palette[i] = 0xFF000000 + (cr << 16) + (cg << 8) + cb;
                     }
                 }
@@ -714,7 +714,7 @@ public class PictureFile {
             if (rowBytes == 0) rowBytes = (bright - bleft) * bpp / 8;
             if (rowBytes < 8) packbits_flag = false;
 
-            int dtop = readOpcode(stream, 2);// Top-left Y coordinate at original resolution
+            int dtop = readOpcode(stream, 2); // Top-left Y coordinate at original resolution
             int dleft = readOpcode(stream, 2);
             int dbottom = readOpcode(stream, 2);
             int dright = readOpcode(stream, 2);
@@ -729,12 +729,12 @@ public class PictureFile {
                 }
             }
 
-            readOpcode(stream, 2);// Top-left Y coordinate at 72dpi
+            readOpcode(stream, 2); // Top-left Y coordinate at 72dpi
             readOpcode(stream, 2);
             readOpcode(stream, 2);
             readOpcode(stream, 2);
 
-            int trans_mode = readOpcode(stream, 2);// Transfer mode
+            int trans_mode = readOpcode(stream, 2); // Transfer mode
             if (trans_mode != 0) {
                 // System.out.println("trans_mode:"+trans_mode);
             }
@@ -742,10 +742,10 @@ public class PictureFile {
             if (rgnmask_flag) {
                 // System.out.println("rgnmask_flag:"+rgnmask_flag);
                 int len = readOpcode(stream, 2);
-                int rtop = readOpcode(stream, 2);// top
-                int rleft = readOpcode(stream, 2);// left
-                readOpcode(stream, 2);// bottom
-                readOpcode(stream, 2);// right
+                int rtop = readOpcode(stream, 2); // top
+                int rleft = readOpcode(stream, 2); // left
+                readOpcode(stream, 2); // bottom
+                readOpcode(stream, 2); // right
                 if (len == 10) {
                     for (int y = 0; y < size.height; y++) {
                         for (int x = 0; x < size.width; x++) {
@@ -828,7 +828,7 @@ public class PictureFile {
                     for (int h = 0; h < bright - bleft; h++) {
                         int pix = (data[h / 8] >> (7 - (h % 8))) & 0x01;
                         if (pix != 0) {
-                            if (trans_mode == 1) pix = 0xFF000000;// continue; // #srcOr
+                            if (trans_mode == 1) pix = 0xFF000000; // continue; // #srcOr
                             else pix = 0xFFFFFFFF;
                         } else if (pix == 0 && trans_mode == 3) { // #srcBic
                             pix = 0xFFFFFFFF;
@@ -1083,10 +1083,10 @@ public class PictureFile {
 
         // Version
         int opcode = readOpcode(stream, 2);
-        if (opcode == 0x0011) {// Version opcode 2
+        if (opcode == 0x0011) { // Version opcode 2
             opcode = readOpcode(stream, 2);
-            if (opcode == 0x02FF) version = 2;// Version 2
-        } else if (opcode == 0x1101) version = 1;// Version 1
+            if (opcode == 0x02FF) version = 2; // Version 2
+        } else if (opcode == 0x1101) version = 1; // Version 1
 
         return version;
     }
@@ -1096,33 +1096,33 @@ public class PictureFile {
 
         // Version 2 header
         int opcode = readOpcode(stream, version);
-        if (opcode == 0x0C00) ;// Version 2 header opcode
+        if (opcode == 0x0C00) ; // Version 2 header opcode
         else return null;
-        int zahyou = readOpcode(stream, version);// Coordinate specification format
+        int zahyou = readOpcode(stream, version); // Coordinate specification format
         if (zahyou == 0xfffe) {
-            readOpcode(stream, version);// Reserved
-            readOpcode(stream, version);// Horizontal resolution
-            readOpcode(stream, version);// Horizontal resolution
-            readOpcode(stream, version);// Vertical resolution
-            readOpcode(stream, version);// Vertical resolution
-            top = readOpcode(stream, version);// Top-left Y coordinate
-            left = readOpcode(stream, version);// Top-left X coordinate
-            bottom = readOpcode(stream, version);// Bottom-right Y coordinate
-            right = readOpcode(stream, version);// Bottom-right X coordinate
-            readOpcode(stream, version);// Reserved (0)
-            readOpcode(stream, version);// Reserved (0)
+            readOpcode(stream, version); // Reserved
+            readOpcode(stream, version); // Horizontal resolution
+            readOpcode(stream, version); // Horizontal resolution
+            readOpcode(stream, version); // Vertical resolution
+            readOpcode(stream, version); // Vertical resolution
+            top = readOpcode(stream, version); // Top-left Y coordinate
+            left = readOpcode(stream, version); // Top-left X coordinate
+            bottom = readOpcode(stream, version); // Bottom-right Y coordinate
+            right = readOpcode(stream, version); // Bottom-right X coordinate
+            readOpcode(stream, version); // Reserved (0)
+            readOpcode(stream, version); // Reserved (0)
         } else if (zahyou == 0xffff) { // Fixed-point coordinates
-            readOpcode(stream, version);// Reserved (ffff)
-            left = readOpcode(stream, version);// Top-left X coordinate
-            readOpcode(stream, version);// Top-left X coordinate (decimal part)
-            top = readOpcode(stream, version);// Top-left Y coordinate
-            readOpcode(stream, version);// Top-left Y coordinate (decimal part)
-            right = readOpcode(stream, version);// Bottom-right X coordinate
-            readOpcode(stream, version);// Bottom-right X coordinate (decimal part)
-            bottom = readOpcode(stream, version);// Bottom-right Y coordinate
-            readOpcode(stream, version);// Bottom-right Y coordinate (decimal part)
-            readOpcode(stream, version);// Reserved (0)
-            readOpcode(stream, version);// Reserved (0)
+            readOpcode(stream, version); // Reserved (ffff)
+            left = readOpcode(stream, version); // Top-left X coordinate
+            readOpcode(stream, version); // Top-left X coordinate (decimal part)
+            top = readOpcode(stream, version); // Top-left Y coordinate
+            readOpcode(stream, version); // Top-left Y coordinate (decimal part)
+            right = readOpcode(stream, version); // Bottom-right X coordinate
+            readOpcode(stream, version); // Bottom-right X coordinate (decimal part)
+            bottom = readOpcode(stream, version); // Bottom-right Y coordinate
+            readOpcode(stream, version); // Bottom-right Y coordinate (decimal part)
+            readOpcode(stream, version); // Reserved (0)
+            readOpcode(stream, version); // Reserved (0)
         }
 
         return new Dimension(right - left, bottom - top);

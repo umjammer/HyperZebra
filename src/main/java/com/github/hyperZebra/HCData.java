@@ -87,7 +87,7 @@ label:
                             } else {
                                 errCount++;
                             }
-                            System.gc();// Call GC as much as possible
+                            System.gc(); // Call GC as much as possible
 
                             break;
                         case "BKGD":

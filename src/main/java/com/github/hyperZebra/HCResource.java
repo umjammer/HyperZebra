@@ -76,7 +76,7 @@ public class HCResource {
                 // Parse resource fork data
                 readResourceFork(b, stack);
 
-                java.lang.System.gc();// Call GC as much as possible
+                java.lang.System.gc(); // Call GC as much as possible
 
                 break;
             } else {
@@ -849,7 +849,7 @@ public class HCResource {
 
                 if (initMACE > 0 || sndcmd_cmd == -32687) {
                     int sampleRate = 11025 * 65536;
-                    int dataOffset = 54;// offset+22;
+                    int dataOffset = 54; // offset+22;
                     int length = b.length - dataOffset;
                     // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,

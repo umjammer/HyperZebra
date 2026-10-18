@@ -69,7 +69,7 @@ public class TSound implements LineListener {
         else if (!neiro[1].isEmpty()) length = 60.0 / tempo;
         if (neiro[5].equals("....")) length *= 1.5 * 1.5 * 1.5 * 1.5;
         if (neiro[5].equals("...")) length *= 1.5 * 1.5 * 1.5;
-        if (neiro[5].equals("..")) length *= 1.5 * 1.5;// Doesn't seem to be 1.75x.
+        if (neiro[5].equals("..")) length *= 1.5 * 1.5; // Doesn't seem to be 1.75x.
         if (neiro[5].equals(".")) length *= 1.5;
 
         AudioInputStream sound = null;

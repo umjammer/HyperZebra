@@ -63,16 +63,16 @@ public class OButton extends OObject {
     Color color = Color.BLACK;
     Color bgColor = Color.WHITE;
     int group = 0;
-    Boolean check_hilite = false;// For reference from other cards
-    private boolean autoHilite = true;// Referenced only at creation
-    private boolean hilite = false;// Referenced only at creation
+    Boolean check_hilite = false; // For reference from other cards
+    private boolean autoHilite = true; // Referenced only at creation
+    private boolean hilite = false; // Referenced only at creation
     int icon = 0;
     URI iconURI;
     // number (calculated from card information)
     Boolean sharedHilite = false;
     Boolean showName = true;
-    int style = 0;// 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
-    int textAlign = 1;// 0 left 1 center 2 right
+    int style = 0; // 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
+    int textAlign = 1; // 0 left 1 center 2 right
     String textFont = "";
     int textHeight = 16;
     int textSize = 12;
@@ -1312,38 +1312,38 @@ public class OButton extends OObject {
         switch (style) {
             case 0:
                 this.style = 1;
-                break;// transparent
+                break; // transparent
             case 1:
                 this.style = 2;
-                break;// opaque
+                break; // opaque
             case 2:
                 this.style = 3;
-                break;// rectangle
+                break; // rectangle
             case 3:
                 this.style = 5;
-                break;// roundRect
+                break; // roundRect
             case 4:
                 this.style = 4;
-                break;// shadow
+                break; // shadow
             case 5:
                 this.style = 9;
-                break;// checkBox
+                break; // checkBox
             case 6:
                 this.style = 10;
-                break;// radioButton
-            // case 7: this.style = 0; break;// scrolling
+                break; // radioButton
+            // case 7: this.style = 0; break; // scrolling
             case 8:
                 this.style = 0;
-                break;// standard
+                break; // standard
             case 9:
                 this.style = 6;
-                break;// default
+                break; // default
             case 10:
                 this.style = 7;
-                break;// oval
+                break; // oval
             case 11:
                 this.style = 8;
-                break;// popup
+                break; // popup
         }
         titleWidth = HCData.readCode(dis, 2);
         // System.out.println("titleWidth:"+titleWidth);
@@ -1382,7 +1382,7 @@ public class OButton extends OObject {
         name = nameResult.str;
         // HCStackDebug.debuginfo("name:"+name);
         // System.out.println("name:"+name);
-        /*int filler2 =*/// HCData.readCode(dis, 1);
+        /*int filler2 =*/ // HCData.readCode(dis, 1);
         // System.out.println("filler2:"+filler2);
         resultStr scriptResult = HCData.readText(dis, partSize - 30 - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
@@ -1448,7 +1448,7 @@ public class OButton extends OObject {
             obtn.btn.setHilite(obtn.hilite);
             obtn.btn.setFont(new Font(obtn.textFont, obtn.textStyle & 0x03, obtn.textSize));
             if (!obtn.showName) obtn.btn.setText("");
-            if ((obtn.textStyle & 8) > 0 || (obtn.textStyle & 16) > 0) {// outline,shadow
+            if ((obtn.textStyle & 8) > 0 || (obtn.textStyle & 16) > 0) { // outline,shadow
                 obtn.btn.setText("");
             }
             if (obtn.iconURI != null && !obtn.iconURI.toString().isEmpty()) {

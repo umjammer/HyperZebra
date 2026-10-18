@@ -1051,7 +1051,7 @@ public class AuthDialog extends JDialog {
             }
 
             setBounds(owner.getX() + owner.getWidth() / 2 - 120, owner.getY() + owner.getHeight() / 2 - 120, 240, 160);
-            setUndecorated(true);// Hide title bar
+            setUndecorated(true); // Hide title bar
 
             SwingUtilities.invokeLater(() -> {
                 if (defaultButton != null) defaultButton.requestFocus();
