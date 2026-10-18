@@ -454,14 +454,14 @@ class TBButtonListener implements ActionListener, MouseListener {
             /*if(PCARD.pc.intl.getToolText("Button").equals(cmd)){
                 try {
                     GMenuBrowse.doMenu("New Button");
-                } catch (xTalkException e) {
+                } catch (XTalkException e) {
                     e.printStackTrace();
                 }
             }
             if(PCARD.pc.intl.getToolText("Field").equals(cmd)){
                 try {
                     GMenuBrowse.doMenu("New Field");
-                } catch (xTalkException e) {
+                } catch (XTalkException e) {
                     e.printStackTrace();
                 }
             }*/

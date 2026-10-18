@@ -313,13 +313,13 @@ public class OStack extends OObject {
                 curCard = OCard.getOCard(this, cardIdList.get(0), false);
                 curCard.bg = OBackground.getOBackground(this, curCard, curCard.bgid, false);
                 curCard.parent = curCard.bg;
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
                 e.printStackTrace();
                 curCard = cdCacheList.get(0);
                 try {
                     curCard.bg = OBackground.getOBackground(this, curCard, curCard.bgid, false);
                     curCard.parent = curCard.bg;
-                } catch (xTalkException e2) {
+                } catch (XTalkException e2) {
                     e2.printStackTrace();
                 }
             }
@@ -1329,7 +1329,7 @@ Debug.println(file + " is MacBinary type?");
             if (integer == cardId) {
                 try {
                     return OCard.getOCard(this, cardId, true);
-                } catch (xTalkException e) {
+                } catch (XTalkException e) {
                 }
             }
         }
@@ -1340,7 +1340,7 @@ Debug.println(file + " is MacBinary type?");
         if (number - 1 >= 0 && number - 1 < cardIdList.size()) {
             try {
                 return OCard.getOCard(this, cardIdList.get(number - 1), true);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
         }
         return null;
@@ -1351,7 +1351,7 @@ Debug.println(file + " is MacBinary type?");
             OCard cd = null;
             try {
                 cd = OCard.getOCard(this, integer, true);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
             if (cd != null && 0 == cd.name.compareToIgnoreCase(name)) {
                 return cd;
@@ -1366,7 +1366,7 @@ Debug.println(file + " is MacBinary type?");
             if (cd != null && cd.bgid == bgId) {
                 try {
                     return OBackground.getOBackground(this, cd, bgId, true);
-                } catch (xTalkException e) {
+                } catch (XTalkException e) {
                 }
             }
         }
@@ -1388,7 +1388,7 @@ Debug.println(file + " is MacBinary type?");
             if (number == list.size()) {
                 try {
                     return OBackground.getOBackground(this, cd, cd.bgid, true);
-                } catch (xTalkException e) {
+                } catch (XTalkException e) {
                 }
             }
         }
@@ -1410,7 +1410,7 @@ Debug.println(file + " is MacBinary type?");
             OBackground bg = null;
             try {
                 bg = OBackground.getOBackground(this, cd, cd.bgid, true);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
             if (bg != null && 0 == bg.name.compareToIgnoreCase(name)) {
                 return bg;
@@ -1426,7 +1426,7 @@ Debug.println(file + " is MacBinary type?");
             OCard cd = null;
             try {
                 cd = OCard.getOCard(this, integer, true);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
             if (cd != null && 0 == cd.name.compareToIgnoreCase(name) && cd.bgid == cdbase.id) {
                 return cd;
@@ -1442,7 +1442,7 @@ Debug.println(file + " is MacBinary type?");
             OCard cd = null;
             try {
                 cd = OCard.getOCard(this, integer, true);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
             if (cd != null && cd.bgid == cdbase.id) {
                 number--;
@@ -1460,7 +1460,7 @@ Debug.println(file + " is MacBinary type?");
             if (cd.bgid == bgId) {
                 try {
                     cd.bg = OBackground.getOBackground(this, cd, cd.bgid, true);
-                } catch (xTalkException e) {
+                } catch (XTalkException e) {
                     System.out.println("Error at GetCardofBackgroundbyId(" + bgId + ")");
                 }
                 return cd;

@@ -76,8 +76,8 @@ public class ScriptEditor extends JFrame {
                 while (tabPane.getComponentCount() > 0) {
                     tabPane.remove(tabPane.getComponent(0));
                 }
-                TTalk.tracemode = 0;
-                TTalk.stepflag = true;
+                TTalk.traceMode = 0;
+                TTalk.stepFlag = true;
             }
 
             @Override
@@ -933,9 +933,9 @@ class ScriptArea extends JTextPane {
                                     typeList.set(i + 2, TTalk.wordType.OPERATOR_SUB);
                                     typeList.set(i + 3, TTalk.wordType.OPERATOR_SUB);
                                 }
-                                // else throw new xTalkException("a/an is required after there is not");
+                                // else throw new XTalkException("a/an is required after there is not");
                             }
-                            // else throw new xTalkException("a/an is required after there is");
+                            // else throw new XTalkException("a/an is required after there is");
                         }
                     }
                     case "is" -> {
@@ -1766,15 +1766,15 @@ class SEMenuListener implements ActionListener {
             area.setText(newScript.toString());
         }
         if (cmd.equals("Step")) {
-            TTalk.stepflag = true;
+            TTalk.stepFlag = true;
         }
         if (cmd.equals("Trace")) {
-            TTalk.tracemode = 1;
-            TTalk.stepflag = true;
+            TTalk.traceMode = 1;
+            TTalk.stepFlag = true;
         }
         if (cmd.equals("Run")) {
-            TTalk.tracemode = 0;
-            TTalk.stepflag = true;
+            TTalk.traceMode = 0;
+            TTalk.stepFlag = true;
         }
         if (cmd.equals("Variable Watcher")) {
             VariableWatcher.watcherWindow.setVisible(true);

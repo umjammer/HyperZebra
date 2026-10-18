@@ -104,7 +104,7 @@ class GMsgListener implements KeyListener {
                 String res = null;
                 try {
                     res = TTalk.doScriptforMenu(str);
-                } catch (xTalkException e1) {
+                } catch (XTalkException e1) {
                     logger.log(Level.ERROR, e1.getMessage(), e1);
                     Object[] options = {"OK"};
                     JOptionPane.showOptionDialog(PCARDFrame.pc.stack.pcard,

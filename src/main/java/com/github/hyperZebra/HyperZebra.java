@@ -36,7 +36,7 @@ public class HyperZebra {
 //                                //        null,"OK",null,null);
 //                                try {
 //                                    TTalk.doScriptforMenu("about this");
-//                                } catch (xTalkException e2) {
+//                                } catch (XTalkException e2) {
 //                                    e2.printStackTrace();
 //                                }
 //                                e.setHandled(true);
@@ -53,10 +53,10 @@ public class HyperZebra {
 //                            public void handleOpenFile(com.apple.eawt.ApplicationEvent e) {
 //                                try {
 //                                    TTalk.doScriptforMenu("open stack " + "\"" + e.getFilename() + "\"");
-//                                } catch (xTalkException e1) {
+//                                } catch (XTalkException e1) {
 //                                    try {
 //                                        TTalk.doScriptforMenu("edit picture " + "\"" + e.getFilename() + "\"");
-//                                    } catch (xTalkException e2) {
+//                                    } catch (XTalkException e2) {
 //                                        e2.printStackTrace();
 //                                    }
 //                                }
@@ -81,7 +81,7 @@ public class HyperZebra {
 //                            public void handleQuit(com.apple.eawt.ApplicationEvent e) {
 //                                try {
 //                                    GMenuBrowse.doMenu("Quit HyperCard");
-//                                } catch (xTalkException e1) {
+//                                } catch (XTalkException e1) {
 //                                    e1.printStackTrace();
 //                                }
 //                                // processExit();

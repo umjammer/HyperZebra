@@ -40,7 +40,7 @@ class GMenuPaint implements ActionListener {
         if (result == false) {
             try {
                 GMenuBrowse.doMenu(cmd);
-            } catch (xTalkException e1) {
+            } catch (XTalkException e1) {
                 e1.printStackTrace();
             }
         }

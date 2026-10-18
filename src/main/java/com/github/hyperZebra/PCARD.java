@@ -251,7 +251,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
             // ostack.openStackFileInThread(homepath, true);
             try {
                 TTalk.doScriptforMenu("start using stack " + "\"" + homepath + "\"");
-            } catch (xTalkException e1) {
+            } catch (XTalkException e1) {
                 logger.log(Level.INFO, e1.getMessage(), e1);
             }
             home = ostack;

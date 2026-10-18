@@ -11,7 +11,6 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
@@ -114,7 +113,7 @@ public class TSound implements LineListener {
     }
 
     public boolean Play(OStack stack, String soundRsrc, String[] neiro, int tempo, int vol)
-            throws xTalkException {
+            throws XTalkException {
         if (!use) return true;
 
         if (note_freq[0] != 1.0) setNoteFreq();
@@ -151,7 +150,7 @@ public class TSound implements LineListener {
             String path = stack.rsrc.getFilePathAll(rsrcid, "sound");
             sound = AudioSystem.getAudioInputStream(new File(path/*stack.file.getParent()+File.separatorChar+fileName*/));
         } catch (UnsupportedAudioFileException e) {
-            // throw new xTalkException("Does not support audio file for sound \""+soundRsrc+"\"");
+            // throw new XTalkException("Does not support audio file for sound \""+soundRsrc+"\"");
             return false;
         } catch (Exception e) {
             /*String path = (PCARDFrame.pc.stack.file.getParent()+File.separatorChar+"resource"+File.separatorChar+soundRsrc);
@@ -166,11 +165,11 @@ public class TSound implements LineListener {
                 sound = AudioSystem.getAudioInputStream(new File(cpath + ".wav"));
             } catch (FileNotFoundException e4) {
                 sound = null;
-                // throw new xTalkException("Sound \"" + soundRsrc + "\" not found");
+                // throw new XTalkException("Sound \"" + soundRsrc + "\" not found");
             } catch (IOException e4) {
-                throw new xTalkException("Cannot open sound \"" + soundRsrc + "\"");
+                throw new XTalkException("Cannot open sound \"" + soundRsrc + "\"");
             } catch (UnsupportedAudioFileException e4) {
-                throw new xTalkException("Does not support audio file for sound \"" + soundRsrc + "\"");
+                throw new XTalkException("Does not support audio file for sound \"" + soundRsrc + "\"");
             }
             // }
             // }

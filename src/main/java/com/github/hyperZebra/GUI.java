@@ -329,7 +329,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
                 if (key[12] == 2 && key[14] == 2 && i == '.') {
                     // Script trace
                     /*if(false==PCARDFrame.pc.stack.cantAbort)*/
-                    TTalk.tracemode = 2;
+                    TTalk.traceMode = 2;
                     ScriptEditor.setTracemode();
                     isOpened = true;
                     addAllListener();

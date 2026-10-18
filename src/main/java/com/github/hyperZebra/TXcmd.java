@@ -46,7 +46,7 @@ public class TXcmd {
 
     // XCMD,XFCN
     public static Result CallExternalCommand(String message, String[] params, OObject target, MemoryData memData, boolean isFunc, Result result)
-            throws xTalkException {
+            throws XTalkException {
         if (0 == message.compareToIgnoreCase("UxBack")) {
             System.out.println("Undefined XCMD: " + message);
             result.ret = 0;
@@ -956,7 +956,7 @@ public class TXcmd {
         } else {
             System.out.println("Unimplemented XCMD/XFCN: " + message);
             result.ret = 0;
-            throw new xTalkException("Unimplemented XCMD/XFCN:" + message);
+            throw new XTalkException("Unimplemented XCMD/XFCN:" + message);
         }
 
         return result;
@@ -1234,7 +1234,7 @@ public class TXcmd {
             Collections.addAll(effList, effects);
             try {
                 VEffect.visualEffect(0xFF & TUtil.getVisualMode(effList, 0, 0), 0, speed);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
         }
 
@@ -1286,7 +1286,7 @@ public class TXcmd {
             Collections.addAll(effList, effects);
             try {
                 VEffect.visualEffect(0xFF & TUtil.getVisualMode(effList, 0, 0), 0, speed);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
         }
 
@@ -1324,7 +1324,7 @@ public class TXcmd {
             Collections.addAll(effList, effects);
             try {
                 VEffect.visualEffect(0xFF & TUtil.getVisualMode(effList, 0, 0), 0, speed);
-            } catch (xTalkException e) {
+            } catch (XTalkException e) {
             }
         }
 

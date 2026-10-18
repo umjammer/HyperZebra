@@ -41,42 +41,42 @@ public class TUtil {
 
     // HyperTalk built-in functions
     public static Result CallSystemFunction(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
-            throws xTalkException {
+            throws XTalkException {
         Result result = new Result();
         result.ret = 1; // Return 1 if not found
 
         message = message.toLowerCase();
 
         if (0 == message.compareTo("trunc")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Integer.toString((int) v);
             result.ret = 0;
         } else if (0 == message.compareTo("round")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Integer.toString(IEEE_Round(v));
             result.ret = 0;
         } else if (0 == message.compareTo("abs")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             if (v - (int) v == 0) {
                 result.theResult = Integer.toString((int) (v > 0 ? v : -v));
@@ -85,7 +85,7 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("min")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
@@ -93,7 +93,7 @@ public class TUtil {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
@@ -101,7 +101,7 @@ public class TUtil {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
                     if (params[0].equals("∞")) v2 = Double.MAX_VALUE;
-                    else throw new xTalkException("A number is required here");
+                    else throw new XTalkException("A number is required here");
                 }
                 if (v2 < v) v = v2;
             }
@@ -112,7 +112,7 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("max")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
@@ -120,7 +120,7 @@ public class TUtil {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
@@ -128,7 +128,7 @@ public class TUtil {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
                     if (params[0].equals("∞")) v2 = Double.MAX_VALUE;
-                    else throw new xTalkException("A number is required here");
+                    else throw new XTalkException("A number is required here");
                 }
                 if (v2 > v) v = v2;
             }
@@ -139,21 +139,21 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("average")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
             try {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
                 try {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
-                    throw new xTalkException("A number is required here");
+                    throw new XTalkException("A number is required here");
                 }
                 v += v2;
             }
@@ -165,7 +165,7 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("sum")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             String[] vAry = params;
             if (params[0].contains(",")) vAry = params[0].split(",");
@@ -173,7 +173,7 @@ public class TUtil {
                 v = Double.parseDouble(vAry[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             for (int i = 1; i < vAry.length; i++) {
                 double v2;
@@ -181,7 +181,7 @@ public class TUtil {
                     v2 = Double.parseDouble(vAry[i]);
                 } catch (Exception e) {
                     if (params[0].equals("∞")) v2 = Double.MAX_VALUE;
-                    else throw new xTalkException("A number is required here");
+                    else throw new XTalkException("A number is required here");
                 }
                 v += v2;
             }
@@ -192,88 +192,88 @@ public class TUtil {
             }
             result.ret = 0;
         } else if (0 == message.compareTo("random")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Integer.toString((int) (v * Math.random() + 0.999999));
             result.ret = 0;
         } else if (0 == message.compareTo("sqrt")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.sqrt(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("sin")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.sin(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("cos")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.cos(v)));
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("tan")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.tan(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("atan")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v;
             try {
                 v = Double.parseDouble(params[0]);
             } catch (Exception e) {
                 if (params[0].equals("∞")) v = Double.MAX_VALUE;
-                else throw new xTalkException("A number is required here");
+                else throw new XTalkException("A number is required here");
             }
             result.theResult = Double.toString((Math.atan(v)));
             result.ret = 0;
         } else if (0 == message.compareTo("chartonum")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             char c = 0;
             if (!params[0].isEmpty()) c = params[0].charAt(0);
             result.theResult = Integer.toString(c);
             result.ret = 0;
         } else if (0 == message.compareTo("length")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             result.theResult = Integer.toString(params[0].length());
             result.ret = 0;
         } else if (0 == message.compareTo("value")) {
-            if (params.length < 1) throw new xTalkException("Argument is required");
-            result.theResult = TTalk.Evalution(params[0], memData, null, null);
+            if (params.length < 1) throw new XTalkException("Argument is required");
+            result.theResult = TTalk.evaluation(params[0], memData, null, null);
             result.ret = 0;
         } else if (0 == message.compareTo("param")) {
             // param of i
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             int i = Integer.parseInt(params[0]) - 1;
             if (i >= 0 && i < memData.params.length) {
                 result.theResult = memData.params[i];
@@ -281,7 +281,7 @@ public class TUtil {
             result.ret = 0;
         } else if (0 == message.compareTo("annuity")) {
             // Annual interest rate calculation (present value annuity factor)
-            if (params.length < 2) throw new xTalkException("Two arguments are required");
+            if (params.length < 2) throw new XTalkException("Two arguments are required");
             double rate = Double.parseDouble(params[0]);
             double periods = Double.parseDouble(params[1]);
             // double base = 0.0;
@@ -297,7 +297,7 @@ public class TUtil {
             result.ret = 0;
         } else if (0 == message.compareTo("compound")) {
             //
-            if (params.length < 2) throw new xTalkException("Two arguments are required");
+            if (params.length < 2) throw new XTalkException("Two arguments are required");
             double rate = Double.parseDouble(params[0]);
             double periods = Double.parseDouble(params[1]);
             double base = Math.pow((1 + rate), periods);
@@ -305,42 +305,42 @@ public class TUtil {
             result.ret = 0;
         } else if (0 == message.compareTo("exp")) {
             // Exponential
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.exp(v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("exp1")) {
             // Exponential - 1
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.exp(v);
             result.theResult = Double.toString(base - 1.0);
             result.ret = 0;
         } else if (0 == message.compareTo("ln")) {
             // Natural logarithm
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.log(v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("ln1")) {
             // Natural logarithm of number plus 1
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.log(1.0 + v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("exp2")) {
             // 2 to the power of x
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.pow(2, v);
             result.theResult = Double.toString(base);
             result.ret = 0;
         } else if (0 == message.compareTo("log2")) {
             // 2 to the power of x
-            if (params.length < 1) throw new xTalkException("Argument is required");
+            if (params.length < 1) throw new XTalkException("Argument is required");
             double v = Double.parseDouble(params[0]);
             double base = Math.log(v) / Math.log(2);
             result.theResult = Double.toString(base);
@@ -540,7 +540,7 @@ public class TUtil {
             if (PCARD.pc.foundObject == null) {
                 result.theResult = "";
             } else {
-                String text = TTalk.Evalution(PCARD.pc.foundObject, memData, null, null);
+                String text = TTalk.evaluation(PCARD.pc.foundObject, memData, null, null);
                 String[] lines = text.substring(offset).split("\n");
                 result.theResult = "line " + (lines.length + 1) + " of " + PCARD.pc.foundObject;
             }
@@ -637,7 +637,7 @@ public class TUtil {
             result.theResult = Locale.getDefault().getLanguage();
             result.ret = 0;
         } else if (0 == message.compareTo("dragspeed")) {
-            result.theResult = Integer.toString(TTalk.dragspeed);
+            result.theResult = Integer.toString(TTalk.dragSpeed);
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("checkHCFont")) {
             // Home stack function
@@ -653,7 +653,7 @@ public class TUtil {
 
     // System messages and XCMD, XFCN
     public static Result CallSystemMessage(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
-            throws xTalkException {
+            throws XTalkException {
         Result result = new Result();
         result.ret = 1; // Return 1 if not found
 
@@ -787,7 +787,7 @@ public class TUtil {
                 result = CallSystemFunction(message.toLowerCase(), params, target, memData, isFunc);
                 if (result.theResult == null || result.theResult.isEmpty()) {
                     System.out.println("Undefined function: " + message);
-                    throw new xTalkException(message + " is unknown");
+                    throw new XTalkException(message + " is unknown");
                 }
             }
         }
@@ -805,7 +805,7 @@ public class TUtil {
             String msg = ((JComponent) e.getSource()).getName();
             try {
                 TTalk.doScriptforMenu(msg);
-            } catch (xTalkException e1) {
+            } catch (XTalkException e1) {
             }
         }
     }
@@ -824,7 +824,7 @@ public class TUtil {
     }
 
     public static String getProperty(
-            String inProperty, OObject obj, OObject target, MemoryData memData) throws xTalkException {
+            String inProperty, OObject obj, OObject target, MemoryData memData) throws XTalkException {
         String prpty = inProperty.toLowerCase();
         OButton btn = null;
         OField fld = null;
@@ -924,11 +924,11 @@ public class TUtil {
         } else if (0 == prpty.compareTo("locktext")) {
             if (obj.objectType.equals("field")) {
                 return (obj.enabled) ? "true" : "false";
-            } else throw new xTalkException("lockText can only be referenced by fields");
+            } else throw new XTalkException("lockText can only be referenced by fields");
         } else if (0 == prpty.compareTo("showpict")) {
             if (obj.objectType.equals("card") || obj.objectType.equals("background")) {
                 return (((OCardBase) obj).showPict == true) ? "true" : "false";
-            } else throw new xTalkException("showPict can only be referenced by cards and backgrounds");
+            } else throw new XTalkException("showPict can only be referenced by cards and backgrounds");
         } else if (0 == prpty.compareTo("short name")) {
             if (!obj.name.isEmpty()) return obj.name;
             return obj.getShortName();
@@ -1077,7 +1077,7 @@ public class TUtil {
 
     public static void SetProperty(
             OObject obj, String inProperty, String value)
-            throws xTalkException {
+            throws XTalkException {
         String prpty = inProperty.toLowerCase();
         OButton btn = null;
         OField fld = null;
@@ -1093,7 +1093,7 @@ public class TUtil {
                 try {
                     PCARD.scriptFontSize = Integer.parseInt(value);
                 } catch (Exception err) {
-                    throw new xTalkException("A number is required here");
+                    throw new XTalkException("A number is required here");
                 }
             } else if (0 == prpty.compareTo("textfont")) {
                 PCARD.pc.textFont = value;
@@ -1117,7 +1117,7 @@ public class TUtil {
                 try {
                     PCARD.pc.textSize = Integer.parseInt(value);
                 } catch (Exception err) {
-                    throw new xTalkException("A number is required here");
+                    throw new XTalkException("A number is required here");
                 }
             } else if (0 == prpty.compareTo("itemdelimiter")) {
                 if (value.length() == 1) {
@@ -1125,13 +1125,13 @@ public class TUtil {
                 } else if (value.isEmpty()) {
                     TTalk.itemDelimiter = ",";
                 } else {
-                    throw new xTalkException("Set one character for itemDelimiter");
+                    throw new XTalkException("Set one character for itemDelimiter");
                 }
             } else if (0 == prpty.compareTo("userlevel")) {
                 try {
                     PCARD.userLevel = Integer.parseInt(value);
                 } catch (Exception err) {
-                    throw new xTalkException("Specify a number from 1 to 5 for userLevel");
+                    throw new XTalkException("Specify a number from 1 to 5 for userLevel");
                 }
             } else if (0 == prpty.compareTo("cursor")) {
                 Cursor cr = null;
@@ -1184,7 +1184,7 @@ public class TUtil {
                             e.printStackTrace();
                         }
                     } else {
-                        throw new xTalkException("Cursor " + value + " does not exist");
+                        throw new XTalkException("Cursor " + value + " does not exist");
                     }
                 }
                 if (cr != null)
@@ -1212,16 +1212,16 @@ public class TUtil {
                     TTalk.lockErrorDialogs = true;
                 } else if (value.equalsIgnoreCase("false")) {
                     TTalk.lockErrorDialogs = false;
-                } else throw new xTalkException("A boolean value is required here");
+                } else throw new XTalkException("A boolean value is required here");
             } else if (0 == prpty.compareTo("dragspeed")) {
-                TTalk.dragspeed = Integer.parseInt(value);
+                TTalk.dragSpeed = Integer.parseInt(value);
             } else if (0 == prpty.compareTo("editbkgnd")) {
                 if (value.equalsIgnoreCase("true")) {
                     PaintTool.editBackground = true;
                 } else if (value.equalsIgnoreCase("false")) {
                     PaintTool.editBackground = false;
-                } else throw new xTalkException("A boolean value is required here");
-            } else throw new xTalkException("Property " + prpty + " is unknown");
+                } else throw new XTalkException("A boolean value is required here");
+            } else throw new XTalkException("Property " + prpty + " is unknown");
             return;
         }
 
@@ -1251,7 +1251,7 @@ public class TUtil {
                         }
                     }
                 }
-            } else throw new xTalkException("Cannot set icon for non-buttons");
+            } else throw new XTalkException("Cannot set icon for non-buttons");
         } else if (0 == prpty.compareTo("visible")) {
             if (btn != null) {
                 btn.setVisible(0 == value.compareToIgnoreCase("true"));
@@ -1300,9 +1300,9 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setVisible(0 == value.compareToIgnoreCase("true"));
                 } else {
-                    throw new xTalkException("Cannot set visible for this object??");
+                    throw new XTalkException("Cannot set visible for this object??");
                 }
-            } else throw new xTalkException("Cannot set visible for this object");
+            } else throw new XTalkException("Cannot set visible for this object");
         } else if (0 == prpty.compareTo("enabled")) {
             if (btn != null) {
                 btn.setEnabled(0 == value.compareToIgnoreCase("true"));
@@ -1310,20 +1310,20 @@ public class TUtil {
                 fld.setEnabled(0 == value.compareToIgnoreCase("true"));
             } else if (obj.objectType.equals("menu")) {
                 GMenu.changeMEnabled(value, 0 == value.compareToIgnoreCase("true"));
-            } else throw new xTalkException("Cannot set enabled for this object");
+            } else throw new XTalkException("Cannot set enabled for this object");
         } else if (0 == prpty.compareTo("hilite") || 0 == prpty.compareTo("highlight") || 0 == prpty.compareTo("highlite") || 0 == prpty.compareTo("hilight")) {
             if (btn != null) {
                 btn.setHilite(0 == value.compareToIgnoreCase("true"));
             } else if (fld != null) {
                 fld.setHilite(0 == value.compareToIgnoreCase("true"));
-            } else throw new xTalkException("Cannot set hilite for this object");
+            } else throw new XTalkException("Cannot set hilite for this object");
         } else if (0 == prpty.compareTo("text")) {
             if (btn != null) btn.setText(value);
             else if (fld != null) fld.setText(value);
             else if (obj.objectType.equals("menu")) {
                 OMenu om = (OMenu) obj;
                 om.menu.add(new JMenuItem(value));
-            } else throw new xTalkException("Cannot store text for non-buttons and fields");
+            } else throw new XTalkException("Cannot store text for non-buttons and fields");
         } else if (0 == prpty.compareTo("name")) {
             if (btn != null) btn.setName(value);
             else if (fld != null) fld.setName(value);
@@ -1334,7 +1334,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v, btn.getTop());
             else if (fld != null) fld.setTopLeft(v, fld.getTop());
@@ -1345,16 +1345,16 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v, ((OWindow) obj).gpw.getY(), ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
                 } else {
-                    throw new xTalkException("Cannot set left for this object??");
+                    throw new XTalkException("Cannot set left for this object??");
                 }
-            } else throw new xTalkException("Cannot set left for this object");
+            } else throw new XTalkException("Cannot set left for this object");
         } else if (0 == prpty.compareTo("top")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(btn.getLeft(), v);
             else if (fld != null) fld.setTopLeft(fld.getLeft(), v);
@@ -1365,44 +1365,44 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(((OWindow) obj).gpw.getX(), PCARD.pc.getY() + PCARD.pc.getInsets().top + v, ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
                 } else {
-                    throw new xTalkException("Cannot set top for this object??");
+                    throw new XTalkException("Cannot set top for this object??");
                 }
-            } else throw new xTalkException("Cannot set top for this object");
+            } else throw new XTalkException("Cannot set top for this object");
         } else if (0 == prpty.compareTo("right")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v - btn.getWidth(), btn.getTop());
             else if (fld != null) fld.setTopLeft(v - fld.getWidth(), fld.getTop());
             else if (cd != null) PCARD.pc.stack.setTopLeft(v - PCARD.pc.stack.getWidth(), PCARD.pc.stack.getTop());
-            else throw new xTalkException("Cannot set right for this object");
+            else throw new XTalkException("Cannot set right for this object");
         } else if (0 == prpty.compareTo("bottom")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(btn.getLeft(), v - btn.getHeight());
             else if (fld != null) fld.setTopLeft(fld.getLeft(), v - fld.getHeight());
             else if (cd != null) PCARD.pc.stack.setTopLeft(PCARD.pc.stack.getLeft(), v - PCARD.pc.stack.getHeight());
-            else throw new xTalkException("Cannot set bottom for this object");
+            else throw new XTalkException("Cannot set bottom for this object");
         } else if (0 == prpty.compareTo("topleft")) {
             int v1, v2;
             String[] strAry = value.split(",");
-            if (strAry.length != 2) throw new xTalkException("Coordinates are required here");
+            if (strAry.length != 2) throw new XTalkException("Coordinates are required here");
             try {
                 double d = Double.parseDouble(strAry[0]);
                 v1 = (int) d;
                 d = Double.parseDouble(strAry[1]);
                 v2 = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v1, v2);
             else if (fld != null) fld.setTopLeft(v1, v2);
@@ -1413,20 +1413,20 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v1, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2, ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
                 } else {
-                    throw new xTalkException("Cannot set topleft for this object??");
+                    throw new XTalkException("Cannot set topleft for this object??");
                 }
-            } else throw new xTalkException("Cannot set topleft for this object");
+            } else throw new XTalkException("Cannot set topleft for this object");
         } else if (0 == prpty.compareTo("loc") || 0 == prpty.compareTo("location")) {
             int v1, v2;
             String[] strAry = value.split(",");
-            if (strAry.length != 2) throw new xTalkException("Coordinates are required here");
+            if (strAry.length != 2) throw new XTalkException("Coordinates are required here");
             try {
                 double d = Double.parseDouble(strAry[0]);
                 v1 = (int) d;
                 d = Double.parseDouble(strAry[1]);
                 v2 = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setTopLeft(v1 - btn.getWidth() / 2, v2 - btn.getHeight() / 2);
             else if (fld != null) fld.setTopLeft(v1 - fld.getWidth() / 2, v2 - fld.getHeight() / 2);
@@ -1446,7 +1446,7 @@ public class TUtil {
                 }
             }
             /*else{
-                throw new xTalkException("Cannot set loc for this object??");
+                throw new XTalkException("Cannot set loc for this object??");
             }*/
             /*else if(0==obj.objectType.compareTo("window")){
                 if(((OWindow)obj).frame!=null){
@@ -1456,7 +1456,7 @@ public class TUtil {
                     ((OWindow)obj).gpw.setBounds(PCARD.pc.getX()+v1-((OWindow)obj).gpw.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-((OWindow)obj).gpw.getHeight()/2, ((OWindow)obj).gpw.getWidth(), ((OWindow)obj).gpw.getHeight());
                 }
                 else{
-                    throw new xTalkException("Cannot set loc for this object??");
+                    throw new XTalkException("Cannot set loc for this object??");
                 }
             }
             else if(0==obj.objectType.compareTo("msg")){
@@ -1464,11 +1464,11 @@ public class TUtil {
                     GMsg.msg.setBounds(PCARD.pc.getX()+v1-GMsg.msg.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-GMsg.msg.getHeight()/2, GMsg.msg.getWidth(), GMsg.msg.getHeight());
                 }
             }*/
-            else throw new xTalkException("Cannot set loc for this object");
+            else throw new XTalkException("Cannot set loc for this object");
         } else if (0 == prpty.compareTo("rect") || 0 == prpty.compareTo("rectangle")) {
             int v1, v2, v3, v4;
             String[] strAry = value.split(",");
-            if (strAry.length != 4) throw new xTalkException("Rectangle specification is required here");
+            if (strAry.length != 4) throw new XTalkException("Rectangle specification is required here");
             try {
                 double d = Double.parseDouble(strAry[0]);
                 v1 = (int) d;
@@ -1479,7 +1479,7 @@ public class TUtil {
                 d = Double.parseDouble(strAry[3]);
                 v4 = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null) btn.setRect(v1, v2, v3, v4);
             else if (fld != null) fld.setRect(v1, v2, v3, v4);
@@ -1493,16 +1493,16 @@ public class TUtil {
                 } else if (((OWindow) obj).gpw != null) {
                     ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v1, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2, v3 - v1, v4 - v2);
                 } else {
-                    throw new xTalkException("Cannot set rect for this object??");
+                    throw new XTalkException("Cannot set rect for this object??");
                 }
-            } else throw new xTalkException("Cannot set rect for this object");
+            } else throw new XTalkException("Cannot set rect for this object");
         } else if (0 == prpty.compareTo("width")) {
             int v;
             try {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null)
                 btn.setRect(btn.getLeft() + btn.getWidth() / 2 - v / 2, btn.getTop(), btn.getLeft() + btn.getWidth() / 2 + (v + 1) / 2, btn.getTop() + btn.getHeight());
@@ -1516,7 +1516,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (btn != null)
                 btn.setRect(btn.getLeft(), btn.getTop() + btn.getHeight() / 2 - v / 2, btn.getLeft() + btn.getWidth(), btn.getTop() + btn.getHeight() / 2 + (v + 1) / 2);
@@ -1530,23 +1530,23 @@ public class TUtil {
                     if (0 == value.compareToIgnoreCase("true")) {
                         PCARD.pc.setLocationRelativeTo(null);
                     }
-                } else throw new xTalkException("Cannot set zoomed for this window");
-            } else throw new xTalkException("Cannot set zoomed for this object");
+                } else throw new XTalkException("Cannot set zoomed for this window");
+            } else throw new XTalkException("Cannot set zoomed for this object");
         } else if (0 == prpty.compareTo("cantpeek")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).cantPeek = (0 == value.compareToIgnoreCase("true"));
                 ((OStack) obj).changed = true;
-            } else throw new xTalkException("cantpeek can only be set for stacks");
+            } else throw new XTalkException("cantpeek can only be set for stacks");
         } else if (0 == prpty.compareTo("cantabort")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).cantAbort = (0 == value.compareToIgnoreCase("true"));
                 ((OStack) obj).changed = true;
-            } else throw new xTalkException("cantabort can only be set for stacks");
+            } else throw new XTalkException("cantabort can only be set for stacks");
         } else if (0 == prpty.compareTo("cantdelete")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).cantDelete = (0 == value.compareToIgnoreCase("true"));
                 ((OStack) obj).changed = true;
-            } else throw new xTalkException("cantdelete can only be set for stacks");
+            } else throw new XTalkException("cantdelete can only be set for stacks");
         } else if (0 == prpty.compareTo("cantmodify")) {
             if (obj != null && obj.objectType.equals("stack")) {
                 ((OStack) obj).changed = true;
@@ -1559,7 +1559,7 @@ public class TUtil {
                     }
                 }
                 ((OStack) obj).cantModify = (0 == value.compareToIgnoreCase("true"));
-            } else throw new xTalkException("cantmodify can only be set for stacks");
+            } else throw new XTalkException("cantmodify can only be set for stacks");
         } else if (0 == prpty.compareTo("script")) {
             if (obj != null) {
                 obj.setScript(value);
@@ -1570,7 +1570,7 @@ public class TUtil {
                     ((OCardBase) obj).picture.setVisible(value.equalsIgnoreCase("true"));
                     // ((OCardBase)obj).stack.pcard.repaint();
                     ((OCardBase) obj).changed = true;
-                } else throw new xTalkException("showPict can only be set for cards and backgrounds");
+                } else throw new XTalkException("showPict can only be set for cards and backgrounds");
             }
         } else if (0 == prpty.compareTo("textsize")) {
             int v;
@@ -1578,7 +1578,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (fld != null) fld.setTextSize(v);
         } else if (0 == prpty.compareTo("textheight")) {
@@ -1587,7 +1587,7 @@ public class TUtil {
                 double d = Double.parseDouble(value);
                 v = (int) d;
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (fld != null) fld.setTextHeight(v);
         } else if (0 == prpty.compareTo("audiolevel")) {
@@ -1597,11 +1597,11 @@ public class TUtil {
             try {
                 v = Integer.parseInt(value);
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (obj.objectType.equals("window") && ((OWindow) obj).mp3 != null) {
                 ((OWindow) obj).mp3.setVolume(v);
-            } else throw new xTalkException(obj.getShortName() + " cannot set audiolevel");
+            } else throw new XTalkException(obj.getShortName() + " cannot set audiolevel");
         } else if (0 == prpty.compareTo("timeformat")) {
             // Window property for Movie XCMD
         } else if (0 == prpty.compareTo("currtime")) {
@@ -1611,11 +1611,11 @@ public class TUtil {
             try {
                 v = Integer.parseInt(value);
             } catch (Exception err) {
-                throw new xTalkException("A number is required here");
+                throw new XTalkException("A number is required here");
             }
             if (obj.objectType.equals("window") && ((OWindow) obj).mp3 != null) {
                 ((OWindow) obj).mp3.setTime(v);
-            } else throw new xTalkException(obj.getShortName() + " cannot set currTime");
+            } else throw new XTalkException(obj.getShortName() + " cannot set currTime");
         } else if (0 == prpty.compareTo("scroll")) {
             if (fld != null && fld.style == 5) {
                 int v;
@@ -1623,14 +1623,14 @@ public class TUtil {
                     double d = Double.parseDouble(value);
                     v = (int) d;
                 } catch (Exception err) {
-                    throw new xTalkException("A number is required here");
+                    throw new XTalkException("A number is required here");
                 }
                 fld.setScroll(v);
             } else if (cd != null) {
                 int v1, v2;
                 String[] strAry = value.split(",");
                 if (strAry.length != 2) {
-                    throw new xTalkException("Coordinates are required here");
+                    throw new XTalkException("Coordinates are required here");
                 }
                 try {
                     double d = Double.parseDouble(strAry[0]);
@@ -1638,7 +1638,7 @@ public class TUtil {
                     d = Double.parseDouble(strAry[1]);
                     v2 = (int) d;
                 } catch (Exception err) {
-                    throw new xTalkException("A number is required here");
+                    throw new XTalkException("A number is required here");
                 }
                 PCARD.pc.stack.setScroll(v1, v2);
             }
@@ -1655,7 +1655,7 @@ public class TUtil {
                 else if (value.equalsIgnoreCase("popup")) btn.style = 8;
                 else if (value.equalsIgnoreCase("radio")) btn.style = 9;
                 else if (value.equalsIgnoreCase("checkbox")) btn.style = 10;
-                else throw new xTalkException("This style is unknown");
+                else throw new XTalkException("This style is unknown");
                 OCard.reloadCurrentCard();
             } else if (fld != null) {
                 if (value.equalsIgnoreCase("standard")) fld.style = 0;
@@ -1664,9 +1664,9 @@ public class TUtil {
                 else if (value.equalsIgnoreCase("rectangle")) fld.style = 3;
                 else if (value.equalsIgnoreCase("shadow")) fld.style = 4;
                 else if (value.equalsIgnoreCase("scroll")) fld.style = 5;
-                else throw new xTalkException("This style is unknown");
+                else throw new XTalkException("This style is unknown");
                 OCard.reloadCurrentCard();
-            } else throw new xTalkException("Cannot set style for this object");
+            } else throw new XTalkException("Cannot set style for this object");
         } else if (prpty.equals("showname")) {
             if (btn != null) {
                 btn.showName = value.equalsIgnoreCase("true");
@@ -1680,20 +1680,20 @@ public class TUtil {
             int v = 0;
             v = Integer.parseInt(value);
             if (v < 0 || v > 100) {
-                throw new xTalkException(obj.getShortName() + "'s property " + prpty + " has invalid value");
+                throw new XTalkException(obj.getShortName() + "'s property " + prpty + " has invalid value");
             }
             if (btn != null) btn.setBlendLevel(v);
         } else if (prpty.equals("color")) {
             int r = 0, g = 0, b = 0;
             String[] strs = value.split(",");
             if (strs.length != 3) {
-                throw new xTalkException("Specify color with r,g,b");
+                throw new XTalkException("Specify color with r,g,b");
             }
             r = Integer.parseInt(strs[0]);
             g = Integer.parseInt(strs[1]);
             b = Integer.parseInt(strs[2]);
             if (r < 0 || r > 65535 || g < 0 || g > 65535 || b < 0 || b > 65535) {
-                throw new xTalkException("Specify color in range 0 to 65535");
+                throw new XTalkException("Specify color in range 0 to 65535");
             }
             if (btn != null) {
                 btn.setColor(new Color(r / 256, g / 256, b / 256));
@@ -1706,13 +1706,13 @@ public class TUtil {
             int r = 0, g = 0, b = 0;
             String[] strs = value.split(",");
             if (strs.length != 3) {
-                throw new xTalkException("Specify color with r,g,b");
+                throw new XTalkException("Specify color with r,g,b");
             }
             r = Integer.parseInt(strs[0]);
             g = Integer.parseInt(strs[1]);
             b = Integer.parseInt(strs[2]);
             if (r < 0 || r > 65535 || g < 0 || g > 65535 || b < 0 || b > 65535) {
-                throw new xTalkException("Specify color in range 0 to 65535");
+                throw new XTalkException("Specify color in range 0 to 65535");
             }
             if (btn != null) {
                 btn.setBgColor(new Color(r / 256, g / 256, b / 256));
@@ -1743,15 +1743,15 @@ public class TUtil {
                     ((OWindow) obj).gpw.label.scale = vv;
                     ((OWindow) obj).gpw.repaint();
                 } else {
-                    throw new xTalkException("Cannot set scale for this object");
+                    throw new XTalkException("Cannot set scale for this object");
                 }
-            } else throw new xTalkException("Cannot set scale for this object");
+            } else throw new XTalkException("Cannot set scale for this object");
         } else {
-            throw new xTalkException(obj.getShortName() + "'s property " + prpty + " is unknown");
+            throw new XTalkException(obj.getShortName() + "'s property " + prpty + " is unknown");
         }
     }
 
-    public static int getVisualMode(ArrayList<String> strList, int start, int end) throws xTalkException {
+    public static int getVisualMode(ArrayList<String> strList, int start, int end) throws XTalkException {
         int mode = 0;
         int to = 0;
         int spd = 3;
@@ -1774,8 +1774,8 @@ public class TUtil {
                 } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("close")) {
                     mode = 2;
                     next++;
-                } else throw new xTalkException("Visual effect is unknown");
-            } else throw new xTalkException("Visual effect is unknown");
+                } else throw new XTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("dissolve")) {
             mode = 3;
             next++;
@@ -1784,7 +1784,7 @@ public class TUtil {
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("blinds")) {
                 mode = 4;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("checkerboard")) {
             mode = 5;
             next++;
@@ -1796,7 +1796,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("close")) {
                 mode = 7;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("scroll")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("left")) {
@@ -1811,7 +1811,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("down")) {
                 mode = 11;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("wipe")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("left")) {
@@ -1826,7 +1826,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("down")) {
                 mode = 15;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("zoom")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("open")) {
@@ -1841,7 +1841,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("out")) {
                 mode = 17;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("shrink")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("to")) {
@@ -1855,8 +1855,8 @@ public class TUtil {
                 } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("center")) {
                     mode = 20;
                     next++;
-                } else throw new xTalkException("Visual effect is unknown");
-            } else throw new xTalkException("Visual effect is unknown");
+                } else throw new XTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("stretch")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("from")) {
@@ -1870,8 +1870,8 @@ public class TUtil {
                 } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("center")) {
                     mode = 23;
                     next++;
-                } else throw new xTalkException("Visual effect is unknown");
-            } else throw new xTalkException("Visual effect is unknown");
+                } else throw new XTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         } else if (0 == strList.get(next).compareToIgnoreCase("push")) {
             next++;
             if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("left")) {
@@ -1886,7 +1886,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("down")) {
                 mode = 27;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         }
 
         if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("to")) {
@@ -1906,7 +1906,7 @@ public class TUtil {
             } else if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("inverse")) {
                 to = 4;
                 next++;
-            } else throw new xTalkException("Visual effect is unknown");
+            } else throw new XTalkException("Visual effect is unknown");
         }
 
         if (next < strList.size() && 0 == strList.get(next).compareToIgnoreCase("fast")) {

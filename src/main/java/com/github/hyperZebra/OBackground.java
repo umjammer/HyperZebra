@@ -50,7 +50,7 @@ public class OBackground extends OCardBase {
     }
 
     // Main
-    public static OBackground getOBackground(OStack st, OCard cd, int bgId, boolean dataonly) throws xTalkException {
+    public static OBackground getOBackground(OStack st, OCard cd, int bgId, boolean dataonly) throws XTalkException {
         // System.out.println("bgid="+bgId);
 
         for (int i = 0; i < st.bgCacheList.size(); i++) {
@@ -87,7 +87,7 @@ public class OBackground extends OCardBase {
         return new OBackground(st, cd, bgId, dataonly);
     }
 
-    OBackground(OStack st, OCard cd, int bgId, boolean dataonly) throws xTalkException {
+    OBackground(OStack st, OCard cd, int bgId, boolean dataonly) throws XTalkException {
         super(st);
         objectType = "background";
         parent = st;
@@ -99,7 +99,7 @@ public class OBackground extends OCardBase {
 
         id = bgId;
         {
-            throw new xTalkException("No background data file with that id exists");
+            throw new XTalkException("No background data file with that id exists");
         }
     }
 

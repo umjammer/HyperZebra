@@ -20,6 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -91,35 +93,38 @@ interface TalkObject {
     void setNum(int in);
 }
 
-/*class BasicTalkObject implements TalkObject {
-    // Basic object that holds only String
-    private String str;
-
-    // ----getter-----
-    public String getStr(){
-        if(str!=null) return str;
-        else return "";
-    }
-    public double getNum(){
-        if(str!=null) return Double.valueOf(str);
-        else return 0;
-    }
-    public int getInt(){
-        if(str!=null) return Integer.valueOf(str);
-        else return 0;
-    }
-
-    // ----setter-----
-    public void setStr(String str){
-        this.str = str;
-    }
-    public void setNum(Double num){
-        this.str = Double.toString(num);
-    }
-    public void setNum(int in){
-        this.str = Integer.toString(in);
-    }
-}*/
+//class BasicTalkObject implements TalkObject {
+//
+//    // Basic object that holds only String
+//    private String str;
+//
+//    public String getStr() {
+//        if (str != null) return str;
+//        else return "";
+//    }
+//
+//    public double getNum() {
+//        if (str != null) return Double.valueOf(str);
+//        else return 0;
+//    }
+//
+//    public int getInt() {
+//        if (str != null) return Integer.valueOf(str);
+//        else return 0;
+//    }
+//
+//    public void setStr(String str) {
+//        this.str = str;
+//    }
+//
+//    public void setNum(Double num) {
+//        this.str = Double.toString(num);
+//    }
+//
+//    public void setNum(int in) {
+//        this.str = Integer.toString(in);
+//    }
+//}
 
 final class VariableObj implements TalkObject {
 
@@ -128,7 +133,6 @@ final class VariableObj implements TalkObject {
     private double num;
     private boolean num_flag;
 
-    // ----getter-----
     @Override
     public String getStr() {
         if (num_flag) return Double.toString(num);
@@ -153,7 +157,6 @@ final class VariableObj implements TalkObject {
         else return (int) num;
     }
 
-    // ----setter-----
     @Override
     public void setStr(String str) {
         this.str = new StringBuilder(str);
@@ -179,131 +182,128 @@ final class VariableObj implements TalkObject {
     }
 }
 
-enum chunkType {BYTE, CHAR, ITEM, WORD, LINE}
-/*
-final class ChunkObj implements TalkObject {
-    // Object that can be read/written while holding chunk specification
-    // Nest ChunkObj for multiple chunk specifications
-    private TalkObject tobj;
-    private int[] splitSets; // Array of number of chunks + 1.
-                              // Offsets to each delimiter are stored.
-                              // [0] is always 0, and [splitSet.length] contains the total length.
-    private int chunk_s;
-    private int chunk_e;
-    private chunkType chunktype;
+enum ChunkType {BYTE, CHAR, ITEM, WORD, LINE}
 
-    ChunkObj(TalkObject t, chunkType ct, int s, int e){
-        tobj = t;
-        chunktype = ct;
-        chunk_s = s;
-        chunk_e = e;
-    }
-
-    public void setChunk(chunkType ct, int s, int e){
-        if(chunktype != ct){
-            chunktype = ct;
-            splitSets = null;
-        }
-        chunk_s = s;
-        chunk_e = e;
-    }
-
-    private void makeCache(){
-        if(chunktype == chunkType.BYTE || chunktype == chunkType.CHAR){
-            return; // No cache needed
-        }
-
-        if(chunktype == chunkType.ITEM || chunktype == chunkType.LINE){
-            String splitChar = "\n";
-            if(chunktype == chunkType.ITEM){
-                splitChar = TTalk.itemDelimiter;
-            }
-            String[] data = tobj.getStr().split(splitChar);
-            splitSets = new int[data.length+1];
-            splitSets[0] = 0;
-            for(int i=0; i<data.length; i++){
-                splitSets[i+1] = splitSets[i] + data[i].length()+1;
-            }
-        }
-        else if(chunktype == chunkType.WORD ){
-            char[] data = tobj.getStr().toCharArray();
-            boolean in_quote = false;
-            int cnt = 1;
-            // Count the number of array elements
-            for(int i=0; i<data.length; i++){
-                if(data[i] == '\"'){
-                    in_quote = !in_quote;
-                }
-                else if((data[i] == ' ' || data[i] == '\n') && !in_quote){
-                    cnt++;
-                }
-            }
-            // Create array
-            splitSets = new int[cnt+1];
-            // Assign to array
-            cnt = 1;
-            splitSets[0] = 0;
-            int i=0;
-            for(; i<data.length; i++){
-                if(data[i] == '\"'){
-                    in_quote = !in_quote;
-                }
-                else if((data[i] == ' ' || data[i] == '\n') && !in_quote){
-                    splitSets[cnt] = i;
-                    cnt++;
-                }
-            }
-            splitSets[cnt] = i;
-        }
-    }
-
-    // ----getter-----
-    public String getStr(){
-        if(chunktype == chunkType.BYTE){
-            return Integer.toString(tobj.getStr().getBytes()[chunk_s]);
-        }
-        else if(chunktype == chunkType.CHAR){
-            return tobj.getStr().substring(chunk_s,chunk_e);
-        }
-        else{
-            if(splitSets==null) makeCache();
-            return tobj.getStr().substring(splitSets[chunk_s],splitSets[chunk_e]);
-        }
-    }
-    public StringBuilder getStrBldr(){
-        return new StringBuilder(getStr());
-    }
-    public double getNum(){
-        return Double.valueOf(getStr());
-    }
-    public int getInt(){
-        return Integer.valueOf(getStr());
-    }
-
-    // ----setter-----
-    public void setStr(String str){
-        if(chunktype == chunkType.BYTE){
-            Integer.toString(tobj.setStr().getBytes()[chunk_s]);
-        }
-        else if(chunktype == chunkType.CHAR){
-            return tobj.setStr().substring(chunk_s,chunk_e);
-        }
-        else{
-            return tobj.setStr().substring(splitSets[chunk_s],splitSets[chunk_e]);
-            splitSets = null;
-        }
-    }
-    public void setStrBldr(StringBuilder bldr) {
-        this.str = bldr;
-    }
-    public void setNum(Double num){
-        setStr(Double.toString(num));
-    }
-    public void setNum(int in){
-        setStr(Integer.toString(in));
-    }
-
-}*/
+//final class ChunkObj implements TalkObject {
+//
+//    // Object that can be read/written while holding chunk specification
+//    // Nest ChunkObj for multiple chunk specifications
+//    private TalkObject tobj;
+//    private int[] splitSets; // Array of number of chunks + 1.
+//    // Offsets to each delimiter are stored.
+//    // [0] is always 0, and [splitSet.length] contains the total length.
+//    private int chunk_s;
+//    private int chunk_e;
+//    private ChunkType chunktype;
+//
+//    ChunkObj(TalkObject t, ChunkType ct, int s, int e) {
+//        tobj = t;
+//        chunktype = ct;
+//        chunk_s = s;
+//        chunk_e = e;
+//    }
+//
+//    public void setChunk(ChunkType ct, int s, int e) {
+//        if (chunktype != ct) {
+//            chunktype = ct;
+//            splitSets = null;
+//        }
+//        chunk_s = s;
+//        chunk_e = e;
+//    }
+//
+//    private void makeCache() {
+//        if (chunktype == ChunkType.BYTE || chunktype == ChunkType.CHAR) {
+//            return; // No cache needed
+//        }
+//
+//        if (chunktype == ChunkType.ITEM || chunktype == ChunkType.LINE) {
+//            String splitChar = "\n";
+//            if (chunktype == ChunkType.ITEM) {
+//                splitChar = TTalk.itemDelimiter;
+//            }
+//            String[] data = tobj.getStr().split(splitChar);
+//            splitSets = new int[data.length + 1];
+//            splitSets[0] = 0;
+//            for (int i = 0; i < data.length; i++) {
+//                splitSets[i + 1] = splitSets[i] + data[i].length() + 1;
+//            }
+//        } else if (chunktype == ChunkType.WORD) {
+//            char[] data = tobj.getStr().toCharArray();
+//            boolean in_quote = false;
+//            int cnt = 1;
+//            // Count the number of array elements
+//            for (int i = 0; i < data.length; i++) {
+//                if (data[i] == '\"') {
+//                    in_quote = !in_quote;
+//                } else if ((data[i] == ' ' || data[i] == '\n') && !in_quote) {
+//                    cnt++;
+//                }
+//            }
+//            // Create array
+//            splitSets = new int[cnt + 1];
+//            // Assign to array
+//            cnt = 1;
+//            splitSets[0] = 0;
+//            int i = 0;
+//            for (; i < data.length; i++) {
+//                if (data[i] == '\"') {
+//                    in_quote = !in_quote;
+//                } else if ((data[i] == ' ' || data[i] == '\n') && !in_quote) {
+//                    splitSets[cnt] = i;
+//                    cnt++;
+//                }
+//            }
+//            splitSets[cnt] = i;
+//        }
+//    }
+//
+//    public String getStr() {
+//        if (chunktype == ChunkType.BYTE) {
+//            return Integer.toString(tobj.getStr().getBytes()[chunk_s]);
+//        } else if (chunktype == ChunkType.CHAR) {
+//            return tobj.getStr().substring(chunk_s, chunk_e);
+//        } else {
+//            if (splitSets == null) makeCache();
+//            return tobj.getStr().substring(splitSets[chunk_s], splitSets[chunk_e]);
+//        }
+//    }
+//
+//    public StringBuilder getStrBldr() {
+//        return new StringBuilder(getStr());
+//    }
+//
+//    public double getNum() {
+//        return Double.valueOf(getStr());
+//    }
+//
+//    public int getInt() {
+//        return Integer.valueOf(getStr());
+//    }
+//
+//    public void setStr(String str) {
+//        if (chunktype == ChunkType.BYTE) {
+//            Integer.toString(tobj.setStr().getBytes()[chunk_s]);
+//        } else if (chunktype == ChunkType.CHAR) {
+//            return tobj.setStr().substring(chunk_s, chunk_e);
+//        } else {
+//            return tobj.setStr().substring(splitSets[chunk_s], splitSets[chunk_e]);
+//            splitSets = null;
+//        }
+//    }
+//
+//    public void setStrBldr(StringBuilder bldr) {
+//        this.str = bldr;
+//    }
+//
+//    public void setNum(Double num) {
+//        setStr(Double.toString(num));
+//    }
+//
+//    public void setNum(int in) {
+//        setStr(Integer.toString(in));
+//    }
+//}
 
 // Would also like a BytObj that holds byte[]
 //  Whether to reference with byte of or handle in byte units with char of.
@@ -336,6 +336,8 @@ class OpenFile {
 
 public class TTalk extends Thread {
 
+    private static final Logger logger = System.getLogger(TTalk.class.getName());
+
     static TTalk talk;
     static DecimalFormat numFormat = new DecimalFormat("0.######");
     static boolean idle = true;
@@ -343,8 +345,8 @@ public class TTalk extends Thread {
     static ArrayList<Message> messageList = new ArrayList<>();
     static TSound tsound = new TSound();
     static boolean stop = false;
-    static int tracemode = 0;
-    static boolean stepflag;
+    static int traceMode = 0;
+    static boolean stepFlag;
     static MemoryData globalData = new MemoryData();
     static ArrayList<String> pushCardList = new ArrayList<>();
     static Result lastResult;
@@ -352,10 +354,9 @@ public class TTalk extends Thread {
     static boolean lockErrorDialogs = false;
     static long lastErrorTime;
     static boolean lockMessages = false;
-    static int dragspeed = 0;
+    static int dragSpeed = 0;
     static int wait = 1; // Wait to return to old speed in 2.x
     static ArrayList<OpenFile> openFileList = new ArrayList<>();
-
 
     enum wordType {
         X,
@@ -497,79 +498,79 @@ public class TTalk extends Thread {
         commandSet.add("about"); // add
 
         funcSet = new TreeSet<>();
-        funcSet.add("abs");//
-        funcSet.add("annuity");//
-        funcSet.add("atan");//
-        funcSet.add("average");//
-        funcSet.add("chartonum");//
+        funcSet.add("abs"); //
+        funcSet.add("annuity"); //
+        funcSet.add("atan"); //
+        funcSet.add("average"); //
+        funcSet.add("chartonum"); //
         funcSet.add("clickchunk");
-        funcSet.add("clickh");//
-        funcSet.add("clickline");//
-        funcSet.add("clickloc");//
+        funcSet.add("clickh"); //
+        funcSet.add("clickline"); //
+        funcSet.add("clickloc"); //
         funcSet.add("clicktext");
-        funcSet.add("clickv");//
-        funcSet.add("cmdkey");//
-        funcSet.add("commandkey");//
-        funcSet.add("compound");//
-        funcSet.add("cos");//
-        funcSet.add("date");//
-        funcSet.add("diskspace");//
-        funcSet.add("exp");//
-        funcSet.add("exp1");//
-        funcSet.add("exp2");//
-        funcSet.add("foundchunk");//
-        funcSet.add("foundfield");//
-        funcSet.add("foundline");//
-        funcSet.add("foundtext");//
-        funcSet.add("heapspace");//
-        funcSet.add("length");//
-        funcSet.add("ln");//
-        funcSet.add("ln1");//
-        funcSet.add("log2");//
-        funcSet.add("max");//
-        funcSet.add("menus");//
-        funcSet.add("min");//
-        funcSet.add("mouse");//
-        funcSet.add("mouseclick");//
-        funcSet.add("mouseh");//
-        funcSet.add("mouseloc");//
-        funcSet.add("mousev");//
+        funcSet.add("clickv"); //
+        funcSet.add("cmdkey"); //
+        funcSet.add("commandkey"); //
+        funcSet.add("compound"); //
+        funcSet.add("cos"); //
+        funcSet.add("date"); //
+        funcSet.add("diskspace"); //
+        funcSet.add("exp"); //
+        funcSet.add("exp1"); //
+        funcSet.add("exp2"); //
+        funcSet.add("foundchunk"); //
+        funcSet.add("foundfield"); //
+        funcSet.add("foundline"); //
+        funcSet.add("foundtext"); //
+        funcSet.add("heapspace"); //
+        funcSet.add("length"); //
+        funcSet.add("ln"); //
+        funcSet.add("ln1"); //
+        funcSet.add("log2"); //
+        funcSet.add("max"); //
+        funcSet.add("menus"); //
+        funcSet.add("min"); //
+        funcSet.add("mouse"); //
+        funcSet.add("mouseclick"); //
+        funcSet.add("mouseh"); //
+        funcSet.add("mouseloc"); //
+        funcSet.add("mousev"); //
         funcSet.add("number");
-        funcSet.add("numtochar");//
-        funcSet.add("offset");//
-        funcSet.add("optionkey");//
-        funcSet.add("param");//
-        funcSet.add("paramcount");//
-        funcSet.add("params");//
+        funcSet.add("numtochar"); //
+        funcSet.add("offset"); //
+        funcSet.add("optionkey"); //
+        funcSet.add("param"); //
+        funcSet.add("paramcount"); //
+        funcSet.add("params"); //
         funcSet.add("programs");
-        funcSet.add("random");//
-        funcSet.add("result");//
-        funcSet.add("round");//
-        funcSet.add("screenrect");//
-        funcSet.add("seconds");//
+        funcSet.add("random"); //
+        funcSet.add("result"); //
+        funcSet.add("round"); //
+        funcSet.add("screenrect"); //
+        funcSet.add("seconds"); //
         funcSet.add("selectedbutton");
         funcSet.add("selectedchunk");
-        funcSet.add("selectedfield");//
-        funcSet.add("selectedline");//
+        funcSet.add("selectedfield"); //
+        funcSet.add("selectedline"); //
         funcSet.add("selectedloc");
-        funcSet.add("selectedtext");//
+        funcSet.add("selectedtext"); //
         funcSet.add("selection");
-        funcSet.add("shiftkey");//
-        funcSet.add("sin");//
-        funcSet.add("sound");//
-        funcSet.add("sqrt");//
-        funcSet.add("stacks");//
-        funcSet.add("stackspace");//
-        funcSet.add("sum");//
-        funcSet.add("systemversion");//
-        funcSet.add("tan");//
-        funcSet.add("target");//
-        funcSet.add("ticks");//
-        funcSet.add("time");//
-        funcSet.add("tool");//
-        funcSet.add("trunc");//
-        funcSet.add("value");//
-        funcSet.add("windows");//
+        funcSet.add("shiftkey"); //
+        funcSet.add("sin"); //
+        funcSet.add("sound"); //
+        funcSet.add("sqrt"); //
+        funcSet.add("stacks"); //
+        funcSet.add("stackspace"); //
+        funcSet.add("sum"); //
+        funcSet.add("systemversion"); //
+        funcSet.add("tan"); //
+        funcSet.add("target"); //
+        funcSet.add("ticks"); //
+        funcSet.add("time"); //
+        funcSet.add("tool"); //
+        funcSet.add("trunc"); //
+        funcSet.add("value"); //
+        funcSet.add("windows"); //
 
         funcSet.add("systemname"); // add
         funcSet.add("javaversion"); // add
@@ -687,15 +688,15 @@ public class TTalk extends Thread {
         propertySet.add("width"); // set
         propertySet.add("zoomed"); // set
 
-        propertySet.add("text");// (add) set
+        propertySet.add("text"); // (add) set
         propertySet.add("systemlang"); // add get
         propertySet.add("blendingmode"); // add set
         propertySet.add("blendinglevel"); // add set
         propertySet.add("color"); // add set
         propertySet.add("backColor"); // add set
-        propertySet.add("selectedfield");//
-        propertySet.add("selectedline");//
-        propertySet.add("selectedtext");//
+        propertySet.add("selectedfield"); //
+        propertySet.add("selectedline"); //
+        propertySet.add("selectedtext"); //
 
         propertySet.add("audiolevel"); // xcmd set
         propertySet.add("currtime"); // xcmd set
@@ -773,7 +774,7 @@ public class TTalk extends Thread {
     }
 
     // Execute internal script when running a menu
-    public static String doScriptforMenu(String script) throws xTalkException {
+    public static String doScriptforMenu(String script) throws XTalkException {
         if (Thread.currentThread() != talk) {
             CallMessage(script, "", null, false, true);
             return "";
@@ -810,7 +811,7 @@ public class TTalk extends Thread {
     }
 
     private void ReceiveMessage(String message, String param, OObject object, MemoryData memData, boolean idlenow)
-            throws xTalkException {
+            throws XTalkException {
         boolean changeIdle = false;
         if (idlenow == false && idle == true) {
             // Set to busy state
@@ -839,7 +840,7 @@ public class TTalk extends Thread {
         }
         idle = true;
         TTalk.stop = false;
-        TTalk.tracemode = 0;
+        TTalk.traceMode = 0;
         if (PCARD.pc.stack == null) return;
 
         if (PCARD.lockedScreen) {
@@ -850,7 +851,7 @@ public class TTalk extends Thread {
         PCARD.visual = 0;
         numFormat = new DecimalFormat("0.######");
         itemDelimiter = ",";
-        dragspeed = 0;
+        dragSpeed = 0;
         Cursor cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
         PCARD.pc.setCursor(cr);
         PCARD.pc.stack.mouseWithinCheck();
@@ -881,7 +882,7 @@ public class TTalk extends Thread {
 
 
     private Result ReceiveMessage(String message, String[] params, OObject object, OObject target, MemoryData memData)
-            throws xTalkException {
+            throws XTalkException {
         // System.out.println("ReceiveMessage "+message+" "+object.getShortName());
         Result result = new Result();
         return ReceiveMessage(message, params, object, target, memData, result, false, false, false, 0);
@@ -893,7 +894,7 @@ public class TTalk extends Thread {
 
     // Receive message
     private Result ReceiveMessage(String message, String[] params, OObject object, OObject target, MemoryData memData, Result result, boolean isFunc, boolean isDynamic, boolean isBgroot, int usingCnt)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
 
 
@@ -1058,7 +1059,7 @@ public class TTalk extends Thread {
 
     // mode=0 normal    mode=1 internal call so no error
     private Result doScript(OObject object, OObject target, String message, String script, MemoryData memData, String[] parentparams, int mode)
-            throws xTalkException {
+            throws XTalkException {
         ArrayList<String> scriptList = new ArrayList<>();
         while (script.contains("\r")) { // Convert return (CR) to (LF)
             script = script.substring(0, script.indexOf("\r")) + "\n" + script.substring(script.indexOf("\r") + 1);
@@ -1081,19 +1082,19 @@ public class TTalk extends Thread {
     // 3 .. exit handle
     private Result doScript(OObject object, OObject target, String message, ArrayList<String> scriptList, int start, int end,
                             MemoryData memData, String[] parentparams, int mode)
-            throws xTalkException {
+            throws XTalkException {
         if (TTalk.stop) {
-            throw new xTalkException("user abort.");
+            throw new XTalkException("user abort.");
         }
-        if (TTalk.tracemode >= 1) {
+        if (TTalk.traceMode >= 1) {
             ScriptEditor.openScriptEditor(PCARD.pc, object, start);
             boolean watcher = false;
             if (VariableWatcher.watcherWindow.isVisible()) {
                 watcher = true;
                 VariableWatcher.watcherWindow.setTable(TTalk.globalData, memData);
             }
-            if (TTalk.tracemode == 2) {
-                while (stepflag == false) {
+            if (TTalk.traceMode == 2) {
+                while (stepFlag == false) {
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
@@ -1103,7 +1104,7 @@ public class TTalk extends Thread {
                         VariableWatcher.watcherWindow.setTable(TTalk.globalData, memData);
                     }
                 }
-                stepflag = false;
+                stepFlag = false;
             }
         }
 
@@ -1206,7 +1207,7 @@ label:
                             }
                             line++;
                         }
-                        if (line > end + 1) throw new xTalkException("end repeat not found");
+                        if (line > end + 1) throw new XTalkException("end repeat not found");
 
                         if (sList.size() <= 1 || sList.get(1).startsWith("--") || 0 == sList.get(1).compareToIgnoreCase("forever")) {
                             // repeat [forever]
@@ -1233,7 +1234,7 @@ label:
                                 if (words2.length >= 1) rstart = new StringBuilder(words2[1]);
                                 next = 4;
                             } else {
-                                throw new xTalkException("repeat with arguments are unknown");
+                                throw new XTalkException("repeat with arguments are unknown");
                             }
                             while (true) {
                                 if (next >= sList.size() || 0 == sList.get(next).compareToIgnoreCase("to"))
@@ -1244,7 +1245,7 @@ label:
                                         down = true;
                                         break;
                                     } else {
-                                        throw new xTalkException("to is required after down");
+                                        throw new XTalkException("to is required after down");
                                     }
                                 }
                                 rstart.append(" ").append(sList.get(next));
@@ -1261,11 +1262,11 @@ label:
                                 }
                                 next++;
                             }
-                            String startStr = Evalution(rstart.toString(), memData, object, target);
+                            String startStr = evaluation(rstart.toString(), memData, object, target);
                             setVariable(memData, mem, startStr);
                             int cnt = 0;
                             if (down == false) {
-                                while (0 == Evalution(mem + "<=" + rend, memData, object, target).compareTo("true")) {
+                                while (0 == evaluation(mem + "<=" + rend, memData, object, target).compareTo("true")) {
                                     result = doScript(object, target, message, scriptList, start + 1, line - 1, memData, parentparams, 0);
                                     if (result.ret != 0)
                                         break;
@@ -1274,7 +1275,7 @@ label:
                                     setVariable(memData, mem, Integer.toString(Integer.parseInt(startStr) + cnt));
                                 }
                             } else {
-                                while (0 == Evalution(mem + ">=" + rend, memData, object, target).compareTo("true")) {
+                                while (0 == evaluation(mem + ">=" + rend, memData, object, target).compareTo("true")) {
                                     result = doScript(object, target, message, scriptList, start + 1, line - 1, memData, parentparams, 0);
                                     if (result.ret != 0)
                                         break;
@@ -1292,7 +1293,7 @@ label:
                                 prm.append(" ").append(sList.get(next));
                                 next++;
                             }
-                            while (0 == Evalution(prm.toString(), memData, object, target).compareTo("true")) {
+                            while (0 == evaluation(prm.toString(), memData, object, target).compareTo("true")) {
                                 result = doScript(object, target, message, scriptList, start + 1, line - 1, memData, parentparams, 0);
                                 if (result.ret != 0)
                                     break;
@@ -1307,7 +1308,7 @@ label:
                                 prm.append(" ").append(sList.get(next));
                                 next++;
                             }
-                            while (0 == Evalution(prm.toString(), memData, object, target).compareTo("false")) {
+                            while (0 == evaluation(prm.toString(), memData, object, target).compareTo("false")) {
                                 result = doScript(object, target, message, scriptList, start + 1, line - 1, memData, parentparams, 0);
                                 if (result.ret != 0)
                                     break;
@@ -1326,7 +1327,7 @@ label:
                                 next++;
                             }
                             int cnt = 0;
-                            while (0 == Evalution(cnt + "<" + prm, memData, object, target).compareTo("true")) {
+                            while (0 == evaluation(cnt + "<" + prm, memData, object, target).compareTo("true")) {
                                 result = doScript(object, target, message, scriptList, start + 1, line - 1, memData, parentparams, 0);
                                 if (result.ret != 0)
                                     break;
@@ -1389,7 +1390,7 @@ label:
                                     next = 0; // One-line then (if on second line)
 
                                 }
-                            } else throw new xTalkException("if statement requires then");
+                            } else throw new XTalkException("if statement requires then");
                         }
                         if (iftype2 == 1 && iftype == 2) {
                             sList = nstringList;
@@ -1402,7 +1403,7 @@ label:
                     }*/
                         // Whether if condition is met
                         boolean doif = false;
-                        if (0 == Evalution(prm, memData, object, target).compareTo("true")) {
+                        if (0 == evaluation(prm, memData, object, target).compareTo("true")) {
                             doif = true;
                         }
                         String doStr = "";
@@ -1437,7 +1438,7 @@ label:
                                                         break;
                                                 }
                                                 prm = combine(nstart + 1, next2, sList, tList);
-                                                if (0 == Evalution(prm, memData, object, target).compareTo("true")) {
+                                                if (0 == evaluation(prm, memData, object, target).compareTo("true")) {
                                                     doif = true;
                                                 } else doif = false;
                                                 doStr += combine(next2 + 1, next, sList, tList);
@@ -1470,7 +1471,7 @@ label:
                                                 next2++;
                                             }
                                             prm = combine(nstart + 1, next2, sList, tList);
-                                            if (0 == Evalution(prm, memData, object, target).compareTo("true")) {
+                                            if (0 == evaluation(prm, memData, object, target).compareTo("true")) {
                                                 doif = true;
                                             } else doif = false;
                                         }
@@ -1659,7 +1660,7 @@ label:
                                     elseiftype = 1;
                                     prm = combine(next + 2, sList.size() - 1, sList, tList);
                                     doif = false;
-                                    if (0 == Evalution(prm, memData, object, target).compareTo("true")) {
+                                    if (0 == evaluation(prm, memData, object, target).compareTo("true")) {
                                         doif = true;
                                     }
                                 } else {
@@ -1687,21 +1688,21 @@ label:
                                 return result;
                             }
                         }
-                        throw new xTalkException("exit is unknown");
+                        throw new XTalkException("exit is unknown");
                     }
                     case "next" -> {
                         if (sList.size() >= 2 && 0 == sList.get(1).compareToIgnoreCase("repeat")) {
                             result.ret = 0;
                             return result;
                         }
-                        throw new xTalkException("next is unknown");
+                        throw new XTalkException("next is unknown");
                     }
                     case "pass" -> {
                         if (sList.size() >= 2 && 0 == sList.get(1).compareToIgnoreCase(message)) {
                             result.ret = 1;
                             return result;
                         }
-                        throw new xTalkException("pass is unknown");
+                        throw new XTalkException("pass is unknown");
                     }
                     case "return" -> {
                         result.theResult = "";
@@ -1710,18 +1711,18 @@ label:
                             for (int j = 1; j < sList.size(); j++) {
                                 retstr.append(sList.get(j)).append(" ");
                             }
-                            result.theResult = Evalution(retstr.toString(), memData, object, target);
+                            result.theResult = evaluation(retstr.toString(), memData, object, target);
                         }
                         result.ret = 0;
                         return result;
                     }
-                    case "end" -> throw new xTalkException("end is in an invalid position");
+                    case "end" -> throw new XTalkException("end is in an invalid position");
                     default -> {
                         // Execute normal statement
                         if (TTalk.stop) {
-                            throw new xTalkException("user abort.");
+                            throw new XTalkException("user abort.");
                         }
-                        if (TTalk.tracemode == 1 && object != null) {
+                        if (TTalk.traceMode == 1 && object != null) {
                             ScriptEditor.openScriptEditor(PCARD.pc, object, line);
                         }
 //                        if (object == null || scriptList != object.scriptList) {
@@ -1764,7 +1765,7 @@ label:
                 }
                 line++;
             }
-        } catch (xTalkException e) {
+        } catch (XTalkException e) {
             e.printStackTrace();
 
             // Processing when script error occurs
@@ -1774,7 +1775,7 @@ label:
             System.out.println("Error occurred at:" + str);
 
             if (mode == 1) { // Internal call so do not show dialog here, throw to upper caller
-                throw new xTalkException(e.getMessage());
+                throw new XTalkException(e.getMessage());
             }
 
             if (object != null && mode == 0) System.out.println("line " + line + " of " + object.getShortName());
@@ -1784,11 +1785,11 @@ label:
             lastErrorTime = System.currentTimeMillis();
 
             if (TTalk.stop) { // Force stop by cmd+. or stop by error
-                throw new xTalkException(e.getMessage());
+                throw new XTalkException(e.getMessage());
             }
 
             if (lockErrorDialogs) {
-                throw new xTalkException(e.getMessage());
+                throw new XTalkException(e.getMessage());
             }
 
             Toolkit.getDefaultToolkit().beep();
@@ -1817,7 +1818,7 @@ label:
 
             TTalk.stop = true; // Do not generate unnecessary dialogs
 
-            throw new xTalkException(e.getMessage());
+            throw new XTalkException(e.getMessage());
         }
 
         return result;
@@ -1990,7 +1991,7 @@ label:
 
     private Result doScriptLines(String script, OObject object, OObject target,
                                  MemoryData memData)
-            throws xTalkException {
+            throws XTalkException {
         Result ret = null;
         String[] scripts = script.split("\n");
 
@@ -2003,7 +2004,7 @@ label:
 
     private Result doScriptLine(String script, OObject object, OObject target,
                                 MemoryData memData, int startline)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         ArrayList<String> stringList = new ArrayList<>();
         ArrayList<wordType> typeList = new ArrayList<>();
@@ -2025,7 +2026,7 @@ label:
     private Result CommandExec(
             ArrayList<String> stringList, wordType[] typeAry, OObject object, OObject target,
             MemoryData memData, int startline)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         Result result = new Result();
 
@@ -2038,17 +2039,17 @@ label:
         }
 
         if (TTalk.stop) {
-            throw new xTalkException("user abort.");
+            throw new XTalkException("user abort.");
         }
-        if (TTalk.tracemode >= 1 && startline > 0) {
+        if (TTalk.traceMode >= 1 && startline > 0) {
             ScriptEditor.openScriptEditor(PCARD.pc, object, startline);
             boolean watcher = false;
             if (VariableWatcher.watcherWindow.isVisible()) {
                 watcher = true;
                 VariableWatcher.watcherWindow.setTable(TTalk.globalData, memData);
             }
-            if (TTalk.tracemode == 2) {
-                while (stepflag == false) {
+            if (TTalk.traceMode == 2) {
+                while (stepFlag == false) {
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
@@ -2061,7 +2062,7 @@ label:
                         break;
                     }
                 }
-                stepflag = false;
+                stepFlag = false;
             }
         }
 
@@ -2112,7 +2113,7 @@ label:
                             System.out.println("param "+stringList.get(j)+" :"+j+" "+i);
                         }*/
 
-                        paramAry[o] = Evalution(stringList, typeAry, j, i - 1, memData, object, target);
+                        paramAry[o] = evaluation(stringList, typeAry, j, i - 1, memData, object, target);
                         j = i + 1;
                         o++;
                     }
@@ -2133,7 +2134,7 @@ label:
             if (!flag) result = ReceiveMessage(stringList.get(0), paramAry, sendObject, target, memData);
             if (result.ret == 1) {
                 // Evaluate value (for msg box)
-                result.theResult = Evalution(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
+                result.theResult = evaluation(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
                 result.ret = 0;
             }
         }
@@ -2147,7 +2148,7 @@ label:
             }
             case "put" -> {
                 if (0 == stringList.get(stringList.size() - 2).compareToIgnoreCase("into") && (0 == stringList.get(stringList.size() - 1).compareToIgnoreCase("message") || 0 == stringList.get(stringList.size() - 1).compareToIgnoreCase("msg"))) {
-                    String value = Evalution(stringList, typeAry, 1, stringList.size() - 3, memData, object, target);
+                    String value = evaluation(stringList, typeAry, 1, stringList.size() - 3, memData, object, target);
                     GMsg.setText(value);
                 } else if (stringList.size() >= 2) {
                     int next = 2;
@@ -2163,7 +2164,7 @@ label:
                     }
                     if (next + 1 >= stringList.size()) {
                         // put xx
-                        String value = Evalution(stringList, typeAry, 1, stringList.size() - 1, memData, object, target);
+                        String value = evaluation(stringList, typeAry, 1, stringList.size() - 1, memData, object, target);
                         GMsg.setText(value);
                     } else if (0 == dirStr.compareToIgnoreCase("after")) {
                         StringBuilder doStr = new StringBuilder();
@@ -2201,13 +2202,13 @@ label:
                                         || 0 == stringList.get(next + 1).compareToIgnoreCase("item") || 0 == stringList.get(next + 1).compareToIgnoreCase("word")
                                         || 0 == stringList.get(next + 1).compareToIgnoreCase("line") || 0 == stringList.get(next + 1).compareToIgnoreCase("last")
                                         || 0 == stringList.get(next + 1).compareToIgnoreCase("first"))) {
-                            String value = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                            String value = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                             if (0 == stringList.get(next + 1).compareToIgnoreCase("last") || 0 == stringList.get(next + 1).compareToIgnoreCase("first")) {
                                 stringList.set(next + 1, stringList.get(next + 2));
                                 // Will be overwritten so make a copy
                                 ArrayList<String> cpstringList = (ArrayList<String>) stringList.clone();
                                 wordType[] cptypeAry = typeAry.clone();
-                                String value1 = Evalution(cpstringList, cptypeAry, next + 4, cpstringList.size() - 1, memData, object, target);
+                                String value1 = evaluation(cpstringList, cptypeAry, next + 4, cpstringList.size() - 1, memData, object, target);
                                 stringList.set(next + 2, Integer.toString(getNumberOfChunk(cpstringList.get(next + 2) + "s", value1)));
                             }
                             int next2 = next + 1;
@@ -2230,12 +2231,12 @@ label:
                             int next3 = next;
                             while (next3 < next2) {
                                 if (0 == stringList.get(next3).compareToIgnoreCase("to")) {
-                                    chunkEnd = Evalution(stringList, typeAry, next3 + 1, next2 - 1, memData, object, target);
+                                    chunkEnd = evaluation(stringList, typeAry, next3 + 1, next2 - 1, memData, object, target);
                                     break;
                                 }
                                 next3++;
                             }
-                            chunkStart = Evalution(stringList, typeAry, next + 2, next3 - 1, memData, object, target);
+                            chunkStart = evaluation(stringList, typeAry, next + 2, next3 - 1, memData, object, target);
 
                             if (next2 + 1 < stringList.size() && (
                                     0 == stringList.get(next2 + 1).compareToIgnoreCase("item") || 0 == stringList.get(next2 + 1).compareToIgnoreCase("word")
@@ -2251,12 +2252,12 @@ label:
                                 int next5 = next2;
                                 while (next5 < next4) {
                                     if (0 == stringList.get(next5).compareToIgnoreCase("to")) {
-                                        chunkEnd2 = Evalution(stringList, typeAry, next5 + 1, next4 - 1, memData, object, target);
+                                        chunkEnd2 = evaluation(stringList, typeAry, next5 + 1, next4 - 1, memData, object, target);
                                         break;
                                     }
                                     next5++;
                                 }
-                                chunkStart2 = Evalution(stringList, typeAry, next2 + 2, next5 - 1, memData, object, target);
+                                chunkStart2 = evaluation(stringList, typeAry, next2 + 2, next5 - 1, memData, object, target);
                                 OObject obj = null;
                                 try {
                                     obj = getObject(stringList, typeAry, next4 + 1, stringList.size() - 1, memData, object, target);
@@ -2287,7 +2288,7 @@ label:
                             OObject obj;
                             if (stringList.get(next + 1).equalsIgnoreCase("the") && next + 2 < stringList.size()) {
                                 String str1 = "the " + stringList.get(next + 2);
-                                String res = Evalution(str1, memData, object, target);
+                                String res = evaluation(str1, memData, object, target);
 
                             /*ArrayList<String> tmpStrList = new ArrayList<String>();
                             ArrayList<wordType> newTypeList = new ArrayList<wordType>();
@@ -2303,11 +2304,11 @@ label:
                                 obj = getObject(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
                             }
                             if (obj != null) {
-                                String value = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                                String value = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                                 TUtil.SetProperty(obj, "text", value);
                             } else {
                                 // Variable
-                                String value = Evalution(stringList, typeAry, 1, stringList.size() - 3, memData, object, target);
+                                String value = evaluation(stringList, typeAry, 1, stringList.size() - 3, memData, object, target);
                                 setVariable(memData, stringList.get(stringList.size() - 1), value);
                             }
                         }
@@ -2321,16 +2322,16 @@ label:
                 String property = "";
                 OObject obj = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("set is unknown");
+                if (next >= stringList.size()) throw new XTalkException("set is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("the"))
                     next++;
-                if (next >= stringList.size()) throw new xTalkException("set is unknown");
+                if (next >= stringList.size()) throw new XTalkException("set is unknown");
                 property = stringList.get(next);
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("set is unknown");
+                if (next >= stringList.size()) throw new XTalkException("set is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("of")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("set is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("set is unknown");
                     int end = next;
                     while (end < stringList.size()) {
                         if (0 == stringList.get(end).compareToIgnoreCase("to"))
@@ -2339,7 +2340,7 @@ label:
                     }
                     obj = getObject(stringList, typeAry, next, end - 1, memData, object, target);
                     if (obj == null) {
-                        throw new xTalkException("object to change with set is unknown");
+                        throw new XTalkException("object to change with set is unknown");
                     }
                     next = end;
                 }
@@ -2353,7 +2354,7 @@ label:
                                     property.equalsIgnoreCase("loc") || property.equalsIgnoreCase("location") ||
                                     property.equalsIgnoreCase("rect") || property.equalsIgnoreCase("rectangle")) {
                                 // For loc, rect, split by comma
-                                param.append(Evalution(value.toString(), memData, object, target)).append(",");
+                                param.append(evaluation(value.toString(), memData, object, target)).append(",");
                                 value = new StringBuilder();
                                 next++;
                                 continue;
@@ -2366,13 +2367,13 @@ label:
                         }
                         next++;
                     }
-                    param.append(Evalution(value.toString(), memData, object, target));
+                    param.append(evaluation(value.toString(), memData, object, target));
                     TUtil.SetProperty(obj, property, param.toString());
                 }
             }
             case "go" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("go is unknown");
+                if (next >= stringList.size()) throw new XTalkException("go is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("to"))
                     next++;
                 int id = 0;
@@ -2524,7 +2525,7 @@ label:
             }
             case "visual" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("visual is unknown");
+                if (next >= stringList.size()) throw new XTalkException("visual is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("effect"))
                     next++;
                 int mode;
@@ -2535,7 +2536,7 @@ label:
             }
             case "lock" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("lock is unknown");
+                if (next >= stringList.size()) throw new XTalkException("lock is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("screen")) {
                     if (fastLockScreen != object.id) {
                         VEffect.setOldOff();
@@ -2547,7 +2548,7 @@ label:
             }
             case "unlock" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("unlock is unknown");
+                if (next >= stringList.size()) throw new XTalkException("unlock is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("screen")) {
                     int vis = 0, tovis = 0, spd = 3;
                     next++;
@@ -2575,7 +2576,7 @@ label:
             case "answer" -> {
                 // answer
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("answer is unknown");
+                if (next >= stringList.size()) throw new XTalkException("answer is unknown");
                 if (stringList.get(next).equals("file")) {
                     // File open dialog
                     next++;
@@ -2585,10 +2586,10 @@ label:
                             break;
                         }
                     }
-                    String answerStr = Evalution(stringList, typeAry, next, j - 1, memData, object, target);
+                    String answerStr = evaluation(stringList, typeAry, next, j - 1, memData, object, target);
                     String type = null;
                     if (j + 2 < stringList.size()) {
-                        type = Evalution(stringList, typeAry, j + 2, stringList.size() - 1, memData, object, target);
+                        type = evaluation(stringList, typeAry, j + 2, stringList.size() - 1, memData, object, target);
                     }
                     JFileChooser chooser = new JFileChooser();
                     if (type != null) {
@@ -2658,7 +2659,7 @@ label:
                     for (i = next + 1; i < stringList.size(); i++) {
                         if (0 == stringList.get(i).compareToIgnoreCase("with")) break;
                     }
-                    answerStr = Evalution(stringList, typeAry, next, i - 1, memData, object, target);
+                    answerStr = evaluation(stringList, typeAry, next, i - 1, memData, object, target);
                     next = i;
                     if (next < stringList.size() && 0 == stringList.get(next).compareToIgnoreCase("with")) {
                         next++;
@@ -2688,7 +2689,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("add is unknown");
+                if (next >= stringList.size()) throw new XTalkException("add is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2724,7 +2725,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("subtract is unknown");
+                if (next >= stringList.size()) throw new XTalkException("subtract is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2760,7 +2761,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("multiply is unknown");
+                if (next >= stringList.size()) throw new XTalkException("multiply is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2796,7 +2797,7 @@ label:
                         break;
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("divide is unknown");
+                if (next >= stringList.size()) throw new XTalkException("divide is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
@@ -2827,9 +2828,9 @@ label:
             }
             case "get" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("get is unknown");
+                if (next >= stringList.size()) throw new XTalkException("get is unknown");
                 // Variable it
-                String value = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                String value = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                 setVariable(memData, "it", value);
             /*String newStr="";
             newStr += "put";
@@ -2842,7 +2843,7 @@ label:
             case "show" -> {
                 StringBuilder objStr = new StringBuilder();
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("show is unknown");
+                if (next >= stringList.size()) throw new XTalkException("show is unknown");
                 if (stringList.get(next).equalsIgnoreCase("all") &&
                         next + 1 < stringList.size() &&
                         (stringList.get(next + 1).equalsIgnoreCase("cds") || stringList.get(next + 1).equalsIgnoreCase("cards"))) {
@@ -2907,7 +2908,7 @@ label:
             }
             case "hide" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("hide is unknown");
+                if (next >= stringList.size()) throw new XTalkException("hide is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set visible of");
                 for (int i = next; i < stringList.size(); i++) {
@@ -2923,7 +2924,7 @@ label:
             }
             case "enable" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("enable is unknown");
+                if (next >= stringList.size()) throw new XTalkException("enable is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set enabled of");
                 for (int i = next; i < stringList.size(); i++) {
@@ -2939,7 +2940,7 @@ label:
             }
             case "disable" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("disable is unknown");
+                if (next >= stringList.size()) throw new XTalkException("disable is unknown");
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set enabled of");
                 for (int i = next; i < stringList.size(); i++) {
@@ -2955,19 +2956,19 @@ label:
             }
             case "wait" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("wait is unknown");
+                if (next >= stringList.size()) throw new XTalkException("wait is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("until")) {
                     while (true) {
                         ArrayList<String> stL = new ArrayList<>(stringList);
                         wordType[] tyA = new wordType[typeAry.length];
                         System.arraycopy(typeAry, 0, tyA, 0, typeAry.length);
-                        String cond = Evalution(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
+                        String cond = evaluation(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
                         if (0 == cond.compareToIgnoreCase("true"))
                             break;
                         TTalk.TalkSleep(10);
 
                         if (TTalk.stop == true) {
-                            throw new xTalkException("user abort.");
+                            throw new XTalkException("user abort.");
                         }
                     }
                 } else if (0 == stringList.get(next).compareToIgnoreCase("while")) {
@@ -2975,27 +2976,27 @@ label:
                         ArrayList<String> stL = new ArrayList<>(stringList);
                         wordType[] tyA = new wordType[typeAry.length];
                         System.arraycopy(typeAry, 0, tyA, 0, typeAry.length);
-                        String cond = Evalution(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
+                        String cond = evaluation(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
                         if (0 == cond.compareToIgnoreCase("false"))
                             break;
                         TTalk.TalkSleep(10);
                         if (TTalk.stop == true) {
-                            throw new xTalkException("user abort.");
+                            throw new XTalkException("user abort.");
                         }
                     }
                 } else if (0 == stringList.get(stringList.size() - 1).compareToIgnoreCase("seconds") ||
                         0 == stringList.get(stringList.size() - 1).compareToIgnoreCase("second")) {
                     if (stringList.get(next).equalsIgnoreCase("for")) next++;
-                    String secs = Evalution(stringList, typeAry, next, stringList.size() - 2, memData, object, target);
+                    String secs = evaluation(stringList, typeAry, next, stringList.size() - 2, memData, object, target);
                     TTalk.TalkSleep(Integer.parseInt(secs) * 1000);
                 } else if (0 == stringList.get(stringList.size() - 1).compareToIgnoreCase("ticks") ||
                         0 == stringList.get(stringList.size() - 1).compareToIgnoreCase("tick")) {
                     if (stringList.get(next).equalsIgnoreCase("for")) next++;
-                    String ticks = Evalution(stringList, typeAry, next, stringList.size() - 2, memData, object, target);
+                    String ticks = evaluation(stringList, typeAry, next, stringList.size() - 2, memData, object, target);
                     TTalk.TalkSleep(Integer.parseInt(ticks) * 1000 / 60);
                 } else {
                     if (stringList.get(next).equalsIgnoreCase("for")) next++;
-                    String ticks = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                    String ticks = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (!ticks.isEmpty()) {
                         TTalk.TalkSleep(Integer.parseInt(ticks) * 1000 / 60);
                     }
@@ -3003,32 +3004,32 @@ label:
             }
             case "do" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("do is unknown");
+                if (next >= stringList.size()) throw new XTalkException("do is unknown");
                 String newStr = "";
-                newStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                newStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                 doScript(object, target, "", newStr, memData, null, 0);
             }
             case "send" -> {
                 // String newStr="";
                 OObject obj = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("send is unknown");
+                if (next >= stringList.size()) throw new XTalkException("send is unknown");
                 while (0 != stringList.get(next).compareToIgnoreCase("to")) {
                     // newStr += stringList.get(next)+" ";
                     next++;
                     if (next >= stringList.size()) {
-                        // throw new xTalkException("send requires to");
+                        // throw new XTalkException("send requires to");
                         break;
                     }
                 }
                 if (next < stringList.size()) {
-                    String newStr2 = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                    String newStr2 = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("send to is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("send to is unknown");
                     obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (obj == null) {
                         // Parse and send variable value
-                        String v = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                        String v = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                         ArrayList<String> vList = new ArrayList<>();
                         ArrayList<wordType> tList = new ArrayList<>();
                         resolution(v, vList, tList, false);
@@ -3038,7 +3039,7 @@ label:
                         }
                         obj = getObject(vList, typeAry2, 0, vList.size() - 1, memData, object, target);
                         if (obj == null) {
-                            throw new xTalkException("object to send message with send is unknown");
+                            throw new XTalkException("object to send message with send is unknown");
                         }
                     }
                     if (obj.objectType.equals("window")) {
@@ -3047,7 +3048,7 @@ label:
                         doScript(obj, obj, "", newStr2, memData, null, 0);
                     }
                 } else {
-                    String newStr2 = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                    String newStr2 = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                     doScript(object, object, "", newStr2, memData, null, 0);
                 }
             }
@@ -3055,7 +3056,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 OObject obj = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("edit is unknown");
+                if (next >= stringList.size()) throw new XTalkException("edit is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("picture")) {
                     // picture
@@ -3078,23 +3079,23 @@ label:
                         if (!newStr.isEmpty()) newStr.append(" ");
                         newStr.append(stringList.get(next));
                         next++;
-                        if (next >= stringList.size()) throw new xTalkException("edit requires of");
+                        if (next >= stringList.size()) throw new XTalkException("edit requires of");
                     }
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("edit of is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("edit of is unknown");
                     obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
-                    if (obj == null) throw new xTalkException("object to edit with edit is unknown");
+                    if (obj == null) throw new XTalkException("object to edit with edit is unknown");
                     if (newStr.toString().equalsIgnoreCase("script")) {
                         ScriptEditor.openScriptEditor(PCARD.pc, obj);
                     } else {
-                        throw new xTalkException(newStr + " cannot be edited");
+                        throw new XTalkException(newStr + " cannot be edited");
                     }
                 }
             }
             case "play" -> {
                 int next = 1;
                 if (next >= stringList.size())
-                    throw new xTalkException("play is unknown");
+                    throw new XTalkException("play is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("stop")) {
                     // play stop
                     tsound.PlayStop();
@@ -3111,7 +3112,7 @@ label:
                     while (next < stringList.size()) {
                         if (next > 1 && 0 == stringList.get(next).compareToIgnoreCase("tempo")) {
                             if (soundRsrc.isEmpty())
-                                soundRsrc = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                                soundRsrc = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                             String tempoStr = getVariable(memData, stringList.get(next + 1));
                             if (tempoStr == null) tempoStr = stringList.get(next + 1);
                             tempo = Integer.parseInt(tempoStr);
@@ -3130,7 +3131,7 @@ label:
                                 }
                                 if (allLength == 0) break;
                                 if (soundRsrc.isEmpty())
-                                    soundRsrc = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                                    soundRsrc = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                                 if (neiro[6].contains("p")) vol /= 2;
                                 if (neiro[6].contains("f")) {
                                     vol *= 2;
@@ -3140,13 +3141,13 @@ label:
                                 flag = true;
                             }
                             if (flag == false && !soundRsrc.isEmpty()) {
-                                throw new xTalkException("play of " + stringList.get(next) + " is unknown");
+                                throw new XTalkException("play of " + stringList.get(next) + " is unknown");
                             }
                         }
                         next++;
                     }
                     if (soundRsrc.isEmpty()) {
-                        soundRsrc = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                        soundRsrc = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                         boolean playres = tsound.Play(PCARD.pc.stack, soundRsrc, neiro, tempo, vol);
                         if (!playres) {
                             result.theResult = "play sound error";
@@ -3157,18 +3158,18 @@ label:
             }
             case "push" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("push is unknown");
+                if (next >= stringList.size()) throw new XTalkException("push is unknown");
                 if (stringList.get(next).equalsIgnoreCase("cd") ||
                         stringList.get(next).equalsIgnoreCase("card")) {
                     pushCardList.add(PCARD.pc.stack.curCard.getShortName());
                 } else {
                     if (next >= stringList.size())
-                        throw new xTalkException("push " + stringList.get(next) + " is unknown");
+                        throw new XTalkException("push " + stringList.get(next) + " is unknown");
                 }
             }
             case "pop" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("pop is unknown");
+                if (next >= stringList.size()) throw new XTalkException("pop is unknown");
                 if (stringList.get(next).equalsIgnoreCase("cd") ||
                         stringList.get(next).equalsIgnoreCase("card")) {
                     if (!pushCardList.isEmpty()) {
@@ -3178,20 +3179,20 @@ label:
                     }
                 } else {
                     if (next >= stringList.size())
-                        throw new xTalkException("push " + stringList.get(next) + " is unknown");
+                        throw new XTalkException("push " + stringList.get(next) + " is unknown");
                 }
             }
             case "click" -> {
                 int next = 1;
                 if (next < stringList.size() && stringList.get(next).equalsIgnoreCase("at")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("no coordinates for click at");
+                    if (next >= stringList.size()) throw new XTalkException("no coordinates for click at");
                     StringBuilder value = new StringBuilder();
                     StringBuilder param = new StringBuilder();
                     while (next < stringList.size() && !stringList.get(next).equalsIgnoreCase("with")) {
                         if (stringList.get(next).equals(",")) {
                             // Split by comma
-                            param.append(Evalution(value.toString(), memData, object, target)).append(",");
+                            param.append(evaluation(value.toString(), memData, object, target)).append(",");
                             value = new StringBuilder();
                             next++;
                             continue;
@@ -3199,15 +3200,15 @@ label:
                         value.append(stringList.get(next)).append(" ");
                         next++;
                     }
-                    param.append(Evalution(value.toString(), memData, object, target));
+                    param.append(evaluation(value.toString(), memData, object, target));
                     String[] params = param.toString().split(",");
-                    if (2 != params.length) throw new xTalkException("click at coordinates are unknown");
+                    if (2 != params.length) throw new XTalkException("click at coordinates are unknown");
                     int x = 0, y = 0;
                     try {
                         x = Integer.parseInt(params[0]);
                         y = Integer.parseInt(params[1]);
                     } catch (Exception e) {
-                        throw new xTalkException("click at coordinates are unknown");
+                        throw new XTalkException("click at coordinates are unknown");
                     }
 
                     if (PCARD.pc.tool == null && AuthTool.tool == null) {
@@ -3301,7 +3302,7 @@ label:
                             /*PCARD.pc.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));*/
                         }
                     }
-                } else throw new xTalkException("click is unknown");
+                } else throw new XTalkException("click is unknown");
             }
             case "drag" -> {
                 int next = 1;
@@ -3309,13 +3310,13 @@ label:
                 int ex = 0, ey = 0;
                 if (next < stringList.size() && stringList.get(next).equalsIgnoreCase("from")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("no coordinates for drag from");
+                    if (next >= stringList.size()) throw new XTalkException("no coordinates for drag from");
                     StringBuilder value = new StringBuilder();
                     StringBuilder param = new StringBuilder();
                     while (next < stringList.size() && !stringList.get(next).equalsIgnoreCase("to")) {
                         if (stringList.get(next).equals(",")) {
                             // Split by comma
-                            param.append(Evalution(value.toString(), memData, object, target)).append(",");
+                            param.append(evaluation(value.toString(), memData, object, target)).append(",");
                             value = new StringBuilder();
                             next++;
                             continue;
@@ -3323,27 +3324,27 @@ label:
                         value.append(stringList.get(next)).append(" ");
                         next++;
                     }
-                    param.append(Evalution(value.toString(), memData, object, target));
+                    param.append(evaluation(value.toString(), memData, object, target));
                     String[] params = param.toString().split(",");
-                    if (2 != params.length) throw new xTalkException("drag from coordinates are unknown");
+                    if (2 != params.length) throw new XTalkException("drag from coordinates are unknown");
 
                     try {
                         sx = Integer.parseInt(params[0]);
                         sy = Integer.parseInt(params[1]);
                     } catch (Exception e) {
-                        throw new xTalkException("drag from coordinates are unknown");
+                        throw new XTalkException("drag from coordinates are unknown");
                     }
-                } else throw new xTalkException("from is missing");
+                } else throw new XTalkException("from is missing");
 
                 if (next < stringList.size() && stringList.get(next).equalsIgnoreCase("to")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("no coordinates for drag to");
+                    if (next >= stringList.size()) throw new XTalkException("no coordinates for drag to");
                     StringBuilder value = new StringBuilder();
                     StringBuilder param = new StringBuilder();
                     while (next < stringList.size()) {
                         if (stringList.get(next).equals(",")) {
                             // Split by comma
-                            param.append(Evalution(value.toString(), memData, object, target)).append(",");
+                            param.append(evaluation(value.toString(), memData, object, target)).append(",");
                             value = new StringBuilder();
                             next++;
                             continue;
@@ -3351,17 +3352,17 @@ label:
                         value.append(stringList.get(next)).append(" ");
                         next++;
                     }
-                    param.append(Evalution(value.toString(), memData, object, target));
+                    param.append(evaluation(value.toString(), memData, object, target));
                     String[] params = param.toString().split(",");
-                    if (2 != params.length) throw new xTalkException("drag to coordinates are unknown");
+                    if (2 != params.length) throw new XTalkException("drag to coordinates are unknown");
 
                     try {
                         ex = Integer.parseInt(params[0]);
                         ey = Integer.parseInt(params[1]);
                     } catch (Exception e) {
-                        throw new xTalkException("drag to coordinates are unknown");
+                        throw new XTalkException("drag to coordinates are unknown");
                     }
-                } else throw new xTalkException("to is missing");
+                } else throw new XTalkException("to is missing");
 
                 {
                     int j;
@@ -3403,12 +3404,12 @@ label:
                             rb.delay(10);
                             rb.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             rb.delay(20);
-                            if (dragspeed > 0) {
+                            if (dragSpeed > 0) {
                                 double start = new Date().getTime();
                                 double d = Math.sqrt((ex - sx) * (ex - sx) + (ey - sy) * (ey - sy));
                                 while (true) {
                                     double sec = (new Date().getTime() - start) / 10.0 * 3 / 5 / 60;
-                                    double per = sec * dragspeed / (d + 0.4);
+                                    double per = sec * dragSpeed / (d + 0.4);
                                     if (per >= 1) break;
                                     rb.mouseMove((int) (sx * (1 - per) + ex * per), (int) (sy * (1 - per) + ey * per));
 
@@ -3440,19 +3441,19 @@ label:
                         // Reset menu bar to initial state
                         PCARD.pc.menu = new GMenu(PCARD.pc, 0);
                         GMenu.menuUpdate(PCARD.pc.menu.mb);
-                    } else throw new xTalkException("reset is unknown");
+                    } else throw new XTalkException("reset is unknown");
                 }
             }
             case "delete" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("delete is unknown");
+                if (next >= stringList.size()) throw new XTalkException("delete is unknown");
                 if (stringList.get(next).equalsIgnoreCase("menu")) {
                     // Delete menu
                     for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
                         Component c = PCARDFrame.pc.menu.mb.getComponent(i);
                         if (c.getClass() == JMenu.class) {
                             JMenu menu = (JMenu) c;
-                            String v = Evalution(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
+                            String v = evaluation(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
                             if (menu.getText().equalsIgnoreCase(v)) {
                                 PCARDFrame.pc.menu.mb.remove(menu);
                                 // Reflect menu
@@ -3492,7 +3493,7 @@ label:
             }
             case "sort" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("sort is unknown");
+                if (next >= stringList.size()) throw new XTalkException("sort is unknown");
                 String splitStr = "\n";
                 if (next + 1 <= stringList.size() && stringList.get(next).equalsIgnoreCase("items") &&
                         stringList.get(next + 1).equalsIgnoreCase("of")) {
@@ -3557,10 +3558,10 @@ label:
                             break;
                         }
                     }
-                    String answerStr = Evalution(stringList, typeAry, next, j - 1, memData, object, target);
+                    String answerStr = evaluation(stringList, typeAry, next, j - 1, memData, object, target);
                     String filename = "";
                     if (j + 1 < stringList.size()) {
-                        filename = Evalution(stringList, typeAry, j + 1, stringList.size() - 1, memData, object, target);
+                        filename = evaluation(stringList, typeAry, j + 1, stringList.size() - 1, memData, object, target);
                     }
 
                     JFileChooser chooser;
@@ -3585,19 +3586,19 @@ label:
                 } else {
                     // Show dialog box with text input
                     String answerStr = "";
-                    if (next >= stringList.size()) throw new xTalkException("ask is unknown");
-                    if (stringList.get(next).equalsIgnoreCase("file")) throw new xTalkException("ask file not supported");
+                    if (next >= stringList.size()) throw new XTalkException("ask is unknown");
+                    if (stringList.get(next).equalsIgnoreCase("file")) throw new XTalkException("ask file not supported");
                     if (stringList.get(next).equalsIgnoreCase("password"))
-                        throw new xTalkException("ask password not supported");
+                        throw new XTalkException("ask password not supported");
                     int i;
                     for (i = next + 1; i < stringList.size(); i++) {
                         if (0 == stringList.get(i).compareToIgnoreCase("with")) break;
                     }
-                    answerStr = Evalution(stringList, typeAry, next, i - 1, memData, object, target);
+                    answerStr = evaluation(stringList, typeAry, next, i - 1, memData, object, target);
                     next = i;
                     String defaultText = "";
                     if (next + 1 < stringList.size()) {
-                        defaultText = Evalution(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
+                        defaultText = evaluation(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
                     }
                     new GDialog(PCARD.pc, answerStr, defaultText, "Cancel", "OK", null);
                     setVariable(memData, "it", GDialog.inputText);
@@ -3605,7 +3606,7 @@ label:
             }
             case "domenu" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("domenu is unknown");
+                if (next >= stringList.size()) throw new XTalkException("domenu is unknown");
 
                 // TODO Want to check if enabled and if it is in the menu at all
                 GMenuBrowse.doMenu(stringList.get(next));
@@ -3616,9 +3617,9 @@ label:
                 String chunkStart = "";
                 String chunkEnd = null;
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("select is unknown");
+                if (next >= stringList.size()) throw new XTalkException("select is unknown");
                 if (typeAry[next] == wordType.FUNC) {
-                    String newStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                    String newStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (!newStr.isEmpty()) {
                         for (int j = stringList.size() - 1; j >= next; j--) {
                             stringList.remove(1);
@@ -3653,7 +3654,7 @@ label:
                         }
                     }
                     if (next < stringList.size()) {
-                        chunkStart = Evalution(stringList, typeAry, 2, next - 1, memData, object, target);
+                        chunkStart = evaluation(stringList, typeAry, 2, next - 1, memData, object, target);
                     }
                     if (next < stringList.size() && 0 == stringList.get(next).compareToIgnoreCase("to")) {
                         int next2 = next;
@@ -3662,7 +3663,7 @@ label:
                             if (next >= stringList.size()) break;
                         }
                         if (next < stringList.size()) {
-                            chunkEnd = Evalution(stringList, typeAry, next2 + 1, next - 1, memData, object, target);
+                            chunkEnd = evaluation(stringList, typeAry, next2 + 1, next - 1, memData, object, target);
                         }
                     }
                 } else if (stringList.get(next).equalsIgnoreCase("empty")) {
@@ -3670,18 +3671,18 @@ label:
                         OField fld = (OField) target;
                         fld.setSelectedLine(0);
                     } else {
-                        // throw new xTalkException("cannot select target empty");
+                        // throw new XTalkException("cannot select target empty");
                     }
                     result.theResult = "";
                     result.ret = 0;
                     return result;
                 } else {
-                    throw new xTalkException("select object command is not supported");
+                    throw new XTalkException("select object command is not supported");
                 }
                 while (0 != stringList.get(next).compareToIgnoreCase("of")) {
                     next++;
                     if (next >= stringList.size()) {
-                        throw new xTalkException("select is unknown");
+                        throw new XTalkException("select is unknown");
                     }
                 }
                 obj = getObject(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
@@ -3690,8 +3691,8 @@ label:
                         if (chunkEnd == null) {
                             if (chunkStart.isEmpty()) chunkStart = "0";
                             ((OButton) obj).setSelectedLine(Integer.parseInt(chunkStart));
-                        } else throw new xTalkException("buttons can only be selected on one line");
-                    } else throw new xTalkException("buttons can only be selected by line");
+                        } else throw new XTalkException("buttons can only be selected on one line");
+                    } else throw new XTalkException("buttons can only be selected by line");
                 } else if (obj.objectType.equals("field")) {
                     if (chunkType.equalsIgnoreCase("line") && chunkEnd == null) {
                         OField fld = (OField) obj;
@@ -3710,32 +3711,32 @@ label:
                             fld.fld.repaint();
                         }
                     } else {
-                        throw new xTalkException("complex selection with select is not supported");
+                        throw new XTalkException("complex selection with select is not supported");
                     }
-                } else throw new xTalkException("text other than fields and popup buttons cannot be selected");
+                } else throw new XTalkException("text other than fields and popup buttons cannot be selected");
             }
             case "choose" -> {
                 int next = 2;
-                if (next >= stringList.size()) throw new xTalkException("choose is unknown");
+                if (next >= stringList.size()) throw new XTalkException("choose is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("tool")) {
                     next = 1;
                     boolean ret = TBButtonListener.ChangeTool(stringList.get(next), null);
                     if (!ret) {
-                        throw new xTalkException("tool\"" + stringList.get(next) + "\" does not exist");
+                        throw new XTalkException("tool\"" + stringList.get(next) + "\" does not exist");
                     }
                     PCARD.pc.mainPane.repaint();
                 } else {
-                    throw new xTalkException("choose is unknown");
+                    throw new XTalkException("choose is unknown");
                 }
             }
             case "create" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("create is unknown");
+                if (next >= stringList.size()) throw new XTalkException("create is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("menu")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("create menu is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("create menu is unknown");
 
                     JMenu m = new JMenu(stringList.get(next));
                     PCARD.pc.menu.mb.add(m);
@@ -3806,7 +3807,7 @@ label:
             }
             case "open" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("open is unknown");
+                if (next >= stringList.size()) throw new XTalkException("open is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("stack")) {
                     next = 2;
@@ -3826,7 +3827,7 @@ label:
                     result.ret = 0;
                 } else if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("open file is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("open file is unknown");
 
                     String path = stringList.get(next);
                     if (!new File(path).exists()) {
@@ -3834,7 +3835,7 @@ label:
                     }
                     if (!new File(path).getName().equals(path)) {
                         if (!new File(new File(path).getParent()).exists()) {
-                            throw new xTalkException("Unknown directory. Cannot open file");
+                            throw new XTalkException("Unknown directory. Cannot open file");
                         }
                     }
 
@@ -3842,34 +3843,34 @@ label:
                         // Create new
                         try {
                             if (!new File(stringList.get(next)).createNewFile()) {
-                                throw new xTalkException("Could not create file");
+                                throw new XTalkException("Could not create file");
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     } else if (new File(stringList.get(next)).isDirectory()) {
                         // Directory
-                        throw new xTalkException("Cannot open directory");
+                        throw new XTalkException("Cannot open directory");
                     }
                     for (OpenFile openFile : openFileList) {
                         if (openFile.path.equals(path)) {
-                            throw new xTalkException("Already open");
+                            throw new XTalkException("Already open");
                         }
                     }
                     OpenFile ofile = new OpenFile();
                     ofile.path = path;
                     openFileList.add(ofile);
                 } else {
-                    throw new xTalkException("open is unknown");
+                    throw new XTalkException("open is unknown");
                 }
             }
             case "close" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("close is unknown");
+                if (next >= stringList.size()) throw new XTalkException("close is unknown");
 
                 if (stringList.get(next).equalsIgnoreCase("window")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("close window is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("close window is unknown");
 
                     OObject obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (obj != null) {
@@ -3877,7 +3878,7 @@ label:
                     }
                 } else if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("close file is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("close file is unknown");
 
                     String path = stringList.get(next);
                     if (!new File(path).exists()) {
@@ -3885,15 +3886,15 @@ label:
                     }
                     if (!new File(path).getName().equals(path)) {
                         if (!new File(new File(path).getParent()).exists()) {
-                            throw new xTalkException("Unknown directory. Cannot close file");
+                            throw new XTalkException("Unknown directory. Cannot close file");
                         }
                     }
 
                     if (!new File(stringList.get(next)).exists()) {
-                        throw new xTalkException("File does not exist");
+                        throw new XTalkException("File does not exist");
                     } else if (new File(stringList.get(next)).isDirectory()) {
                         // Directory
-                        throw new xTalkException("Cannot close directory");
+                        throw new XTalkException("Cannot close directory");
                     }
                     OpenFile ofile = null;
                     for (OpenFile openFile : openFileList) {
@@ -3901,7 +3902,7 @@ label:
                             ofile = openFile;
                         }
                     }
-                    if (ofile == null) throw new xTalkException("Not open");
+                    if (ofile == null) throw new XTalkException("Not open");
                     if (ofile.istream != null) {
                         try {
                             ofile.istream.close();
@@ -3917,18 +3918,18 @@ label:
                     ofile.path = null;
                     openFileList.remove(ofile);
                 } else {
-                    throw new xTalkException("close is unknown");
+                    throw new XTalkException("close is unknown");
                 }
             }
             case "read" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("read is unknown");
-                if (!stringList.get(next).equals("from")) throw new xTalkException("read is unknown");
+                if (next >= stringList.size()) throw new XTalkException("read is unknown");
+                if (!stringList.get(next).equals("from")) throw new XTalkException("read is unknown");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("read from is unknown");
+                if (next >= stringList.size()) throw new XTalkException("read from is unknown");
                 if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("read from file is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("read from file is unknown");
 
                     String path = stringList.get(next);
                     if (!new File(path).exists()) {
@@ -3942,11 +3943,11 @@ label:
                     if (next < stringList.size()) {
                         if (stringList.get(next).equals("at")) {
                             next++;
-                            if (next >= stringList.size()) throw new xTalkException("read from file at is unknown");
+                            if (next >= stringList.size()) throw new XTalkException("read from file at is unknown");
                             try {
                                 offset = Integer.parseInt(stringList.get(next));
                             } catch (Exception e) {
-                                throw new xTalkException("A number is required here");
+                                throw new XTalkException("A number is required here");
                             }
 
                             next++;
@@ -3955,23 +3956,23 @@ label:
                             if (stringList.get(next).equals("until")) {
                                 next++;
                                 if (next >= stringList.size())
-                                    throw new xTalkException("read from file until is unknown");
-                                String tmp = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                                    throw new XTalkException("read from file until is unknown");
+                                String tmp = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                                 if (tmp.length() == 1) {
                                     endChar = tmp.charAt(0);
                                 } else if (tmp.equalsIgnoreCase("eof")) {
                                     endChar = -1;
                                 } else {
-                                    throw new xTalkException("Please specify a character here");
+                                    throw new XTalkException("Please specify a character here");
                                 }
                             } else if (stringList.get(next).equals("for")) {
                                 next++;
                                 if (next >= stringList.size())
-                                    throw new xTalkException("read from file for is unknown");
+                                    throw new XTalkException("read from file for is unknown");
                                 try {
                                     forchars = Integer.parseInt(stringList.get(next));
                                 } catch (Exception e) {
-                                    throw new xTalkException("A number is required here");
+                                    throw new XTalkException("A number is required here");
                                 }
                             }
                         }
@@ -3985,13 +3986,13 @@ label:
                         }
                     }
                     if (ofile == null) {
-                        throw new xTalkException("File is not open");
+                        throw new XTalkException("File is not open");
                     }
                     if (ofile.istream == null) {
                         try {
                             ofile.istream = new FileInputStream(path);
                         } catch (FileNotFoundException e) {
-                            throw new xTalkException("Cannot read from file");
+                            throw new XTalkException("Cannot read from file");
                         }
                     }
                     try {
@@ -4017,33 +4018,33 @@ label:
                         }
                         setVariable(memData, "it", new String(b));
                     } catch (IOException e) {
-                        throw new xTalkException("An error occurred while reading from file");
+                        throw new XTalkException("An error occurred while reading from file");
                     }
                 } else {
-                    throw new xTalkException("read from is unknown");
+                    throw new XTalkException("read from is unknown");
                 }
             }
             case "write" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("write is unknown");
+                if (next >= stringList.size()) throw new XTalkException("write is unknown");
 
                 while (next < stringList.size() && !stringList.get(next).equals("to")) {
                     next++;
                 }
-                if (next >= stringList.size()) throw new xTalkException("write requires to file");
-                String text = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                if (next >= stringList.size()) throw new XTalkException("write requires to file");
+                String text = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
 
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("write requires to file");
+                if (next >= stringList.size()) throw new XTalkException("write requires to file");
                 if (stringList.get(next).equals("file")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("write to file is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("write to file is unknown");
 
                     int j = next;
                     while (j < stringList.size() && !stringList.get(j).equals("at")) {
                         next++;
                     }
-                    String path = Evalution(stringList, typeAry, next, j - 1, memData, object, target);
+                    String path = evaluation(stringList, typeAry, next, j - 1, memData, object, target);
                     if (!new File(path).exists()) {
                         path = convertFromMacPath(path);
                     }
@@ -4052,11 +4053,11 @@ label:
                     next = j;
                     if (next < stringList.size() && stringList.get(next).equals("at")) {
                         next++;
-                        if (next >= stringList.size()) throw new xTalkException("write to file at is unknown");
+                        if (next >= stringList.size()) throw new XTalkException("write to file at is unknown");
                         try {
                             offset = Integer.parseInt(stringList.get(next));
                         } catch (Exception e) {
-                            throw new xTalkException("A number is required here");
+                            throw new XTalkException("A number is required here");
                         }
 
                         next++;
@@ -4070,13 +4071,13 @@ label:
                         }
                     }
                     if (ofile == null) {
-                        throw new xTalkException("File is not open");
+                        throw new XTalkException("File is not open");
                     }
                     if (ofile.ostream == null && offset == -1) {
                         try {
                             ofile.ostream = new FileOutputStream(path);
                         } catch (FileNotFoundException e) {
-                            throw new xTalkException("Cannot write to file");
+                            throw new XTalkException("Cannot write to file");
                         }
                     }
                     try {
@@ -4095,29 +4096,29 @@ label:
                             text = new String(b) + text;
                         }
                     } catch (IOException e) {
-                        throw new xTalkException("An error occurred while preparing to write to file");
+                        throw new XTalkException("An error occurred while preparing to write to file");
                     }
                     try {
                         ofile.ostream.write(text.getBytes());
                     } catch (IOException e) {
-                        throw new xTalkException("An error occurred while writing to file");
+                        throw new XTalkException("An error occurred while writing to file");
                     }
                 } else {
-                    throw new xTalkException("write is unknown");
+                    throw new XTalkException("write is unknown");
                 }
             }
             case "convert" -> {
                 int next = 2;
-                if (next >= stringList.size()) throw new xTalkException("convert is unknown");
+                if (next >= stringList.size()) throw new XTalkException("convert is unknown");
 
                 for (next = 2; next < stringList.size(); next++) {
                     if (stringList.get(next).equalsIgnoreCase("to")) {
                         break;
                     }
                 }
-                if (next >= stringList.size()) throw new xTalkException("convert is missing to");
+                if (next >= stringList.size()) throw new XTalkException("convert is missing to");
 
-                String convStr = Evalution(stringList, typeAry, 1, next - 1, memData, object, target);
+                String convStr = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
 
                 Calendar calender = Calendar.getInstance();
                 calender.set(Calendar.HOUR_OF_DAY, 0);
@@ -4196,7 +4197,7 @@ label:
                         break;
                     }
 
-                    throw new xTalkException("Cannot parse this date with convert");
+                    throw new XTalkException("Cannot parse this date with convert");
                 }
 
                 if (next + 1 < stringList.size() &&
@@ -4214,12 +4215,12 @@ label:
                     result.theResult = dateItemStr;
                     result.ret = 0;
                 } else {
-                    throw new xTalkException("Conversion with convert to is unknown");
+                    throw new XTalkException("Conversion with convert to is unknown");
                 }
             }
             case "find" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("find is unknown");
+                if (next >= stringList.size()) throw new XTalkException("find is unknown");
                 OField fld = null;
                 int j = 2;
                 for (; j < stringList.size(); j++) {
@@ -4228,7 +4229,7 @@ label:
                         if (obj != null && obj.objectType.equals("field")) {
                             fld = (OField) obj;
                         } else {
-                            throw new xTalkException("field to search with find is unknown");
+                            throw new XTalkException("field to search with find is unknown");
                         }
                         break;
                     }
@@ -4249,7 +4250,7 @@ label:
                 } else {
 
                 }
-                String findStr = Evalution(stringList, typeAry, next, j - 1, memData, object, target);
+                String findStr = evaluation(stringList, typeAry, next, j - 1, memData, object, target);
                 findStr = findStr.toLowerCase();
                 if (fld != null) {
                     String text = fld.getText().toLowerCase();
@@ -4337,7 +4338,7 @@ label:
             }
             case "type" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("type is unknown");
+                if (next >= stringList.size()) throw new XTalkException("type is unknown");
 
                 int j;
                 for (j = next + 1; j < stringList.size(); j++) {
@@ -4376,16 +4377,16 @@ label:
             }
             case "start" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("start is unknown");
-                if (!stringList.get(next).equals("using")) throw new xTalkException("start is unknown");
+                if (next >= stringList.size()) throw new XTalkException("start is unknown");
+                if (!stringList.get(next).equals("using")) throw new XTalkException("start is unknown");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("start using is unknown");
+                if (next >= stringList.size()) throw new XTalkException("start using is unknown");
                 if (!stringList.get(next).equals("stack"))
-                    throw new xTalkException("Please specify a stack with start using");
+                    throw new XTalkException("Please specify a stack with start using");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("start using stack is unknown");
+                if (next >= stringList.size()) throw new XTalkException("start using stack is unknown");
 
-                String pathStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                String pathStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
                 // Double using not allowed
                 if (PCARD.pc.stack.usingStacks != null) {
@@ -4405,16 +4406,16 @@ label:
             }
             case "stop" -> {
                 int next = 1;
-                if (next >= stringList.size()) throw new xTalkException("stop is unknown");
-                if (!stringList.get(next).equals("using")) throw new xTalkException("stop is unknown");
+                if (next >= stringList.size()) throw new XTalkException("stop is unknown");
+                if (!stringList.get(next).equals("using")) throw new XTalkException("stop is unknown");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("stop using is unknown");
+                if (next >= stringList.size()) throw new XTalkException("stop using is unknown");
                 if (!stringList.get(next).equals("stack"))
-                    throw new xTalkException("Please specify a stack with stop using");
+                    throw new XTalkException("Please specify a stack with stop using");
                 next++;
-                if (next >= stringList.size()) throw new xTalkException("stop using stack is unknown");
+                if (next >= stringList.size()) throw new XTalkException("stop using stack is unknown");
 
-                String pathStr = Evalution(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                String pathStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
 
                 for (int i = 0; i < PCARD.pc.stack.usingStacks.size(); i++) {
@@ -4437,7 +4438,7 @@ label:
                             }
                         }
                     } else if (stringList.get(next).equalsIgnoreCase("checkpoint")) {
-                        TTalk.tracemode = 2;
+                        TTalk.traceMode = 2;
                         ScriptEditor.setTracemode();
                     } else if (stringList.get(next).equalsIgnoreCase("wait")) {
                         next++;
@@ -4592,9 +4593,9 @@ label:
         return path;
     }
 
-    static String Evalution(
+    static String evaluation(
             String string, MemoryData memData, OObject object, OObject target)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         if (string.isEmpty()) {
             return "";
@@ -4610,15 +4611,15 @@ label:
             typeAry[i] = typeList.get(i);
         }
 
-        // timeIsMoney("Evalution1:",timestart,21);
+        // timeIsMoney("Evaluation1: ", timeStart, 21);
 
-        return Evalution(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
+        return evaluation(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
     }
 
-    private static String Evalution(
+    private static String evaluation(
             ArrayList<String> stringList, wordType[] typeAry, int start, int end,
             MemoryData memData, OObject object, OObject target)
-            throws xTalkException {
+            throws XTalkException {
         // Interpret/operate on words entered in the list
         // When the number of words decreases, keep the left side and set the right side to wordType.NOP
 
@@ -4667,7 +4668,7 @@ label:
                     else if (typeAry[j] == wordType.RBRACKET || typeAry[j] == wordType.RFUNC) {
                         if (depth > 0) depth--;
                         else {
-                            String value = Evalution(stringList, typeAry, i + 1, j - 1, memData, object, target);
+                            String value = evaluation(stringList, typeAry, i + 1, j - 1, memData, object, target);
                             stringList.set(i, value);
                             typeAry[i] = wordType.STRING;
                             for (int k = i + 1; k <= j; k++) {
@@ -4679,7 +4680,7 @@ label:
                     }
                 }
                 if (j > end)
-                    throw new xTalkException("No matching parenthesis");
+                    throw new XTalkException("No matching parenthesis");
 //            } else if (typeAry[i] == wordType.RBRACKET) {
 //                // Enters here for functions, so temporary workaround
 //                int j;
@@ -4687,14 +4688,14 @@ label:
 //                    if (typeAry[j] == wordType.LFUNC) break;
 //                }
 //                if (j > end)
-//                    throw new xTalkException("No matching parenthesis");
+//                    throw new XTalkException("No matching parenthesis");
             }
         }
 
         // Function call with parentheses
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.LFUNC) {
-                if (i > start /* && typeAry[i-1]==wordType.X */) {
+                if (i > start /* && typeAry[i-1] == wordType.X */) {
                     int j = i + 1;
                     int nest = 1;
                     for (; j <= end; j++) {
@@ -4716,7 +4717,7 @@ label:
                                 o = 0;
                                 for (int m = i + 1; m <= j; m++) {
                                     if ((typeAry[m] == wordType.COMMA_FUNC || typeAry[m] == wordType.COMMA) || m == j) {
-                                        paramAry[o] = Evalution(stringList, typeAry, n, m - 1, memData, object, target);
+                                        paramAry[o] = evaluation(stringList, typeAry, n, m - 1, memData, object, target);
                                         o++;
                                         n = m + 1;
                                     }
@@ -4745,7 +4746,7 @@ label:
                             }
                         }
                     }
-                    if (j > end) throw new xTalkException("( is invalid");
+                    if (j > end) throw new XTalkException("( is invalid");
                 }
             }
         }
@@ -4887,7 +4888,7 @@ label:
                                                         (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
                                         ))
                         )) {
-                    if (i > end - 1) throw new xTalkException("No property name after the");
+                    if (i > end - 1) throw new XTalkException("No property name after the");
                     String str = stringList.get(i + 1);
                     if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
                         str += " " + stringList.get(i + 2);
@@ -4907,12 +4908,12 @@ label:
                         !stringList.get(i).equals("item") && !stringList.get(i).equals("word") &&
                         !stringList.get(i).equals("line")
                 ) {
-                    if (i + 1 > end - 1) throw new xTalkException("No object name after of");
+                    if (i + 1 > end - 1) throw new XTalkException("No object name after of");
                     String str = stringList.get(i);
                     ObjResult objres = null;
                     try {
                         objres = getObjectfromList(stringList, typeAry, i + 2, object, target);
-                    } catch (xTalkException e) {
+                    } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
 
@@ -4943,7 +4944,7 @@ label:
         // Function called with the
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.THE_FUNC) {
-                if (i > end - 1) throw new xTalkException("No function name after the");
+                if (i > end - 1) throw new XTalkException("No function name after the");
                 String str = stringList.get(i + 1);
                 stringList.set(i, TUtil.CallSystemFunction(str, new String[0], target, memData, true).theResult);
                 typeAry[i] = wordType.STRING;
@@ -4969,18 +4970,18 @@ label:
                         if (typeAry[j] == wordType.NOP) continue;
                         String str2 = stringList.get(j);
                         if (0 == str2.compareToIgnoreCase("to")) {
-                            chunkStart = Evalution(stringList, typeAry, i + 1, j - 1, memData, object, target);
+                            chunkStart = evaluation(stringList, typeAry, i + 1, j - 1, memData, object, target);
                             for (int k = j + 1; k < end; k++) {
                                 str2 = stringList.get(k);
                                 if (0 == str2.compareToIgnoreCase("of") && typeAry[k] != wordType.NOP) {
-                                    chunkEnd = Evalution(stringList, typeAry, j + 1, k - 1, memData, object, target);
+                                    chunkEnd = evaluation(stringList, typeAry, j + 1, k - 1, memData, object, target);
                                     j = k;
                                     break;
                                 }
                             }
                             break;
                         } else if (0 == str2.compareToIgnoreCase("of")) {
-                            chunkStart = Evalution(stringList, typeAry, i + 1, j - 1, memData, object, target);
+                            chunkStart = evaluation(stringList, typeAry, i + 1, j - 1, memData, object, target);
                             break;
                         }
                     }
@@ -4992,8 +4993,8 @@ label:
                     }
                     if (k - 1 > end) k = end + 1;
                     if (j + 1 > end) j = end - 1;
-                    if (j <= i) break;// ####
-                    String value = Evalution(stringList, typeAry, j + 1, k - 1, memData, object, target);
+                    if (j <= i) break; // ####
+                    String value = evaluation(stringList, typeAry, j + 1, k - 1, memData, object, target);
                     stringList.set(i, getChunk(str, chunkStart, chunkEnd, value));
                     typeAry[i] = wordType.STRING;
                     for (int m = i + 1; m <= k - 1; m++) {
@@ -5022,7 +5023,7 @@ label:
                             }
                         }
                         if (k > end) k = end;
-                        String value = Evalution(stringList, typeAry, i + 2, k, memData, object, target);
+                        String value = evaluation(stringList, typeAry, i + 2, k, memData, object, target);
                         if (0 == stringList.get(i - 1).compareToIgnoreCase("last")) {
                             int chunk = getNumberOfChunk(str + "s", value);
                             if (chunk <= 0) stringList.set(i - 1, "");
@@ -5064,7 +5065,7 @@ label:
                             }
                         }
                         if (k > end) k = end;
-                        String value = Evalution(stringList, typeAry, i + 2, k, memData, object, target);
+                        String value = evaluation(stringList, typeAry, i + 2, k, memData, object, target);
                         if (i - 3 >= start && stringList.get(i - 3).equalsIgnoreCase("the")) {
                             i--;
                         }
@@ -5102,7 +5103,7 @@ label:
                             parent = oResult.obj;
                             endoff = oResult.cnt + 1;
                         }
-                        System.out.println("number of 's parent:" + parent.getShortName());
+                        logger.log(Level.DEBUG, "number of 's parent: " + parent.getShortName());
                         if (parent != null) {
                             // search
                             int number = -1;
@@ -5157,7 +5158,7 @@ label:
                                 }
                             }
                             if (number == -1)
-                                throw new xTalkException("Cannot count with number of");
+                                throw new XTalkException("Cannot count with number of");
                             if (i - 3 - offset >= start && stringList.get(i - 3 - offset).equalsIgnoreCase("the")) {
                                 offset++;
                             }
@@ -5216,7 +5217,7 @@ label:
                             }
                             stringList.set(i, Integer.toString(cnt));
                             typeAry[i] = wordType.STRING;
-                        } else throw new xTalkException("Please specify a background or stack here");
+                        } else throw new XTalkException("Please specify a background or stack here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
                         if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5228,7 +5229,7 @@ label:
                             if (0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
                                 next++;
                             }
-                        } else throw new xTalkException("Please specify a card or background here");
+                        } else throw new XTalkException("Please specify a card or background here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("flds") || 0 == stringList.get(i + 2).compareToIgnoreCase("fields") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
                         if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5240,7 +5241,7 @@ label:
                             if (0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
                                 next++;
                             }
-                        } else throw new xTalkException("Please specify a card or background here");
+                        } else throw new XTalkException("Please specify a card or background here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("parts") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("parts")) {
                         if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5249,7 +5250,7 @@ label:
                             else cdbs = (OCardBase) objres2.obj;
                             stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
                             typeAry[i] = wordType.STRING;
-                        } else throw new xTalkException("Please specify a card or background here");
+                        } else throw new XTalkException("Please specify a card or background here");
                     }
                     int cnt = 0;
                     if (objres2 != null) cnt += objres2.cnt;
@@ -5274,7 +5275,7 @@ label:
                         }
                         stringList.set(i, funcres.theResult);
                         typeAry[i] = wordType.STRING;
-                    } else throw new xTalkException("This function is unknown");
+                    } else throw new XTalkException("This function is unknown");
                     for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
                         typeAry[j] = wordType.NOP;
                     }
@@ -5296,7 +5297,7 @@ label:
 //                                                        (i + 3 > end || 0 != stringList.get(i + 3).compareToIgnoreCase("of"))
 //                                        )
 //                        )) {
-//                    if (i > end - 1) throw new xTalkException("No property name after the");
+//                    if (i > end - 1) throw new XTalkException("No property name after the");
 //                    String str = stringList.get(i + 1);
 //                    if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
 //                        str += " " + stringList.get(i + 2);
@@ -5306,7 +5307,7 @@ label:
 //                    typeAry[i] = wordType.STRING;
 //                    typeAry[i + 1] = wordType.NOP;
 //                } else if (i <= end - 1 && 0 == stringList.get(i + 1).compareToIgnoreCase("of") && typeAry[i + 1] == wordType.X) {
-//                    if (i + 1 > end - 1) throw new xTalkException("No object name after of");
+//                    if (i + 1 > end - 1) throw new XTalkException("No object name after of");
 //                    String str = stringList.get(i);
 //                    ObjResult objres = null;
 //                    objres = getObjectfromList(stringList, typeAry, i + 2, object, target);
@@ -5364,7 +5365,7 @@ label:
 //                                    }
 //                                    stringList.set(i, Integer.toString(cnt));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("Please specify a background or stack here");
+//                                } else throw new XTalkException("Please specify a background or stack here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
 //                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5373,7 +5374,7 @@ label:
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.btnList.size()));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("Please specify a card or background here");
+//                                } else throw new XTalkException("Please specify a card or background here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("flds") || 0 == stringList.get(i + 2).compareToIgnoreCase("fields") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
 //                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5382,7 +5383,7 @@ label:
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.fldList.size()));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("Please specify a card or background here");
+//                                } else throw new XTalkException("Please specify a card or background here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("parts") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("parts")) {
 //                                if (objres2 == null || objres2.obj.objectType.equals("card") || objres2.obj.objectType.equals("background")) {
@@ -5391,7 +5392,7 @@ label:
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
 //                                    typeAry[i] = wordType.STRING;
-//                                } else throw new xTalkException("Please specify a card or background here");
+//                                } else throw new XTalkException("Please specify a card or background here");
 //                            }
 //                            int cnt = 0;
 //                            if (objres2 != null) cnt += objres2.cnt;
@@ -5411,7 +5412,7 @@ label:
 //                                }
 //                                stringList.set(i, funcres.theResult);
 //                                typeAry[i] = wordType.STRING;
-//                            } else throw new xTalkException("This function is unknown");
+//                            } else throw new XTalkException("This function is unknown");
 //                            for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
 //                                typeAry[j] = wordType.NOP;
 //                            }
@@ -5433,7 +5434,7 @@ label:
                     ObjResult objres = null;
                     try {
                         objres = getObjectfromList(stringList, typeAry, i + 3, object, target);
-                    } catch (xTalkException e) {
+                    } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
                         stringList.set(j, "true");
@@ -5460,7 +5461,7 @@ label:
                     ObjResult objres = null;
                     try {
                         objres = getObjectfromList(stringList, typeAry, i + 4, object, target);
-                    } catch (xTalkException e) {
+                    } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
                         stringList.set(j, "false");
@@ -5504,11 +5505,11 @@ label:
                             typeAry[j] = wordType.NOP;
                         }
                     } else if (0 == objres.obj.objectType.compareTo("card"))
-                        throw new xTalkException("Cards cannot be used as containers");
+                        throw new XTalkException("Cards cannot be used as containers");
                     else if (0 == objres.obj.objectType.compareTo("background"))
-                        throw new xTalkException("Backgrounds cannot be used as containers");
+                        throw new XTalkException("Backgrounds cannot be used as containers");
                     else if (0 == objres.obj.objectType.compareTo("stack"))
-                        throw new xTalkException("Stacks cannot be used as containers");
+                        throw new XTalkException("Stacks cannot be used as containers");
                 }
             }
         }
@@ -5518,27 +5519,27 @@ label:
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("-")) {
                     if (i == start || typeAry[i - 1] == wordType.OPERATOR || typeAry[i - 1] == wordType.OPERATOR_SUB) {
-                        if (i > end - 1) throw new xTalkException("No value after -");
-                        String str = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        if (i > end - 1) throw new XTalkException("No value after -");
+                        String str = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         try {
                             double value = -1.0 * (Double.parseDouble(str));
                             typeAry[i] = wordType.STRING;
                             stringList.set(i, numFormat.format(value));
                             typeAry[i + 1] = wordType.NOP;
                         } catch (Exception err) {
-                            throw new xTalkException("Value after - is invalid. " + err);
+                            throw new XTalkException("Value after - is invalid. " + err);
                         }
                     }
                 } else if (stringList.get(i).equals("not")) {
                     if (i == start || (typeAry[i - 1] != wordType.OPERATOR && typeAry[i - 1] != wordType.OPERATOR_SUB) ||
                             (0 == stringList.get(i - 1).compareToIgnoreCase("and") || 0 == stringList.get(i - 1).compareToIgnoreCase("or") || 0 == stringList.get(i - 1).compareToIgnoreCase("&"))) {
                         if (i > end - 1) {
-                            throw new xTalkException("No value after not");
+                            throw new XTalkException("No value after not");
                         }
-                        String value = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        String value = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         if (value.compareToIgnoreCase("true") == 0) value = "false";
                         else if (value.compareToIgnoreCase("false") == 0) value = "true";
-                        else throw new xTalkException("No boolean value (true/false) after not");
+                        else throw new XTalkException("No boolean value (true/false) after not");
                         typeAry[i] = wordType.STRING;
                         stringList.set(i, value);
                         typeAry[i + 1] = wordType.NOP;
@@ -5561,7 +5562,7 @@ label:
 //                        p = new Point(Integer.valueOf(strAry[0]),
 //                                Integer.valueOf(strAry[1]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within operator point specification is invalid. " + err);
+//                        throw new XTalkException("within operator point specification is invalid. " + err);
 //                    }
 //
 //                    Rectangle r = null;
@@ -5572,7 +5573,7 @@ label:
 //                                Integer.valueOf(strAry[2]),
 //                                Integer.valueOf(strAry[3]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
+//                        throw new XTalkException("within operator rectangle area specification is invalid. " + err);
 //                    }
 //
 //                    typeAry[j] = wordType.STRING;
@@ -5604,7 +5605,7 @@ label:
 //                        p = new Point(Integer.valueOf(strAry[0]),
 //                                Integer.valueOf(strAry[1]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within operator point specification is invalid. " + err);
+//                        throw new XTalkException("within operator point specification is invalid. " + err);
 //                    }
 //
 //                    Rectangle r = null;
@@ -5615,7 +5616,7 @@ label:
 //                                Integer.valueOf(strAry[2]),
 //                                Integer.valueOf(strAry[3]));
 //                    } catch (Exception err) {
-//                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
+//                        throw new XTalkException("within operator rectangle area specification is invalid. " + err);
 //                    }
 //
 //                    typeAry[j] = wordType.STRING;
@@ -5637,17 +5638,17 @@ label:
         for (int i = end; i >= start; i--) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("^")) {
-                    if (i > end - 1) throw new xTalkException("^ operator is invalid");
+                    if (i > end - 1) throw new XTalkException("^ operator is invalid");
                     try {
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
                             if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
                         }
-                        String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         if (str1.isEmpty()) str1 = "0";
                         if (str2.isEmpty()) str2 = "0";
                         if (str2.equals("∞")) str1 = "Infinity";
@@ -5658,7 +5659,7 @@ label:
                         typeAry[i] = wordType.NOP;
                         typeAry[i + 1] = wordType.NOP;
                     } catch (Exception err) {
-                        throw new xTalkException("^ operator is invalid. " + err);
+                        throw new XTalkException("^ operator is invalid. " + err);
                     }
                 }
             }
@@ -5671,18 +5672,18 @@ label:
                         stringList.get(i).equals("/") ||
                         stringList.get(i).equals("div") ||
                         stringList.get(i).equals("mod")) {
-                    if (i > end - 1) throw new xTalkException(stringList.get(i) + " operator is invalid");
+                    if (i > end - 1) throw new XTalkException(stringList.get(i) + " operator is invalid");
                     String str1 = "";
                     String str2 = "";
                     try {
                         int j = i - 1;
                         for (; j >= start; j--) {
                             if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
                         }
-                        str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         double value = 0.0;
                         if (str1.isEmpty()) str1 = "0";
                         if (str2.isEmpty()) str2 = "0";
@@ -5707,7 +5708,7 @@ label:
                         typeAry[i] = wordType.NOP;
                         typeAry[i + 1] = wordType.NOP;
                     } catch (Exception err) {
-                        throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
+                        throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                     }
                 }
             }
@@ -5718,17 +5719,17 @@ label:
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("+") ||
                         stringList.get(i).equals("-")) {
-                    if (i > end - 1) throw new xTalkException(stringList.get(i) + " operator is invalid");
+                    if (i > end - 1) throw new XTalkException(stringList.get(i) + " operator is invalid");
                     try {
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
                             if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
                         }
-                        String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         double value = 0.0;
                         if (str1.isEmpty()) str1 = "0";
                         if (str2.isEmpty()) str2 = "0";
@@ -5747,7 +5748,7 @@ label:
                         typeAry[i] = wordType.NOP;
                         typeAry[i + 1] = wordType.NOP;
                     } catch (Exception err) {
-                        throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
+                        throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                     }
                 }
             }
@@ -5758,31 +5759,31 @@ label:
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("&")) {
                     if (i > end - 1) {
-                        throw new xTalkException(stringList.get(i) + " operator is invalid");
+                        throw new XTalkException(stringList.get(i) + " operator is invalid");
                     }
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
                     String str2 = "";
                     if (stringList.get(i + 1).equals("&")) {
                         try {
-                            str2 = Evalution(stringList, typeAry, i + 2, i + 2, memData, object, target);
+                            str2 = evaluation(stringList, typeAry, i + 2, i + 2, memData, object, target);
                         } catch (Exception err) {
-                            throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
+                            throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                         }
                         typeAry[i + 2] = wordType.NOP;
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, str1 + " " + str2);
                     } else {
                         try {
-                            str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                            str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         } catch (Exception err) {
-                            throw new xTalkException(stringList.get(i) + " operator is invalid. " + err);
+                            throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                         }
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, str1 + str2);
@@ -5803,7 +5804,7 @@ label:
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
@@ -5813,7 +5814,7 @@ label:
                         p = new Point(Integer.parseInt(strAry[0]),
                                 Integer.parseInt(strAry[1]));
                     } catch (Exception err) {
-                        throw new xTalkException("within operator point specification is invalid. " + err);
+                        throw new XTalkException("within operator point specification is invalid. " + err);
                     }
 
                     Rectangle r = null;
@@ -5824,7 +5825,7 @@ label:
                                 Integer.parseInt(strAry[2]),
                                 Integer.parseInt(strAry[3]));
                     } catch (Exception err) {
-                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
+                        throw new XTalkException("within operator rectangle area specification is invalid. " + err);
                     }
 
                     typeAry[j] = wordType.STRING;
@@ -5846,7 +5847,7 @@ label:
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
@@ -5856,7 +5857,7 @@ label:
                         p = new Point(Integer.parseInt(strAry[0]),
                                 Integer.parseInt(strAry[1]));
                     } catch (Exception err) {
-                        throw new xTalkException("within operator point specification is invalid. " + err);
+                        throw new XTalkException("within operator point specification is invalid. " + err);
                     }
 
                     Rectangle r = null;
@@ -5867,7 +5868,7 @@ label:
                                 Integer.parseInt(strAry[2]),
                                 Integer.parseInt(strAry[3]));
                     } catch (Exception err) {
-                        throw new xTalkException("within operator rectangle area specification is invalid. " + err);
+                        throw new XTalkException("within operator rectangle area specification is invalid. " + err);
                     }
 
                     typeAry[j] = wordType.STRING;
@@ -5892,24 +5893,24 @@ label:
                 switch (opr) {
                     case "<", ">", "≤", "≥" -> {
                         if (i > end - 1) {
-                            throw new xTalkException("Comparison operator is invalid");
+                            throw new XTalkException("Comparison operator is invalid");
                         }
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
                             if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
                         }
                         if (typeAry[i + 1] == wordType.OPERATOR_SUB) {
-                            if (i + 1 > end - 1) throw new xTalkException("Comparison operator is invalid");
+                            if (i + 1 > end - 1) throw new XTalkException("Comparison operator is invalid");
                             if (opr.equals("<") && stringList.get(i + 1).equals(">")) continue;
                             opr = opr + stringList.get(i + 1);
                             typeAry[i] = wordType.NOP;
                             i++;
                         }
-                        String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         try {
                             if (str1.isEmpty()) str1 = "0";
                             if (str2.isEmpty()) str2 = "0";
@@ -5930,18 +5931,18 @@ label:
                             typeAry[i + 1] = wordType.NOP;
                         } catch (Exception err) {
                             boolean value = false;
-                        /*if(0==opr.compareTo("<"))
-                            value=str1.compareTo(str2)<0;
-                        else if(0==opr.compareTo("<=") || 0==opr.compareTo("≤"))
-                            value=str1.compareTo(str2)<=0;
-                        else*/
+//                            if (0 == opr.compareTo("<"))
+//                                value = str1.compareTo(str2) < 0;
+//                            else if (0 == opr.compareTo("<=") || 0 == opr.compareTo("≤"))
+//                                value = str1.compareTo(str2) <= 0;
+//                            else
                             if (0 == opr.compareTo("<>") || 0 == opr.compareTo("≠"))
                                 value = str1.compareTo(str2) != 0;
-                        /*else if(0==opr.compareTo(">"))
-                            value=str1.compareTo(str2)>0;
-                        else if(0==opr.compareTo(">=") || 0==opr.compareTo("≥"))
-                            value=str1.compareTo(str2)>=0;*/
-                            else throw new xTalkException("Cannot compare non-numbers: " + str1 + " and " + str2);
+//                            else if (0 == opr.compareTo(">"))
+//                                value = str1.compareTo(str2) > 0;
+//                            else if (0 == opr.compareTo(">=") || 0 == opr.compareTo("≥"))
+//                                value = str1.compareTo(str2) >= 0;
+                            else throw new XTalkException("Cannot compare non-numbers: " + str1 + " and " + str2);
                             typeAry[j] = wordType.STRING;
                             stringList.set(j, value ? "true" : "false");
                             typeAry[i] = wordType.NOP;
@@ -5951,16 +5952,16 @@ label:
                     case "is" -> {
                         if (i > end - 1) continue;
                         if (0 == stringList.get(i + 1).compareToIgnoreCase("in")) {
-                            if (i + 1 > end - 1) throw new xTalkException("is in operator is invalid");
+                            if (i + 1 > end - 1) throw new XTalkException("is in operator is invalid");
                             String str1 = "";
                             int j = i - 1;
                             for (; j >= start; j--) {
                                 if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                    str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                    str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                     break;
                                 }
                             }
-                            String str2 = Evalution(stringList, typeAry, i + 2, i + 2, memData, object, target);
+                            String str2 = evaluation(stringList, typeAry, i + 2, i + 2, memData, object, target);
                             boolean value = false;
                             value = str2.toLowerCase().contains(str1.toLowerCase());
                             typeAry[j] = wordType.STRING;
@@ -5972,12 +5973,12 @@ label:
                                 (0 == stringList.get(i + 1).compareToIgnoreCase("a") ||
                                         0 == stringList.get(i + 1).compareToIgnoreCase("an"))) {
                             // is a
-                            if (i + 2 > end) throw new xTalkException("is a operator is invalid");
+                            if (i + 2 > end) throw new XTalkException("is a operator is invalid");
                             String str1 = "";
                             int j = i - 1;
                             for (; j >= start; j--) {
                                 if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                    str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                    str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                     break;
                                 }
                             }
@@ -5991,10 +5992,10 @@ label:
                             } else if (stringList.get(i + 2).equalsIgnoreCase("rect") || stringList.get(i + 2).equalsIgnoreCase("rectangle")) {
                                 value = str1.matches("^[-]{0,1}[0-9]{1,99},[-]{0,1}[0-9]{1,99},[-]{0,1}[0-9]{1,99},[-]{0,1}[0-9]{1,99}$");
                             } else if (stringList.get(i + 2).equalsIgnoreCase("date")) {
-                                value = true;// **
+                                value = true; // **
                             } else if (stringList.get(i + 2).equalsIgnoreCase("logical")) {
                                 value = (str1.equalsIgnoreCase("true") || str1.equalsIgnoreCase("false"));
-                            } else throw new xTalkException(stringList.get(i + 2) + " cannot be used with is a operator");
+                            } else throw new XTalkException(stringList.get(i + 2) + " cannot be used with is a operator");
                             typeAry[j] = wordType.STRING;
                             stringList.set(j, value ? "true" : "false");
                             typeAry[i] = wordType.NOP;
@@ -6003,16 +6004,16 @@ label:
                         } else if (0 == stringList.get(i + 1).compareToIgnoreCase("not")) {
                             if (i > end - 2) continue;
                             if (0 == stringList.get(i + 2).compareToIgnoreCase("in")) {
-                                if (i + 2 > end - 1) throw new xTalkException("is not in operator is invalid");
+                                if (i + 2 > end - 1) throw new XTalkException("is not in operator is invalid");
                                 String str1 = "";
                                 int j = i - 1;
                                 for (; j >= start; j--) {
                                     if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                        str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                        str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                         break;
                                     }
                                 }
-                                String str2 = Evalution(stringList, typeAry, i + 3, i + 3, memData, object, target);
+                                String str2 = evaluation(stringList, typeAry, i + 3, i + 3, memData, object, target);
                                 boolean value = false;
                                 value = !str2.toLowerCase().contains(str1.toLowerCase());
                                 typeAry[j] = wordType.STRING;
@@ -6026,12 +6027,12 @@ label:
                                 if (0 == stringList.get(i + 2).compareToIgnoreCase("a") ||
                                         0 == stringList.get(i + 2).compareToIgnoreCase("an")) {
                                     // is not a/an
-                                    if (i + 2 > end) throw new xTalkException("is not a operator is invalid");
+                                    if (i + 2 > end) throw new XTalkException("is not a operator is invalid");
                                     String str1 = "";
                                     int j = i - 1;
                                     for (; j >= start; j--) {
                                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                             break;
                                         }
                                     }
@@ -6045,11 +6046,11 @@ label:
                                     } else if (stringList.get(i + 3).equalsIgnoreCase("rect") || stringList.get(i + 3).equalsIgnoreCase("rectangle")) {
                                         value = str1.matches("^[-]{0,1}[0-9]{1,99},[-]{0,1}[0-9]{1,99},[-]{0,1}[0-9]{1,99},[-]{0,1}[0-9]{1,99}$");
                                     } else if (stringList.get(i + 3).equalsIgnoreCase("date")) {
-                                        value = true;// **
+                                        value = true; // **
                                     } else if (stringList.get(i + 3).equalsIgnoreCase("logical")) {
                                         value = (str1.equalsIgnoreCase("true") || str1.equalsIgnoreCase("false"));
                                     } else
-                                        throw new xTalkException(stringList.get(i + 3) + " cannot be used with is not a operator");
+                                        throw new XTalkException(stringList.get(i + 3) + " cannot be used with is not a operator");
                                     typeAry[j] = wordType.STRING;
                                     stringList.set(j, !value ? "true" : "false");
                                     typeAry[i] = wordType.NOP;
@@ -6061,16 +6062,16 @@ label:
                         }
                     }
                     case "contains" -> {
-                        if (i + 1 > end) throw new xTalkException("contains operator is invalid");
+                        if (i + 1 > end) throw new XTalkException("contains operator is invalid");
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
                             if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                                str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                                str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
                         }
-                        String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                        String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         boolean value = false;
                         value = str1.toLowerCase().contains(str2.toLowerCase());
                         typeAry[j] = wordType.STRING;
@@ -6087,16 +6088,16 @@ label:
             if (typeAry[i] == wordType.OPERATOR) {
                 String opr = stringList.get(i);
                 if (opr.equals("≠")) {
-                    if (i > end - 1) throw new xTalkException("Comparison operator is invalid");
+                    if (i > end - 1) throw new XTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
-                    String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                    String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                     boolean value = false;
                     try {
                         value = !Double.valueOf(str1).equals(Double.valueOf(str2));
@@ -6112,16 +6113,16 @@ label:
                         stringList.get(i + 1).equals("not") ||
                         opr.equals("<") &&
                                 stringList.get(i + 1).equals(">")) {
-                    if (i + 1 > end - 1) throw new xTalkException("Comparison operator is invalid");
+                    if (i + 1 > end - 1) throw new XTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
-                    String str2 = Evalution(stringList, typeAry, i + 2, i + 2, memData, object, target);
+                    String str2 = evaluation(stringList, typeAry, i + 2, i + 2, memData, object, target);
                     boolean value = false;
                     try {
                         value = (0 != Double.compare(Double.parseDouble(str1), Double.parseDouble(str2)));
@@ -6136,16 +6137,16 @@ label:
                 } else if (opr.equals("=") ||
                         opr.equals("is")) {
                     if (i > end - 1)
-                        throw new xTalkException("Comparison operator is invalid");
+                        throw new XTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X || typeAry[j] == wordType.VARIABLE) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
-                    String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                    String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                     {
                         boolean value = false;
                         try {
@@ -6166,25 +6167,25 @@ label:
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("and")) {
-                    if (i > end - 1) throw new xTalkException("and operator is invalid");
+                    if (i > end - 1) throw new XTalkException("and operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
-                    String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                    String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                     {
                         boolean value1 = false;
                         boolean value2 = false;
                         if (0 == str1.compareToIgnoreCase("true")) value1 = true;
                         else if (0 == str1.compareToIgnoreCase("false")) value1 = false;
-                        else throw new xTalkException("and operation requires boolean value (true/false)");
+                        else throw new XTalkException("and operation requires boolean value (true/false)");
                         if (0 == str2.compareToIgnoreCase("true")) value2 = true;
                         else if (0 == str2.compareToIgnoreCase("false")) value2 = false;
-                        else throw new xTalkException("and operation requires boolean value (true/false)");
+                        else throw new XTalkException("and operation requires boolean value (true/false)");
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, (value1 && value2) ? "true" : "false");
                         typeAry[i] = wordType.NOP;
@@ -6198,25 +6199,25 @@ label:
         for (int i = start; i <= end; i++) {
             if (typeAry[i] == wordType.OPERATOR) {
                 if (stringList.get(i).equals("or")) {
-                    if (i > end - 1) throw new xTalkException("or operator is invalid");
+                    if (i > end - 1) throw new XTalkException("or operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
                         if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
-                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
+                            str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
                     }
-                    String str2 = Evalution(stringList, typeAry, i + 1, i + 1, memData, object, target);
+                    String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                     {
                         boolean value1 = false;
                         boolean value2 = false;
                         if (0 == str1.compareToIgnoreCase("true")) value1 = true;
                         else if (0 == str1.compareToIgnoreCase("false")) value1 = false;
-                        else throw new xTalkException("or operation requires boolean value (true/false)");
+                        else throw new XTalkException("or operation requires boolean value (true/false)");
                         if (0 == str2.compareToIgnoreCase("true")) value2 = true;
                         else if (0 == str2.compareToIgnoreCase("false")) value2 = false;
-                        else throw new xTalkException("or operation requires boolean value (true/false)");
+                        else throw new XTalkException("or operation requires boolean value (true/false)");
                         typeAry[j] = wordType.STRING;
                         stringList.set(j, (value1 || value2) ? "true" : "false");
                         typeAry[i] = wordType.NOP;
@@ -6229,10 +6230,10 @@ label:
         // Are values being concatenated without an operator?
         for (int i = start + 1; i <= end; i++) {
             /*if(typeAry[i-1]==wordType.X && typeAry[i]==wordType.X) {
-                throw new xTalkException(stringList.get(i-1)+" "+stringList.get(i)+" is unknown");
+                throw new XTalkException(stringList.get(i-1)+" "+stringList.get(i)+" is unknown");
             }*/
             if (typeAry[i] != wordType.NOP) {
-                throw new xTalkException(stringList.get(i) + " is unknown");
+                throw new XTalkException(stringList.get(i) + " is unknown");
             }
         }
 
@@ -6246,7 +6247,7 @@ label:
     static void setVariable(
             MemoryData memData,
             String name, String value)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
 
         /*if(name.equalsIgnoreCase("TIMEX")){
@@ -6284,8 +6285,8 @@ label:
                 memData.nameList.add(str);
                 memData.valueList.add(value);
                 memData.treeset.add(str);
-            } else throw new xTalkException("Variable name is not alphanumeric: " + name);
-        } else throw new xTalkException("Variable name does not start with alphabetic character: " + name);
+            } else throw new XTalkException("Variable name is not alphanumeric: " + name);
+        } else throw new XTalkException("Variable name does not start with alphabetic character: " + name);
         // timeIsMoney("setVariable:",timestart,23);
 
     }
@@ -6324,7 +6325,7 @@ label:
     // Global variable declaration, assignment
     private static void setGlobalVariable(
             String name, String value)
-            throws xTalkException {
+            throws XTalkException {
         String str = name.toLowerCase();
 
         // Assign to global variable
@@ -6343,13 +6344,13 @@ label:
                 globalData.nameList.add(str);
                 globalData.valueList.add(Objects.requireNonNullElse(value, ""));
                 globalData.treeset.add(str);
-            } else throw new xTalkException("Variable name is not alphanumeric: " + name);
-        } else throw new xTalkException("Variable name does not start with alphabetic character: " + name);
+            } else throw new XTalkException("Variable name is not alphanumeric: " + name);
+        } else throw new XTalkException("Variable name does not start with alphabetic character: " + name);
     }
 
     private static ObjResult getObjectfromList(ArrayList<String> stringList, wordType[] typeAry, int start,
                                                OObject object, OObject target)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         ObjResult objres = new ObjResult();
         objres.cnt = 0;
@@ -6357,7 +6358,7 @@ label:
 
         int next = start;
 
-        if (next >= stringList.size()) return null; // throw new xTalkException("Object is unknown");
+        if (next >= stringList.size()) return null; // throw new XTalkException("Object is unknown");
         String str = stringList.get(next);
         if (0 == str.compareToIgnoreCase("HyperCard")) {
             objres.cnt = 1;
@@ -6385,7 +6386,7 @@ label:
             return objres;
         }
         next++;
-        if (next >= stringList.size()) return null; // throw new xTalkException("Object is unknown");
+        if (next >= stringList.size()) return null; // throw new XTalkException("Object is unknown");
         String str2 = stringList.get(next);
         if (0 == str.compareToIgnoreCase("the") && 0 == str2.compareToIgnoreCase("target")) {
             objres.cnt = 2;
@@ -6532,7 +6533,7 @@ label:
                 // cdbase=PCARD.pc.stack.curCard;
                 next++;
             }
-            if (next >= stringList.size()) throw new xTalkException("button is unknown");
+            if (next >= stringList.size()) throw new XTalkException("button is unknown");
             String str3 = stringList.get(next);
             int id = 0;
             int number = 0;
@@ -6557,13 +6558,13 @@ label:
                 String str5 = stringList.get(next);
                 if (0 == str5.compareToIgnoreCase("of")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("object is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("object is unknown");
                     ObjResult objres2;
                     objres2 = getObjectfromList(stringList, typeAry, next, object, target);
                     next += objres2.cnt/*-1*/;
-                    if (objres2.obj == null) throw new xTalkException("object is unknown");
+                    if (objres2.obj == null) throw new XTalkException("object is unknown");
                     if (0 != objres2.obj.objectType.compareTo("card") && 0 != objres2.obj.objectType.compareTo("background"))
-                        throw new xTalkException("Please specify a card or background here");
+                        throw new XTalkException("Please specify a card or background here");
                     cdbase = (OCardBase) objres2.obj;
                     if (bg == true && 0 == cdbase.objectType.compareTo("card")) {
                         if (((OCard) cdbase).bg != null) {
@@ -6571,7 +6572,7 @@ label:
                         } else {
                             cdbase = new OBackground(cdbase.stack, (OCard) cdbase, ((OCard) cdbase).bgid, true);
                         }
-                        if (cdbase == null) throw new xTalkException("No background");
+                        if (cdbase == null) throw new XTalkException("No background");
                     }
                 }
             }
@@ -6585,10 +6586,10 @@ label:
                         return objres;
                     }
                 }
-                throw new xTalkException("No button with id " + id);
+                throw new XTalkException("No button with id " + id);
             } else if (number != 0) {
-                if (number < 0) throw new xTalkException("No button at number " + number);
-                if (number > cdbase.btnList.size()) throw new xTalkException("No button at number " + number);
+                if (number < 0) throw new XTalkException("No button at number " + number);
+                if (number > cdbase.btnList.size()) throw new XTalkException("No button at number " + number);
                 objres.cnt = next - start/*+1*/;
                 objres.obj = cdbase.btnList.get(number - 1);
                 // /System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
@@ -6625,7 +6626,7 @@ label:
                         }
                     }
                 }
-                throw new xTalkException("No button with name \"" + name + "\"");
+                throw new XTalkException("No button with name \"" + name + "\"");
             }
         }
         // field
@@ -6642,7 +6643,7 @@ label:
                 cdbase = PCARD.pc.stack.curCard;
                 next++;
             }
-            if (next >= stringList.size()) throw new xTalkException("field is unknown");
+            if (next >= stringList.size()) throw new XTalkException("field is unknown");
             String str3 = stringList.get(next);
             int id = 0;
             int number = 0;
@@ -6667,13 +6668,13 @@ label:
                 String str5 = stringList.get(next);
                 if (0 == str5.compareToIgnoreCase("of")) {
                     next++;
-                    if (next >= stringList.size()) throw new xTalkException("object is unknown");
+                    if (next >= stringList.size()) throw new XTalkException("object is unknown");
                     ObjResult objres2;
                     objres2 = getObjectfromList(stringList, typeAry, next, object, target);
                     next += objres2.cnt/*-1*/;
-                    if (objres2.obj == null) throw new xTalkException("object is unknown");
+                    if (objres2.obj == null) throw new XTalkException("object is unknown");
                     if (0 != objres2.obj.objectType.compareTo("card") && 0 != objres2.obj.objectType.compareTo("background"))
-                        throw new xTalkException("Please specify a card or background here");
+                        throw new XTalkException("Please specify a card or background here");
                     cdbase = (OCardBase) objres2.obj;
                 }
             }
@@ -6686,7 +6687,7 @@ label:
                 } else {
                     cdbase = (OCardBase) new OBackground(cdbase.stack, (OCard)cdbase, ((OCard)cdbase).bgid, true);
                 }
-                if(cdbase == null) throw new xTalkException("No background");
+                if(cdbase == null) throw new XTalkException("No background");
             }*/
 
             // Get bg from cd (otherwise cannot get field content that differs per card)
@@ -6705,10 +6706,10 @@ label:
                         return objres;
                     }
                 }
-                throw new xTalkException("No field with id " + id);
+                throw new XTalkException("No field with id " + id);
             } else if (number != 0) {
-                if (number < 0) throw new xTalkException("No field at number " + number);
-                if (number > cdbase.fldList.size()) throw new xTalkException("No field at number " + number);
+                if (number < 0) throw new XTalkException("No field at number " + number);
+                if (number > cdbase.fldList.size()) throw new XTalkException("No field at number " + number);
                 objres.cnt = next - start/*+1*/;
                 objres.obj = cdbase.fldList.get(number - 1);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
@@ -6734,7 +6735,7 @@ label:
                         }
                     }
                 }
-                throw new xTalkException("No field with name \"" + name + "\"");
+                throw new XTalkException("No field with name \"" + name + "\"");
             }
         }
         // cd
@@ -6758,19 +6759,19 @@ label:
             if (id != 0) {
                 objres.cnt = next - start + 1;
                 objres.obj = PCARD.pc.stack.GetCardbyId(id);
-                if (objres.obj == null) throw new xTalkException("No card with id " + id);
+                if (objres.obj == null) throw new XTalkException("No card with id " + id);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
                 return objres;
             } else if (number != 0) {
                 objres.cnt = next - start + 1;
                 objres.obj = PCARD.pc.stack.GetCardbyNum(number);
-                if (objres.obj == null) throw new xTalkException("No card at number " + number);
+                if (objres.obj == null) throw new XTalkException("No card at number " + number);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
                 return objres;
             } else {
                 objres.cnt = next - start + 1;
                 objres.obj = PCARD.pc.stack.GetCard(name);
-                if (objres.obj == null) throw new xTalkException("No card with name " + name);
+                if (objres.obj == null) throw new XTalkException("No card with name " + name);
                 // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
                 return objres;
             }
@@ -6890,7 +6891,7 @@ label:
 
     private static void setChunkVariable(String mode, String chunkStart, String chunkEnd, String setstr, String name,
                                          MemoryData memData)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         int start = 0;
         try {
@@ -6953,7 +6954,7 @@ label:
 
     private static void setChunkVariable2(String mode, String chunkStart, String chunkEnd, String mode2, String chunkStart2, String chunkEnd2,
                                           String setstr, String name, MemoryData memData)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         int start = 0;
         try {
@@ -7201,7 +7202,7 @@ label:
     }
 
     private static OObject getObject(ArrayList<String> stringList, wordType[] typeAry, int start, int end, MemoryData memData, OObject object, OObject target)
-            throws xTalkException {
+            throws XTalkException {
         // long timestart = System.currentTimeMillis();
         OObject obj = null;
         StringBuilder errStr = new StringBuilder(48);
@@ -7244,7 +7245,7 @@ label:
             obj = target;
             next++; // next+=2;
         } else if (0 == stringList.get(next).compareToIgnoreCase("window")) {
-            String str = Evalution(stringList, typeAry, next + 1, end, memData, object, target);
+            String str = evaluation(stringList, typeAry, next + 1, end, memData, object, target);
             for (int i = 0; i < OWindow.list.size(); i++) {
                 if (!str.isEmpty() && str.equalsIgnoreCase(OWindow.list.get(i).name)) {
                     obj = OWindow.list.get(i);
@@ -7262,7 +7263,7 @@ label:
                 }
             }
             j--;
-            String str = Evalution(stringList, typeAry, next + 1, j, memData, object, target);
+            String str = evaluation(stringList, typeAry, next + 1, j, memData, object, target);
 
             for (int i = 0; i < PCARD.pc.menu.mb.getComponentCount(); i++) {
                 Component c = PCARD.pc.menu.mb.getComponent(i);
@@ -7296,7 +7297,7 @@ label:
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("this")) {
             next++;
-            if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+            if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
                 obj = PCARD.pc.stack.curCard;
                 next++;
@@ -7309,7 +7310,7 @@ label:
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("next")) {
             next++;
-            if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+            if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
                 int id;
                 int i;
@@ -7328,7 +7329,7 @@ label:
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("last")) {
             next++;
-            if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+            if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
                 obj = PCARD.pc.stack.GetCardbyNum(PCARD.pc.stack.cardIdList.size());
                 next++;
@@ -7353,7 +7354,7 @@ label:
                     for (int j = i + 1; j <= end; j++) {
                         if (typeAry[j] == wordType.RBRACKET || typeAry[j] == wordType.RFUNC) {
                             if (nest == 0) {
-                                Evalution(stringList, typeAry, i, j, memData, object, target);
+                                evaluation(stringList, typeAry, i, j, memData, object, target);
                                 for (int k = i; k <= j; k++) {
                                     if (typeAry[k] == wordType.NOP) stringList.set(k, "");
                                 }
@@ -7376,13 +7377,13 @@ label:
                                         !stringList.get(i - 2).equalsIgnoreCase("line") && !stringList.get(i - 2).equalsIgnoreCase("word") &&
                                         !stringList.get(i - 2).equalsIgnoreCase("character"))) {
                     if (i + 1 > end) {
-                        throw new xTalkException("Object" + errStr + " is unknown");
+                        throw new XTalkException("Object" + errStr + " is unknown");
                     }
                     // if(0==stringList.get(i+1).compareToIgnoreCase("this")){
-                    // if(i+2>end) throw new xTalkException("Object"+errStr+" is unknown");
+                    // if(i+2>end) throw new XTalkException("Object"+errStr+" is unknown");
                     if (0 == stringList.get(i + 1).compareToIgnoreCase("card") || 0 == stringList.get(i + 1).compareToIgnoreCase("cd")) {
                         if (i + 2 <= end && 0 == stringList.get(i + 2).compareToIgnoreCase("id")) {
-                            if (i + 3 > end) throw new xTalkException("Object" + errStr + " is unknown");
+                            if (i + 3 > end) throw new XTalkException("Object" + errStr + " is unknown");
                             int j;
                             for (j = i + 3; j < end; j++) {
                                 if (0 == stringList.get(j).compareToIgnoreCase("of")) {
@@ -7390,11 +7391,11 @@ label:
                                     break;
                                 }
                             }
-                            String str = Evalution(stringList, typeAry, i + 3, j, memData, object, target);
+                            String str = evaluation(stringList, typeAry, i + 3, j, memData, object, target);
                             try {
                                 cdbase = PCARD.pc.stack.GetCardbyId(Integer.parseInt(str));
                             } catch (Exception err) {
-                                throw new xTalkException("Object" + errStr + " is unknown");
+                                throw new XTalkException("Object" + errStr + " is unknown");
                             }
                         } else {
                             int j;
@@ -7404,7 +7405,7 @@ label:
                                     break;
                                 }
                             }
-                            String str = Evalution(stringList, typeAry, i + 2, j, memData, object, target);
+                            String str = evaluation(stringList, typeAry, i + 2, j, memData, object, target);
                             try {
                                 cdbase = PCARD.pc.stack.GetCardbyNum(Integer.parseInt(str));
                             } catch (Exception err) {
@@ -7414,10 +7415,10 @@ label:
                         if (cdbase != null) {
                             end = i - 1;
                             break;
-                        } else throw new xTalkException("Object" + errStr + " is unknown");
+                        } else throw new XTalkException("Object" + errStr + " is unknown");
                     } else if (0 == stringList.get(i + 1).compareToIgnoreCase("background") || 0 == stringList.get(i + 1).compareToIgnoreCase("bkgnd") || 0 == stringList.get(i + 1).compareToIgnoreCase("bg")) {
                         if (i + 2 <= end && 0 == stringList.get(i + 2).compareToIgnoreCase("id")) {
-                            if (i + 3 > end) throw new xTalkException("Object" + errStr + " is unknown");
+                            if (i + 3 > end) throw new XTalkException("Object" + errStr + " is unknown");
                             int j;
                             for (j = i + 3; j < end; j++) {
                                 if (0 == stringList.get(j).compareToIgnoreCase("of")) {
@@ -7425,11 +7426,11 @@ label:
                                     break;
                                 }
                             }
-                            String str = Evalution(stringList, typeAry, i + 3, j, memData, object, target);
+                            String str = evaluation(stringList, typeAry, i + 3, j, memData, object, target);
                             try {
                                 cdbase = PCARD.pc.stack.GetBackgroundbyId(Integer.parseInt(str));
                             } catch (Exception err) {
-                                throw new xTalkException("Object" + errStr + " is unknown");
+                                throw new XTalkException("Object" + errStr + " is unknown");
                             }
                         } else {
                             int j;
@@ -7439,7 +7440,7 @@ label:
                                     break;
                                 }
                             }
-                            String str = Evalution(stringList, typeAry, i + 2, j, memData, object, target);
+                            String str = evaluation(stringList, typeAry, i + 2, j, memData, object, target);
                             try {
                                 cdbase = PCARD.pc.stack.GetBackgroundbyNum(Integer.parseInt(str));
                             } catch (Exception err) {
@@ -7449,8 +7450,8 @@ label:
                         if (cdbase != null) {
                             end = i - 1;
                             break;
-                        } else throw new xTalkException("Object" + errStr + " is unknown");
-                    } else throw new xTalkException("Object" + errStr + " is unknown");
+                        } else throw new XTalkException("Object" + errStr + " is unknown");
+                    } else throw new XTalkException("Object" + errStr + " is unknown");
                     // }
                 }
             }
@@ -7468,7 +7469,7 @@ label:
                 } else {
                     return null; // Not an object
                 }
-                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                 if (typeAry[next] != wordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn"))) {
                     flag = 1;
                     next++;
@@ -7479,17 +7480,17 @@ label:
                     // The Card itself
                     if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                         next++;
-                        if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                        if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                         int j;
                         for (j = next; j < end; j++) {
                             if (0 == stringList.get(j).compareToIgnoreCase("of") &&
                                     (!stringList.get(j - 1).matches("[0-9]*"))) break;
                         }
-                        String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                        String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                         try {
                             obj = PCARD.pc.stack.GetCardbyId(Integer.parseInt(str));
                         } catch (Exception err) {
-                            throw new xTalkException("Object" + errStr + " is unknown");
+                            throw new XTalkException("Object" + errStr + " is unknown");
                         }
                     } else {
                         int j;
@@ -7500,7 +7501,7 @@ label:
                                 break;
                             }
                         }
-                        String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                        String str = evaluation(stringList, typeAry, next, j, memData, object, target);
 
                         if (cdbase != null && cdbase.objectType.equals("background"))
                             obj = PCARD.pc.stack.GetCardofBg(cdbase, str);
@@ -7520,7 +7521,7 @@ label:
             if (next <= end && (0 == stringList.get(next).compareToIgnoreCase("bg") || 0 == stringList.get(next).compareToIgnoreCase("bkgnd") || 0 == stringList.get(next).compareToIgnoreCase("background"))) {
                 bg_flag = true;
                 next++;
-                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn")) {
                     flag = 1;
                     // cdbase = PCARD.pc.stack.curCard.bg;
@@ -7533,17 +7534,17 @@ label:
                     // The Bg itself
                     if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                         next++;
-                        if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                        if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                         int j;
                         for (j = next; j < end; j++) {
                             if (0 == stringList.get(j).compareToIgnoreCase("of") &&
                                     (!stringList.get(j - 1).matches("[0-9]*"))) break;
                         }
-                        String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                        String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                         try {
                             obj = PCARD.pc.stack.GetBackgroundbyId(Integer.parseInt(str));
                         } catch (Exception err) {
-                            throw new xTalkException("Object" + errStr + " is unknown");
+                            throw new XTalkException("Object" + errStr + " is unknown");
                         }
                     } else {
                         int j;
@@ -7551,7 +7552,7 @@ label:
                             if (0 == stringList.get(j).compareToIgnoreCase("of") &&
                                     (!stringList.get(j - 1).matches("[0-9]*"))) break;
                         }
-                        String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                        String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                         try {
                             obj = PCARD.pc.stack.GetBackgroundbyNum(Integer.parseInt(str));
                         } catch (Exception err) {
@@ -7562,10 +7563,10 @@ label:
             }
             if (obj == null && flag == 1) {
                 // btn
-                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                     next++;
-                    if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                    if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                     int j;
                     for (j = next; j < end; j++) {
                         if (0 == stringList.get(j).compareToIgnoreCase("of") &&
@@ -7574,13 +7575,13 @@ label:
                             break;
                         }
                     }
-                    String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                    String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                     // System.out.println("* "+str);
                     try {
                         if (!bg_flag) obj = cdbase.GetBtnbyId(Integer.parseInt(str));
                         else obj = cdbase.GetBgBtnbyId(Integer.parseInt(str));
                     } catch (Exception err) {
-                        throw new xTalkException("Object" + errStr + " is unknown");
+                        throw new XTalkException("Object" + errStr + " is unknown");
                     }
                 } else {
                     int j;
@@ -7591,7 +7592,7 @@ label:
                             break;
                         }
                     }
-                    String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                    String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                     try {
                         if (!bg_flag) obj = cdbase.GetBtnbyNum(Integer.parseInt(str));
                         else obj = cdbase.GetBgBtnbyNum(Integer.parseInt(str));
@@ -7626,10 +7627,10 @@ label:
             }
             if (obj == null && flag == 2) {
                 // fld
-                if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("id")) {
                     next++;
-                    if (next > end) throw new xTalkException("Object " + errStr + " is unknown");
+                    if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                     int j;
                     for (j = next; j < end; j++) {
                         if (0 == stringList.get(j).compareToIgnoreCase("of") &&
@@ -7638,12 +7639,12 @@ label:
                             break;
                         }
                     }
-                    String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                    String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                     try {
                         if (!bg_flag) obj = cdbase.GetFldbyId(Integer.parseInt(str));
                         else obj = cdbase.GetBgFldbyId(Integer.parseInt(str));
                     } catch (Exception err) {
-                        throw new xTalkException("Object" + errStr + " is unknown");
+                        throw new XTalkException("Object" + errStr + " is unknown");
                     }
                 } else {
                     int j;
@@ -7655,7 +7656,7 @@ label:
                             break;
                         }
                     }
-                    String str = Evalution(stringList, typeAry, next, j, memData, object, target);
+                    String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                     try {
                         if (!bg_flag) obj = cdbase.GetFldbyNum(Integer.parseInt(str));
                         else obj = cdbase.GetBgFldbyNum(Integer.parseInt(str));
@@ -7669,17 +7670,17 @@ label:
 
         // timeIsMoney("getObject:",timestart,31);
         if (next != end && obj == null) {
-            throw new xTalkException("Object" + errStr + " is unknown");
+            throw new XTalkException("Object" + errStr + " is unknown");
         }
         return obj;
     }
 
-    static timeClass[] timeList = new timeClass[32];
+    static TimeClass[] timeList = new TimeClass[32];
 
     static void timeIsMoney(String name, long start, int index) {
         long time = System.currentTimeMillis() - start;
         if (timeList[index] == null) {
-            timeList[index] = new timeClass();
+            timeList[index] = new TimeClass();
             timeList[index].name = "";
             timeList[index].time = 0;
         }
@@ -7689,22 +7690,22 @@ label:
     }
 }
 
-class timeClass {
+class TimeClass {
 
     long time;
     String name;
 }
 
-class xTalkException extends Exception {
+class XTalkException extends Exception {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public xTalkException(String msg) {
+    public XTalkException(String msg) {
         super(msg);
     }
 
-    public xTalkException(String msg, int line) {
+    public XTalkException(String msg, int line) {
         super(msg + "(line " + line + ")");
     }
 }

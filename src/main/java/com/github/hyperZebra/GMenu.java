@@ -719,7 +719,7 @@ class GMenuBrowse implements ActionListener {
 
         try {
             doMenu(cmd);
-        } catch (xTalkException e1) {
+        } catch (XTalkException e1) {
             e1.printStackTrace();
         }
     }
@@ -739,7 +739,7 @@ class GMenuBrowse implements ActionListener {
     }
 
     public static void doMenu(String in_cmd)
-            throws xTalkException {
+            throws XTalkException {
         String cmd = PCARD.pc.intl.getEngText(in_cmd);
         // System.out.println(cmd);
 

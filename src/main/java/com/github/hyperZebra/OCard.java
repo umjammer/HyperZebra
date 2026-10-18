@@ -66,7 +66,7 @@ public class OCard extends OCardBase {
     }
 
     // Main
-    public static OCard getOCard(OStack st, int cardId, boolean dataonly) throws xTalkException {
+    public static OCard getOCard(OStack st, int cardId, boolean dataonly) throws XTalkException {
         for (int i = 0; i < st.cdCacheList.size(); i++) {
             OCard cd = st.cdCacheList.get(i);
             if (st == cd.stack && cardId == cd.id) {
@@ -81,7 +81,7 @@ public class OCard extends OCardBase {
         return new OCard(st, cardId, dataonly);
     }
 
-    private OCard(OStack st, int cardId, boolean dataonly) throws xTalkException {
+    private OCard(OStack st, int cardId, boolean dataonly) throws XTalkException {
         super(st);
 
         id = cardId;
@@ -95,7 +95,7 @@ public class OCard extends OCardBase {
         this.bgfldList = new ArrayList<>();
 
         {
-            throw new xTalkException("No card data file with that id exists");
+            throw new XTalkException("No card data file with that id exists");
         }
     }
 
@@ -916,7 +916,7 @@ public class OCard extends OCardBase {
             PCARD.pc.stack.curCard = OCard.getOCard(PCARD.pc.stack, id, false);
             PCARD.pc.stack.curCard.bg = OBackground.getOBackground(PCARD.pc.stack, PCARD.pc.stack.curCard, PCARD.pc.stack.curCard.bgid, false);
             PCARD.pc.stack.curCard.parent = PCARD.pc.stack.curCard.bg;
-        } catch (xTalkException e1) {
+        } catch (XTalkException e1) {
             e1.printStackTrace();
         }
 
