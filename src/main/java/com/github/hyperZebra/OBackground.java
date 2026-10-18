@@ -61,6 +61,12 @@ public class OBackground extends OCardBase {
                 if (dataonly) return bg;
                 else {
                     // Unshared text
+                    for (int j = 0; j < bg.fldList.size(); j++) {
+                        OField fld = bg.fldList.get(j);
+                        if (fld != null && fld.sharedText == false) {
+                            fld.setTextInternal("");
+                        }
+                    }
                     for (int j = 0; j < cd.bgfldList.size(); j++) {
                         OField fld = bg.GetBgFldbyId(cd.bgfldList.get(j).id);
                         if (fld != null && fld.sharedText == false) {

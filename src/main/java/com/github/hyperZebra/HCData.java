@@ -578,39 +578,32 @@ label:
             }
             BufferedImage mainBi = readWOBA(img, bitmapId, right, bottom, imgLeft, imgTop, imgRight, imgBottom, isBgPicture);
 
-            Graphics2D g = mainBi.createGraphics();
-            g.setColor(Color.WHITE);
-            g.fillRect(0, 0, imgLeft, bottom);
-            g.fillRect(imgRight, 0, right, bottom);
-            g.fillRect(0, 0, right, imgTop);
-            g.fillRect(0, imgBottom, right, bottom);
-
-            // Composite into image with alpha channel
-            if (mask != null) {
+            if (isBgPicture) {
+                Graphics2D g = mainBi.createGraphics();
+                g.setColor(Color.WHITE);
+                g.fillRect(0, 0, imgLeft, bottom);
+                g.fillRect(imgRight, 0, right, bottom);
+                g.fillRect(0, 0, right, imgTop);
+                g.fillRect(0, imgBottom, right, bottom);
+            } else {
+                // Composite into image with alpha channel
                 DataBuffer maindb = mainBi.getRaster().getDataBuffer();
-                DataBuffer maskdb = maskBi.getRaster().getDataBuffer();
+                DataBuffer maskdb = (maskBi != null) ? maskBi.getRaster().getDataBuffer() : null;
                 for (int y = top; y < bottom; y++) {
                     for (int x = left; x < right; x++) {
-                        int v = 0x00FFFFFF & maindb.getElem(x + y * right);
-                        if ((0xFF000000 & maindb.getElem(x + y * right)) == 0) {
-                            continue;
-                        }
-                        if (v != 0) {
-                            v = v | (0xFF000000 & (~maskdb.getElem(x + y * right) << 24));
+                        boolean inImg = (x >= imgLeft && x < imgRight && y >= imgTop && y < imgBottom);
+                        boolean imgBlack = inImg && ((0x00FFFFFF & maindb.getElem(x + y * right)) == 0);
+                        if (imgBlack) {
+                            maindb.setElem(x + y * right, 0xFF000000);
                         } else {
-                            v = v | 0xFF000000;
+                            boolean inMask = (x >= maskLeft && x < maskRight && y >= maskTop && y < maskBottom);
+                            boolean maskOpaque = inMask && (maskdb == null || ((0x00FFFFFF & maskdb.getElem(x + y * right)) == 0));
+                            if (maskOpaque) {
+                                maindb.setElem(x + y * right, 0xFFFFFFFF);
+                            } else {
+                                maindb.setElem(x + y * right, 0x00FFFFFF);
+                            }
                         }
-                        maindb.setElem(x + y * right, v);
-                    }
-                }
-            } else if (!isBgPicture) {
-                DataBuffer maindb = mainBi.getRaster().getDataBuffer();
-                for (int y = top; y < bottom; y++) {
-                    for (int x = left; x < right; x++) {
-                        int v = 0x00FFFFFF & maindb.getElem(x + y * right);
-                        if (v != 0) v = 0xFFFFFFFF;
-                        else v = 0xFF000000;
-                        maindb.setElem(x + y * right, v);
                     }
                 }
             }
