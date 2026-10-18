@@ -1750,6 +1750,7 @@ class MyButton extends JButton {
 
         if (autoHilite || hilite == getModel().isArmed()) {
             if (!btnData.showName && btnData.style >= 1 && btnData.style <= 3) {
+                g.setPaintMode();
                 if (btnData.style >= 2) {
                     g.setColor(btnData.bgColor);
                     Rectangle r = g.getClipBounds();
@@ -1761,6 +1762,10 @@ class MyButton extends JButton {
                 }
                 Icon ic = this.getIcon();
                 if (ic != null) {
+                    java.awt.Composite oldComp = ((Graphics2D) g).getComposite();
+                    if (!isEnabled()) {
+                        ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.35f));
+                    }
                     if (btnData.getScaleIcon() && btnData.imageForScale != null) {
                         g.drawImage(btnData.imageForScale, 0, 0, getWidth(), getHeight(),
                                 0, 0, btnData.imageForScale.getWidth(), btnData.imageForScale.getHeight(), null);
@@ -1768,6 +1773,15 @@ class MyButton extends JButton {
                         int w = ic.getIconWidth();
                         int h = ic.getIconHeight();
                         ic.paintIcon(this, g, (btnData.width - w) / 2, (btnData.height - h) / 2);
+                    }
+                    if (!isEnabled()) {
+                        ((Graphics2D) g).setComposite(oldComp);
+                    }
+                    if (getHilite()) {
+                        g.setColor(Color.BLACK);
+                        g.setXORMode(Color.WHITE);
+                        g.fillRect(0, 0, getWidth(), getHeight());
+                        g.setPaintMode();
                     }
                 }/*else{
                     BufferedImage img = btnData.iconImage;
@@ -1844,33 +1858,38 @@ class RoundedCornerButton extends MyButton {
         if (!isVisible() || PCARD.lockedScreen) return;
         if (PCARD.pc.bit > 1) return;
         if (PaintTool.editBackground && btnData.parent.objectType.equals("card")) return;
-        if (btnData.card != PCARD.pc.stack.curCard) return;
+        if (PCARD.pc.stack.curCard == null || btnData.card != PCARD.pc.stack.curCard && btnData.card != PCARD.pc.stack.curCard.bg) return;
         initShape();
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (getHilite()) {
-            if (btnData.style != 1 && btnData.style != 7) { // Transparent and oval are XOR
-                g2.setColor(Color.BLACK);
-                g2.fill(shape);
-            } else {
-                g2.setXORMode(Color.BLACK);
-                g2.fill(shape);
-            }
             setForeground(btnData.bgColor);
             setBackground(btnData.color);
+            if (btnData.style != 1 && btnData.style != 7) { // Transparent and oval are XOR
+                g2.setPaintMode();
+                g2.setColor(Color.BLACK);
+                g2.fill(shape);
+            } else if (btnData.showName || this.getIcon() == null || btnData.style == 7) {
+                g2.setColor(Color.BLACK);
+                g2.setXORMode(Color.WHITE);
+                g2.fill(shape);
+                g2.setPaintMode();
+            }
             // }else if(isRolloverEnabled() && getModel().isRollover()) {
             // paintFocusAndRollover(g2, rc);
             // }else if(hasFocus() && isFocusPainted()) {
             // paintFocusAndRollover(g2, fc);
         } else {
+            setForeground(btnData.color);
+            setBackground(btnData.bgColor);
             if (btnData.style != 1 && btnData.style != 7) { // Transparent and oval are not drawn
+                g2.setPaintMode();
                 g2.setColor(getBackground());
                 g2.fill(shape);
             }
-            setForeground(btnData.color);
-            setBackground(btnData.bgColor);
         }
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setPaintMode();
         g2.setColor(getBackground());
         super.paintComponent(g2);
         if ((btnData.textStyle & 8) > 0) { // outline
@@ -1968,8 +1987,6 @@ class RectButton extends RoundedCornerButton {
         if (btnData.style == 1) { // Transparent
             if (autoHilite && getHilite()) {
                 initShape();
-                g2.setXORMode(Color.WHITE);
-                g2.fill(shape);
             } else {
                 // g2.setXORMode(Color.WHITE);
             }
@@ -1977,8 +1994,6 @@ class RectButton extends RoundedCornerButton {
         if (btnData.style == 2) { // Opaque
             initShape();
             if (autoHilite && getHilite()) {
-                g2.setXORMode(Color.WHITE);
-                g2.fill(shape);
                 g2.setColor(getBackground());
             } else {
                 g2.setColor(getBackground());
@@ -2059,8 +2074,6 @@ class RoundButton extends RoundedCornerButton {
         Graphics2D g2 = (Graphics2D) g;
         // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         if (getHilite()) {
-            g.setXORMode(Color.WHITE);
-            g2.fill(shape);
             g2.setColor(getBackground());
         } else {
         }
