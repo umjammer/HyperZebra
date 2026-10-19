@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.ResourceBundle;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -32,11 +33,11 @@ import javax.swing.event.DocumentListener;
  */
 public class AuthDialog extends JDialog {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static AuthDialog authDialog;
     static OObject object;
 
@@ -66,7 +67,7 @@ public class AuthDialog extends JDialog {
 
         object = obj;
 
-        // getContentPane().setLayout(new GridLayout(6, 1));
+        //getContentPane().setLayout(new GridLayout(6, 1));
         authDialog.getContentPane().setLayout(new FlowLayout());
 
         JLabel label;
@@ -88,7 +89,7 @@ public class AuthDialog extends JDialog {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Button Name:"));
+                label = new JLabel(rb.getString("dialog.Button_Name:"));
                 namePanel.add(label);
                 jfield = new JTextField(obtn.name);
                 jfield.setName("name");
@@ -107,15 +108,15 @@ public class AuthDialog extends JDialog {
                 authDialog.getContentPane().add(infoPanel);
 
                 String typeStr = "";
-                if (obtn.parent.objectType.equals("card")) typeStr = PCARD.pc.intl.getDialogText("Card button ");
-                else typeStr = PCARD.pc.intl.getDialogText("Background button ");
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("ID: ") + obtn.id);
+                if (obtn.parent.objectType.equals("card")) typeStr = rb.getString("dialog.Card_button_");
+                else typeStr = rb.getString("dialog.Background_button_");
+                label = new JLabel(typeStr + rb.getString("dialog.ID:_") + obtn.id);
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("Number: ") + ((OCardBase) obtn.parent).GetNumberof(obtn));
+                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + ((OCardBase) obtn.parent).GetNumberof(obtn));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("Part Number: ") + ((OCardBase) obtn.parent).GetNumberofParts(obtn));
+                label = new JLabel(typeStr + rb.getString("dialog.Part_Number:_") + ((OCardBase) obtn.parent).GetNumberofParts(obtn));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
 
@@ -128,20 +129,20 @@ public class AuthDialog extends JDialog {
                 stylePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
                 authDialog.getContentPane().add(stylePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Style:"));
+                label = new JLabel(rb.getString("dialog.Style:"));
                 stylePanel.add(label);
                 popup = new JComboBox<Object>(new String[] {
-                        PCARD.pc.intl.getDialogText("Standard"),
-                        PCARD.pc.intl.getDialogText("Transparent"),
-                        PCARD.pc.intl.getDialogText("Opaque"),
-                        PCARD.pc.intl.getDialogText("Rectangle"),
-                        PCARD.pc.intl.getDialogText("Shadow"),
-                        PCARD.pc.intl.getDialogText("RoundRect"),
-                        PCARD.pc.intl.getDialogText("Default"),
-                        PCARD.pc.intl.getDialogText("Oval"),
-                        PCARD.pc.intl.getDialogText("Popup"),
-                        PCARD.pc.intl.getDialogText("CheckBox"),
-                        PCARD.pc.intl.getDialogText("Radio")});
+                        rb.getString("dialog.Standard"),
+                        rb.getString("dialog.Transparent"),
+                        rb.getString("dialog.Opaque"),
+                        rb.getString("dialog.Rectangle"),
+                        rb.getString("dialog.Shadow"),
+                        rb.getString("dialog.RoundRect"),
+                        rb.getString("dialog.Default"),
+                        rb.getString("dialog.Oval"),
+                        rb.getString("dialog.Popup"),
+                        rb.getString("dialog.CheckBox"),
+                        rb.getString("dialog.Radio")});
                 popup.setSelectedIndex(obtn.style);
                 popup.setName("style");
                 popup.setMaximumRowCount(17);
@@ -157,10 +158,10 @@ public class AuthDialog extends JDialog {
                 famiPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
                 authDialog.getContentPane().add(famiPanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Family:"));
+                label = new JLabel(rb.getString("dialog.Family:"));
                 famiPanel.add(label);
                 popup = new JComboBox<Object>(new String[] {
-                        PCARD.pc.intl.getDialogText("None"), "1", "2", "3",
+                        rb.getString("dialog.None"), "1", "2", "3",
                         "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"});
                 popup.setSelectedIndex(obtn.group);
                 popup.setName("family");
@@ -177,28 +178,28 @@ public class AuthDialog extends JDialog {
                 propPanel.setLayout(new GridLayout(3, 2));
                 authDialog.getContentPane().add(propPanel);
 
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Show Name"));
+                check = new JCheckBox(rb.getString("dialog.Show_Name"));
                 check.setSelected(obtn.showName);
                 check.addActionListener(btnlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Enabled"));
+                check = new JCheckBox(rb.getString("dialog.Enabled"));
                 check.setSelected(obtn.enabled);
                 check.addActionListener(btnlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Visible"));
+                check = new JCheckBox(rb.getString("dialog.Visible"));
                 check.setSelected(obtn.getVisible());
                 check.addActionListener(btnlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Scale Icon"));
+                check = new JCheckBox(rb.getString("dialog.Scale_Icon"));
                 check.setSelected(obtn.getScaleIcon());
                 check.addActionListener(btnlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Auto Hilite"));
+                check = new JCheckBox(rb.getString("dialog.Auto_Hilite"));
                 check.setSelected(obtn.getAutoHilite());
                 check.addActionListener(btnlistener);
                 propPanel.add(check);
                 if (obtn.parent.objectType.equals("background")) {
-                    check = new JCheckBox(PCARD.pc.intl.getDialogText("Shared Hilite"));
+                    check = new JCheckBox(rb.getString("dialog.Shared_Hilite"));
                     check.setSelected(obtn.sharedHilite);
                     check.addActionListener(btnlistener);
                     propPanel.add(check);
@@ -235,24 +236,24 @@ public class AuthDialog extends JDialog {
                 buttonPanel.setLayout(new GridLayout(3, 2));
                 authDialog.getContentPane().add(buttonPanel);
 
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Font…"));
+                jbtn = new JButton(rb.getString("dialog.Font…"));
                 jbtn.addActionListener(btnlistener);
                 buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Icon…"));
+                jbtn = new JButton(rb.getString("dialog.Icon…"));
                 jbtn.addActionListener(btnlistener);
                 buttonPanel.add(jbtn);
-//                jbtn = new JButton(PCARD.pc.intl.getDialogText("LinkTo…"));
+//                jbtn = new JButton(rb.getString("dialog.LinkTo…"));
 //                jbtn.addActionListener(btnlistener);
 //                jbtn.setEnabled(false);
 //                buttonPanel.add(jbtn);
-//                jbtn = new JButton(PCARD.pc.intl.getDialogText("Effect…"));
+//                jbtn = new JButton(rb.getString("dialog.Effect…"));
 //                jbtn.addActionListener(btnlistener);
 //                jbtn.setEnabled(false);
 //                buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Script…"));
+                jbtn = new JButton(rb.getString("dialog.Script…"));
                 jbtn.addActionListener(btnlistener);
                 buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Content…"));
+                jbtn = new JButton(rb.getString("dialog.Content…"));
                 jbtn.addActionListener(btnlistener);
                 buttonPanel.add(jbtn);
 
@@ -266,8 +267,8 @@ public class AuthDialog extends JDialog {
 
             JCheckBox multiplelinesbtn;
             JCheckBox fixedlineheightbtn;
-            multiplelinesbtn = new JCheckBox(PCARD.pc.intl.getDialogText("Multiple lines"));
-            fixedlineheightbtn = new JCheckBox(PCARD.pc.intl.getDialogText("Fixed line height"));
+            multiplelinesbtn = new JCheckBox(rb.getString("dialog.Multiple_lines"));
+            fixedlineheightbtn = new JCheckBox(rb.getString("dialog.Fixed_line_height"));
 
             AuthFieldListener fldlistener = new AuthFieldListener(multiplelinesbtn, fixedlineheightbtn);
 
@@ -276,7 +277,7 @@ public class AuthDialog extends JDialog {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Field Name:"));
+                label = new JLabel(rb.getString("dialog.Field_Name:"));
                 namePanel.add(label);
                 jfield = new JTextField(ofld.name);
                 jfield.setName("name");
@@ -295,15 +296,15 @@ public class AuthDialog extends JDialog {
                 authDialog.getContentPane().add(infoPanel);
 
                 String typeStr = "";
-                if (ofld.parent.objectType.equals("card")) typeStr = PCARD.pc.intl.getDialogText("Card field ");
-                else typeStr = PCARD.pc.intl.getDialogText("Background field ");
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("ID: ") + ofld.id);
+                if (ofld.parent.objectType.equals("card")) typeStr = rb.getString("dialog.Card_field_");
+                else typeStr = rb.getString("dialog.Background_field_");
+                label = new JLabel(typeStr + rb.getString("dialog.ID:_") + ofld.id);
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("Number: ") + ((OCardBase) ofld.parent).GetNumberof(ofld));
+                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + ((OCardBase) ofld.parent).GetNumberof(ofld));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("Part Number: ") + ((OCardBase) ofld.parent).GetNumberofParts(ofld));
+                label = new JLabel(typeStr + rb.getString("dialog.Part_Number:_") + ((OCardBase) ofld.parent).GetNumberofParts(ofld));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
 
@@ -316,15 +317,15 @@ public class AuthDialog extends JDialog {
                 stylePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
                 authDialog.getContentPane().add(stylePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Style:"));
+                label = new JLabel(rb.getString("dialog.Style:"));
                 stylePanel.add(label);
                 popup = new JComboBox<Object>(new String[] {
-//                        PCARD.pc.intl.getDialogText("Standard"),
-                        PCARD.pc.intl.getDialogText("Transparent"),
-                        PCARD.pc.intl.getDialogText("Opaque"),
-                        PCARD.pc.intl.getDialogText("Rectangle"),
-                        PCARD.pc.intl.getDialogText("Shadow"),
-                        PCARD.pc.intl.getDialogText("Scroll")});
+//                        rb.getString("dialog.Standard"),
+                        rb.getString("dialog.Transparent"),
+                        rb.getString("dialog.Opaque"),
+                        rb.getString("dialog.Rectangle"),
+                        rb.getString("dialog.Shadow"),
+                        rb.getString("dialog.Scroll")});
                 popup.setSelectedIndex(ofld.style - 1);
                 popup.setName("style");
                 popup.setMaximumRowCount(17);
@@ -340,49 +341,49 @@ public class AuthDialog extends JDialog {
                 propPanel.setLayout(new GridLayout(6, 2));
                 authDialog.getContentPane().add(propPanel);
 
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Lock text"));
+                check = new JCheckBox(rb.getString("dialog.Lock_text"));
                 check.setSelected(ofld.enabled);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Visible"));
+                check = new JCheckBox(rb.getString("dialog.Visible"));
                 check.setSelected(ofld.getVisible());
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Don't wrap"));
+                check = new JCheckBox(rb.getString("dialog.Don't_wrap"));
                 check.setSelected(ofld.dontWrap);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Auto select"));
+                check = new JCheckBox(rb.getString("dialog.Auto_select"));
                 check.setSelected(ofld.autoSelect);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-//                check = new JCheckBox(PCARD.pc.intl.getDialogText("Multiple lines"));
+//                check = new JCheckBox(rb.getString("dialog.Multiple_lines"));
                 multiplelinesbtn.setEnabled(ofld.autoSelect);
                 multiplelinesbtn.setSelected(ofld.multipleLines);
                 multiplelinesbtn.addActionListener(fldlistener);
                 propPanel.add(multiplelinesbtn);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Wide margins"));
+                check = new JCheckBox(rb.getString("dialog.Wide_margins"));
                 check.setSelected(ofld.wideMargins);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-//                check = new JCheckBox(PCARD.pc.intl.getDialogText("Fixed line height"));
+//                check = new JCheckBox(rb.getString("dialog.Fixed_line_height"));
                 fixedlineheightbtn.setSelected(ofld.fixedLineHeight);
                 fixedlineheightbtn.addActionListener(fldlistener);
                 propPanel.add(fixedlineheightbtn);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Show lines"));
+                check = new JCheckBox(rb.getString("dialog.Show_lines"));
                 check.setSelected(ofld.showLines);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Auto tab"));
+                check = new JCheckBox(rb.getString("dialog.Auto_tab"));
                 check.setSelected(ofld.autoTab);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Don't search"));
+                check = new JCheckBox(rb.getString("dialog.Don't_search"));
                 check.setSelected(ofld.dontSearch);
                 check.addActionListener(fldlistener);
                 propPanel.add(check);
                 if (ofld.parent.objectType.equals("background")) {
-                    check = new JCheckBox(PCARD.pc.intl.getDialogText("Shared text"));
+                    check = new JCheckBox(rb.getString("dialog.Shared_text"));
                     check.setSelected(ofld.sharedText);
                     check.addActionListener(fldlistener);
                     propPanel.add(check);
@@ -418,10 +419,10 @@ public class AuthDialog extends JDialog {
                 buttonPanel.setLayout(new GridLayout(1, 2));
                 authDialog.getContentPane().add(buttonPanel);
 
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Font…"));
+                jbtn = new JButton(rb.getString("dialog.Font…"));
                 jbtn.addActionListener(fldlistener);
                 buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Script…"));
+                jbtn = new JButton(rb.getString("dialog.Script…"));
                 jbtn.addActionListener(fldlistener);
                 buttonPanel.add(jbtn);
 
@@ -439,7 +440,7 @@ public class AuthDialog extends JDialog {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Card Name:"));
+                label = new JLabel(rb.getString("dialog.Card_Name:"));
                 namePanel.add(label);
                 jfield = new JTextField(ocard.name);
                 jfield.setName("name");
@@ -458,11 +459,11 @@ public class AuthDialog extends JDialog {
                 authDialog.getContentPane().add(infoPanel);
 
                 String typeStr = "";
-                typeStr = PCARD.pc.intl.getDialogText("Card ");
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("ID: ") + ocard.id);
+                typeStr = rb.getString("dialog.Card_");
+                label = new JLabel(typeStr + rb.getString("dialog.ID:_") + ocard.id);
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("Number: ") + ocard.stack.GetNumberof(ocard)
+                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + ocard.stack.GetNumberof(ocard)
                         + " / " + (ocard.stack.GetCardListSize()));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
@@ -476,19 +477,19 @@ public class AuthDialog extends JDialog {
                 propPanel.setLayout(new GridLayout(4, 1));
                 authDialog.getContentPane().add(propPanel);
 
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Show picture"));
+                check = new JCheckBox(rb.getString("dialog.Show_picture"));
                 check.setSelected(ocard.showPict);
                 check.addActionListener(cardlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Marked"));
+                check = new JCheckBox(rb.getString("dialog.Marked"));
                 check.setSelected(ocard.marked);
                 check.addActionListener(cardlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Don't search"));
+                check = new JCheckBox(rb.getString("dialog.Don't_search"));
                 check.setSelected(ocard.dontSearch);
                 check.addActionListener(cardlistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Can't delete"));
+                check = new JCheckBox(rb.getString("dialog.Can't_delete"));
                 check.setSelected(ocard.cantDelete);
                 check.addActionListener(cardlistener);
                 propPanel.add(check);
@@ -502,7 +503,7 @@ public class AuthDialog extends JDialog {
                 // buttonPanel.setLayout(new GridLayout(1,1));
                 authDialog.getContentPane().add(buttonPanel);
 
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Script…"));
+                jbtn = new JButton(rb.getString("dialog.Script…"));
                 jbtn.addActionListener(cardlistener);
                 buttonPanel.add(jbtn);
 
@@ -520,7 +521,7 @@ public class AuthDialog extends JDialog {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Background Name:"));
+                label = new JLabel(rb.getString("dialog.Background_Name:"));
                 namePanel.add(label);
                 jfield = new JTextField(obkgnd.name);
                 jfield.setName("name");
@@ -539,11 +540,11 @@ public class AuthDialog extends JDialog {
                 authDialog.getContentPane().add(infoPanel);
 
                 String typeStr = "";
-                typeStr = PCARD.pc.intl.getDialogText("Background ");
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("ID: ") + obkgnd.id);
+                typeStr = rb.getString("dialog.Background_");
+                label = new JLabel(typeStr + rb.getString("dialog.ID:_") + obkgnd.id);
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + PCARD.pc.intl.getDialogText("Number: ") + obkgnd.stack.GetNumberof(obkgnd)
+                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + obkgnd.stack.GetNumberof(obkgnd)
                         + " / " + (obkgnd.stack.GetBgListSize()));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
@@ -557,15 +558,15 @@ public class AuthDialog extends JDialog {
                 propPanel.setLayout(new GridLayout(3, 1));
                 authDialog.getContentPane().add(propPanel);
 
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Show picture"));
+                check = new JCheckBox(rb.getString("dialog.Show_picture"));
                 check.setSelected(obkgnd.showPict);
                 check.addActionListener(bglistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Don't search"));
+                check = new JCheckBox(rb.getString("dialog.Don't_search"));
                 check.setSelected(obkgnd.dontSearch);
                 check.addActionListener(bglistener);
                 propPanel.add(check);
-                check = new JCheckBox(PCARD.pc.intl.getDialogText("Can't delete"));
+                check = new JCheckBox(rb.getString("dialog.Can't_delete"));
                 check.setSelected(obkgnd.cantDelete);
                 check.addActionListener(bglistener);
                 propPanel.add(check);
@@ -579,7 +580,7 @@ public class AuthDialog extends JDialog {
                 // buttonPanel.setLayout(new GridLayout(1,1));
                 authDialog.getContentPane().add(buttonPanel);
 
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Script…"));
+                jbtn = new JButton(rb.getString("dialog.Script…"));
                 jbtn.addActionListener(bglistener);
                 buttonPanel.add(jbtn);
 
@@ -597,7 +598,7 @@ public class AuthDialog extends JDialog {
                 JPanel namePanel = new JPanel();
                 authDialog.getContentPane().add(namePanel);
 
-                label = new JLabel(PCARD.pc.intl.getDialogText("Stack Name:"));
+                label = new JLabel(rb.getString("dialog.Stack_Name:"));
                 namePanel.add(label);
                 jfield = new JTextField(ostack.name);
                 jfield.setName("name");
@@ -615,7 +616,7 @@ public class AuthDialog extends JDialog {
                 infoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
                 authDialog.getContentPane().add(infoPanel);
 
-                JTextArea area = new JTextArea(PCARD.pc.intl.getDialogText("Stack Path: ") + ostack.file);
+                JTextArea area = new JTextArea(rb.getString("dialog.Stack_Path:_") + ostack.file);
                 area.setPreferredSize(new Dimension(w, 64));
                 area.setLineWrap(true);
                 infoPanel.add(area);
@@ -629,13 +630,13 @@ public class AuthDialog extends JDialog {
                 buttonPanel.setLayout(new GridLayout(1, 2));
                 authDialog.getContentPane().add(buttonPanel);
 
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Script…"));
+                jbtn = new JButton(rb.getString("dialog.Script…"));
                 jbtn.addActionListener(stacklistener);
                 buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Size…"));
+                jbtn = new JButton(rb.getString("dialog.Size…"));
                 jbtn.addActionListener(stacklistener);
                 buttonPanel.add(jbtn);
-                jbtn = new JButton(PCARD.pc.intl.getDialogText("Card List…"));
+                jbtn = new JButton(rb.getString("dialog.Card_List…"));
                 jbtn.addActionListener(stacklistener);
                 buttonPanel.add(jbtn);
 
@@ -666,7 +667,7 @@ public class AuthDialog extends JDialog {
             if (in_cmd.equals("comboBoxChanged")) {
                 in_cmd = ((JComboBox<?>) e.getSource()).getName();
             }
-            String cmd = PCARD.pc.intl.getDialogEngText(in_cmd);
+            String cmd = PCARD.getEngText("dialog", in_cmd);
 
             switch (cmd) {
                 case "style" -> {
@@ -747,12 +748,12 @@ public class AuthDialog extends JDialog {
 
     static class AuthFieldListener implements ActionListener {
 
-        JCheckBox multiplelinesbtn;
-        JCheckBox fixedlineheightbtn;
+        JCheckBox multipleLinesBtn;
+        JCheckBox fixedLineHeightBtn;
 
-        AuthFieldListener(JCheckBox multiplelinesbtn, JCheckBox fixedlineheightbtn) {
-            this.multiplelinesbtn = multiplelinesbtn;
-            this.fixedlineheightbtn = fixedlineheightbtn;
+        AuthFieldListener(JCheckBox multipleLinesBtn, JCheckBox fixedLineHeightBtn) {
+            this.multipleLinesBtn = multipleLinesBtn;
+            this.fixedLineHeightBtn = fixedLineHeightBtn;
         }
 
         @Override
@@ -761,7 +762,7 @@ public class AuthDialog extends JDialog {
             if (in_cmd.equals("comboBoxChanged")) {
                 in_cmd = ((JComboBox<?>) e.getSource()).getName();
             }
-            String cmd = PCARD.pc.intl.getDialogEngText(in_cmd);
+            String cmd = PCARD.getEngText("dialog", in_cmd);
 
             switch (cmd) {
                 case "style" -> {
@@ -789,12 +790,12 @@ public class AuthDialog extends JDialog {
                 case "Auto select" -> {
                     if (object.objectType.equals("field")) {
                         ((OField) object).autoSelect = ((JCheckBox) e.getSource()).isSelected();
-                        multiplelinesbtn.setEnabled(((OField) object).autoSelect);
+                        multipleLinesBtn.setEnabled(((OField) object).autoSelect);
                         if (((OField) object).autoSelect) {
-                            fixedlineheightbtn.setEnabled(false);
-                            fixedlineheightbtn.setSelected(true);
+                            fixedLineHeightBtn.setEnabled(false);
+                            fixedLineHeightBtn.setSelected(true);
                         } else {
-                            fixedlineheightbtn.setEnabled(true);
+                            fixedLineHeightBtn.setEnabled(true);
                         }
                     }
                 }
@@ -858,7 +859,7 @@ public class AuthDialog extends JDialog {
             if (in_cmd.equals("comboBoxChanged")) {
                 in_cmd = ((JComboBox<?>) e.getSource()).getName();
             }
-            String cmd = PCARD.pc.intl.getDialogEngText(in_cmd);
+            String cmd = PCARD.getEngText("dialog", in_cmd);
 
             switch (cmd) {
                 case "Show picture" -> {
@@ -899,7 +900,7 @@ public class AuthDialog extends JDialog {
             if (in_cmd.equals("comboBoxChanged")) {
                 in_cmd = ((JComboBox<?>) e.getSource()).getName();
             }
-            String cmd = PCARD.pc.intl.getDialogEngText(in_cmd);
+            String cmd = PCARD.getEngText("dialog", in_cmd);
 
             switch (cmd) {
                 case "Show picture" -> {
@@ -935,7 +936,7 @@ public class AuthDialog extends JDialog {
             if (in_cmd.equals("comboBoxChanged")) {
                 in_cmd = ((JComboBox<?>) e.getSource()).getName();
             }
-            String cmd = PCARD.pc.intl.getDialogEngText(in_cmd);
+            String cmd = PCARD.getEngText("dialog", in_cmd);
 
             switch (cmd) {
                 case "Script…" -> ScriptEditor.openScriptEditor(PCARD.pc, object);
@@ -1008,7 +1009,7 @@ public class AuthDialog extends JDialog {
                 panel.setLayout(new FlowLayout());
                 // panel.setPreferredSize(new Dimension(320,32));
 
-                JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Width:"));
+                JLabel label = new JLabel(rb.getString("dialog.Width:"));
                 label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
                 panel.add(label);
 
@@ -1022,7 +1023,7 @@ public class AuthDialog extends JDialog {
                 JPanel panel = new JPanel();
                 // panel.setPreferredSize(new Dimension(320,32));
 
-                JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Height:"));
+                JLabel label = new JLabel(rb.getString("dialog.Height:"));
                 label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
                 panel.add(label);
                 JTextField area2 = new JTextField("" + PCARD.pc.stack.height);
@@ -1073,7 +1074,7 @@ public class AuthDialog extends JDialog {
 
                 }
                 if (width <= 32 || height <= 32 || width * height >= 4000 * 3000) {
-                    new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("Illegal size.")
+                    new GDialog(PCARD.pc, rb.getString("dialog.Illegal_size.")
                             , null, "OK", null, null);
                 } else {
                     PCARD.pc.stack.width = width;

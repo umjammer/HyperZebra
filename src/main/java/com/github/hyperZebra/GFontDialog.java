@@ -22,11 +22,11 @@ import javax.swing.ScrollPaneConstants;
 
 public class GFontDialog extends JDialog implements ActionListener, MouseListener {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static String selectedFont = "";
     static int selectedSize;
     static int selectedStyle;
@@ -34,13 +34,12 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
     static MyTextArea sampleArea;
     PCARDFrame owner;
 
-    ResourceBundle rb = ResourceBundle.getBundle("message");
 
     GFontDialog(PCARDFrame owner, String defaultFont, int defaultSize, int defaultStyle, int defaultAlign) {
         super(owner, true);
         this.owner = owner;
         getContentPane().setLayout(null);
-        setTitle(PCARD.pc.intl.getDialogText("Font"));
+        setTitle(rb.getString("dialog.Font"));
 
         // Display sample
         sampleArea = new MyTextArea(rb.getString("font-dialog.sample"));
@@ -116,37 +115,37 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
         getContentPane().add(stylePanel);
 
         // Style
-        JCheckBox check = new JCheckBox(PCARD.pc.intl.getDialogText("Bold"));
+        JCheckBox check = new JCheckBox(rb.getString("dialog.Bold"));
         check.setSelected((defaultStyle & 1) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
 
-        check = new JCheckBox(PCARD.pc.intl.getDialogText("Italic"));
+        check = new JCheckBox(rb.getString("dialog.Italic"));
         check.setSelected((defaultStyle & 2) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
 
-        check = new JCheckBox(PCARD.pc.intl.getDialogText("Underline"));
+        check = new JCheckBox(rb.getString("dialog.Underline"));
         check.setSelected((defaultStyle & 4) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
 
-        check = new JCheckBox(PCARD.pc.intl.getDialogText("Outline"));
+        check = new JCheckBox(rb.getString("dialog.Outline"));
         check.setSelected((defaultStyle & 8) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
 
-        check = new JCheckBox(PCARD.pc.intl.getDialogText("Shadow"));
+        check = new JCheckBox(rb.getString("dialog.Shadow"));
         check.setSelected((defaultStyle & 16) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
 
-        check = new JCheckBox(PCARD.pc.intl.getDialogText("Condensed"));
+        check = new JCheckBox(rb.getString("dialog.Condensed"));
         check.setSelected((defaultStyle & 32) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
 
-        check = new JCheckBox(PCARD.pc.intl.getDialogText("Extend"));
+        check = new JCheckBox(rb.getString("dialog.Extend"));
         check.setSelected((defaultStyle & 64) > 0);
         check.addActionListener(this);
         stylePanel.add(check);
@@ -162,21 +161,21 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
 
             ButtonGroup group = new ButtonGroup();
 
-            JRadioButton radio = new JRadioButton(PCARD.pc.intl.getDialogText("Align Left"));
+            JRadioButton radio = new JRadioButton(rb.getString("dialog.Align_Left"));
             radio.setName("Align Left");
             radio.setSelected(defaultAlign == 0);
             radio.addActionListener(this);
             group.add(radio);
             alignPanel.add(radio);
 
-            radio = new JRadioButton(PCARD.pc.intl.getDialogText("Align Center"));
+            radio = new JRadioButton(rb.getString("dialog.Align_Center"));
             radio.setName("Align Center");
             radio.setSelected(defaultAlign == 1);
             radio.addActionListener(this);
             group.add(radio);
             alignPanel.add(radio);
 
-            radio = new JRadioButton(PCARD.pc.intl.getDialogText("Align Right"));
+            radio = new JRadioButton(rb.getString("dialog.Align_Right"));
             radio.setName("Align Right");
             radio.setSelected(defaultAlign == 2);
             radio.addActionListener(this);
@@ -195,7 +194,7 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_name = e.getActionCommand();
-        String name = PCARD.pc.intl.getDialogEngText(in_name);
+        String name = PCARD.getEngText("dialog", in_name);
         switch (name) {
             case "Bold" -> selectedStyle = (selectedStyle & (~1)) |
                     (((JCheckBox) e.getSource()).isSelected() ? 1 : 0);

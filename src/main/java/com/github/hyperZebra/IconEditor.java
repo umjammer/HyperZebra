@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.Serial;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -61,6 +62,9 @@ public class IconEditor extends PCARDFrame {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     IconEditor iconeditor;
     Rsrc rsrc;
     int rsrcid; // Current id. Variable.
@@ -189,7 +193,7 @@ public class IconEditor extends PCARDFrame {
             ActionListener listener = new IEActionListener(this);
             TBButtonListener listener2 = new TBButtonListener();
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Select"), 0, 0);
+            jbtn = new TBButton(rb.getString("main.Select"), 0, 0);
             grp.add(jbtn);
             jbtn.setSelected(true);
             jbtn.setFocusable(false);
@@ -197,70 +201,70 @@ public class IconEditor extends PCARDFrame {
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Lasso"), 0, 1);
+            jbtn = new TBButton(rb.getString("main.Lasso"), 0, 1);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("MagicWand"), 0, 2);
+            jbtn = new TBButton(rb.getString("main.MagicWand"), 0, 2);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Pencil"), 1, 0);
+            jbtn = new TBButton(rb.getString("main.Pencil"), 1, 0);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Brush"), 1, 1);
+            jbtn = new TBButton(rb.getString("main.Brush"), 1, 1);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Eraser"), 1, 2);
+            jbtn = new TBButton(rb.getString("main.Eraser"), 1, 2);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Line"), 2, 0);
+            jbtn = new TBButton(rb.getString("main.Line"), 2, 0);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Rect"), 2, 1);
+            jbtn = new TBButton(rb.getString("main.Rect"), 2, 1);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Oval"), 2, 2);
+            jbtn = new TBButton(rb.getString("main.Oval"), 2, 2);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("PaintBucket"), 3, 0);
+            jbtn = new TBButton(rb.getString("main.PaintBucket"), 3, 0);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
             jbtn.addMouseListener(listener2);
             toolPanel.add(jbtn);
 
-            jbtn = new TBButton(PCARDFrame.pc.intl.getToolText("Type"), 3, 1);
+            jbtn = new TBButton(rb.getString("main.Type"), 3, 1);
             grp.add(jbtn);
             jbtn.setFocusable(false);
             jbtn.addActionListener(listener);
@@ -280,7 +284,7 @@ public class IconEditor extends PCARDFrame {
             this.grad.setFocusable(false);
             toolPanel.add(this.grad);
 
-            this.trans = new TransButton(PCARDFrame.pc.intl.getToolText("Transparency"), 5, 2);
+            this.trans = new TransButton(rb.getString("main.Transparency"), 5, 2);
             this.trans.setFocusable(false);
             // trans.addActionListener(listener);
             this.trans.addMouseListener(listener2);
@@ -291,7 +295,7 @@ public class IconEditor extends PCARDFrame {
 
             /*JPanel savePanel = new JPanel();
             leftPanel.add(savePanel);
-            jbtn = new JButton(PCARD.pc.intl.getToolText("Save"));
+            jbtn = new JButton(rb.getString("main.Save"));
             jbtn.addActionListener(listener);
             savePanel.add(jbtn);*/
         }
@@ -449,6 +453,8 @@ public class IconEditor extends PCARDFrame {
 
     class MyLabelPanel extends JPanel {
 
+        private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
         @Serial
         private static final long serialVersionUID = 1L;
 
@@ -456,7 +462,7 @@ public class IconEditor extends PCARDFrame {
             super();
             setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
-            JLabel label = new JLabel(PCARDFrame.pc.intl.getDialogText(labelStr));
+            JLabel label = new JLabel(PCARD.getText("dialog", labelStr));
             add(label);
             JTextField jfld = new JTextField(value);
             jfld.setMargin(new Insets(0, 0, 0, 0));
@@ -673,6 +679,8 @@ class IEKeyListener implements KeyListener {
 
 class IEActionListener implements ActionListener {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     IconEditor owner;
 
     IEActionListener(IconEditor frame) {
@@ -682,7 +690,7 @@ class IEActionListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getToolText(in_cmd);
+        String cmd = PCARD.getText("main", in_cmd);
         ChangeTool(cmd);
     }
 
@@ -692,53 +700,53 @@ class IEActionListener implements ActionListener {
             owner.tool.end();
         }
 
-        if (PCARD.pc.intl.getToolText("Select").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Select").equalsIgnoreCase(cmd)) {
+        if (rb.getString("main.Select").equalsIgnoreCase(cmd) ||
+                "Select".equalsIgnoreCase(cmd)) {
             owner.tool = new SelectTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Lasso").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Lasso").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Lasso").equalsIgnoreCase(cmd) ||
+                "Lasso".equalsIgnoreCase(cmd)) {
             owner.tool = new LassoTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("MagicWand").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("MagicWand").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.MagicWand").equalsIgnoreCase(cmd) ||
+                "MagicWand".equalsIgnoreCase(cmd)) {
             owner.tool = new SmartSelectTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARDFrame.pc.intl.getToolText("Brush").equalsIgnoreCase(cmd) ||
-                PCARDFrame.pc.intl.getToolEngText("Brush").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Brush").equalsIgnoreCase(cmd) ||
+                "Brush".equalsIgnoreCase(cmd)) {
             owner.tool = new BrushTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("PaintBucket").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("PaintBucket").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.PaintBucket").equalsIgnoreCase(cmd) ||
+                "PaintBucket".equalsIgnoreCase(cmd)) {
             owner.tool = new PaintBucketTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Pencil").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Pencil").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Pencil").equalsIgnoreCase(cmd) ||
+                "Pencil".equalsIgnoreCase(cmd)) {
             owner.tool = new PencilTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Eraser").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Eraser").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Eraser").equalsIgnoreCase(cmd) ||
+                "Eraser".equalsIgnoreCase(cmd)) {
             owner.tool = new EraserTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Line").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Line").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Line").equalsIgnoreCase(cmd) ||
+                "Line".equalsIgnoreCase(cmd)) {
             owner.tool = new LineTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Rect").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Rect").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Rect").equalsIgnoreCase(cmd) ||
+                "Rect".equalsIgnoreCase(cmd)) {
             owner.tool = new RectTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Oval").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Oval").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Oval").equalsIgnoreCase(cmd) ||
+                "Oval".equalsIgnoreCase(cmd)) {
             owner.tool = new OvalTool();
             TBCursor.changeCursor(owner);
-        } else if (PCARD.pc.intl.getToolText("Type").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Type").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Type").equalsIgnoreCase(cmd) ||
+                "Type".equalsIgnoreCase(cmd)) {
             owner.tool = new TypeTool();
             TBCursor.changeCursor(owner);
         }
-        /*else if(PCARD.pc.intl.getToolText("OK").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("OK").equalsIgnoreCase(cmd)){
+        /*else if(rb.getString("main.OK").equalsIgnoreCase(cmd) ||
+                "OK".equalsIgnoreCase(cmd)){
             Rsrc.RsrcClass iconres = owner.rsrc.getResource(owner.rsrcid, "icon");
 
             iconres.name = owner.namefld.getText();
@@ -761,6 +769,8 @@ class IEActionListener implements ActionListener {
 
 
 class IEMenu {
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static JMenuItem undoMenu = null;
     static JMenuItem redoMenu = null;
@@ -795,128 +805,127 @@ class IEMenu {
         int s_shift = s + InputEvent.SHIFT_DOWN_MASK;
 
         // File menu
-        m = new JMenu(PCARD.pc.intl.getText("File"));
+        m = new JMenu(rb.getString("main.File"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Close")));
+        m.add(mi = new JMenuItem(rb.getString("main.Close")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
         mi.addActionListener(listener);
 
         // Edit menu
-        m = new JMenu(PCARD.pc.intl.getText("Edit"));
+        m = new JMenu(rb.getString("main.Edit"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo Paint")));
+        m.add(mi = new JMenuItem(rb.getString("main.Undo_Paint")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));
         mi.addActionListener(listener);
         undoMenu = mi;
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Redo Paint")));
+        m.add(mi = new JMenuItem(rb.getString("main.Redo_Paint")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s_shift));
         mi.addActionListener(listener);
         redoMenu = mi;
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Cut Picture")));
+        m.add(mi = new JMenuItem(rb.getString("main.Cut_Picture")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Copy Picture")));
+        m.add(mi = new JMenuItem(rb.getString("main.Copy_Picture")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Paste Picture")));
+        m.add(mi = new JMenuItem(rb.getString("main.Paste_Picture")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Clear Selection")));
+        m.add(mi = new JMenuItem(rb.getString("main.Clear_Selection")));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Image Size…")));
+        m.add(mi = new JMenuItem(rb.getString("main.Image_Size…")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, s));
         mi.addActionListener(listener);
         if (owner.type.equals("cursor")) {
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Hot Spot…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Hot_Spot…")));
             mi.addActionListener(listener);
         }
 
         // Paint menu
-        m = new JMenu(PCARD.pc.intl.getText("Paint"));
+        m = new JMenu(rb.getString("main.Paint"));
         mb.add(m);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select All")));
+        // m.add(mi = new JMenuItem(rb.getString("main.Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
         mi.addActionListener(listener);
-        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("FatBits")));
+        m.add(cb = new JCheckBoxMenuItem(rb.getString("main.FatBits")));
         cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, s));
         cb.addActionListener(listener);
         {
-            JMenu subm = new JMenu(PCARD.pc.intl.getText("Grid"));
-            subm.add(mi = new JMenuItem(PCARD.pc.intl.getText("Grid Size 1")));
+            JMenu subm = new JMenu(rb.getString("main.Grid"));
+            subm.add(mi = new JMenuItem(rb.getString("main.Grid_Size_1")));
             mi.addActionListener(listener);
-            subm.add(mi = new JMenuItem(PCARD.pc.intl.getText("Grid Size 16")));
+            subm.add(mi = new JMenuItem(rb.getString("main.Grid_Size_16")));
             mi.addActionListener(listener);
-            subm.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Use Grid")));
+            subm.add(cb = new JCheckBoxMenuItem(rb.getString("main.Use_Grid")));
             cb.addActionListener(listener);
             cb.setSelected(IconEditor.useGrid);
             m.add(subm);
         }
-        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Antialias")));
+        m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Antialias")));
         cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, s));
         cb.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Reverse Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Reverse_Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Expand Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Expand_Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Add to Protect Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Discard Protect Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Color Convert…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        //m.add(mi = new JMenuItem(rb.getString("main.Add_to_Protect_Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
+        //m.add(mi = new JMenuItem(rb.getString("main.Discard_Protect_Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Color_Convert…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Filter…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Filter…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Blending Mode…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Blending_Mode…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Scale Selection…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Fill")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Invert")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Pickup")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Darken")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Lighten")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rotate Left")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rotate Right")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Flip Horizontal")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-        mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Flip Vertical")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Scale_Selection…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Opaque")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Fill")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Transparent")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Invert")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Pickup")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Darken")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Lighten")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Rotate_Left")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Rotate_Right")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Flip_Horizontal")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Flip_Vertical")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, s));*/
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Keep")));
-        mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Opaque")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Revert")));
-        mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Transparent")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rotate")));
-        mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Keep")));
+        mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Distort")));
-        mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Revert")));
+        mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Stretch")));
-        mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.addSeparator();
+        m.add(mi = new JMenuItem(rb.getString("main.Rotate")));
+        mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Perspective")));
-        mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+        m.add(mi = new JMenuItem(rb.getString("main.Distort")));
+        mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
         mi.addActionListener(listener);
-
+        m.add(mi = new JMenuItem(rb.getString("main.Stretch")));
+        mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
+        mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Perspective")));
+        mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
+        mi.addActionListener(listener);
     }
 }
 
@@ -932,7 +941,7 @@ class IEMenuListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = e.getActionCommand();
-        String cmd = PCARD.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
 
         if (cmd.equalsIgnoreCase("Image Size…")) {
             editor.save();
@@ -953,6 +962,8 @@ class IconSizeDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     JTextField widthField;
     JTextField heightField;
     IconEditor editor;
@@ -974,7 +985,7 @@ class IconSizeDialog extends JDialog implements ActionListener {
             panel.setLayout(new FlowLayout());
             // panel.setPreferredSize(new Dimension(320,32));
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Width:"));
+            JLabel label = new JLabel(rb.getString("dialog.Width:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
 
@@ -988,7 +999,7 @@ class IconSizeDialog extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             // panel.setPreferredSize(new Dimension(320,32));
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Height:"));
+            JLabel label = new JLabel(rb.getString("dialog.Height:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
             JTextField area2 = new JTextField("" + owner.mainImg.getHeight());
@@ -1039,7 +1050,7 @@ class IconSizeDialog extends JDialog implements ActionListener {
 
             }
             if (width <= 0 || height <= 0 || width * height >= 5000 * 5000) {
-                new GDialog(editor, PCARD.pc.intl.getDialogText("Illegal size.")
+                new GDialog(editor, rb.getString("dialog.Illegal_size.")
                         , null, "OK", null, null);
             } else {
                 new IconEditor(editor.owner, editor.rsrc, editor.type, editor.rsrcid, width, height);
@@ -1055,6 +1066,8 @@ class HotSpotDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     JTextField xField;
     JTextField yField;
     IconEditor editor;
@@ -1076,7 +1089,7 @@ class HotSpotDialog extends JDialog implements ActionListener {
             panel.setLayout(new FlowLayout());
             // panel.setPreferredSize(new Dimension(320,32));
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("X:"));
+            JLabel label = new JLabel(rb.getString("dialog.X:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
 
@@ -1091,7 +1104,7 @@ class HotSpotDialog extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             // panel.setPreferredSize(new Dimension(320,32));
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Y:"));
+            JLabel label = new JLabel(rb.getString("dialog.Y:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
             Point hotSpot = owner.rsrc.getHotSpotAll(owner.rsrcid);
@@ -1143,7 +1156,7 @@ class HotSpotDialog extends JDialog implements ActionListener {
 
             }
             if (x <= 0 || y <= 0 || x >= 32 || y >= 32) {
-                new GDialog(editor, PCARD.pc.intl.getDialogText("Illegal point.")
+                new GDialog(editor, rb.getString("dialog.Illegal_point.")
                         , null, "OK", null, null);
             } else {
                 RsrcClass r = editor.rsrc.getResourceAll(editor.rsrcid, editor.type);

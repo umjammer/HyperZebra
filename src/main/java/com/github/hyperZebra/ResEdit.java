@@ -37,6 +37,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.StringWriter;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -578,6 +581,10 @@ class IconTypeEditor extends ResTypeEditor {
 
     class IconButtonListener implements MouseListener {
 
+        private static final Logger logger = System.getLogger(IconButtonListener.class.getName());
+
+        private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() >= 2) {
@@ -587,7 +594,7 @@ class IconTypeEditor extends ResTypeEditor {
                     new IconEditor(editor, pcard.stack.rsrc, type, editor.selectedId[0]);
                 } else {
                     // If not a resource in this stack, ask to make a copy
-                    new GDialog(editor, PCARD.pc.intl.getDialogText("This resource is not in this stack. Make a copy?"), null, "Cancel", "OK", null);
+                    new GDialog(editor, rb.getString("dialog.This_resource_is_not_in_this_stack._Make_a_copy?"), null, "Cancel", "OK", null);
                     if (GDialog.clicked.equals("OK")) {
                         RsrcClass r = pcard.stack.rsrc.getResourceAll(editor.selectedId[0], type);
                         if (r != null) {
@@ -598,7 +605,7 @@ class IconTypeEditor extends ResTypeEditor {
                                  FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                 srcChannel.transferTo(0, srcChannel.size(), destChannel);
                             } catch (Exception e1) {
-                                e1.printStackTrace();
+                                logger.log(Level.ERROR, e1.getMessage(), e1);
                             }
                             pcard.stack.rsrc.addResource(r);
                             new IconEditor(editor, pcard.stack.rsrc, type, editor.selectedId[0]);
@@ -737,6 +744,8 @@ class IconTypeEditor extends ResTypeEditor {
 
     class IconDropListener extends DropTargetAdapter {
 
+        private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
         @Override
         public void drop(DropTargetDropEvent e) {
             try {
@@ -811,7 +820,7 @@ class IconTypeEditor extends ResTypeEditor {
 
                             editor.selectedId[j] = iconid;
                         } else {
-                            String str = PCARD.pc.intl.getDialogText("Can't open the file '%1'.");
+                            String str = rb.getString("dialog.Can't_open_the_file_'%1'.");
                             str = str.replace("%1", path);
                             new GDialog(editor, str, null, "OK", null, null);
                         }
@@ -899,9 +908,7 @@ class OtherTypeEditor extends ResTypeEditor {
 
 class REMenu {
 
-    /**
-     *
-     */
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     public REMenu(JFrame owner) {
         ActionListener listener = null;
@@ -920,16 +927,16 @@ class REMenu {
         }
 
         // File menu
-        m = new JMenu(PCARDFrame.pc.intl.getText("File"));
+        m = new JMenu(rb.getString("main.File"));
         mb.add(m);
 
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("New Item")));
+        m.add(mi = new JMenuItem(rb.getString("main.New_Item")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Open")));
+        m.add(mi = new JMenuItem(rb.getString("main.Open")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("View File")));
+        m.add(mi = new JMenuItem(rb.getString("main.View_File")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, s));
         mi.addActionListener(listener);
         String os = System.getProperty("os.name");
@@ -938,27 +945,27 @@ class REMenu {
         } else {
             mi.setEnabled(false);
         }
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Close")));
+        m.add(mi = new JMenuItem(rb.getString("main.Close")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
         mi.addActionListener(listener);
 
         // Edit menu
-        m = new JMenu(PCARDFrame.pc.intl.getText("Edit"));
+        m = new JMenu(rb.getString("main.Edit"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Cut")));
+        m.add(mi = new JMenuItem(rb.getString("main.Cut")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Copy")));
+        m.add(mi = new JMenuItem(rb.getString("main.Copy")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Paste")));
+        m.add(mi = new JMenuItem(rb.getString("main.Paste")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Delete")));
+        m.add(mi = new JMenuItem(rb.getString("main.Delete")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Select All")));
+        m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
         mi.addActionListener(listener);
     }
@@ -977,7 +984,7 @@ class REMenuListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = e.getActionCommand();
-        String cmd = PCARDFrame.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
 
         if (cmd.equals("Close")) {
             editor.dispose();

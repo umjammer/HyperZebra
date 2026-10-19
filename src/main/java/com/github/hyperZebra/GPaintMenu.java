@@ -23,6 +23,9 @@ import java.awt.image.DataBuffer;
 import java.awt.image.Kernel;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
@@ -32,22 +35,26 @@ import javax.swing.JViewport;
 // Menu actions during painting
 class GMenuPaint implements ActionListener {
 
+    private static final Logger logger = System.getLogger(GMenuPaint.class.getName());
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
 
         boolean result = doMenu(cmd);
-        if (result == false) {
+        if (!result) {
             try {
                 GMenuBrowse.doMenu(cmd);
             } catch (XTalkException e1) {
-                e1.printStackTrace();
+                logger.log(Level.ERROR, e1.getMessage(), e1);
             }
         }
     }
 
     public static boolean doMenu(String in_cmd) {
-        String cmd = PCARDFrame.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
 
         if (cmd.equalsIgnoreCase("Undo Paint")) {
             PaintTool.owner.tool.clear();
@@ -64,20 +71,20 @@ class GMenuPaint implements ActionListener {
                 IEMenu.changeEnabled("Edit", "Redo Paint", true);
             }
 
-            /*Graphics g = PaintTool.owner.mainPane.getGraphics();
-            g.setColor(Color.WHITE);
-            g.fillRect(0,0,PaintTool.owner.mainPane.getWidth(),PaintTool.owner.mainPane.getHeight());
-            PaintTool.owner.mainPane.getGraphics().drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);*/
+//            Graphics g = PaintTool.owner.mainPane.getGraphics();
+//            g.setColor(Color.WHITE);
+//            g.fillRect(0, 0, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
+//            PaintTool.owner.mainPane.getGraphics().drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
             PaintTool.owner.mainPane.repaint();
         } else if (cmd.equalsIgnoreCase("Redo Paint")) {
             setUndo();
             // Write redoBuf to mainImg
             PaintTool.owner.getSurface().setData(PaintTool.owner.redoBuf.getData());
 
-            /*Graphics g = PaintTool.owner.mainPane.getGraphics();
-            g.setColor(Color.WHITE);
-            g.fillRect(0,0,PaintTool.owner.mainPane.getWidth(),PaintTool.owner.mainPane.getHeight());
-            PaintTool.owner.mainPane.getGraphics().drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);*/
+//            Graphics g = PaintTool.owner.mainPane.getGraphics();
+//            g.setColor(Color.WHITE);
+//            g.fillRect(0, 0, PaintTool.owner.mainPane.getWidth(), PaintTool.owner.mainPane.getHeight());
+//            PaintTool.owner.mainPane.getGraphics().drawImage(PaintTool.owner.getSurface(), 0, 0, PaintTool.owner.mainPane);
             PaintTool.owner.mainPane.repaint();
         } else if (cmd.equalsIgnoreCase("Antialias")) {
             PaintTool.antialias = !PaintTool.antialias;
@@ -87,7 +94,7 @@ class GMenuPaint implements ActionListener {
             PaintTool.owner.tool.clear();
             String path;
             JFileChooser chooser = new JFileChooser(new File("./"));
-            chooser.setDialogTitle(PCARDFrame.pc.intl.getDialogText("Save File"));
+            chooser.setDialogTitle(rb.getString("dialog.Save_File"));
             chooser.setSelectedFile(new File("./.ppm"));
             int ret = chooser.showSaveDialog(PCARDFrame.pc);
             if (ret == JFileChooser.APPROVE_OPTION) {
@@ -95,7 +102,7 @@ class GMenuPaint implements ActionListener {
                 try {
                     ImageIO.write(PaintTool.owner.getSurface(), "Ppm", new File(path));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
             }
         } else if (cmd.equalsIgnoreCase("Background")) {
@@ -123,19 +130,19 @@ class GMenuPaint implements ActionListener {
             PaintTool.owner.mainPane.repaint();
         } else if (cmd.equalsIgnoreCase("Cut Picture")) {
             if (PaintTool.owner.tool.getClass() == SelectTool.class) {
-                if (((SelectTool) PaintTool.owner.tool).move == true) {
+                if (((SelectTool) PaintTool.owner.tool).move) {
                     setClipboardImage(PaintTool.owner.redoBuf, ((SelectTool) PaintTool.owner.tool).srcRect.width, ((SelectTool) PaintTool.owner.tool).srcRect.height);
 
                     PaintTool.owner.tool.clear();
                 } else System.out.println("Error");
             } else if (PaintTool.owner.tool.getClass() == LassoTool.class) {
-                if (((LassoTool) PaintTool.owner.tool).move == true) {
+                if (((LassoTool) PaintTool.owner.tool).move) {
                     setClipboardImage(PaintTool.owner.redoBuf, PaintTool.owner.redoBuf.getWidth(), PaintTool.owner.redoBuf.getHeight());
                 } else System.out.println("Error");
 
                 PaintTool.owner.tool.clear();
             } else if (PaintTool.owner.tool.getClass() == SmartSelectTool.class) {
-                if (((SmartSelectTool) PaintTool.owner.tool).move == true) {
+                if (((SmartSelectTool) PaintTool.owner.tool).move) {
                     setClipboardImage(PaintTool.owner.redoBuf, PaintTool.owner.redoBuf.getWidth(), PaintTool.owner.redoBuf.getHeight());
                 } else System.out.println("Error");
 
@@ -144,15 +151,15 @@ class GMenuPaint implements ActionListener {
             PaintTool.owner.mainPane.repaint();
         } else if (cmd.equalsIgnoreCase("Copy Picture")) {
             if (PaintTool.owner.tool.getClass() == SelectTool.class) {
-                if (((SelectTool) PaintTool.owner.tool).move == true) {
+                if (((SelectTool) PaintTool.owner.tool).move) {
                     setClipboardImage(PaintTool.owner.redoBuf, ((SelectTool) PaintTool.owner.tool).srcRect.width, ((SelectTool) PaintTool.owner.tool).srcRect.height);
                 } else System.out.println("Error");
             } else if (PaintTool.owner.tool.getClass() == LassoTool.class) {
-                if (((LassoTool) PaintTool.owner.tool).move == true) {
+                if (((LassoTool) PaintTool.owner.tool).move) {
                     setClipboardImage(PaintTool.owner.redoBuf, PaintTool.owner.redoBuf.getWidth(), PaintTool.owner.redoBuf.getHeight());
                 } else System.out.println("Error");
             } else if (PaintTool.owner.tool.getClass() == SmartSelectTool.class) {
-                if (((SmartSelectTool) PaintTool.owner.tool).move == true) {
+                if (((SmartSelectTool) PaintTool.owner.tool).move) {
                     setClipboardImage(PaintTool.owner.redoBuf, PaintTool.owner.redoBuf.getWidth(), PaintTool.owner.redoBuf.getHeight());
                 } else System.out.println("Error");
             } else System.out.println("Error");

@@ -63,9 +63,9 @@ public class PaintTool {
              }
          }*/
 
-        if (!PCARD.pc.paidle.isAlive()) {
-            PCARD.pc.paidle = new PaintIdle();
-            PCARD.pc.paidle.start();
+        if (!PCARD.pc.paIdle.isAlive()) {
+            PCARD.pc.paIdle = new PaintIdle();
+            PCARD.pc.paIdle.start();
         }
     }
 

@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ResourceBundle;
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
 
@@ -27,6 +28,8 @@ import javax.swing.JProgressBar;
 
 
 public class HCConvert {
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     public static boolean openHCStack(String path, OStack stack) {
         // System.out.println("openHCStack...");
@@ -91,7 +94,7 @@ public class HCConvert {
             // Read data fork
             if (dis == null || !HCData.readDataFork(dis, stack)) {
                 System.out.println("Error occured at reading data from file.");
-                new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Error occured at reading HyperCard stack data."),
+                new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_HyperCard_stack_data."),
                         null, "OK", null, null);
             } else {
                 // If there's a file with a resource fork-like name, read resource fork
@@ -114,7 +117,7 @@ public class HCConvert {
                     HCResource.readAppleDoubleHeader(rsrc_dis, stack);
                 } else {
                     System.out.println("Resource file is not found.");
-                    new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Resource data is not found."),
+                    new GDialog(PCARDFrame.pc, rb.getString("dialog.Resource_data_is_not_found."),
                             null, "OK", null, null);
                 }
                 // Success even without resource file
@@ -244,12 +247,12 @@ public class HCConvert {
                     return true;
                 } else {
                     System.out.println("Error occured at reading resource data from MacBinary file.");
-                    new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Error occured at reading MacBinary HyperCard stack data."),
+                    new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_MacBinary_HyperCard_stack_data."),
                             null, "OK", null, null);
                 }
             } else {
                 System.out.println("Error occured at reading data from MacBinary file.");
-                new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Error occured at reading MacBinary HyperCard stack data."),
+                new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_MacBinary_HyperCard_stack_data."),
                         null, "OK", null, null);
             }
         }
@@ -276,7 +279,7 @@ public class HCConvert {
         try {
             Files.createDirectory(newdir);
         } catch (IOException e) {
-            new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Can't create a new folder."),
+            new GDialog(PCARDFrame.pc, rb.getString("dialog.Can't_create_a_new_folder."),
                     null, "OK", null, null);
             return false;
         }
@@ -292,7 +295,7 @@ public class HCConvert {
         String os = System.getProperty("os.name");
         if (os != null && os.startsWith("Mac OS X")) {
         } else {
-//            new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("Converting from HyperCard Stack is need to run on MacOSX."),
+//            new GDialog(PCARD.pc, rb.getString("dialog.Converting_from_HyperCard_Stack_is_need_to_run_on_MacOSX."),
 //                    null, "OK", null, null);
             return null;
         }
@@ -437,7 +440,7 @@ public class HCConvert {
                     // Data fork
                     if (!HCData.readDataFork(dis, stack)) {
                         System.out.println("Error occured at reading data fork from tar file.");
-                        new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Error occured at reading HyperCard stack data."),
+                        new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_HyperCard_stack_data."),
                                 null, "OK", null, null);
                     }
                     stack.barOffset += 73;

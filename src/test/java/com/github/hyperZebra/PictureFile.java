@@ -18,11 +18,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.ResourceBundle;
 
 import javax.swing.JFileChooser;
 
 
 public class PictureFile {
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     // -------------------------------
     // Save PPM file
@@ -37,7 +40,7 @@ public class PictureFile {
 
         if (path == null) {
             JFileChooser chooser = new JFileChooser(new File("./"));
-            chooser.setDialogTitle(PCARDFrame.pc.intl.getDialogText("Save File"));
+            chooser.setDialogTitle(rb.getString("dialog.Save_File"));
             chooser.setSelectedFile(new File("./.ppm"));
             int ret = chooser.showSaveDialog(PCARDFrame.pc);
             if (ret != JFileChooser.APPROVE_OPTION) {

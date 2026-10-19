@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.util.ResourceBundle;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -183,6 +184,8 @@ class TextArea extends JTextArea {
 
 class TEMenu {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     /**
      *
      */
@@ -209,27 +212,27 @@ class TEMenu {
         // File menu
 
         // Edit menu
-        m = new JMenu(PCARDFrame.pc.intl.getText("Edit"));
+        m = new JMenu(rb.getString("main.Edit"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Undo")));
+        m.add(mi = new JMenuItem(rb.getString("main.Undo")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));
         mi.addActionListener(listener);
         undoMenu = mi;
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Redo")));
+        m.add(mi = new JMenuItem(rb.getString("main.Redo")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s_shift));
         mi.addActionListener(listener);
         redoMenu = mi;
         m.add(mi = new JMenuItem("-"));
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Cut")));
+        m.add(mi = new JMenuItem(rb.getString("main.Cut")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Copy")));
+        m.add(mi = new JMenuItem(rb.getString("main.Copy")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Paste")));
+        m.add(mi = new JMenuItem(rb.getString("main.Paste")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Select All")));
+        m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
         mi.addActionListener(listener);
     }
@@ -241,7 +244,7 @@ class TEMenuListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = e.getActionCommand();
-        String cmd = PCARDFrame.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
         TextArea area = TextEditor.TextEditor.area;
         if (cmd.equals("Cut")) {
             area.cut();

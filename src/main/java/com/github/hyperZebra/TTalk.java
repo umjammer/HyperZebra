@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -337,6 +338,8 @@ class OpenFile {
 public class TTalk extends Thread {
 
     private static final Logger logger = System.getLogger(TTalk.class.getName());
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static TTalk talk;
     static DecimalFormat numFormat = new DecimalFormat("0.######");
@@ -3764,7 +3767,7 @@ label:
                         int top = PCARD.pc.stack.height / 2 - 32 / 2;
                         obtn.setRect(left, top, left + 128, top + 32);
                         obtn.style = 0;
-                        obtn.setName(PCARD.pc.intl.getDialogText("New Button"));
+                        obtn.setName(rb.getString("dialog.New_Button"));
 
                         OCard.reloadCurrentCard();
                         if (AuthTool.tool != null && AuthTool.tool.getClass() == ButtonTool.class) {
@@ -7270,7 +7273,7 @@ label:
                 if (c.getClass() == JMenu.class) {
                     JMenu menu = (JMenu) c;
                     if (str.equalsIgnoreCase(menu.getText()) ||
-                            str.equalsIgnoreCase(PCARD.pc.intl.getEngText(menu.getText()))) {
+                            str.equalsIgnoreCase(PCARD.getEngText("main", menu.getText()))) {
                         obj = new OMenu(menu);
                         break;
                     }

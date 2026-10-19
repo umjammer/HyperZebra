@@ -15,6 +15,7 @@ import java.awt.image.Kernel;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ResourceBundle;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -30,6 +31,9 @@ class PaintFilter extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     private final PCARDFrame owner;
     private BufferedImage save_bi;
     private JComboBox<?> filtercombo;
@@ -40,7 +44,7 @@ class PaintFilter extends JDialog implements ActionListener {
         super(owner, true);
         this.owner = owner;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Filter"));
+        setTitle(rb.getString("dialog.Filter"));
 
         if (!(owner.tool instanceof ToolSelectInterface) ||
                 ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) == null) {
@@ -78,34 +82,34 @@ class PaintFilter extends JDialog implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Filter")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Filter")));
             getContentPane().add("Center", panel);
 
             String[] value = new String[] {
-                    PCARD.pc.intl.getDialogText("None"),
-                    PCARD.pc.intl.getDialogText("Trace Edges"),
-                    PCARD.pc.intl.getDialogText("Trace Edges 2"),
-                    PCARD.pc.intl.getDialogText("Spread Edges Dark"),
-                    PCARD.pc.intl.getDialogText("Spread Edges"),
-                    PCARD.pc.intl.getDialogText("Spread Edges Light"),
-                    PCARD.pc.intl.getDialogText("Small Median"),
-                    PCARD.pc.intl.getDialogText("Median"),
-                    PCARD.pc.intl.getDialogText("Large Median"),
-                    PCARD.pc.intl.getDialogText("Motion Blur"),
-                    PCARD.pc.intl.getDialogText("Blur"),
-                    PCARD.pc.intl.getDialogText("Sharpen"),
-                    PCARD.pc.intl.getDialogText("Glass Tile"),
-                    PCARD.pc.intl.getDialogText("Frosted Glass"),
-                    PCARD.pc.intl.getDialogText("Horizontal Wave"),
-                    PCARD.pc.intl.getDialogText("Vertical Wave"),
-                    PCARD.pc.intl.getDialogText("Noise"),
-                    PCARD.pc.intl.getDialogText("Higher Contrast"),
-                    PCARD.pc.intl.getDialogText("Lower Contrast"),
-                    PCARD.pc.intl.getDialogText("Higher Saturation"),
-                    PCARD.pc.intl.getDialogText("Lower Saturation"),
-                    PCARD.pc.intl.getDialogText("Grayscale"),
-                    PCARD.pc.intl.getDialogText("Binarization"),
-                    PCARD.pc.intl.getDialogText("Index Color")};
+                    rb.getString("dialog.None"),
+                    rb.getString("dialog.Trace_Edges"),
+                    rb.getString("dialog.Trace_Edges_2"),
+                    rb.getString("dialog.Spread_Edges_Dark"),
+                    rb.getString("dialog.Spread_Edges"),
+                    rb.getString("dialog.Spread_Edges_Light"),
+                    rb.getString("dialog.Small_Median"),
+                    rb.getString("dialog.Median"),
+                    rb.getString("dialog.Large_Median"),
+                    rb.getString("dialog.Motion_Blur"),
+                    rb.getString("dialog.Blur"),
+                    rb.getString("dialog.Sharpen"),
+                    rb.getString("dialog.Glass_Tile"),
+                    rb.getString("dialog.Frosted_Glass"),
+                    rb.getString("dialog.Horizontal_Wave"),
+                    rb.getString("dialog.Vertical_Wave"),
+                    rb.getString("dialog.Noise"),
+                    rb.getString("dialog.Higher_Contrast"),
+                    rb.getString("dialog.Lower_Contrast"),
+                    rb.getString("dialog.Higher_Saturation"),
+                    rb.getString("dialog.Lower_Saturation"),
+                    rb.getString("dialog.Grayscale"),
+                    rb.getString("dialog.Binarization"),
+                    rb.getString("dialog.Index_Color")};
             filtercombo = new JComboBox<Object>(value);
             filtercombo.setName("Filter");
             filtercombo.setSelectedIndex(0);
@@ -141,12 +145,12 @@ class PaintFilter extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             getContentPane().add("South", panel);
 
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setName("Cancel");
             button.addActionListener(this);
             panel.add(button);
 
-            button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            button = new JButton(rb.getString("dialog.OK"));
             button.setName("OK");
             button.addActionListener(this);
             panel.add(button);
@@ -156,7 +160,7 @@ class PaintFilter extends JDialog implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
         if (cmd != null && cmd.equals("Cancel")) {
             owner.redoBuf = save_bi;
             this.dispose();
@@ -170,7 +174,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
         String colorstr = (String) colorcombo.getSelectedItem();
         int color = 0;
-        if (PCARD.pc.intl.getDialogEngText(colorstr).equals("Auto")) {
+        if (PCARD.getEngText("dialog", colorstr).equals("Auto")) {
             color = -1;
         } else {
             color = Integer.parseInt(colorstr);
@@ -198,7 +202,7 @@ class PaintFilter extends JDialog implements ActionListener {
             dithercombo.setVisible(false);
 
             String str = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
-            String selectedFilter = PCARD.pc.intl.getDialogEngText(str);
+            String selectedFilter = PCARD.getEngText("dialog", str);
             switch (selectedFilter) {
                 case "None" -> newbi = srcbi;
                 case "Trace Edges" -> newbi = TraceEdges(srcbi);
@@ -235,14 +239,14 @@ class PaintFilter extends JDialog implements ActionListener {
         }
         if (cmd != null && cmd.equals("Colors")) {
             String str = (String) filtercombo.getSelectedItem();
-            String selectedFilter = PCARD.pc.intl.getDialogEngText(str);
+            String selectedFilter = PCARD.getEngText("dialog", str);
             if (selectedFilter.equals("Index Color")) {
                 newbi = IndexColor(srcbi, color, dithermode);
             }
         }
         if (cmd != null && cmd.equals("Dither")) {
             String str = (String) filtercombo.getSelectedItem();
-            String selectedFilter = PCARD.pc.intl.getDialogEngText(str);
+            String selectedFilter = PCARD.getEngText("dialog", str);
             if (selectedFilter.equals("Binarization")) {
                 newbi = BinarizationDither(srcbi, dithermode);
             } else if (selectedFilter.equals("Index Color")) {

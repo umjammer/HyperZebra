@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.border.LineBorder;
@@ -76,6 +77,8 @@ class FieldTool implements authtoolInterface {
 
 class ButtonGUI implements MouseListener, MouseMotionListener {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static ButtonGUI gui = new ButtonGUI();
     int startX;
     int startY;
@@ -101,7 +104,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
             if (btn.popup != null) {
                 PCARDFrame.pc.mainPane.remove(btn.popup);
                 btn.popup = null;
-                btn.btn = new RectButton(btn, PCARDFrame.pc.intl.getDialogText("Popup"));
+                btn.btn = new RectButton(btn, rb.getString("dialog.Popup"));
                 btn.btn.setBounds(btn.left, btn.top, btn.width, btn.height);
                 btn.btn.setVisible(true);
                 PCARDFrame.pc.mainPane.add(btn.btn, 0);
@@ -615,6 +618,8 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 
 class MyButtonDropListener extends DropTargetAdapter {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     @Override
     public void drop(DropTargetDropEvent e) {
         try {
@@ -691,7 +696,7 @@ class MyButtonDropListener extends DropTargetAdapter {
                         obtn.btn.setBounds(obtn.left, obtn.top, obtn.width, obtn.height);
                         obtn.setIcon(iconid);
                     } else {
-                        new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Could't open the file."), null, "OK", null, null);
+                        new GDialog(PCARDFrame.pc, rb.getString("dialog.Could't_open_the_file."), null, "OK", null, null);
                     }
                 }
                 OCard.reloadCurrentCard();
@@ -1200,6 +1205,8 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
 class MyFieldDropListener extends DropTargetAdapter {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     @Override
     public void drop(DropTargetDropEvent e) {
         try {
@@ -1258,7 +1265,7 @@ class MyFieldDropListener extends DropTargetAdapter {
 //                    ofld.textFont = name;
 //                } else
                 {
-                    new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("Could't open the file."), null, "OK", null, null);
+                    new GDialog(PCARD.pc, rb.getString("dialog.Could't_open_the_file."), null, "OK", null, null);
                 }
             }
         } catch (Exception ex) {

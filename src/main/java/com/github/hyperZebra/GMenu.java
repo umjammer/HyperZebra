@@ -24,7 +24,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBoxMenuItem;
@@ -47,13 +46,15 @@ import com.github.hyperZebra.OStack.fontClass;
 
 public class GMenu {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     JMenuBar mb = new JMenuBar();
 
     public static boolean changeMenuName(String menu, String item, String name) {
         JMenuItem mi = searchMenuItem(PCARD.pc.getJMenuBar(), menu, item);
         if (mi == null) return false;
 
-        mi.setText(PCARD.pc.intl.getText(name));
+        mi.setText(PCARD.getText("main", name));
         return true;
     }
 
@@ -94,7 +95,7 @@ public class GMenu {
         // Find in English menu
         for (int i = 0; i < count; i++) {
             JMenu m = mb.getMenu(i);
-            if (PCARD.pc.intl.getEngText(m.getText()).equals(menu)) {
+            if (PCARD.getEngText("main", m.getText()).equals(menu)) {
                 return m;
             }
         }
@@ -121,11 +122,11 @@ public class GMenu {
         // Find in English menu
         for (int i = 0; i < count; i++) {
             JMenu m = mb.getMenu(i);
-            if (PCARD.pc.intl.getEngText(m.getText()).equals(menu)) {
+            if (PCARD.getEngText("main", m.getText()).equals(menu)) {
                 int itemcount = m.getItemCount();
                 for (int j = 0; j < itemcount; j++) {
                     JMenuItem mi = m.getItem(j);
-                    if (mi != null && PCARD.pc.intl.getEngText(mi.getText()).equals(item)) {
+                    if (mi != null && PCARD.getEngText("main", mi.getText()).equals(item)) {
                         return mi;
                     }
                 }
@@ -157,356 +158,356 @@ public class GMenu {
 
         if (mode == 0) {
             // File menu
-            m = new JMenu(PCARD.pc.intl.getText("File"));
+            m = new JMenu(rb.getString("main.File"));
             mb.add(m);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Stack…")));
+            m.add(mi = new JMenuItem(rb.getString("main.New_Stack…")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Open Stack…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Open_Stack…")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));
             mi.addActionListener(listener);
             {
-                JMenu subm = new JMenu(PCARD.pc.intl.getText("Open Recent Stack"));
+                JMenu subm = new JMenu(rb.getString("main.Open_Recent_Stack"));
                 m.add(subm);
             }
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Close Stack")));
+            m.add(mi = new JMenuItem(rb.getString("main.Close_Stack")));
             mi.setEnabled(false);
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Save a Copy…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Save_a_Copy…")));
             mi.setEnabled(false);
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Compact Stack")));
+            m.add(mi = new JMenuItem(rb.getString("main.Compact_Stack")));
             mi.setEnabled(false);
             mi.setEnabled(false);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Protect Stack…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Protect_Stack…")));
             mi.setEnabled(false);
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Delete Stack…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Delete_Stack…")));
             mi.setEnabled(false);
             mi.setEnabled(false);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Print…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Print…")));
             mi.setEnabled(false);
 
             if (!isMacOSX()) {
                 m.addSeparator();
-                m.add(mi = new JMenuItem(PCARD.pc.intl.getText("About " + PCARD.AppName + "…")));
+                m.add(mi = new JMenuItem(PCARD.getText("main", "About " + PCARD.AppName + "…")));
                 mi.addActionListener(listener);
 
                 m.addSeparator();
-                m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Quit")));
+                m.add(mi = new JMenuItem(rb.getString("main.Quit")));
                 mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, s));
                 mi.addActionListener(listener);
             }
 
             // Edit menu
-            m = new JMenu(PCARD.pc.intl.getText("Edit"));
+            m = new JMenu(rb.getString("main.Edit"));
             mb.add(m);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo")));
+            m.add(mi = new JMenuItem(rb.getString("main.Undo")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Cut")));
+            m.add(mi = new JMenuItem(rb.getString("main.Cut")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Copy")));
+            m.add(mi = new JMenuItem(rb.getString("main.Copy")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Paste")));
+            m.add(mi = new JMenuItem(rb.getString("main.Paste")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Delete")));
+            m.add(mi = new JMenuItem(rb.getString("main.Delete")));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Card")));
+            m.add(mi = new JMenuItem(rb.getString("main.New_Card")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Delete Card")));
+            m.add(mi = new JMenuItem(rb.getString("main.Delete_Card")));
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Cut Card")));mi.setEnabled(false);mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Copy Card")));
+            // m.add(mi = new JMenuItem(rb.getString("main.Cut_Card")));mi.setEnabled(false);mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Copy_Card")));
             mi.setEnabled(false);
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Background")));
+            m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Background")));
             cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, s));
             cb.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Icon…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Icon…")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Sound…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Sound…")));
             mi.setEnabled(false);
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Resource…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Resource…")));
             mi.addActionListener(listener);
         }
 
         if (mode == 1) {
             // File menu
-            m = new JMenu(PCARD.pc.intl.getText("File"));
+            m = new JMenu(rb.getString("main.File"));
             mb.add(m);
             m.setEnabled(false);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Import Paint…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Import_Paint…")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Export Paint…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Export_Paint…")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Save as ppm…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/mi.addActionListener(listener);
+            // m.add(mi = new JMenuItem(rb.getString("main.Save_as_ppm…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/mi.addActionListener(listener);
 
             // Edit menu
-            m = new JMenu(PCARD.pc.intl.getText("Edit"));
+            m = new JMenu(rb.getString("main.Edit"));
             mb.add(m);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo Paint")));
+            m.add(mi = new JMenuItem(rb.getString("main.Undo_Paint")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Redo Paint")));
+            m.add(mi = new JMenuItem(rb.getString("main.Redo_Paint")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s_shi));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Cut Picture")));
+            m.add(mi = new JMenuItem(rb.getString("main.Cut_Picture")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Copy Picture")));
+            m.add(mi = new JMenuItem(rb.getString("main.Copy_Picture")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Paste Picture")));
+            m.add(mi = new JMenuItem(rb.getString("main.Paste_Picture")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Clear Selection")));
+            m.add(mi = new JMenuItem(rb.getString("main.Clear_Selection")));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Card")));
+            m.add(mi = new JMenuItem(rb.getString("main.New_Card")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, s));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Background")));
+            m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Background")));
             cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, s));
             cb.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Icon…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Icon…")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Sound…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Sound…")));
             mi.setEnabled(false);
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Resource…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Resource…")));
             mi.setEnabled(false);
             mi.addActionListener(listener);
         }
 
         // Go menu
-        m = new JMenu(PCARD.pc.intl.getText("Go"));
+        m = new JMenu(rb.getString("main.Go"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Back")));
+        m.add(mi = new JMenuItem(rb.getString("main.Back")));
         mi.setEnabled(false);
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DEAD_TILDE, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Home")));
+        m.add(mi = new JMenuItem(rb.getString("main.Home")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Help")));
+        m.add(mi = new JMenuItem(rb.getString("main.Help")));
         mi.setEnabled(false);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Recent")));
+        m.add(mi = new JMenuItem(rb.getString("main.Recent")));
         mi.setEnabled(false);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("First")));
+        m.add(mi = new JMenuItem(rb.getString("main.First")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Prev")));
+        m.add(mi = new JMenuItem(rb.getString("main.Prev")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Next")));
+        m.add(mi = new JMenuItem(rb.getString("main.Next")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Last")));
+        m.add(mi = new JMenuItem(rb.getString("main.Last")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Find…")));
+        m.add(mi = new JMenuItem(rb.getString("main.Find…")));
         mi.setEnabled(false);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Message")));
+        m.add(mi = new JMenuItem(rb.getString("main.Message")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Next Window")));
+        m.add(mi = new JMenuItem(rb.getString("main.Next_Window")));
         mi.setEnabled(false);
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, s));
         mi.addActionListener(listener);
 
         // Tools menu
-        m = new JMenu(PCARD.pc.intl.getText("Tools"));
+        m = new JMenu(rb.getString("main.Tools"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Show ToolBar")));
+        m.add(mi = new JMenuItem(rb.getString("main.Show_ToolBar")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Browse")));
+        m.add(mi = new JMenuItem(rb.getString("main.Browse")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Button")));
+        m.add(mi = new JMenuItem(rb.getString("main.Button")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Field")));
+        m.add(mi = new JMenuItem(rb.getString("main.Field")));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select")));
+        m.add(mi = new JMenuItem(rb.getString("main.Select")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Lasso")));
+        m.add(mi = new JMenuItem(rb.getString("main.Lasso")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("MagicWand")));
+        m.add(mi = new JMenuItem(rb.getString("main.MagicWand")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Pencil")));
+        m.add(mi = new JMenuItem(rb.getString("main.Pencil")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Brush")));
+        m.add(mi = new JMenuItem(rb.getString("main.Brush")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Eraser")));
+        m.add(mi = new JMenuItem(rb.getString("main.Eraser")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Line")));
+        m.add(mi = new JMenuItem(rb.getString("main.Line")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("SprayCan")));mi.setEnabled(false);mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rect")));
+        // m.add(mi = new JMenuItem(rb.getString("main.SprayCan")));mi.setEnabled(false);mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Rect")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("RoundRect")));mi.setEnabled(false);mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("PaintBucket")));
+        // m.add(mi = new JMenuItem(rb.getString("main.RoundRect")));mi.setEnabled(false);mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.PaintBucket")));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Oval")));
+        m.add(mi = new JMenuItem(rb.getString("main.Oval")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Curve")));mi.setEnabled(false);mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Type")));
+        // m.add(mi = new JMenuItem(rb.getString("main.Curve")));mi.setEnabled(false);mi.addActionListener(listener);
+        m.add(mi = new JMenuItem(rb.getString("main.Type")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Polygon")));mi.setEnabled(false);mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("FreePolygon")));mi.setEnabled(false);mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Spoit")));mi.setEnabled(false);mi.addActionListener(listener);
+        // m.add(mi = new JMenuItem(rb.getString("main.Polygon")));mi.setEnabled(false);mi.addActionListener(listener);
+        // m.add(mi = new JMenuItem(rb.getString("main.FreePolygon")));mi.setEnabled(false);mi.addActionListener(listener);
+        // m.add(mi = new JMenuItem(rb.getString("main.Spoit")));mi.setEnabled(false);mi.addActionListener(listener);
 
         // 0. Browse mode
         if (mode == 0) {
             // Objects menu
-            m = new JMenu(PCARD.pc.intl.getText("Objects"));
+            m = new JMenu(rb.getString("main.Objects"));
             mb.add(m);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Button Info…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Button_Info…")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Field Info…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Field_Info…")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Card Info…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Card_Info…")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Background Info…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Background_Info…")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Stack Info…")));
+            m.add(mi = new JMenuItem(rb.getString("main.Stack_Info…")));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("to front")));
+            m.add(mi = new JMenuItem(rb.getString("main.to_front")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, s));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("to back")));
+            m.add(mi = new JMenuItem(rb.getString("main.to_back")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, s));
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Button")));
+            m.add(mi = new JMenuItem(rb.getString("main.New_Button")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Field")));
+            m.add(mi = new JMenuItem(rb.getString("main.New_Field")));
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("New Background")));
+            m.add(mi = new JMenuItem(rb.getString("main.New_Background")));
             mi.addActionListener(listener);
 
         }
 
         if (mode == 1) {
             // Paint menu
-            m = new JMenu(PCARD.pc.intl.getText("Paint"));
+            m = new JMenu(rb.getString("main.Paint"));
             mb.add(m);
-            // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select All")));
+            // m.add(mi = new JMenuItem(rb.getString("main.Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
             mi.addActionListener(listener);
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("FatBits")));
+            m.add(cb = new JCheckBoxMenuItem(rb.getString("main.FatBits")));
             cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, s));
             cb.addActionListener(listener);
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Antialias")));
+            m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Antialias")));
             cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, s));
             cb.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Reverse Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Reverse_Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Expand Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Expand_Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Add to Protect Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Discard Protect Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Color Convert…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            // m.add(mi = new JMenuItem(rb.getString("main.Add_to_Protect_Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
+            // m.add(mi = new JMenuItem(rb.getString("main.Discard_Protect_Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Color_Convert…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Emboss…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Filter…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            // m.add(mi = new JMenuItem(rb.getString("main.Emboss…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Filter…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Blending Mode…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Blending_Mode…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Scale Selection…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Fill")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Invert")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Pickup")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Darken")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Lighten")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rotate Left")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rotate Right")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Flip Horizontal")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
-            mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Flip Vertical")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Scale_Selection…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Opaque")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Fill")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Transparent")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Invert")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Pickup")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Darken")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Lighten")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Rotate_Left")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Rotate_Right")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Flip_Horizontal")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Flip_Vertical")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, s));*/
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Keep")));
+            m.add(mi = new JMenuItem(rb.getString("main.Opaque")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Transparent")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            mi.addActionListener(listener);
+            m.addSeparator();
+            m.add(mi = new JMenuItem(rb.getString("main.Keep")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Revert")));
+            m.add(mi = new JMenuItem(rb.getString("main.Revert")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Rotate")));
+            m.add(mi = new JMenuItem(rb.getString("main.Rotate")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Distort")));
+            m.add(mi = new JMenuItem(rb.getString("main.Distort")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Stretch")));
+            m.add(mi = new JMenuItem(rb.getString("main.Stretch")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Perspective")));
+            m.add(mi = new JMenuItem(rb.getString("main.Perspective")));
             mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
 
         }
 
         // View menu
-        m = new JMenu(PCARD.pc.intl.getText("View"));
+        m = new JMenu(rb.getString("main.View"));
         mb.add(m);
-        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x1")));
+        m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Zoom_x1")));
         cb.setSelected(pcard.zoom == 1);
         cb.addActionListener(listener);
-        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x2")));
+        m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Zoom_x2")));
         cb.setSelected(pcard.zoom == 2);
         cb.addActionListener(listener);
-        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x3")));
+        m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Zoom_x3")));
         cb.setSelected(pcard.zoom == 3);
         cb.addActionListener(listener);
-        m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText("Zoom x4")));
+        m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Zoom_x4")));
         cb.setSelected(pcard.zoom == 4);
         cb.addActionListener(listener);
 
         // Font menu
-        m = new JMenu(PCARD.pc.intl.getText("Font"));
+        m = new JMenu(rb.getString("main.Font"));
         mb.add(m);
         for (String fontName : FONT_MENU_ITEMS) {
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText(fontName)));
+            m.add(cb = new JCheckBoxMenuItem(PCARD.getText("main", fontName)));
             if (fontName.equals("Default")) {
                 cb.setSelected(pcard.selectedFont == null);
             } else {
@@ -517,16 +518,16 @@ public class GMenu {
         m.addSeparator();
         for (int offset : FONT_SIZE_OFFSETS) {
             String label = "Size " + (offset > 0 ? "+" + offset : Integer.toString(offset));
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText(label)));
+            m.add(cb = new JCheckBoxMenuItem(PCARD.getText("main", label)));
             cb.setSelected(pcard.fontSizeOffset == offset);
             cb.addActionListener(listener);
         }
 
         // Encoding menu
-        m = new JMenu(PCARD.pc.intl.getText("Encoding"));
+        m = new JMenu(rb.getString("main.Encoding"));
         mb.add(m);
         for (String encName : ENCODING_MENU_ITEMS) {
-            m.add(cb = new JCheckBoxMenuItem(PCARD.pc.intl.getText(encName)));
+            m.add(cb = new JCheckBoxMenuItem(PCARD.getText("main", encName)));
             cb.setSelected(encName.equalsIgnoreCase(pcard.textEncoding));
             cb.addActionListener(listener);
         }
@@ -662,7 +663,7 @@ public class GMenu {
             }
         }
         subm.addSeparator();
-        JMenuItem mi = new JMenuItem(PCARD.pc.intl.getText("Clear This Menu"));
+        JMenuItem mi = new JMenuItem(rb.getString("main.Clear_This_Menu"));
         mi.addActionListener(listener);
         subm.add(mi);
     }
@@ -709,10 +710,12 @@ class TearoffThread extends Thread
 // Menu actions during browsing (also used in authoring and painting)
 class GMenuBrowse implements ActionListener {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
-        // System.out.println(cmd);
+        //System.out.println(cmd);
 
         // Do not execute menu during script execution
         if (TTalk.idle != true) return;
@@ -740,7 +743,7 @@ class GMenuBrowse implements ActionListener {
 
     public static void doMenu(String in_cmd)
             throws XTalkException {
-        String cmd = PCARD.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
         // System.out.println(cmd);
 
         if (cmd.equalsIgnoreCase("First") ||
@@ -887,7 +890,7 @@ class GMenuBrowse implements ActionListener {
                 if (target.getClass() == MyPopup.class) obtn = ((MyPopup) target).btnData;
                 AuthDialog.openAuthDialog(PCARD.pc, "button", obtn);
             } else {
-                new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("No selected button."),
+                new GDialog(PCARD.pc, rb.getString("dialog.No_selected_button."),
                         null, "OK", null, null);
             }
         } else if (cmd.equalsIgnoreCase("Field Info…")) {
@@ -899,7 +902,7 @@ class GMenuBrowse implements ActionListener {
 
                 AuthDialog.openAuthDialog(PCARD.pc, "field", obtn);
             } else {
-                new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("No selected field."),
+                new GDialog(PCARD.pc, rb.getString("dialog.No_selected_field."),
                         null, "OK", null, null);
             }
         } else if (cmd.equalsIgnoreCase("Card Info…")) {
@@ -948,7 +951,7 @@ class GMenuBrowse implements ActionListener {
                         ButtonGUI.gui.target = obtn.getComponent();
                     }
                 } else {
-                    new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("No selected button."),
+                    new GDialog(PCARD.pc, rb.getString("dialog.No_selected_button."),
                             null, "OK", null, null);
                 }
             }
@@ -980,7 +983,7 @@ class GMenuBrowse implements ActionListener {
                         FieldGUI.gui.target = obtn.getComponent();
                     }
                 } else {
-                    new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("No selected field."),
+                    new GDialog(PCARD.pc, rb.getString("dialog.No_selected_field."),
                             null, "OK", null, null);
                 }
             }
@@ -1018,7 +1021,7 @@ class GMenuBrowse implements ActionListener {
                         ButtonGUI.gui.target = obtn.getComponent();
                     }
                 } else {
-                    new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("No selected button."),
+                    new GDialog(PCARD.pc, rb.getString("dialog.No_selected_button."),
                             null, "OK", null, null);
                 }
             }
@@ -1050,7 +1053,7 @@ class GMenuBrowse implements ActionListener {
                         FieldGUI.gui.target = obtn.getComponent();
                     }
                 } else {
-                    new GDialog(PCARD.pc, PCARD.pc.intl.getDialogText("No selected field."),
+                    new GDialog(PCARD.pc, rb.getString("dialog.No_selected_field."),
                             null, "OK", null, null);
                 }
             }
@@ -1463,7 +1466,7 @@ class GMenuBrowse implements ActionListener {
                 PCARD.pc.setTitle(titleName);
             }
         } else if (cmd.equalsIgnoreCase("Open Stack…")) {
-            /*FileDialog fd = new FileDialog(PCARD.pc , PCARD.pc.intl.getDialogText("Open Stack") , FileDialog.LOAD);
+            /*FileDialog fd = new FileDialog(PCARD.pc , rb.getString("dialog.Open_Stack") , FileDialog.LOAD);
             fd.setVisible(true);
             if(fd.getFile()!=null){
                 String path = fd.getDirectory()+fd.getFile();
@@ -1474,7 +1477,7 @@ class GMenuBrowse implements ActionListener {
             if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
                 chooser.setCurrentDirectory(PCARD.pc.stack.file.getParent().getParent().toFile());
             }
-            chooser.setDialogTitle(PCARD.pc.intl.getDialogText("Open Stack"));
+            chooser.setDialogTitle(rb.getString("dialog.Open_Stack"));
             chooser.setDialogType(JFileChooser.OPEN_DIALOG);
             chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             int selected = chooser.showOpenDialog(PCARD.pc);
@@ -1493,7 +1496,7 @@ class GMenuBrowse implements ActionListener {
                 TTalk.CallMessage("open stack \"" + path + "\"", "", null, false, true);
             }
         } else if (cmd.equalsIgnoreCase("New Stack…")) {
-            /*FileDialog fd = new FileDialog(PCARD.pc , PCARD.pc.intl.getDialogText("New Stack") , FileDialog.SAVE);
+            /*FileDialog fd = new FileDialog(PCARD.pc , rb.getString("dialog.New_Stack") , FileDialog.SAVE);
             fd.setVisible(true);
             if(fd.getFile()!=null){
                 String path = fd.getDirectory()+fd.getFile();*/
@@ -1502,7 +1505,7 @@ class GMenuBrowse implements ActionListener {
             if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
                 chooser.setCurrentDirectory(PCARD.pc.stack.file.getParent().getParent().toFile());
             }
-            chooser.setDialogTitle(PCARD.pc.intl.getDialogText("New Stack"));
+            chooser.setDialogTitle(rb.getString("dialog.New_Stack"));
             chooser.setDialogType(JFileChooser.SAVE_DIALOG);
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             chooser.setFileFilter(new FileFilter() {
@@ -1564,9 +1567,9 @@ class GMenuBrowse implements ActionListener {
                     Path f = Path.of(path);
                     if (Files.exists(f)) {
                         // Overwrite confirmation
-                        new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("This file name already exists. If you continue, the existing file will be replaced."),
-                                null, PCARDFrame.pc.intl.getDialogText("Cancel"), "OK", null);
-                        if (GDialog.clicked.equals(PCARDFrame.pc.intl.getDialogText("Cancel"))) {
+                        new GDialog(PCARDFrame.pc, rb.getString("dialog.This_file_name_already_exists._If_you_continue,_the_existing_file_will_be_replaced."),
+                                null, rb.getString("dialog.Cancel"), "OK", null);
+                        if (GDialog.clicked.equals(rb.getString("dialog.Cancel"))) {
                             PCARD.pc.stack.barDialog.remove(PCARD.pc.stack.bar);
                             PCARD.pc.stack.barDialog.dispose();
                             return;
@@ -1631,13 +1634,8 @@ class GMenuBrowse implements ActionListener {
                         PCARD.pc.stack.bar.setValue(30);
                         PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
 
-                        int fontid = 0;
-                        String fontname = "Chicago";
-                        if (Locale.getDefault().equals(Locale.JAPANESE)) {
-                            ResourceBundle rb = ResourceBundle.getBundle("message");
-                            fontid = Integer.parseInt(rb.getString("menu.fontid"));
-                            fontname = rb.getString("menu.fontname");
-                        }
+                        int fontid = Integer.parseInt(rb.getString("menu.fontid"));
+                        String fontname = rb.getString("menu.fontname");
                         OStack.fontClass fontClass = new fontClass(fontid, fontname);
                         newStack.fontList.add(fontClass);
 
@@ -1663,7 +1661,7 @@ class GMenuBrowse implements ActionListener {
                         // Open XML
                         TTalk.CallMessage("open stack \"" + f + "\"", "", null, false, true);
                     } else {
-                        new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("Can't create a new folder."),
+                        new GDialog(PCARDFrame.pc, rb.getString("dialog.Can't_create_a_new_folder."),
                                 null, "OK", null, null);
                     }
                 } catch (IOException e) {
@@ -1701,7 +1699,7 @@ class GMenuBrowse implements ActionListener {
             TTalk.CallMessage("go cd id " + cd.id, "", null, false, true);
         } else if (cmd.equalsIgnoreCase("Delete Card")) {
             if (1 == PCARD.pc.stack.cardIdList.size()) {
-                new GDialog(PCARDFrame.pc, PCARDFrame.pc.intl.getDialogText("At least one card is required."),
+                new GDialog(PCARDFrame.pc, rb.getString("dialog.At_least_one_card_is_required."),
                         null, "OK", null, null);
                 return;
             }

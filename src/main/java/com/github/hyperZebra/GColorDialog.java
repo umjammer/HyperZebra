@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.Serial;
+import java.util.ResourceBundle;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -27,6 +28,8 @@ class GColorDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     static JColorChooser chooser = new JColorChooser();
     static Color selectedColor;
     static CaptureThread captureThread;
@@ -60,7 +63,7 @@ class GColorDialog extends JDialog implements ActionListener {
         getContentPane().add("South", panel);
 
         if (useCapture) {
-            JButton btn2 = new JButton(PCARD.pc.intl.getDialogText("Choose from Screen"));
+            JButton btn2 = new JButton(rb.getString("dialog.Choose_from_Screen"));
             btn2.setName("capture");
             btn2.addActionListener(this);
             panel.add(btn2);

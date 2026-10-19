@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ResourceBundle;
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
 import javax.xml.stream.XMLInputFactory;
@@ -13,6 +14,8 @@ import javax.xml.stream.XMLStreamReader;
 
 
 public class XMLRead {
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     // Start reading XML file
     public static boolean readToc(String xmlfile, OStack inStack) {
@@ -147,10 +150,10 @@ public class XMLRead {
             }
         } else {
             if (result == false) {
-                new GDialog(inStack.pcard, PCARDFrame.pc.intl.getDialogText("Error occured at reading XML file."), null, "OK", null, null);
+                new GDialog(inStack.pcard, rb.getString("dialog.Error_occured_at_reading_XML_file."), null, "OK", null, null);
                 result = true; // Force open even if only partially readable
             } else if (completeFlag == false) {
-                new GDialog(inStack.pcard, PCARDFrame.pc.intl.getDialogText("XML end tag is not found."), null, "OK", null, null);
+                new GDialog(inStack.pcard, rb.getString("dialog.XML_end_tag_is_not_found."), null, "OK", null, null);
                 result = true; // Force open even if only partially readable
             }
         }

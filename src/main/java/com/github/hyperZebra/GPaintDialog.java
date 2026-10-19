@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -46,6 +47,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     private final PCARDFrame owner;
     private final Color[] srcColorBest = new Color[16];
     private final Color[] dstColorBest = new Color[16];
@@ -57,7 +60,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         this.owner = owner;
         getContentPane().setLayout(null);
-        setTitle(PCARD.pc.intl.getDialogText("Color Convert"));
+        setTitle(rb.getString("dialog.Color_Convert"));
 
         if (owner.tool instanceof ToolSelectInterface &&
                 ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
@@ -203,14 +206,14 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
         // Buttons to make similarity detection stricter or looser
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Unite"));
+            JButton button = new JButton(rb.getString("dialog.Unite"));
             button.setBounds(130, 100, 100, 25);
             button.setName("Unite");
             button.addActionListener(this);
             getContentPane().add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Divide"));
+            JButton button = new JButton(rb.getString("dialog.Divide"));
             button.setBounds(130, 150, 100, 25);
             button.setName("Divide");
             button.addActionListener(this);
@@ -219,14 +222,14 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
         // ok, cancel
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            JButton button = new JButton(rb.getString("dialog.OK"));
             button.setBounds(200, 270, 100, 25);
             button.setName("OK");
             button.addActionListener(this);
             getContentPane().add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setBounds(90, 270, 100, 25);
             button.setName("Cancel");
             button.addActionListener(this);
@@ -274,7 +277,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JButton) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
         if (cmd != null && cmd.equals("Cancel")) {
             owner.redoBuf = save_bi;
             this.dispose();
@@ -494,6 +497,8 @@ class EmbossDialog extends JFrame implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private final PCARDFrame owner;
 
     EmbossDialog(PCARDFrame owner) {
@@ -501,7 +506,7 @@ class EmbossDialog extends JFrame implements ActionListener {
         setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         this.owner = owner;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Emboss"));
+        setTitle(rb.getString("dialog.Emboss"));
 
         SetDialogContents();
 
@@ -538,11 +543,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Thickness")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Thickness")));
             mainpanel.add(panel);
 
             {
-                JCheckBox chkbox = new JCheckBox(PCARD.pc.intl.getDialogText("Use"));
+                JCheckBox chkbox = new JCheckBox(rb.getString("dialog.Use"));
                 chkbox.setName("Thick-Use");
                 chkbox.setPreferredSize(new Dimension(180, 24));
                 chkbox.setSelected(useThick);
@@ -551,7 +556,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Thick-Brightness");
@@ -563,7 +568,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Width ");
+                String name = rb.getString("dialog.Width_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8", name + "9", name + "10"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Thick-Width");
@@ -627,11 +632,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Gradation")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Gradation")));
             mainpanel.add(panel);
 
             {
-                JCheckBox chkbox = new JCheckBox(PCARD.pc.intl.getDialogText("Use"));
+                JCheckBox chkbox = new JCheckBox(rb.getString("dialog.Use"));
                 chkbox.setName("Gradation-Use");
                 chkbox.setPreferredSize(new Dimension(180, 24));
                 chkbox.setSelected(useGrad);
@@ -640,7 +645,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Gradation-Brightness");
@@ -686,11 +691,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Highlight")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Highlight")));
             mainpanel.add(panel);
 
             {
-                JCheckBox chkbox = new JCheckBox(PCARD.pc.intl.getDialogText("Use"));
+                JCheckBox chkbox = new JCheckBox(rb.getString("dialog.Use"));
                 chkbox.setName("Highlight-Use");
                 chkbox.setPreferredSize(new Dimension(180, 24));
                 chkbox.setSelected(useHighlight);
@@ -699,7 +704,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Highlight-Brightness");
@@ -710,7 +715,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Area ");
+                String name = rb.getString("dialog.Area_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Highlight-Area");
@@ -767,15 +772,15 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Reflection")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Reflection")));
             mainpanel.add(panel);
 
             {
                 String[] value = new String[] {
-                        PCARD.pc.intl.getDialogText("None"),
-                        PCARD.pc.intl.getDialogText("Line"),
-                        PCARD.pc.intl.getDialogText("Curve"),
-                        PCARD.pc.intl.getDialogText("Fit")};
+                        rb.getString("dialog.None"),
+                        rb.getString("dialog.Line"),
+                        rb.getString("dialog.Curve"),
+                        rb.getString("dialog.Fit")};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Reflection-Style");
                 combo.setSelectedIndex(1);
@@ -784,7 +789,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Reflection-Brightness");
@@ -795,7 +800,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Angle ");
+                String name = rb.getString("dialog.Angle_");
                 String[] value = new String[36];
                 for (int i = 0; i < 36; i++) {
                     value[i] = name + i * 10;
@@ -850,14 +855,14 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         // ok, cancel
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setBounds(90, 270, 100, 25);
             button.setName("Cancel");
             button.addActionListener(this);
             okpanel.add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            JButton button = new JButton(rb.getString("dialog.OK"));
             button.setBounds(200, 270, 100, 25);
             button.setName("OK");
             button.addActionListener(this);
@@ -890,7 +895,7 @@ class EmbossDialog extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
 
         if (cmd == null) return;
 
@@ -1402,6 +1407,8 @@ class PaintScaleDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private final PCARDFrame owner;
     private final AffineTransform save_af;
     private JTextField widthfield;
@@ -1414,7 +1421,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
         this.owner = owner;
         save_af = owner.selectaf;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Scale Selection"));
+        setTitle(rb.getString("dialog.Scale_Selection"));
 
         SetDialogContents();
 
@@ -1438,7 +1445,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             mainpanel.add(panel);
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Width:"));
+            JLabel label = new JLabel(rb.getString("dialog.Width:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
 
@@ -1452,7 +1459,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             mainpanel.add(panel);
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Height:"));
+            JLabel label = new JLabel(rb.getString("dialog.Height:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
 
@@ -1463,7 +1470,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             panel.add(heightfield);
         }
         {
-            keepRatio = new JCheckBox(PCARD.pc.intl.getDialogText("Keep aspect ratio"));
+            keepRatio = new JCheckBox(rb.getString("dialog.Keep_aspect_ratio"));
             keepRatio.setName("Keep aspect ratio");
             keepRatio.setSelected(true);
             mainpanel.add(keepRatio);
@@ -1474,13 +1481,13 @@ class PaintScaleDialog extends JDialog implements ActionListener {
 
         // ok, cancel
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setName("Cancel");
             button.addActionListener(this);
             okpanel.add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            JButton button = new JButton(rb.getString("dialog.OK"));
             button.setName("OK");
             button.addActionListener(this);
             okpanel.add(button);
@@ -1571,7 +1578,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
 
         if (cmd == null) return;
 
@@ -1689,6 +1696,8 @@ class PaintBlendDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private final PCARDFrame owner;
     static PaintBlendDialog dialog;
 
@@ -1711,7 +1720,7 @@ class PaintBlendDialog extends JDialog implements ActionListener {
         super(owner, false);
         this.owner = owner;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Blending Mode"));
+        setTitle(rb.getString("dialog.Blending_Mode"));
 
         SetDialogContents();
 
@@ -1741,20 +1750,20 @@ class PaintBlendDialog extends JDialog implements ActionListener {
             aqpanel.add(panel);
 
             String[] value = new String[] {
-                    PCARD.pc.intl.getDialogText("Copy"),
-                    PCARD.pc.intl.getDialogText("Blend"), // Alpha blend with specified strength
-                    PCARD.pc.intl.getDialogText("Add"), // (Add with specified strength) Glow
-                    PCARD.pc.intl.getDialogText("Subtract"), // (Subtract with specified strength) Burn
-                    PCARD.pc.intl.getDialogText("Multiply"), // Multiply
-                    PCARD.pc.intl.getDialogText("Screen"), // Multiply with color subtracted from specified brightness
-                    PCARD.pc.intl.getDialogText("Darken"), // Keep darker color
-                    PCARD.pc.intl.getDialogText("Lighten"), // Keep lighter color
-                    PCARD.pc.intl.getDialogText("Difference"), // Absolute difference
-                    PCARD.pc.intl.getDialogText("Hue"), // Hue
-                    PCARD.pc.intl.getDialogText("Color"), // Hue and Saturation
-                    PCARD.pc.intl.getDialogText("Saturation"), // Saturation
-                    PCARD.pc.intl.getDialogText("Luminosity"), // Brightness
-                    PCARD.pc.intl.getDialogText("Alpha Channel") // Apply brightness to alpha channel
+                    rb.getString("dialog.Copy"),
+                    rb.getString("dialog.Blend"), // Alpha blend with specified strength
+                    rb.getString("dialog.Add"), // (Add with specified strength) Glow
+                    rb.getString("dialog.Subtract"), // (Subtract with specified strength) Burn
+                    rb.getString("dialog.Multiply"), // Multiply
+                    rb.getString("dialog.Screen"), // Multiply with color subtracted from specified brightness
+                    rb.getString("dialog.Darken"), // Keep darker color
+                    rb.getString("dialog.Lighten"), // Keep lighter color
+                    rb.getString("dialog.Difference"), // Absolute difference
+                    rb.getString("dialog.Hue"), // Hue
+                    rb.getString("dialog.Color"), // Hue and Saturation
+                    rb.getString("dialog.Saturation"), // Saturation
+                    rb.getString("dialog.Luminosity"), // Brightness
+                    rb.getString("dialog.Alpha_Channel") // Apply brightness to alpha channel
             };
             JComboBox<?> combo = new JComboBox<Object>(value);
             combo.setName("Mode");
@@ -1785,13 +1794,13 @@ class PaintBlendDialog extends JDialog implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
 
         if (cmd == null) return;
 
         if (cmd != null && cmd.equals("Mode")) {
             String str = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
-            String selectedMode = PCARD.pc.intl.getDialogEngText(str);
+            String selectedMode = PCARD.getEngText("dialog", str);
             owner.blendMode = MyPanel.getBlendMode(selectedMode);
         }
         if (cmd != null && cmd.equals("Level")) {

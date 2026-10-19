@@ -20,6 +20,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.JButton;
@@ -50,23 +51,23 @@ import javax.swing.text.StyleContext;
 
 public class ScriptEditor extends JFrame {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    // private OStack parent = null;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    //private OStack parent = null;
     static JTabbedPane tabPane = null;
     String FindStr = "";
     String ReplaceStr = "";
-    // static private ScriptArea area;
+    //static private ScriptArea area;
 
     public ScriptEditor(Frame owner) {
         super();
 
         // frame
         setBounds(owner.getX() + owner.getWidth() / 2 - 320, owner.getY() + owner.getHeight() / 2 - 320, 640, 640);
-        setTitle(PCARD.pc.intl.getDialogText("Script Editor"));
+        setTitle(rb.getString("dialog.Script_Editor"));
         getContentPane().setLayout(new BorderLayout());
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -82,7 +83,7 @@ public class ScriptEditor extends JFrame {
 
             @Override
             public void windowOpened(WindowEvent e) {
-                // area.checkIndentCall();
+                //area.checkIndentCall();
             }
         });
 
@@ -265,11 +266,11 @@ public class ScriptEditor extends JFrame {
             return true;
         }
         java.awt.Toolkit.getDefaultToolkit().beep();
-        Object[] options = {PCARD.pc.intl.getDialogText("Save"),
-                PCARD.pc.intl.getDialogText("Discard"),
-                PCARD.pc.intl.getDialogText("Cancel")};
+        Object[] options = {rb.getString("dialog.Save"),
+                rb.getString("dialog.Discard"),
+                rb.getString("dialog.Cancel")};
         int retValue = JOptionPane.showOptionDialog(PCARD.pc.stack.scriptEditor,
-                PCARD.pc.intl.getDialogText("Script is not saved."),
+                rb.getString("dialog.Script_is_not_saved."),
                 "Exit Options",
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
@@ -317,7 +318,7 @@ public class ScriptEditor extends JFrame {
         }
         JMenuBar mb = PCARD.pc.stack.scriptEditor.getJMenuBar();
         for (int i = 0; i < mb.getMenuCount(); i++) {
-            if (mb.getMenu(i).getText().equals(PCARD.pc.intl.getText("Debug"))) {
+            if (mb.getMenu(i).getText().equals(rb.getString("main.Debug"))) {
                 // Debug menu already exists
                 return;
             }
@@ -329,23 +330,23 @@ public class ScriptEditor extends JFrame {
         if (System.getProperty("os.name").toLowerCase().startsWith("mac os x")) {
             s = InputEvent.META_DOWN_MASK;
         }
-        JMenu m = new JMenu(PCARD.pc.intl.getText("Debug"));
+        JMenu m = new JMenu(rb.getString("main.Debug"));
         mb.add(m);
         JMenuItem mi;
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Step")));
+        m.add(mi = new JMenuItem(rb.getString("main.Step")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_7, s));
         mi.addActionListener(listener);
         m.addSeparator();
 
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Trace")));
+        m.add(mi = new JMenuItem(rb.getString("main.Trace")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, s));
         mi.addActionListener(listener);
 
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Run")));
+        m.add(mi = new JMenuItem(rb.getString("main.Run")));
         mi.addActionListener(listener);
         m.addSeparator();
 
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Variable Watcher")));
+        m.add(mi = new JMenuItem(rb.getString("main.Variable_Watcher")));
         mi.addActionListener(listener);
     }
 }
@@ -1470,9 +1471,8 @@ class ScriptArea extends JTextPane {
 
 class SEMenu {
 
-    /**
-     *
-     */
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static JMenuItem undoMenu = null;
     static JMenuItem redoMenu = null;
 
@@ -1495,83 +1495,83 @@ class SEMenu {
         int s_shift = s + InputEvent.SHIFT_DOWN_MASK;
 
         // File menu
-        m = new JMenu(PCARD.pc.intl.getText("File"));
+        m = new JMenu(rb.getString("main.File"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Close")));
+        m.add(mi = new JMenuItem(rb.getString("main.Close")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Save")));
+        m.add(mi = new JMenuItem(rb.getString("main.Save")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Print…")));
+        m.add(mi = new JMenuItem(rb.getString("main.Print…")));
         mi.setEnabled(false);
 
         // Edit menu
-        m = new JMenu(PCARD.pc.intl.getText("Edit"));
+        m = new JMenu(rb.getString("main.Edit"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Undo")));
+        m.add(mi = new JMenuItem(rb.getString("main.Undo")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));
         mi.addActionListener(listener);
         undoMenu = mi;
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Redo")));
+        m.add(mi = new JMenuItem(rb.getString("main.Redo")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s_shift));
         mi.addActionListener(listener);
         redoMenu = mi;
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Cut")));
+        m.add(mi = new JMenuItem(rb.getString("main.Cut")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Copy")));
+        m.add(mi = new JMenuItem(rb.getString("main.Copy")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Paste")));
+        m.add(mi = new JMenuItem(rb.getString("main.Paste")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Select All")));
+        m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Find")));
+        m.add(mi = new JMenuItem(rb.getString("main.Find")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Find Next")));
+        m.add(mi = new JMenuItem(rb.getString("main.Find_Next")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Find Prev")));
+        m.add(mi = new JMenuItem(rb.getString("main.Find_Prev")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, s_shift));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Replace")));
+        m.add(mi = new JMenuItem(rb.getString("main.Replace")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Replace Next")));
+        m.add(mi = new JMenuItem(rb.getString("main.Replace_Next")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Replace Prev")));
+        m.add(mi = new JMenuItem(rb.getString("main.Replace_Prev")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, s_shift));
         mi.addActionListener(listener);
 
 
         // Script menu
-        m = new JMenu(PCARD.pc.intl.getText("Script"));
+        m = new JMenu(rb.getString("main.Script"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Edit Card Script")));
+        m.add(mi = new JMenuItem(rb.getString("main.Edit_Card_Script")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, s_opt));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Edit Background Script")));
+        m.add(mi = new JMenuItem(rb.getString("main.Edit_Background_Script")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, s_opt));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Edit Stack Script")));
+        m.add(mi = new JMenuItem(rb.getString("main.Edit_Stack_Script")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, s_opt));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Next Window")));
+        m.add(mi = new JMenuItem(rb.getString("main.Next_Window")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Comment")));
+        m.add(mi = new JMenuItem(rb.getString("main.Comment")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARD.pc.intl.getText("Uncomment")));
+        m.add(mi = new JMenuItem(rb.getString("main.Uncomment")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, s));
         mi.addActionListener(listener);
 
@@ -1584,7 +1584,7 @@ class SEMenuListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = e.getActionCommand();
-        String cmd = PCARD.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
         JTabbedPane tabpane = ScriptEditor.tabPane;
         JViewport vp = (JViewport) ((JScrollPane) tabpane.getSelectedComponent()).getComponent(0);
         if (vp.getComponentCount() == 0) return;
@@ -1784,17 +1784,17 @@ class SEMenuListener implements ActionListener {
 
 class FindDialog extends JDialog implements ActionListener {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static String clicked = "";
     JTextField area;
 
     FindDialog(ScriptEditor owner) {
         super(owner, true);
-        setTitle(PCARD.pc.intl.getDialogText("Find String"));
+        setTitle(rb.getString("dialog.Find_String"));
         getContentPane().setLayout(new BorderLayout());
 
         // Add panel
@@ -1814,11 +1814,11 @@ class FindDialog extends JDialog implements ActionListener {
         // area.setBorder(new LineBorder(Color.BLACK));
         topPanel.add(area);
 
-        JButton btn1 = new JButton(PCARD.pc.intl.getDialogText("Find Prev"));
+        JButton btn1 = new JButton(rb.getString("dialog.Find_Prev"));
         btn1.addActionListener(this);
         btmPanel.add(btn1);
 
-        JButton btn2 = new JButton(PCARD.pc.intl.getDialogText("Find Next"));
+        JButton btn2 = new JButton(rb.getString("dialog.Find_Next"));
         btn2.addActionListener(this);
         btmPanel.add(btn2);
         getRootPane().setDefaultButton(btn2);
@@ -1838,18 +1838,18 @@ class FindDialog extends JDialog implements ActionListener {
 
 class ReplaceDialog extends JDialog implements ActionListener {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static String clicked = "";
     JTextField area1;
     JTextField area2;
 
     ReplaceDialog(ScriptEditor owner) {
         super(owner, true);
-        setTitle(PCARD.pc.intl.getDialogText("Replace String"));
+        setTitle(rb.getString("dialog.Replace_String"));
         getContentPane().setLayout(new BorderLayout());
 
         // Add panel
@@ -1887,15 +1887,15 @@ class ReplaceDialog extends JDialog implements ActionListener {
         strokes = new HashSet<>(Collections.singletonList(KeyStroke.getKeyStroke("pressed TAB")));
         area2.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, strokes);
 
-        JButton btn3 = new JButton(PCARD.pc.intl.getDialogText("Replace All"));
+        JButton btn3 = new JButton(rb.getString("dialog.Replace_All"));
         btn3.addActionListener(this);
         btmPanel.add(btn3);
 
-        JButton btn1 = new JButton(PCARD.pc.intl.getDialogText("Replace Prev"));
+        JButton btn1 = new JButton(rb.getString("dialog.Replace_Prev"));
         btn1.addActionListener(this);
         btmPanel.add(btn1);
 
-        JButton btn2 = new JButton(PCARD.pc.intl.getDialogText("Replace Next"));
+        JButton btn2 = new JButton(rb.getString("dialog.Replace_Next"));
         btn2.addActionListener(this);
         btmPanel.add(btn2);
         getRootPane().setDefaultButton(btn2);
