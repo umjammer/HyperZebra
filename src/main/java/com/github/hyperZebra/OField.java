@@ -16,9 +16,12 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -39,6 +42,8 @@ import com.github.hyperZebra.Rsrc.RsrcClass;
 
 public class OField extends OObject {
 
+    private static final Logger logger = System.getLogger(OField.class.getName());
+
     OCardBase card = null;
     OBackground bkgd = null;
     MyTextArea fld = null;
@@ -52,15 +57,15 @@ public class OField extends OObject {
     Boolean dontWrap = false;
     Color color = Color.BLACK;
     Color bgColor = Color.WHITE;
-    // Color selectColor=Color.ORANGE;
-    // Color textColor=Color.BLACK;
+    //Color selectColor = Color.ORANGE;
+    //Color textColor = Color.BLACK;
     Boolean fixedLineHeight = false;
     // lockText is substituted with enabled
     // number (calculated from card information)
     int scroll = 0;
     Boolean sharedText = false;
     Boolean showLines = false;
-    int style = 0;// (0 standard) 1 transparent 2 opaque 3 rectangle 4 shadow 5 scrolling
+    int style = 0; // (0 standard) 1 transparent 2 opaque 3 rectangle 4 shadow 5 scrolling
     int textAlign = 0; // 0 left 1 center 2 right
     String textFont = "";
     int textHeight = 16;
@@ -71,9 +76,9 @@ public class OField extends OObject {
     int selectedStart = 0;
     int selectedEnd = 0;
     boolean multipleLines;
-    boolean hilite = false;//
+    boolean highLight = false; //
 
-    ArrayList<styleClass> styleList;
+    List<styleClass> styleList;
 
     // Additional properties
     @SuppressWarnings("unused")
@@ -279,10 +284,10 @@ public class OField extends OObject {
         ((OCardBase) parent).changed = true;
     }
 
-    public void setHilite(boolean in) {
-        hilite = in;
+    public void setHighLight(boolean in) {
+        highLight = in;
         if (fld != null) {
-            if (hilite) {
+            if (highLight) {
                 fld.setSelectionStart(0);
                 fld.setSelectionEnd(fld.getText().length() - 1);
             } else {
@@ -393,7 +398,7 @@ public class OField extends OObject {
                                         }
                                         case "right" -> right = Integer.parseInt(reader.getElementText());
                                         case "bottom" -> bottom = Integer.parseInt(reader.getElementText());
-                                        default -> System.out.println("Part_Type: " + reader.getLocalName());
+                                        default -> logger.log(Level.DEBUG, "Part_Type: " + reader.getLocalName());
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
                                     String elm2 = reader.getLocalName();
@@ -415,7 +420,7 @@ public class OField extends OObject {
                                         case "red" -> red = Integer.parseInt(reader.getElementText());
                                         case "green" -> green = Integer.parseInt(reader.getElementText());
                                         case "blue" -> blue = Integer.parseInt(reader.getElementText());
-                                        default -> System.out.println("Part_Type: " + reader.getLocalName());
+                                        default -> logger.log(Level.DEBUG, "Part_Type: " + reader.getLocalName());
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
                                     String elm2 = reader.getLocalName();
@@ -531,8 +536,8 @@ public class OField extends OObject {
                         }
                         case "selectedLine" -> this.selectedLine = Integer.parseInt(reader.getElementText());
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -691,10 +696,10 @@ public class OField extends OObject {
         writer.writeEndElement();
         writer.writeCharacters("\n\t\t\t");
 
-       /* writer.writeStartElement("reservedFamily");
-        writer.writeCharacters(" 0 ");
-        writer.writeEndElement();
-        writer.writeCharacters("\n\t\t\t");*/
+//        writer.writeStartElement("reservedFamily");
+//        writer.writeCharacters(" 0 ");
+//        writer.writeEndElement();
+//        writer.writeCharacters("\n\t\t\t");
 
         if (selectedLine > 0) {
             writer.writeStartElement("selectedLines");
@@ -865,14 +870,13 @@ public class OField extends OObject {
         writer.writeCharacters("\n\t\t");
     }
 
-
     // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readFieldBlock(DataInputStream dis, int partSize) {
-        // System.out.println("====readFieldBlock====");
+        //logger.log(Level.DEBUG, "====readFieldBlock====");
         // Read block data sequentially
         int flags = HCData.readCode(dis, 1);
-        // System.out.println("flags:"+flags);
+        //logger.log(Level.DEBUG, "flags: " + flags);
         setVisible(((flags >> 7) & 0x01) == 0);
         dontWrap = ((flags >> 5) & 0x01) != 0;
         dontSearch = ((flags >> 4) & 0x01) != 0;
@@ -881,21 +885,21 @@ public class OField extends OObject {
         autoTab = ((flags >> 1) & 0x01) != 0;
         enabled = (((flags >> 0) & 0x01) != 0);
         top = HCData.readCode(dis, 2);
-        // System.out.println("top:"+top);
+        //logger.log(Level.DEBUG, "top: " + top);
         left = HCData.readCode(dis, 2);
-        // System.out.println("left:"+left);
+        //logger.log(Level.DEBUG, "left: " + left);
         int bottom = HCData.readCode(dis, 2);
-        // System.out.println("bottom:"+bottom);
+        //logger.log(Level.DEBUG, "bottom: " + bottom);
         height = bottom - top;
         int right = HCData.readCode(dis, 2);
-        // System.out.println("right:"+right);
+        //logger.log(Level.DEBUG, "right: " + right);
         width = right - left;
         int flags2 = HCData.readCode(dis, 1);
         autoSelect = ((flags2 >> 7) & 0x01) != 0;
         showLines = ((flags2 >> 6) & 0x01) != 0;
         wideMargins = ((flags2 >> 5) & 0x01) != 0;
         multipleLines = ((flags2 >> 4) & 0x01) != 0;
-        // group = (flags2)&0x0F;
+        //group = flags2 & 0x0F;
         int style = HCData.readCode(dis, 1);
         // 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
         switch (style) {
@@ -912,20 +916,20 @@ public class OField extends OObject {
             case 4:
                 this.style = 4;
                 break; // shadow
-            // case 5: this.style = 9; break; // checkBox
-            // case 6: this.style = 10; break; // radioButton
+            //case 5: this.style = 9; break; // checkBox
+            //case 6: this.style = 10; break; // radioButton
             case 7:
                 this.style = 5;
                 break; // scrolling
-            // case 8: this.style = 0; break; // standard
-            // case 9: this.style = 6; break; // default
-            // case 10: this.style = 7; break; // oval
-            // case 11: this.style = 8; break; // popup
+            //case 8: this.style = 0; break; // standard
+            //case 9: this.style = 6; break; // default
+            //case 10: this.style = 7; break; // oval
+            //case 11: this.style = 8; break; // popup
         }
         selectedEnd = HCData.readCode(dis, 2);
-        // System.out.println("selectedEnd:"+selectedEnd);
+        //logger.log(Level.DEBUG, "selectedEnd: " + selectedEnd);
         selectedStart = HCData.readCode(dis, 2);
-        // System.out.println("selectedStart:"+selectedStart);
+        //logger.log(Level.DEBUG, "selectedStart: " + selectedStart);
         selectedLine = selectedStart;
         int inTextAlign = HCData.readCode(dis, 2);
         switch (inTextAlign) {
@@ -939,29 +943,28 @@ public class OField extends OObject {
                 textAlign = 2;
                 break;
         }
-        // System.out.println("inTextAlign:"+inTextAlign);
+        //logger.log(Level.DEBUG, "inTextAlign: " + inTextAlign);
         int textFontID = HCData.readCode(dis, 2);
-        // System.out.println("textFontID:"+textFontID);
+        //logger.log(Level.DEBUG, "textFontID: " + textFontID);
         textSize = HCData.readCode(dis, 2);
-        // System.out.println("textSize:"+textSize);
+        //logger.log(Level.DEBUG, "textSize: " + textSize);
         textStyle = HCData.readCode(dis, 1);
-        // System.out.println("textStyle:"+textStyle);
-        /*int filler =*/
-        HCData.readCode(dis, 1);
-        // System.out.println("filler:"+filler);
+        //logger.log(Level.DEBUG, "textStyle: " + textStyle);
+        /* int filler = */ HCData.readCode(dis, 1);
+        //logger.log(Level.DEBUG, "filler: " + filler);
         textHeight = HCData.readCode(dis, 2);
-        // System.out.println("textHeight:"+textHeight);
+        //logger.log(Level.DEBUG, "textHeight: " + textHeight);
         resultStr nameResult = HCData.readTextToZero(dis, partSize - 30);
         name = nameResult.str;
         rawNameBytes = nameResult.rawBytes;
-        // System.out.println("name:"+name);
-        // HCStackDebug.debuginfo("name:"+name);
-        /*int filler2 =*/ // HCData.readCode(dis, 1);
-        // System.out.println("filler2:"+filler2);
+        //logger.log(Level.DEBUG, "name: " + name);
+        //HCStackDebug.debuginfo("name: " + name);
+        /* int filler2 = */ // HCData.readCode(dis, 1);
+        //logger.log(Level.DEBUG, "filler2: " + filler2);
         resultStr scriptResult = HCData.readText(dis, partSize - 30 - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
         rawScriptBytes = scriptResult.rawBytes;
-        // System.out.println("scriptStr:"+scriptStr);
+        //logger.log(Level.DEBUG, "scriptStr: "  +scriptStr);
 
         // Search for font name from table
         OStack stack = ((OCardBase) this.parent).stack;
@@ -973,21 +976,20 @@ public class OField extends OObject {
         }
 
         int remainLength = partSize - (30 + (nameResult.length_in_src) + (scriptResult.length_in_src));
-        // System.out.println("remainLength:"+remainLength);
-        // HCStackDebug.debuginfo("remainLength:"+remainLength);
+        //logger.log(Level.DEBUG, "remainLength: " + remainLength);
+        //HCStackDebug.debuginfo("remainLength: " + remainLength);
         if (remainLength < 0 || remainLength > 10) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (remainLength > 0) {
-            /*String padding =*/
-            HCData.readStr(dis, remainLength);
-            // System.out.println("padding:"+padding);
-            // HCStackDebug.debuginfo("padding:"+padding);
+            /* String padding = */ HCData.readStr(dis, remainLength);
+            //logger.log(Level.DEBUG, "padding: " + padding);
+            //HCStackDebug.debuginfo("padding: " + padding);
         }
-        /*if((nameResult.length_in_src+1+scriptResult.length_in_src+1)%2 != 0){
-            String padding = HCData.readStr(dis, 1);
-            System.out.println("padding:"+padding);
-        }*/
+//        if ((nameResult.length_in_src + 1 + scriptResult.length_in_src + 1) % 2 != 0) {
+//            String padding = HCData.readStr(dis, 1);
+//            logger.log(Level.DEBUG, "padding:" + padding);
+//        }
 
         // Script
         String[] scriptAry = scriptStr.split("\n");
@@ -997,7 +999,6 @@ public class OField extends OObject {
 
         return true;
     }
-
 
     static void buildOField(OField ofld) {
         // Add Swing text component
@@ -1010,7 +1011,7 @@ public class OField extends OObject {
         ofld.fld.setForeground(ofld.color);
         ofld.fld.setBackground(ofld.bgColor);
         ofld.fld.setBounds(ofld.left, ofld.top, ofld.width, ofld.height);
-        // ofld.fld.setSelectionColor(ofld.selectColor);
+        //ofld.fld.setSelectionColor(ofld.selectColor);
 
         String resolvedFont = PCARDFrame.getFontName(ofld.textFont);
         int resolvedSize = PCARDFrame.getFontSize(ofld.textSize);
@@ -1021,18 +1022,18 @@ public class OField extends OObject {
         } else {
             Font font = new Font(Font.MONOSPACED, ofld.textStyle, resolvedSize);
             ofld.fld.setFont(font);
-            // File file=new File(ofld.card.stack.file.getParent()+"/resource/FONT"+ofld.textFont+".jpeg");
+            //File file=new File(ofld.card.stack.file.getParent() + "/resource/FONT" + ofld.textFont + ".jpeg");
             BufferedImage bi = null;
-            /*try {
-                bi = javax.imageio.ImageIO.read(file);
-            }catch (IOException e){
-            }*/
+//            try {
+//                bi = javax.imageio.ImageIO.read(file);
+//            } catch (IOException e) {
+//            }
             if (bi == null) {
                 int rsrcid = ofld.card.stack.rsrc.getRsrcIdAll(ofld.textFont, "font");
                 rsrcid += ofld.textSize; // base ID + text size = ID
                 String path = ofld.card.stack.rsrc.getFilePathAll(rsrcid, "font");
                 if (path != null) {
-                    File file = new File(path/*ofld.card.stack.file.getParent()+File.separatorChar+rsrcName*/);
+                    File file = new File(path /* ofld.card.stack.file.getParent() + File.separatorChar + rsrcName */);
                     try {
                         bi = javax.imageio.ImageIO.read(file);
                     } catch (IOException e) {
@@ -1040,10 +1041,9 @@ public class OField extends OObject {
 
                     ofld.fontPict2 = bi;
                 }
+//            } else {
+//                ofld.fld.setFont(new Font(ofld.textFont, ofld.textStyle, ofld.textSize));
             }
-            /*else{
-                ofld.fld.setFont(new Font(ofld.textFont, ofld.textStyle, ofld.textSize));
-            }*/
         }
         if (ofld.textHeight == 0) {
             ofld.textHeight = ofld.fld.getLineHeight();
@@ -1078,7 +1078,7 @@ public class OField extends OObject {
                 break;
             case 3:
                 ofld.fld.setBorder(new SoftBevelBorder(1, Color.GRAY, Color.GRAY));
-                // ofld.fld.setBorder(new MatteBorder(1,1,1,1,ofld.color));
+                //ofld.fld.setBorder(new MatteBorder(1, 1, 1, 1, ofld.color));
                 break;
             case 4:
                 ofld.fld.setBorder(new CompoundBorder(new MatteBorder(0, 0, 3, 3, Color.GRAY), new MatteBorder(1, 1, 1, 1, ofld.color)));
@@ -1090,33 +1090,32 @@ public class OField extends OObject {
         if (ofld.style <= 4) {
             PCARD.pc.mainPane.add(ofld.fld);
         } else {
-            MyScrollPane scrollpane = new MyScrollPane();
-            scrollpane.fldData = ofld;
-            scrollpane.setViewportView(ofld.fld);
-            scrollpane.setBounds(ofld.left, ofld.top, ofld.width, ofld.height);
-            scrollpane.getVerticalScrollBar().setValue(ofld.scroll);
-            scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            scrollpane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            scrollpane.setVisible(ofld.getVisible());
-            PCARD.pc.mainPane.add(scrollpane);
-            ofld.card.paneList.add(scrollpane);
-            ofld.scrollPane = scrollpane;
+            MyScrollPane scrollPane = new MyScrollPane();
+            scrollPane.fldData = ofld;
+            scrollPane.setViewportView(ofld.fld);
+            scrollPane.setBounds(ofld.left, ofld.top, ofld.width, ofld.height);
+            scrollPane.getVerticalScrollBar().setValue(ofld.scroll);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setVisible(ofld.getVisible());
+            PCARD.pc.mainPane.add(scrollPane);
+            ofld.card.paneList.add(scrollPane);
+            ofld.scrollPane = scrollPane;
 
             ofld.fld.revalidate();
         }
     }
 
-
     void addListener() {
-        fld.addMouseListener(card.stack.GUI_fld);
-        fld.addMouseMotionListener(card.stack.GUI_fld);
+        fld.addMouseListener(card.stack.guiField);
+        fld.addMouseMotionListener(card.stack.guiField);
         docListener = new GUI_fldDocument(this);
         fld.getDocument().addDocumentListener(docListener);
     }
 
     void removeListener() {
-        fld.removeMouseListener(card.stack.GUI_fld);
-        fld.addMouseMotionListener(card.stack.GUI_fld);
+        fld.removeMouseListener(card.stack.guiField);
+        fld.addMouseMotionListener(card.stack.guiField);
         fld.getDocument().removeDocumentListener(docListener);
         docListener = null;
     }
@@ -1139,6 +1138,7 @@ public class OField extends OObject {
         fld.removeMouseMotionListener(listener);
     }
 }
+
 
 class fldOutlineListen implements MouseListener {
 
@@ -1165,13 +1165,12 @@ class fldOutlineListen implements MouseListener {
     }
 }
 
+
 class MyScrollPane extends JScrollPane {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     OField fldData = null;
 
     MyScrollPane() {
@@ -1187,24 +1186,24 @@ class MyScrollPane extends JScrollPane {
         if (!isVisible() ||
                 fldData.card != PCARD.pc.stack.curCard ||
                 PCARD.lockedScreen && paneg == g) {
-            /*for(int i=0; i<getComponentCount(); i++){
-                getComponent(i).setVisible(false);
-            }*/
+//            for (int i = 0; i < getComponentCount(); i++) {
+//                getComponent(i).setVisible(false);
+//            }
             return;
         }
-        /*for(int i=0; i<getComponentCount(); i++){
-            if(getComponent(i).getClass() == JScrollPane.ScrollBar.class) continue;
-            // When setVisible(true) is called, a write command is generated, so we want to do it quietly
-            Class<JScrollPane.ScrollBar> c = JScrollPane.ScrollBar.class;
-            Field m;
-            try {
-                m = c.getDeclaredField("visible");
-                m.setAccessible(true);
-                m.set(getComponent(i), true); // .visible = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }*/
+//        for (int i = 0; i < getComponentCount(); i++) {
+//            if (getComponent(i).getClass() == JScrollPane.ScrollBar.class) continue;
+//            // When setVisible(true) is called, a write command is generated, so we want to do it quietly
+//            Class<JScrollPane.ScrollBar> c = JScrollPane.ScrollBar.class;
+//            Field m;
+//            try {
+//                m = c.getDeclaredField("visible");
+//                m.setAccessible(true);
+//                m.set(getComponent(i), true); // .visible = true;
+//            } catch (Exception e) {
+//                logger.log(Level.ERROR, e.getMessage(), e);
+//            }
+//        }
         super.paintComponent(g);
         if (AuthTool.tool != null && FieldGUI.gui.target == this) {
             FieldGUI.drawSelectBorder(this);
@@ -1215,11 +1214,9 @@ class MyScrollPane extends JScrollPane {
 
 class MyTextArea extends JTextArea {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     OField fldData = null;
     JScrollPane pr_scrl;
     int pr_selLine; // For showLine xfcn
@@ -1243,7 +1240,7 @@ class MyTextArea extends JTextArea {
             return;
         Graphics paneg = PCARD.pc.mainPane.getGraphics();
         if (PCARD.lockedScreen && paneg == g) return;
-        // super.paintComponent(g);
+        //super.paintComponent(g);
         if (fldData != null) {
             // Normal field
             if (fldData.fontPict2 != null && (PCARD.pc == null || PCARD.pc.selectedFont == null)) {
@@ -1273,13 +1270,13 @@ class MyTextArea extends JTextArea {
                         h = 0;
                         if (c == '\r' && i + 1 < getText().length() && getText().charAt(i + 1) == '\n') i++;
                     } else if (c >= start && c <= end) {
-                        // System.out.println("fontpict:h:"+h+" v:"+v+" "+fontinfo.locs[c-start]+" - "+fontinfo.locs[c-start+1]);
+                        //logger.log(Level.DEBUG, "fontpict:h: " + h + " v: " + v + " " + fontinfo.locs[c-start] + " - " + fontinfo.locs[c-start + 1]);
                         g.drawImage(fldData.fontPict2, sz * h, sz * v, sz * h + sz, sz * v + sz, fontinfo.locs[c - start], 0, fontinfo.locs[c - start + 1], 32, PCARD.pc.stack.pcard);
                         h++;
                     }
                 }
                 return;
-            } else if (isFocusOwner() == false || fldData.useMyDraw) {
+            } else if (!isFocusOwner() || fldData.useMyDraw) {
                 if (fldData.style != 1) {
                     g.setColor(fldData.bgColor);
                     Rectangle r = g.getClipBounds();
@@ -1394,7 +1391,7 @@ class MyTextArea extends JTextArea {
                         // outline or shadow
                         g.setColor(textColor);
                         if ((textStyle & 8) > 0 || (textStyle & 16) > 0) {
-                            if (/*(textStyle&8) > 0 && */ (textStyle & 16) > 0) {
+                            if (/* (textStyle & 8) > 0 && */ (textStyle & 16) > 0) {
                                 g.drawString(drawStr, lft + 2, top + 1);
                                 g.drawString(drawStr, lft + 1, top + 2);
                             }
@@ -1420,15 +1417,15 @@ class MyTextArea extends JTextArea {
                         }
 
                         if (!isStyleChange || c == '\r' || c == '\n') {
-                            // v++; // Newline
+                            //v++; // Newline
                             lft = 0;
                             top += textHeight;
-                            /* // Absorb font size differences from OS9
-                            if(PCARD.pc.stack.createdByVersion.charAt(0)=='2' &&
-                                    fldData.style!=5 && !smallfont && top+textHeight>fldData.height+4){
-                                smallfont = true;
-                                repaint();
-                            }*/
+//                            // Absorb font size differences from OS9
+//                            if (PCARD.pc.stack.createdByVersion.charAt(0) == '2' &&
+//                                    fldData.style != 5 && !smallfont && top + textHeight > fldData.height + 4) {
+//                                smallfont = true;
+//                                repaint();
+//                            }
                         } else {
                             lft += drawWidth;
                         }
@@ -1481,38 +1478,38 @@ class MyTextArea extends JTextArea {
                             nextTextPosition = -1;
                         }
                     }
-                }/*else if(fldData.textAlign!=0){ // Right align or center
-                    if(fldData.style!=1){
-                        g.setColor(Color.WHITE);
-                        g.fillRect(1,1,fldData.width-2,fldData.height-2);
-                    }
-                    g.setFont(new Font(fldData.textFont, fldData.textStyle&0x03, fldData.textSize));
-                    FontMetrics fo = g.getFontMetrics();
-                    int v=0;
-                    int sz = fldData.textHeight;
-                    StringBuilder str = new StringBuilder();
-                    for(int i=0; i<getText().length(); i++){
-                        char c = getText().charAt(i);
-                        if(c=='\r'||c=='\n'||i==getText().length()){
-                            // System.out.println("fontpict:"+h+","+v+"  "+c%8+","+c/8+""+(char)(c+32));
-                            String str2 = str.toString();
-                            int w = fo.stringWidth(str2);
-                            int lft = 0;
-                            if(fldData.textAlign==0) lft = 2;
-                            if(fldData.textAlign==1) lft = (fldData.width-w)/2;
-                            if(fldData.textAlign==2) lft = fldData.width-w;
-                            g.setColor(Color.BLACK);
-                            g.drawString(str2,lft,fldData.textSize+v*sz);
-
-                            str.delete(0,str.length());
-                            v++;
-                            if(c=='\r'&&i+1<getText().length()&&getText().charAt(i+1)=='\n') i++;
-                        }
-                        else{
-                            str.append(c);
-                        }
-                    }
-                }*/
+                }
+//                else if (fldData.textAlign != 0) { // Right align or center
+//                    if (fldData.style != 1) {
+//                        g.setColor(Color.WHITE);
+//                        g.fillRect(1, 1, fldData.width - 2, fldData.height - 2);
+//                    }
+//                    g.setFont(new Font(fldData.textFont, fldData.textStyle & 0x03, fldData.textSize));
+//                    FontMetrics fo = g.getFontMetrics();
+//                    int v = 0;
+//                    int sz = fldData.textHeight;
+//                    StringBuilder str = new StringBuilder();
+//                    for (int i = 0; i < getText().length(); i++) {
+//                        char c = getText().charAt(i);
+//                        if (c == '\r' || c == '\n' || i == getText().length()) {
+//                            //logger.log(Level.DEBUG, "fontpict: " + h+","+v+"  "+c%8+","+c/8+""+(char)(c+32));
+//                            String str2 = str.toString();
+//                            int w = fo.stringWidth(str2);
+//                            int lft = 0;
+//                            if (fldData.textAlign == 0) lft = 2;
+//                            if (fldData.textAlign == 1) lft = (fldData.width - w) / 2;
+//                            if (fldData.textAlign == 2) lft = fldData.width - w;
+//                            g.setColor(Color.BLACK);
+//                            g.drawString(str2, lft, fldData.textSize + v * sz);
+//
+//                            str.delete(0, str.length());
+//                            v++;
+//                            if (c == '\r' && i + 1 < getText().length() && getText().charAt(i + 1) == '\n') i++;
+//                        } else {
+//                            str.append(c);
+//                        }
+//                    }
+//                }
 
                 if (AuthTool.tool != null && FieldGUI.gui.target == this) {
                     FieldGUI.drawSelectBorder(this);
@@ -1526,11 +1523,11 @@ class MyTextArea extends JTextArea {
             Rectangle r = g.getClipBounds();
             g.fillRect(r.x, r.y, r.width, r.height);
             if (pr_selLine > 0) {
-                // g.setColor(Color.WHITE);
-                // g.setXORMode(SystemColor.textHighlight);
+                //g.setColor(Color.WHITE);
+                //g.setXORMode(SystemColor.textHighlight);
                 g.setColor(SystemColor.textHighlight);
                 g.fillRect(1, (pr_selLine - 1) * getRowHeight(), getWidth() - 1, getRowHeight());
-                // g.setXORMode(Color.WHITE);
+                //g.setXORMode(Color.WHITE);
             }
         }
         g.setPaintMode();

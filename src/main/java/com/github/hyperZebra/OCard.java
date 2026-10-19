@@ -10,6 +10,8 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,6 +25,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 
 public class OCard extends OCardBase {
+
+    private static final Logger logger = System.getLogger(OCard.class.getName());
 
     OBackground bg = null;
     int bgid;
@@ -172,11 +176,11 @@ public class OCard extends OCardBase {
                                             reader = fld.readXML(reader);
                                             fldList.add(fld);
                                             partsList.add(fld);
-                                        } else System.out.println("Part_Type: " + type);
+                                        } else logger.log(Level.DEBUG, "Part_Type: " + type);
                                         break;
                                     } else {
-                                        System.out.println("Local Name: " + reader.getLocalName());
-                                        System.out.println("Element Text: " + reader.getElementText());
+                                        logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                        logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
                                     String elm2 = reader.getLocalName();
@@ -203,7 +207,7 @@ public class OCard extends OCardBase {
                                             if (part != null) {
                                                 part.setTextInternal(reader.getElementText());
                                             } else {
-                                                System.out.println("No Part: " + layer + " part id " + partid);
+                                                logger.log(Level.DEBUG, "No Part: " + layer + " part id " + partid);
                                             }
                                         } else {
                                             OBgFieldData bgfld = new OBgFieldData(this, partid);
@@ -212,7 +216,7 @@ public class OCard extends OCardBase {
                                         }
                                     } else if (elm.equals("highlight")) {
                                         OBgButtonData bgbtn = new OBgButtonData(this, partid);
-                                        bgbtn.check_hilite = XMLRead.bool(reader);
+                                        bgbtn.checkHighlight = XMLRead.bool(reader);
                                         reader.next();
                                         this.bgbtnList.add(bgbtn);
                                     } else if (elm2.equals("stylerun")) {
@@ -245,8 +249,8 @@ public class OCard extends OCardBase {
                                                         }
                                                     }
                                                 } else {
-                                                    System.out.println("Local Name: " + reader.getLocalName());
-                                                    System.out.println("Element Text: " + reader.getElementText());
+                                                    logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                                    logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                                 }
                                             } else if (eventType3 == XMLStreamReader.END_ELEMENT) {
                                                 String elm3 = reader.getLocalName();
@@ -256,8 +260,8 @@ public class OCard extends OCardBase {
                                             }
                                         }
                                     } else {
-                                        System.out.println("Local Name: " + reader.getLocalName());
-                                        System.out.println("Element Text: " + reader.getElementText());
+                                        logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                        logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
                                     String elm2 = reader.getLocalName();
@@ -274,8 +278,8 @@ public class OCard extends OCardBase {
                             // dummy
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -436,7 +440,7 @@ public class OCard extends OCardBase {
         }
 
         for (OBgButtonData part : bgbtnList) {
-            if (GetBgBtnbyId(part.id).sharedHilite == false) {
+            if (GetBgBtnbyId(part.id).sharedHighlight == false) {
                 writer.writeStartElement("content");
                 writer.writeCharacters("\n\t\t\t");
                 {
@@ -452,7 +456,7 @@ public class OCard extends OCardBase {
 
                     writer.writeStartElement("highlight");
                     writer.writeCharacters(" ");
-                    writer.writeEmptyElement(part.check_hilite + " ");
+                    writer.writeEmptyElement(part.checkHighlight + " ");
                     writer.writeCharacters(" ");
                     writer.writeEndElement();
                     writer.writeCharacters("\n\t\t");
@@ -485,7 +489,7 @@ public class OCard extends OCardBase {
     // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readCardBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("====readCardBlock====");
+        //logger.log(Level.DEBUG, "====readCardBlock====");
 
         if (blockSize > 2000000 || blockSize < 50) {
             return false;
@@ -495,79 +499,79 @@ public class OCard extends OCardBase {
 
         // Read block data sequentially
         id = HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("id:"+Integer.toString(id));
-        // System.out.println("id:"+id);
+        // HCStackDebug.debuginfo("id: " + Integer.toString(id));
+        //logger.log(Level.DEBUG, "id: " + id);
         if (id < 0 || id >= 2265535) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (id == 12332) {
             // debug
-            System.out.println("12332");
+            logger.log(Level.DEBUG, "12332");
         }
         /*String tygersStr =*/
         HCData.readStr(dis, 4);
-        // HCStackDebug.debuginfo("tygersStr:"+tygersStr);
-        // System.out.println("tygersStr:"+tygersStr);
+        // HCStackDebug.debuginfo("tygersStr: " + tygersStr);
+        //logger.log(Level.DEBUG, "tygersStr: " + tygersStr);
         int bitmapId = HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("bitmapId:"+Integer.toString(bitmapId));
-        // System.out.println("bitmapId:"+bitmapId);
+        // HCStackDebug.debuginfo("bitmapId: " + Integer.toString(bitmapId));
+        //logger.log(Level.DEBUG, "bitmapId: " + bitmapId);
         if (bitmapId > 0) {
             bitmapName = "BMAP_" + bitmapId + ".png";
         }
         int flags = HCData.readCode(dis, 2);
         // HCStackDebug.debuginfo("flags:0x"+Integer.toHexString(flags));
-        // System.out.println("flags:"+flags);
+        //logger.log(Level.DEBUG, "flags: " + flags);
         dontSearch = ((flags >> 11) & 0x01) != 0;
         showPict = !(((flags >> 13) & 0x01) != 0);
         cantDelete = ((flags >> 14) & 0x01) != 0;
         /*String tygers2Str =*/
         HCData.readStr(dis, 10);
-        // System.out.println("tygers2Str:"+tygers2Str);
+        //logger.log(Level.DEBUG, "tygers2Str: " + tygers2Str);
         /*int pageId =*/
         HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("pageId:"+Integer.toString(pageId));
-        // System.out.println("pageId:"+pageId);
+        // HCStackDebug.debuginfo("pageId: " + Integer.toString(pageId));
+        //logger.log(Level.DEBUG, "pageId: " + pageId);
         bgid = HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("bgid:"+Integer.toString(bgid));
-        // System.out.println("bgid:"+bgid);
+        // HCStackDebug.debuginfo("bgid: " + Integer.toString(bgid));
+        //logger.log(Level.DEBUG, "bgid: " + bgid);
         int numofParts = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("numofParts:"+Integer.toString(numofParts));
-        // System.out.println("numofParts:"+numofParts);
+        // HCStackDebug.debuginfo("numofParts: " + Integer.toString(numofParts));
+        //logger.log(Level.DEBUG, "numofParts: " + numofParts);
         /*String tygers3Str =*/
         HCData.readStr(dis, 6);
-        // System.out.println("tygers3Str:"+tygers3Str);
+        //logger.log(Level.DEBUG, "tygers3Str: " + tygers3Str);
         int numofContents = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("numofContents:"+Integer.toString(numofContents));
-        // System.out.println("numofContents:"+numofContents);
+        // HCStackDebug.debuginfo("numofContents: " + Integer.toString(numofContents));
+        //logger.log(Level.DEBUG, "numofContents: " + numofContents);
         /*int scriptType =*/
         HCData.readCode(dis, 4);
-        // System.out.println("scriptType:"+scriptType);
+        //logger.log(Level.DEBUG, "scriptType: " + scriptType);
 
         for (int i = 0; i < numofParts; i++) {
-            // System.out.println("==part "+i+"==");
+            //logger.log(Level.DEBUG, "==part "+i+"==");
             // HCStackDebug.debuginfo("==part "+i+"==");
             int dataLen = HCData.readCode(dis, 2);
-            // System.out.println("dataLen:"+dataLen);
-            // HCStackDebug.debuginfo("dataLen:"+Integer.toString(dataLen));
+            //logger.log(Level.DEBUG, "dataLen: " + dataLen);
+            // HCStackDebug.debuginfo("dataLen: " + Integer.toString(dataLen));
             if (dataLen < 30) {
-                // System.out.println("!");
+                //logger.log(Level.DEBUG, "!");
                 /*if(dataLen>=0){
                     dataLen = (dataLen<<8) + HCData.readCode(dis, 1);
                 }*/
             }
             int pid = HCData.readCode(dis, 2);
-            // System.out.println("part id:"+pid);
-            // HCStackDebug.debuginfo("partid:"+Integer.toString(pid));
+            //logger.log(Level.DEBUG, "part id: " + pid);
+            // HCStackDebug.debuginfo("partid: " + Integer.toString(pid));
             offset += dataLen;
             if (offset > blockSize) {
-                // System.out.println("!");
+                //logger.log(Level.DEBUG, "!");
             }
             if (pid < 0 || pid >= 32768) {
-                // System.out.println("!");
+                //logger.log(Level.DEBUG, "!");
             }
             int partType = HCData.readCode(dis, 1);
-            // System.out.println("partType:"+partType);
-            // HCStackDebug.debuginfo("partType:"+Integer.toString(partType));
+            //logger.log(Level.DEBUG, "partType: " + partType);
+            // HCStackDebug.debuginfo("partType: " + Integer.toString(partType));
             if (partType == 1) {
                 OButton btn = new OButton(this, pid);
                 btn.readButtonBlock(dis, dataLen);
@@ -580,14 +584,14 @@ public class OCard extends OCardBase {
                 partsList.add(fld);
             } else return false;
 
-            // System.out.println("==end of part==");
+            //logger.log(Level.DEBUG, "==end of part==");
         }
 
         for (int i = 0; i < numofContents; i++) {
             if (blockSize - offset < 0) {
                 break;
             }
-            // System.out.println("==cd content "+i+"==");
+            //logger.log(Level.DEBUG, "==cd content "+i+"==");
             // HCStackDebug.debuginfo("==cd content "+i+"==");
 
             int pid;
@@ -600,10 +604,10 @@ public class OCard extends OCardBase {
             {
                 pid = 0x0000FFFF & HCData.readCode(dis, 2);
             }
-            // System.out.println("pid:"+pid);
-            // HCStackDebug.debuginfo("partid:"+Integer.toString(pid));
+            //logger.log(Level.DEBUG, "pid: " + pid);
+            // HCStackDebug.debuginfo("partid: " + Integer.toString(pid));
             if ((pid < 0 || pid >= 32768) && pid < 6500) {
-                // System.out.println("!");
+                //logger.log(Level.DEBUG, "!");
             }
             OBgFieldData bgfld = null;
             if (pid < 32768) {
@@ -612,14 +616,14 @@ public class OCard extends OCardBase {
             }
             int contLen = 0x0000FFFF & HCData.readCode(dis, 2);
             int orgcontLen = contLen;
-            // System.out.println("contLen:"+contLen);
-            // HCStackDebug.debuginfo("contLen:"+Integer.toString(contLen));
+            //logger.log(Level.DEBUG, "contLen: " + contLen);
+            // HCStackDebug.debuginfo("contLen: " + Integer.toString(contLen));
             if (offset + contLen + 4 > blockSize) {
                 // HCStackDebug.debuginfo("!!!");
-                // HCStackDebug.debuginfo("(offset:"+Integer.toString(offset));
-                // HCStackDebug.debuginfo("+contLen:"+Integer.toString(contLen));
-                // HCStackDebug.debuginfo(">blockSize):"+Integer.toString(blockSize));
-                // System.out.println("!");
+                // HCStackDebug.debuginfo("(offset: " + Integer.toString(offset));
+                // HCStackDebug.debuginfo("+contLen: " + Integer.toString(contLen));
+                // HCStackDebug.debuginfo(">blockSize): " + Integer.toString(blockSize));
+                //logger.log(Level.DEBUG, "!");
                 contLen = blockSize - offset - 4 - 2;
                 if (contLen < 0) contLen = 0;
                 // break;
@@ -630,10 +634,10 @@ public class OCard extends OCardBase {
                 contLen -= 1;
             } else if (isStyledText >= 128) {
                 int formattingLength = ((0x007F & isStyledText) << 8) + HCData.readCode(dis, 1);
-                // System.out.println("formattingLength:"+formattingLength);
-                // HCStackDebug.debuginfo("formattingLength:"+Integer.toString(formattingLength));
+                //logger.log(Level.DEBUG, "formattingLength: " + formattingLength);
+                // HCStackDebug.debuginfo("formattingLength: " + Integer.toString(formattingLength));
                 if (formattingLength > 100) {
-                    System.out.println("!");
+                    logger.log(Level.DEBUG, "!");
                 }
                 for (int j = 0; j < formattingLength / 4; j++) {
                     styleClass styleC = new styleClass();
@@ -665,18 +669,18 @@ public class OCard extends OCardBase {
             // Text
             resultStr contentResult;
             if (orgcontLen % 2 == 1) {
-                // System.out.println("readText(contLen+1="+(contLen+1)+")");
+                //logger.log(Level.DEBUG, "readText(contLen+1="+(contLen+1)+")");
                 contentResult = HCData.readText(dis, contLen + 1);
             } else if (contLen > 0) {
-                // System.out.println("readText(contLen="+(contLen)+")");
+                //logger.log(Level.DEBUG, "readText(contLen="+(contLen)+")");
                 contentResult = HCData.readText(dis, contLen);
             } else {
                 contentResult = new resultStr();
                 contentResult.str = "";
                 contentResult.length_in_src = 0;
             }
-            // System.out.println("contentResult:"+contentResult.str);
-            // HCStackDebug.debuginfo("contentResult:"+contentResult.str);
+            //logger.log(Level.DEBUG, "contentResult: " + contentResult.str);
+            // HCStackDebug.debuginfo("contentResult: " + contentResult.str);
             if (pid >= 32768) {
                 // cd part
                 pid = 65536 - pid;
@@ -690,7 +694,7 @@ public class OCard extends OCardBase {
                     }
                 }
                 if (!isFound) {
-                    // System.out.println("cd part "+pid+" not found.");
+                    //logger.log(Level.DEBUG, "cd part "+pid+" not found.");
                 }
             } else {
                 bgfld.text = contentResult.str;
@@ -699,50 +703,50 @@ public class OCard extends OCardBase {
             }
 
             int remainLength = contLen - ((contentResult.length_in_src));
-            // System.out.println("contentResult.length_in_src:"+contentResult.length_in_src);
-            // System.out.println("content-remainLength:"+remainLength);
-            // HCStackDebug.debuginfo("content-remainLength:"+remainLength);
+            //logger.log(Level.DEBUG, "contentResult.length_in_src: " + contentResult.length_in_src);
+            //logger.log(Level.DEBUG, "content-remainLength: " + remainLength);
+            // HCStackDebug.debuginfo("content-remainLength: " + remainLength);
             if (remainLength < 0 || remainLength > 32) {
-                // System.out.println("!");
+                //logger.log(Level.DEBUG, "!");
             }
             if (remainLength - 1 > 0) {
                 /*String padding =*/
                 HCData.readStr(dis, remainLength - 1);
-                // System.out.println("padding:"+padding);
-                // HCStackDebug.debuginfo("padding:"+padding);
+                //logger.log(Level.DEBUG, "padding: " + padding);
+                // HCStackDebug.debuginfo("padding: " + padding);
             }
         }
 
         /*if(offset%2==0){
             String paddingx = HCData.readStr(dis, 1);
             offset++;
-            System.out.println("paddingx:"+paddingx);
-            HCStackDebug.debuginfo("paddingx:"+paddingx);
+            logger.log(Level.DEBUG, "paddingx: " + paddingx);
+            HCStackDebug.debuginfo("paddingx: " + paddingx);
         }*/
 
         resultStr nameResult = HCData.readTextToZero(dis, blockSize - offset);
         name = nameResult.str;
         rawNameBytes = nameResult.rawBytes;
-        // System.out.println("name:"+name);
-        // HCStackDebug.debuginfo("name:"+name);
+        //logger.log(Level.DEBUG, "name: " + name);
+        // HCStackDebug.debuginfo("name: " + name);
 
         resultStr scriptResult = HCData.readTextToZero(dis, blockSize - offset - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
         rawScriptBytes = scriptResult.rawBytes;
-        // System.out.println("scriptStr:"+scriptStr);
-        // HCStackDebug.debuginfo("scriptStr:"+scriptStr);
+        //logger.log(Level.DEBUG, "scriptStr: " + scriptStr);
+        // HCStackDebug.debuginfo("scriptStr: " + scriptStr);
 
         int remainLength = blockSize - (offset + (nameResult.length_in_src) + (scriptResult.length_in_src));
-        // System.out.println("remainLength:"+remainLength);
-        // HCStackDebug.debuginfo("remainLength:"+remainLength);
+        //logger.log(Level.DEBUG, "remainLength: " + remainLength);
+        // HCStackDebug.debuginfo("remainLength: " + remainLength);
         if (remainLength > 100) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (remainLength < 0) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (blockSize == 800) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (remainLength - 1 > 0) {
             if (remainLength - 1 > 30 && nameResult.length_in_src == 0) {
@@ -753,8 +757,8 @@ public class OCard extends OCardBase {
             } else {
                 /*String padding =*/
                 HCData.readStr(dis, remainLength - 1);
-                // System.out.println("padding:"+padding);
-                // HCStackDebug.debuginfo("padding:"+padding);
+                //logger.log(Level.DEBUG, "padding: " + padding);
+                // HCStackDebug.debuginfo("padding: " + padding);
             }
             if (nameResult.length_in_src == 0 && scriptResult.length_in_src < 100) {
                 name = scriptResult.str;
@@ -796,7 +800,7 @@ public class OCard extends OCardBase {
                             try {
                                 Thread.sleep(50);
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                logger.log(Level.ERROR, e.getMessage(), e);
                             }
                         }
                     }
@@ -811,7 +815,7 @@ public class OCard extends OCardBase {
                     return cd;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
@@ -819,7 +823,7 @@ public class OCard extends OCardBase {
         File file = new File(cd.stack.file.getParent() + "/resource/cdp" + cd.id + ".png");
         try {
             if (file.exists()) {
-                // System.out.println(cd.stack.file.getParent()+"/resource/cdp"+cd.id+".png");
+                //logger.log(Level.DEBUG, cd.stack.file.getParent()+"/resource/cdp"+cd.id+".png");
                 cd.pict = ImageIO.read(file);
                 cd.label = MyLabel.getMyCdLabel(cd/*new ImageIcon(stack.file.getParent()+"/resource/cdp"+this.id+".png")*/);
                 cd.label.setBounds(0, 0, cd.stack.width, cd.stack.height);
@@ -827,7 +831,7 @@ public class OCard extends OCardBase {
             } else {
                 file = new File(cd.stack.file.getParent() + "/resource/cdp" + cd.id + ".jpeg");
                 if (file.exists()) {
-                    // System.out.println(cd.stack.file.getParent()+"/resource/cdp"+cd.id+".jpeg");
+                    //logger.log(Level.DEBUG, cd.stack.file.getParent()+"/resource/cdp"+cd.id+".jpeg");
                     cd.pict = ImageIO.read(file);
                     cd.pict = makeAlphaImage2(cd.pict);
                     cd.label = MyLabel.getMyCdLabel(cd/*new ImageIcon(stack.file.getParent()+"/resource/cdp"+this.id+".jpeg")*/);
@@ -847,7 +851,7 @@ public class OCard extends OCardBase {
                     ImageIO.write(cd.pict, "png", ofile);
                 }
             } catch (Exception err) {
-                // err.printStackTrace();
+                //logger.log(Level.ERROR, err.getMessage(), err);
             }
         }
 
@@ -917,7 +921,7 @@ public class OCard extends OCardBase {
             PCARD.pc.stack.curCard.bg = OBackground.getOBackground(PCARD.pc.stack, PCARD.pc.stack.curCard, PCARD.pc.stack.curCard.bgid, false);
             PCARD.pc.stack.curCard.parent = PCARD.pc.stack.curCard.bg;
         } catch (XTalkException e1) {
-            e1.printStackTrace();
+            logger.log(Level.ERROR, e1.getMessage(), e1);
         }
 
         // When editing background, remove card components
@@ -958,53 +962,51 @@ public class OCard extends OCardBase {
 
 class MyLabel extends JLabel {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
 
-    static MyLabel cdlabel = null;
-    static MyLabel bglabel = null;
+    private static final Logger logger = System.getLogger(MyLabel.class.getName());
+
+    static MyLabel cdLabel = null;
+    static MyLabel bgLabel = null;
     OCardBase cd;
 
     static MyLabel getMyCdLabel(OCardBase in_cd) {
-        if (cdlabel == null) cdlabel = new MyLabel();
-        cdlabel.cd = in_cd;
-        cdlabel.setDoubleBuffered(PCARD.useDoubleBuffer);
-        return cdlabel;
+        if (cdLabel == null) cdLabel = new MyLabel();
+        cdLabel.cd = in_cd;
+        cdLabel.setDoubleBuffered(PCARD.useDoubleBuffer);
+        return cdLabel;
     }
 
     static MyLabel getMyBgLabel(OCardBase in_cd) {
-        if (bglabel == null) bglabel = new MyLabel();
-        bglabel.cd = in_cd;
-        bglabel.setDoubleBuffered(PCARD.useDoubleBuffer);
-        return bglabel;
+        if (bgLabel == null) bgLabel = new MyLabel();
+        bgLabel.cd = in_cd;
+        bgLabel.setDoubleBuffered(PCARD.useDoubleBuffer);
+        return bgLabel;
     }
 
-
-    // @SuppressWarnings("restriction")
     @Override
     protected void paintComponent(Graphics g) {
         if (PCARD.pc.tool != null) return;
         if (cd.objectType.equals("card") && PaintTool.editBackground) return;
-        // Graphics mainpaneg = PCARD.pc.mainPane.getGraphics();
-        // Graphics paneg = PCARD.pc.getContentPane().getGraphics();
-        // Field f = null;
+//        Graphics mainpaneg = PCARD.pc.mainPane.getGraphics();
+//        Graphics paneg = PCARD.pc.getContentPane().getGraphics();
+//        Field f = null;
         try {
-            // f = sun.java2d.SunGraphics2D.class.getDeclaredField("surfaceData");
-            // f.setAccessible(true);
+//            f = sun.java2d.SunGraphics2D.class.getDeclaredField("surfaceData");
+//            f.setAccessible(true);
         } catch (SecurityException e) {
-            e.printStackTrace();
-            // } catch (NoSuchFieldException e) {
-            //    e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
+//        } catch (NoSuchFieldException e) {
+//            logger.log(Level.ERROR, e.getMessage(), e);
         }
         try {
-            //    if(PCARD.lockedScreen&&(f.get(paneg)==f.get(g)||f.get(mainpaneg)==f.get(g))) return; // g.drawImage(VEffect.oldoff,0,0,PCARD.pc.mainPane);
+//            if (PCARD.lockedScreen && (f.get(paneg) == f.get(g) || f.get(mainpaneg) == f.get(g)))
+//                return; // g.drawImage(VEffect.oldOff,0,0,PCARD.pc.mainPane);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            // } catch (IllegalAccessException e) {
-            //    e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
+//        } catch (IllegalAccessException e) {
+//            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (!cd.showPict || cd.pict == null) {
@@ -1020,10 +1022,10 @@ class MyLabel extends JLabel {
         g.drawImage(cd.pict, 0, 0, PCARD.pc.mainPane);
 
         // For addColor
-        /*if(PCARD.pc.stack.addColor != null){
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            g2.drawImage(PCARD.pc.stack.addColor,0,0,null);
-        }*/
+//        if (PCARD.pc.stack.addColor != null) {
+//            Graphics2D g2 = (Graphics2D) g;
+//            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+//            g2.drawImage(PCARD.pc.stack.addColor, 0, 0, null);
+//        }
     }
 }

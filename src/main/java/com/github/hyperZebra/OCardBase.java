@@ -1,12 +1,17 @@
 package com.github.hyperZebra;
 
 import java.awt.image.BufferedImage;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.JScrollPane;
 
 
 public class OCardBase extends OObject {
+
+    private static final Logger logger = System.getLogger(OCardBase.class.getName());
 
     OStack stack;
     BufferedImage pict;
@@ -18,14 +23,14 @@ public class OCardBase extends OObject {
     boolean changed;
 
     // Button, field information
-    ArrayList<OObject> partsList;
-    ArrayList<OButton> btnList;
-    ArrayList<OField> fldList;
-    ArrayList<JScrollPane> paneList = new ArrayList<>();
+    List<OObject> partsList;
+    List<OButton> btnList;
+    List<OField> fldList;
+    List<JScrollPane> paneList = new ArrayList<>();
 
     @Override
     public void clean() {
-        // stack.mainPane.removeAll(); // Don't remove since a new stack is already being loaded
+        //stack.mainPane.removeAll(); // Don't remove since a new stack is already being loaded
         stack = null;
         pict = null;
         label = null;
@@ -69,7 +74,7 @@ public class OCardBase extends OObject {
 
     public OButton GetBtn(String name) {
         if (name.equals("Continue Saved Game")) {
-            System.out.println("Continue Saved Game");
+            logger.log(Level.DEBUG, "Continue Saved Game");
         }
         for (OButton oButton : btnList) {
             if (0 == oButton.name.compareToIgnoreCase(name))
@@ -118,7 +123,7 @@ public class OCardBase extends OObject {
             if (cd.bg != null) {
                 bg = cd.bg;
             } else {
-                bg = cd.stack.GetBackgroundbyId(cd.bgid);
+                bg = cd.stack.getBackgroundById(cd.bgid);
             }
         }
         return bg;
@@ -208,45 +213,45 @@ public class OCardBase extends OObject {
         PCARDFrame.pc.mainPane.removeAll();
         for (OButton oButton : btnList) {
             if (oButton.btn != null) {
-                // PCARD.pc.mainPane.remove(btnList.get(i).btn);
+                //PCARD.pc.mainPane.remove(btnList.get(i).btn);
                 oButton.btn.btnData = null;
                 oButton.btn = null;
             }
             if (oButton.chkbox != null) {
-                // PCARD.pc.mainPane.remove(btnList.get(i).chkbox);
+                //PCARD.pc.mainPane.remove(btnList.get(i).chkbox);
                 oButton.chkbox.btnData = null;
                 oButton.chkbox = null;
             }
             if (oButton.radio != null) {
-                // PCARD.pc.mainPane.remove(btnList.get(i).radio);
+                //PCARD.pc.mainPane.remove(btnList.get(i).radio);
                 oButton.radio.btnData = null;
                 oButton.radio = null;
             }
             if (oButton.popup != null) {
-                // PCARD.pc.mainPane.remove(btnList.get(i).popup);
+                //PCARD.pc.mainPane.remove(btnList.get(i).popup);
                 oButton.popup.btnData = null;
                 oButton.popup = null;
             }
-            // btnList.get(i).card = null;
-            // btnList.get(i).bkgd = null;
+            //btnList.get(i).card = null;
+            //btnList.get(i).bkgd = null;
         }
         for (OField oField : fldList) {
             if (oField.fld != null) {
-                // PCARD.pc.mainPane.remove(fldList.get(i).fld);
+                //PCARD.pc.mainPane.remove(fldList.get(i).fld);
                 oField.fld.fldData = null;
                 oField.fld = null;
             }
-            // fldList.get(i).card = null;
-            // fldList.get(i).bkgd = null;
+            //fldList.get(i).card = null;
+            //fldList.get(i).bkgd = null;
         }
         for (int i = 0; i < paneList.size(); i++) {
-            // PCARD.pc.mainPane.remove(paneList.get(i));
+            //PCARD.pc.mainPane.remove(paneList.get(i));
         }
         for (int i = 0; i < paneList.size(); i++) {
             paneList.remove(i);
         }
         if (label != null) {
-            // PCARD.pc.mainPane.remove(label);
+            //PCARD.pc.mainPane.remove(label);
             label.cd = null;
             label = null;
             pict = null;

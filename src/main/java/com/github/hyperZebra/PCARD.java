@@ -22,13 +22,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -67,6 +67,7 @@ class PCARDFrame extends JFrame {
         int offset = (pc != null) ? pc.fontSizeOffset : -2;
         return Math.max(6, origSize + offset);
     }
+
     float bitLeft;
     float bitTop;
     ToolInterface tool;
@@ -126,12 +127,12 @@ class PCARDFrame extends JFrame {
 }
 
 
-public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler */ {
+public class PCARD extends PCARDFrame /* implements MRJOpenDocumentHandler */ {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    static Logger logger = Logger.getLogger(PCARD.class.getName());
+    static Logger logger = System.getLogger(PCARD.class.getName());
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private static final ResourceBundle erb = ResourceBundle.getBundle("messages", Locale.ROOT);
@@ -337,7 +338,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler */ {
 
         // Write to file
         {
-            OutputStream fos = null;
+            OutputStream fos;
             try {
                 if (!Files.exists(recentFile.getParent())) {
                     Files.createDirectories(recentFile.getParent());
@@ -351,7 +352,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler */ {
                 }
                 fos.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         GMenu.BuildRecentMenu((JMenu) PCARD.pc.getJMenuBar().getComponent(0));
@@ -379,7 +380,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler */ {
             setBounds(0, 0 - 320 - 20, 400, 320 + 20);
         }
         setVisible(true);
-        // setLocationRelativeTo(null);
+        //setLocationRelativeTo(null);
         droplistener = new MyDropTargetListener();
         drop = new DropTarget(pc.mainPane, droplistener);
     }
@@ -404,7 +405,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler */ {
                     }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.log(Level.ERROR, ex.getMessage(), ex);
             }
         }
     }

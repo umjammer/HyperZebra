@@ -305,11 +305,11 @@ class ResTypeEditor extends JFrame {
 
 class IconTypeEditor extends ResTypeEditor {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(IconTypeEditor.class.getName());
+
     IconButton[] selectedButton;
 
     public IconTypeEditor(PCARDFrame pc, String type, OObject object) {
@@ -610,7 +610,7 @@ class IconTypeEditor extends ResTypeEditor {
                             pcard.stack.rsrc.addResource(r);
                             new IconEditor(editor, pcard.stack.rsrc, type, editor.selectedId[0]);
                         } else {
-                            System.out.println("resource not found.");
+                            logger.log(Level.DEBUG, "resource not found.");
                         }
                     }
                 }
@@ -779,7 +779,7 @@ class IconTypeEditor extends ResTypeEditor {
                                 bi = javax.imageio.ImageIO.read(new File(path));
                             }
                         } catch (IOException e2) {
-                            e2.printStackTrace();
+                            logger.log(Level.ERROR, e2.getMessage(), e2);
                         }
                         if (bi != null) {
                             String name = new File(path).getName();
@@ -803,7 +803,7 @@ class IconTypeEditor extends ResTypeEditor {
                                     case "cicn" -> newFileName = "cicn_" + iconid + ext;
                                     case "picture" -> newFileName = "PICT_" + iconid + ext;
                                     case "cursor" -> newFileName = "CURS_" + iconid + ext;
-                                    default -> System.out.println("unknown resource type");
+                                    default -> logger.log(Level.DEBUG, "unknown resource type");
                                 }
                                 Path newFilePath = pcard.stack.file.getParent().resolve(newFileName);
                                 try (
@@ -829,7 +829,7 @@ class IconTypeEditor extends ResTypeEditor {
                     editor.open(pcard, 0);
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.log(Level.ERROR, ex.getMessage(), ex);
             }
         }
     }
@@ -838,24 +838,24 @@ class IconTypeEditor extends ResTypeEditor {
 
 class OtherTypeEditor extends ResTypeEditor {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    // IconButton[] selectedButton;
+
+    private static final Logger logger = System.getLogger(OtherTypeEditor.class.getName());
+
+    //IconButton[] selectedButton;
 
     public OtherTypeEditor(PCARDFrame pc, String type, OObject object) {
         super(pc, type, object);
 
-        // contpane.setLayout(new FlowLayout(FlowLayout.LEFT));
-        // contpane.addMouseListener(new IconBackListener());
+        //contpane.setLayout(new FlowLayout(FlowLayout.LEFT));
+        //contpane.addMouseListener(new IconBackListener());
 
         scrollpane.getVerticalScrollBar().setUnitIncrement(133);
 
         open(pcard, 0);
 
-        // new DropTarget(this, new IconDropListener());
+        //new DropTarget(this, new IconDropListener());
 
         toFront();
         setVisible(true);
@@ -865,7 +865,7 @@ class OtherTypeEditor extends ResTypeEditor {
     void open(PCARDFrame pc, int in_scroll) {
         super.open(pc, in_scroll);
 
-        // selectedButton = new IconButton[selectedId.length];
+        //selectedButton = new IconButton[selectedId.length];
         scroll = in_scroll;
 
         int number = rsrcAry.length;
@@ -881,7 +881,7 @@ class OtherTypeEditor extends ResTypeEditor {
             try {
                 tabledata[i][2] = Long.toString(Files.size(pc.stack.file.getParent().resolve(rsrc.filename)));
             } catch (IOException e1) {
-                e1.printStackTrace();
+                logger.log(Level.ERROR, e1.getMessage(), e1);
             }
         }
 
@@ -891,8 +891,7 @@ class OtherTypeEditor extends ResTypeEditor {
         table.setEnabled(false);
         table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
-
-        // contpane.setPreferredSize(new Dimension(contpane.getPreferredSize().width, 133*((number+3)/4)));
+        //contpane.setPreferredSize(new Dimension(contpane.getPreferredSize().width, 133*((number+3)/4)));
         scrollpane.add(table);
         scrollpane.setViewportView(table);
 
@@ -974,6 +973,8 @@ class REMenu {
 // Resource editing menu actions
 class REMenuListener implements ActionListener {
 
+    private static final Logger logger = System.getLogger(REMenuListener.class.getName());
+
     ResTypeEditor editor;
 
     REMenuListener(JFrame owner) {
@@ -1007,7 +1008,7 @@ class REMenuListener implements ActionListener {
                     case "picture" -> newFileName = "PICT_" + rsrcid + ".png";
                     case "cursor" -> newFileName = "CURS_" + rsrcid + ".png";
                     default -> {
-                        System.out.println("unknown resource type.");
+                        logger.log(Level.DEBUG, "unknown resource type.");
                         newFileName = "dummy";
                         name = "dummy";
                     }
@@ -1022,10 +1023,10 @@ class REMenuListener implements ActionListener {
                     try {
                         ImageIO.write(bi, "png", newFile);
                     } catch (IOException e1) {
-                        e1.printStackTrace();
+                        logger.log(Level.ERROR, e1.getMessage(), e1);
                     }
                 } else {
-                    System.out.println("unknown resource type..");
+                    logger.log(Level.DEBUG, "unknown resource type..");
                 }
 
                 // Add to resources
@@ -1071,51 +1072,51 @@ class REMenuListener implements ActionListener {
                         if (!filename.isEmpty()) filename.append(":");
                         filename.append(parentPath).append(File.separatorChar).append(editor.pcard.stack.rsrc.getFileName1(editor.selectedId[i], editor.type));
                     }
-                /*boolean isBundle = false;
-                String attrStr = "";
-                if(new File("/Developer/Tools/GetFileInfo").exists()){
-                    try {
-                // Whether it's a bundle
-                        ProcessBuilder pb = new ProcessBuilder("/Developer/Tools/GetFileInfo", getConvertPath(parentPath));
-                        Process p = pb.start();
-                        p.waitFor();
-                        InputStream is = p.getInputStream();
-                        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                        for (;;) {
-                            String line = br.readLine();
-                            if (line == null) break;
-                            if(line.startsWith("attributes: ")){
-                                if(line.substring("attributes: ".length()).contains("b")){
-                                    isBundle = true;
-                                    attrStr = line.substring("attributes: ".length());
-                                }
-                                break;
-                            }
-                        }
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                }*/
+//                    boolean isBundle = false;
+//                    String attrStr = "";
+//                    if (new File("/Developer/Tools/GetFileInfo").exists()) {
+//                        try {
+//                            // Whether it's a bundle
+//                            ProcessBuilder pb = new ProcessBuilder("/Developer/Tools/GetFileInfo", getConvertPath(parentPath));
+//                            Process p = pb.start();
+//                            p.waitFor();
+//                            InputStream is = p.getInputStream();
+//                            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+//                            for (; ; ) {
+//                                String line = br.readLine();
+//                                if (line == null) break;
+//                                if (line.startsWith("attributes: ")) {
+//                                    if (line.substring("attributes: ".length()).contains("b")) {
+//                                        isBundle = true;
+//                                        attrStr = line.substring("attributes: ".length());
+//                                    }
+//                                    break;
+//                                }
+//                            }
+//                        } catch (IOException e1) {
+//                            logger.log(Level.ERROR, e1.getMessage(), e1);
+//                        } catch (InterruptedException e1) {
+//                            logger.log(Level.ERROR, e1.getMessage(), e1);
+//                        }
+//                    }
 
                     try {
-                    /*if(isBundle){
-                        String notBundleAttr;
-                        int index = attrStr.indexOf("b");
-                        notBundleAttr = attrStr.substring(0,index) + attrStr.substring(index);
-                        ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", notBundleAttr, "\""+parentPath+"\"");
-                        pb1.start();
-                    }*/
+//                        if (isBundle) {
+//                            String notBundleAttr;
+//                            int index = attrStr.indexOf("b");
+//                            notBundleAttr = attrStr.substring(0, index) + attrStr.substring(index);
+//                            ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", notBundleAttr, "\"" + parentPath + "\"");
+//                            pb1.start();
+//                        }
                         // "-R" requires OSX 10.6 or later; bundles must be opened in advance to be displayed
                         ProcessBuilder pb = new ProcessBuilder("open", "-R", filename.toString());
                         pb.start();
-                    /*if(isBundle){
-                        ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", attrStr, "\""+parentPath+"\"");
-                        pb1.start();
-                    }*/
+//                        if (isBundle) {
+//                            ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", attrStr, "\"" + parentPath + "\"");
+//                            pb1.start();
+//                        }
                     } catch (IOException e1) {
-                        e1.printStackTrace();
+                        logger.log(Level.ERROR, e1.getMessage(), e1);
                     }
                 }
             }
@@ -1133,7 +1134,7 @@ class REMenuListener implements ActionListener {
                                 srcChannel.transferTo(0, srcChannel.size(), destChannel);
                             }
                         } catch (IOException e2) {
-                            e2.printStackTrace();
+                            logger.log(Level.ERROR, e2.getMessage(), e2);
                         }
                     }
 
@@ -1165,7 +1166,7 @@ class REMenuListener implements ActionListener {
                             clip.setContents(ss, ss);
                         }
                     } catch (Exception e2) {
-                        e2.printStackTrace();
+                        logger.log(Level.ERROR, e2.getMessage(), e2);
                     }
                 }
             }
@@ -1180,7 +1181,7 @@ class REMenuListener implements ActionListener {
                         StringSelection ss = new StringSelection(str);
                         clip.setContents(ss, ss);
                     } catch (UnsupportedFlavorException | IOException e2) {
-                        e2.printStackTrace();
+                        logger.log(Level.ERROR, e2.getMessage(), e2);
                     }
                     if (str != null && str.startsWith("<resourceclips>")) {
                         XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -1188,7 +1189,7 @@ class REMenuListener implements ActionListener {
                         try {
                             reader = factory.createXMLStreamReader(new ByteArrayInputStream(str.getBytes()));
                         } catch (Exception e2) {
-                            e2.printStackTrace();
+                            logger.log(Level.ERROR, e2.getMessage(), e2);
                         }
 
                         editor.selectedId = new int[] {0};
@@ -1221,8 +1222,8 @@ class REMenuListener implements ActionListener {
                                                 case "media" -> {
                                                 }
                                                 default -> {
-                                                    System.out.println("Local Name: " + reader.getLocalName());
-                                                    System.out.println("Element Text: " + reader.getElementText());
+                                                    logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                                    logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                                 }
                                             }
                                         }
@@ -1279,7 +1280,7 @@ class REMenuListener implements ActionListener {
                                     editor.selectedId[editor.selectedId.length - 1] = id;
                                 }
                             } catch (Exception e2) {
-                                e2.printStackTrace();
+                                logger.log(Level.ERROR, e2.getMessage(), e2);
                             }
                         } // end of for
 
@@ -1305,7 +1306,7 @@ class REMenuListener implements ActionListener {
                             try {
                                 ImageIO.write((RenderedImage) img, "png", newFile);
                             } catch (IOException e1) {
-                                e1.printStackTrace();
+                                logger.log(Level.ERROR, e1.getMessage(), e1);
                             }
                         }
 
@@ -1330,7 +1331,7 @@ class REMenuListener implements ActionListener {
                 try {
                     editor.pcard.stack.rsrc.deleteResource(editor.type, editor.selectedId[i]);
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    logger.log(Level.ERROR, e1.getMessage(), e1);
                 }
             }
             // Deselect
@@ -1344,5 +1345,4 @@ class REMenuListener implements ActionListener {
             OCard.reloadCurrentCard();
         }
     }
-
 }

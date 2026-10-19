@@ -37,7 +37,7 @@ public class HyperZebra {
 //                                try {
 //                                    TTalk.doScriptforMenu("about this");
 //                                } catch (XTalkException e2) {
-//                                    e2.printStackTrace();
+//                                    logger.log(Level.ERROR, e2.getMessage(), e2);
 //                                }
 //                                e.setHandled(true);
 //                            }
@@ -57,7 +57,7 @@ public class HyperZebra {
 //                                    try {
 //                                        TTalk.doScriptforMenu("edit picture " + "\"" + e.getFilename() + "\"");
 //                                    } catch (XTalkException e2) {
-//                                        e2.printStackTrace();
+//                                        logger.log(Level.ERROR, e2.getMessage(), e2);
 //                                    }
 //                                }
 //                            }
@@ -82,7 +82,7 @@ public class HyperZebra {
 //                                try {
 //                                    GMenuBrowse.doMenu("Quit HyperCard");
 //                                } catch (XTalkException e1) {
-//                                    e1.printStackTrace();
+//                                    logger.log(Level.ERROR, e1.getMessage(), e1);
 //                                }
 //                                // processExit();
 //                            }

@@ -11,11 +11,9 @@ import javax.swing.JLabel;
 
 public class GPictWindow extends JDialog {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     String name;
     MyLabel3 label;
 
@@ -42,13 +40,12 @@ public class GPictWindow extends JDialog {
     }
 }
 
+
 class MyLabel3 extends JLabel {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     BufferedImage bi;
     float scale;
 
@@ -56,7 +53,7 @@ class MyLabel3 extends JLabel {
         super();
         this.bi = bi;
         this.scale = 1f;
-        // this.setIcon(new ImageIcon(bi));
+        //this.setIcon(new ImageIcon(bi));
     }
 
     @Override

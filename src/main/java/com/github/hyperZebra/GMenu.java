@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -20,6 +21,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,6 +48,8 @@ import com.github.hyperZebra.OStack.fontClass;
 
 
 public class GMenu {
+
+    private static final Logger logger = System.getLogger(GMenu.class.getName());
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -135,7 +140,6 @@ public class GMenu {
 
         return null;
     }
-
 
     public GMenu(PCARD pcard, int mode) {
         ActionListener listener = null;
@@ -250,12 +254,12 @@ public class GMenu {
             mb.add(m);
             m.setEnabled(false);
             m.add(mi = new JMenuItem(rb.getString("main.Import_Paint…")));
-            mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/
+            mi.setEnabled(false); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s)); */
             mi.addActionListener(listener);
             m.add(mi = new JMenuItem(rb.getString("main.Export_Paint…")));
-            mi.setEnabled(false);/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/
+            mi.setEnabled(false);/* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s)); */
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(rb.getString("main.Save_as_ppm…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));*/mi.addActionListener(listener);
+            //m.add(mi = new JMenuItem(rb.getString("main.Save_as_ppm…"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s)); */ mi.addActionListener(listener);
 
             // Edit menu
             m = new JMenu(rb.getString("main.Edit"));
@@ -363,20 +367,20 @@ public class GMenu {
         mi.addActionListener(listener);
         m.add(mi = new JMenuItem(rb.getString("main.Line")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(rb.getString("main.SprayCan")));mi.setEnabled(false);mi.addActionListener(listener);
+        //m.add(mi = new JMenuItem(rb.getString("main.SprayCan"))); mi.setEnabled(false);mi.addActionListener(listener);
         m.add(mi = new JMenuItem(rb.getString("main.Rect")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(rb.getString("main.RoundRect")));mi.setEnabled(false);mi.addActionListener(listener);
+        //m.add(mi = new JMenuItem(rb.getString("main.RoundRect"))); mi.setEnabled(false);mi.addActionListener(listener);
         m.add(mi = new JMenuItem(rb.getString("main.PaintBucket")));
         mi.addActionListener(listener);
         m.add(mi = new JMenuItem(rb.getString("main.Oval")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(rb.getString("main.Curve")));mi.setEnabled(false);mi.addActionListener(listener);
+        // m.add(mi = new JMenuItem(rb.getString("main.Curve"))); mi.setEnabled(false);mi.addActionListener(listener);
         m.add(mi = new JMenuItem(rb.getString("main.Type")));
         mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(rb.getString("main.Polygon")));mi.setEnabled(false);mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(rb.getString("main.FreePolygon")));mi.setEnabled(false);mi.addActionListener(listener);
-        // m.add(mi = new JMenuItem(rb.getString("main.Spoit")));mi.setEnabled(false);mi.addActionListener(listener);
+        //m.add(mi = new JMenuItem(rb.getString("main.Polygon"))); mi.setEnabled(false);mi.addActionListener(listener);
+        //m.add(mi = new JMenuItem(rb.getString("main.FreePolygon"))); mi.setEnabled(false);mi.addActionListener(listener);
+        //m.add(mi = new JMenuItem(rb.getString("main.Spoit"))); mi.setEnabled(false);mi.addActionListener(listener);
 
         // 0. Browse mode
         if (mode == 0) {
@@ -414,7 +418,7 @@ public class GMenu {
             // Paint menu
             m = new JMenu(rb.getString("main.Paint"));
             mb.add(m);
-            // m.add(mi = new JMenuItem(rb.getString("main.Select")));mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s));mi.addActionListener(listener);
+            // m.add(mi = new JMenuItem(rb.getString("main.Select"))); mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, s)); mi.addActionListener(listener);
             m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
             mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
             mi.addActionListener(listener);
@@ -425,16 +429,16 @@ public class GMenu {
             cb.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, s));
             cb.addActionListener(listener);
             m.addSeparator();
-            m.add(mi = new JMenuItem(rb.getString("main.Reverse_Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Reverse_Selection"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(rb.getString("main.Expand_Selection")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            m.add(mi = new JMenuItem(rb.getString("main.Expand_Selection"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(rb.getString("main.Add_to_Protect_Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(rb.getString("main.Discard_Protect_Area")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(rb.getString("main.Color_Convert…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            //m.add(mi = new JMenuItem(rb.getString("main.Add_to_Protect_Area"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */ mi.addActionListener(listener);
+            //m.add(mi = new JMenuItem(rb.getString("main.Discard_Protect_Area"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */ mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Color_Convert…"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
             mi.addActionListener(listener);
-            // m.add(mi = new JMenuItem(rb.getString("main.Emboss…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/mi.addActionListener(listener);
-            m.add(mi = new JMenuItem(rb.getString("main.Filter…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
+            // m.add(mi = new JMenuItem(rb.getString("main.Emboss…"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */ mi.addActionListener(listener);
+            m.add(mi = new JMenuItem(rb.getString("main.Filter…"))); /* mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s)); */
             mi.addActionListener(listener);
             m.add(mi = new JMenuItem(rb.getString("main.Blending_Mode…")));/*mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));*/
             mi.addActionListener(listener);
@@ -659,7 +663,7 @@ public class GMenu {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         subm.addSeparator();
@@ -669,61 +673,70 @@ public class GMenu {
     }
 }
 
+//class MyMenu extends JMenu {
+//
+//    private static final long serialVersionUID = 5858305584938822448L;
+//
+//    public MyMenu(String text) {
+//        super(text);
+//        TearoffThread thread = new TearoffThread(this.getPopupMenu());
+//        thread.start();
+//    }
+//
+//}
+//
+//
+//class TearoffThread extends Thread {
+//
+//    JPopupMenu popup;
+//
+//    TearoffThread(JPopupMenu popup) {
+//        this.popup = popup;
+//    }
+//
+//    public void run() {
+//        while (!popup.isVisible()) {
+//            try {
+//                sleep(10);
+//            } catch (InterruptedException e) {
+//            }
+//        }
+//        while (popup.isVisible()) {
+//            try {
+//                sleep(10);
+//            } catch (InterruptedException e) {
+//            }
+//
+//            PointerInfo pointerInfo = MouseInfo.getPointerInfo();
+//            Rectangle vrect = popup.getVisibleRect();
+//            Point p = pointerInfo.getLocation();
+//            if (p.y > vrect.y && (p.y > vrect.y + vrect.height || p.x < vrect.x || p.x > vrect.x + vrect.width)) {
+//                popup.setLocation(p.x, p.y);
+//            }
+//        }
+//    }
+//}
 
-/*class MyMenu extends JMenu
-{
-    private static final long serialVersionUID = 5858305584938822448L;
-
-    public MyMenu(String text) {
-        super(text);
-        TearoffThread thread = new TearoffThread(this.getPopupMenu());
-        thread.start();
-    }
-
-}
-
-
-class TearoffThread extends Thread
-{
-    JPopupMenu popup;
-    TearoffThread(JPopupMenu popup){
-        this.popup = popup;
-    }
-
-    public void run(){
-        while(!popup.isVisible()){
-            try { sleep(10); } catch (InterruptedException e) {}
-        }
-        while(popup.isVisible()){
-            try { sleep(10); } catch (InterruptedException e) {}
-
-            PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-            Rectangle vrect = popup.getVisibleRect();
-            Point p = pointerInfo.getLocation();
-            if(p.y>vrect.y && (p.y>vrect.y+vrect.height || p.x<vrect.x || p.x>vrect.x+vrect.width)){
-                popup.setLocation(p.x, p.y);
-            }
-        }
-    }
-}*/
 
 // Menu actions during browsing (also used in authoring and painting)
 class GMenuBrowse implements ActionListener {
+
+    private static final Logger logger = System.getLogger(GMenuBrowse.class.getName());
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     @Override
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
-        //System.out.println(cmd);
+        //logger.log(Level.DEBUG, cmd);
 
         // Do not execute menu during script execution
-        if (TTalk.idle != true) return;
+        if (!TTalk.idle) return;
 
         try {
             doMenu(cmd);
         } catch (XTalkException e1) {
-            e1.printStackTrace();
+            logger.log(Level.ERROR, e1.getMessage(), e1);
         }
     }
 
@@ -744,7 +757,7 @@ class GMenuBrowse implements ActionListener {
     public static void doMenu(String in_cmd)
             throws XTalkException {
         String cmd = PCARD.getEngText("main", in_cmd);
-        // System.out.println(cmd);
+        //logger.log(Level.DEBUG, cmd);
 
         if (cmd.equalsIgnoreCase("First") ||
                 cmd.equalsIgnoreCase("Prev") ||
@@ -1157,7 +1170,7 @@ class GMenuBrowse implements ActionListener {
                             OCard.reloadCurrentCard();
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
             }
@@ -1170,7 +1183,7 @@ class GMenuBrowse implements ActionListener {
                 try {
                     str = (String) clip.getData(DataFlavor.stringFlavor);
                 } catch (UnsupportedFlavorException | IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
                 if (str != null && str.startsWith("<buttonclip>")) {
                     XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -1178,7 +1191,7 @@ class GMenuBrowse implements ActionListener {
                     try {
                         reader = factory.createXMLStreamReader(new ByteArrayInputStream(str.getBytes()));
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
 
                     OCardBase cdbase = PCARD.pc.stack.curCard;
@@ -1247,10 +1260,10 @@ class GMenuBrowse implements ActionListener {
 
                         if (btn.icon != 0) {
                             String path = PCARD.pc.stack.rsrc.getFilePathAll(btn.icon, "icon");
-                            // String path = PCARD.pc.stack.file.getParent();
-                            /*if(fname!=null){
-                                path += File.separatorChar + fname;
-                            }*/
+                            //String path = PCARD.pc.stack.file.getParent();
+//                            if (fname != null) {
+//                                path += File.separatorChar + fname;
+//                            }
                             if (!iconpath.equals(path)) {
                                 // If copying from another stack, also copy icon resources
                                 if (PCARD.pc.stack.rsrc.getNameAll(btn.icon, "icon") != null) {
@@ -1285,7 +1298,7 @@ class GMenuBrowse implements ActionListener {
                         ButtonGUI.gui.tgtOBtn = btn;
                         ButtonGUI.gui.target = btn.getComponent();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
             }
@@ -1348,7 +1361,7 @@ class GMenuBrowse implements ActionListener {
                             OCard.reloadCurrentCard();
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
             }
@@ -1361,7 +1374,7 @@ class GMenuBrowse implements ActionListener {
                 try {
                     str = (String) clip.getData(DataFlavor.stringFlavor);
                 } catch (UnsupportedFlavorException | IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
                 if (str != null && str.startsWith("<fieldclip>")) {
                     XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -1369,7 +1382,7 @@ class GMenuBrowse implements ActionListener {
                     try {
                         reader = factory.createXMLStreamReader(new ByteArrayInputStream(str.getBytes()));
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
 
                     OCardBase cdbase = PCARD.pc.stack.curCard;
@@ -1441,7 +1454,7 @@ class GMenuBrowse implements ActionListener {
                         FieldGUI.gui.tgtOFld = fld;
                         FieldGUI.gui.target = fld.getComponent();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
             }
@@ -1466,12 +1479,12 @@ class GMenuBrowse implements ActionListener {
                 PCARD.pc.setTitle(titleName);
             }
         } else if (cmd.equalsIgnoreCase("Open Stack…")) {
-            /*FileDialog fd = new FileDialog(PCARD.pc , rb.getString("dialog.Open_Stack") , FileDialog.LOAD);
-            fd.setVisible(true);
-            if(fd.getFile()!=null){
-                String path = fd.getDirectory()+fd.getFile();
-                TTalk.CallMessage("open stack \""+path+"\"", "", null, false, true);
-            }*/
+//            FileDialog fd = new FileDialog(PCARD.pc, rb.getString("dialog.Open_Stack"), FileDialog.LOAD);
+//            fd.setVisible(true);
+//            if (fd.getFile() != null) {
+//                String path = fd.getDirectory() + fd.getFile();
+//                TTalk.CallMessage("open stack \"" + path + "\"", "", null, false, true);
+//            }
 
             JFileChooser chooser = new JFileChooser();
             if (PCARD.pc.stack != null && PCARD.pc.stack.file != null) {
@@ -1611,9 +1624,9 @@ class GMenuBrowse implements ActionListener {
                         bg.id = (int) (Math.random() * 1000 + cd.id + 1);
                         cd.bgid = bg.id;
 
-                        newStack.AddNewCard(cd.id);
+                        newStack.addNewCard(cd.id);
                         // newStack.cdCacheList.add(cd);
-                        newStack.AddNewBg(bg);
+                        newStack.addNewBg(bg);
                         newStack.firstCard = cd.id;
                         newStack.firstBg = bg.id;
 
@@ -1643,12 +1656,12 @@ class GMenuBrowse implements ActionListener {
                         PCARD.pc.stack.bar.paintImmediately(PCARD.pc.stack.bar.getBounds());
 
                         // XML writing
-                        XMLwrite xmlWrite = new XMLwrite(newStack);
+                        XMLWrite xmlWrite = new XMLWrite(newStack);
                         xmlWrite.saveStackNow();
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                         newStack.clean();
 
@@ -1665,7 +1678,7 @@ class GMenuBrowse implements ActionListener {
                                 null, "OK", null, null);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
             }
         } else if (cmd.equalsIgnoreCase("New Card")) {
@@ -1674,27 +1687,27 @@ class GMenuBrowse implements ActionListener {
             // Create card instance
             OCard cd = new OCard(PCARD.pc.stack);
 
-            cd.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.GetMaxCardId());
+            cd.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.getMaxCardId());
             cd.bgid = PCARD.pc.stack.curCard.bg.id;
             cd.changed = true;
 
-            PCARD.pc.stack.AddNewCard(PCARD.pc.stack.GetNumberof(PCARD.pc.stack.curCard), cd.id);
+            PCARD.pc.stack.addNewCard(PCARD.pc.stack.getNumberOf(PCARD.pc.stack.curCard), cd.id);
             TTalk.CallMessage("go cd id " + cd.id, "", null, false, true);
         } else if (cmd.equalsIgnoreCase("New Background")) {
             if (PCARD.pc.stack.curCard == null) return;
 
             // Create background instance
             OBackground bg = new OBackground(PCARD.pc.stack);
-            bg.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.GetMaxCardId());
+            bg.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.getMaxCardId());
             bg.changed = true;
-            PCARD.pc.stack.AddNewBg(bg);
+            PCARD.pc.stack.addNewBg(bg);
 
             // Create card instance
             OCard cd = new OCard(PCARD.pc.stack);
-            cd.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.GetMaxCardId());
+            cd.id = (int) (Math.random() * 100 + 1 + PCARD.pc.stack.getMaxCardId());
             cd.bgid = bg.id;
             cd.changed = true;
-            PCARD.pc.stack.AddNewCard(PCARD.pc.stack.GetNumberof(PCARD.pc.stack.curCard), cd.id);
+            PCARD.pc.stack.addNewCard(PCARD.pc.stack.getNumberOf(PCARD.pc.stack.curCard), cd.id);
 
             TTalk.CallMessage("go cd id " + cd.id, "", null, false, true);
         } else if (cmd.equalsIgnoreCase("Delete Card")) {
@@ -1712,11 +1725,10 @@ class GMenuBrowse implements ActionListener {
                         // For the first card
                         previd = PCARD.pc.stack.cardIdList.get(i + 1);
                         PCARD.pc.stack.firstCard = previd;
-                        PCARD.pc.stack.firstBg = PCARD.pc.stack.GetCardbyId(previd).bgid;
+                        PCARD.pc.stack.firstBg = PCARD.pc.stack.getCardbyId(previd).bgid;
                     }
                     // Delete card
                     PCARD.pc.stack.cardIdList.remove(i);
-
                 }
             }
             for (int i = 0; i < PCARD.pc.stack.cdCacheList.size(); i++) {
@@ -1761,7 +1773,7 @@ class GMenuBrowse implements ActionListener {
                     fos.write("".getBytes());
                     fos.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
             }
             GMenu.BuildRecentMenu((JMenu) PCARD.pc.getJMenuBar().getComponent(0));

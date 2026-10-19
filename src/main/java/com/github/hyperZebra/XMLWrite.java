@@ -3,6 +3,8 @@ package com.github.hyperZebra;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,12 +13,14 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 
-public class XMLwrite {
+public class XMLWrite {
+
+    private static final Logger logger = System.getLogger(XMLWrite.class.getName());
 
     OStack stack;
     saveThread saveThread;
 
-    public XMLwrite(OStack stack) {
+    public XMLWrite(OStack stack) {
         this.stack = stack;
 
         saveThread = new saveThread();
@@ -37,7 +41,7 @@ public class XMLwrite {
 
             writer.writeStartDocument("utf-8", "1.0");
             writer.writeCharacters("\n");
-            // writer.writeDTD("<!DOCTYPE stackfile PUBLIC \"- // Apple, Inc. // DTD stackfile V 2.0 // EN\" \"\" >");
+            //writer.writeDTD("<!DOCTYPE stackfile PUBLIC \"- // Apple, Inc. // DTD stackfile V 2.0 // EN\" \"\" >");
             writer.writeCharacters("\n");
             writer.writeStartElement("stackfile");
             writer.writeCharacters("\n\t");
@@ -70,7 +74,7 @@ public class XMLwrite {
             stack.rsrc.writeXML(writer);
             stack.rsrc.writePlteXml(writer);
             stack.rsrc.writeAddColorXML(writer);
-            stack.rsrc.writeXcmdXML(writer);
+            stack.rsrc.writeXCmdXML(writer);
 
             writer.writeEndDocument();
 
@@ -86,7 +90,7 @@ public class XMLwrite {
                 stream.close();
             }
         } catch (XMLStreamException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 

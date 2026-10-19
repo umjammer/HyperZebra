@@ -36,9 +36,9 @@ public class ResEditIndex extends JFrame {
         String[][] tabledata = {{"", ""}};
 
         JTable table = new JTable(tabledata, columnNames);
-        // table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setEnabled(false);
-        // table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
+        //table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
         // Scroll
         scrollPane = new JScrollPane(table);
@@ -53,7 +53,7 @@ public class ResEditIndex extends JFrame {
     }
 
     JTable table;
-    String[][] tabledata;
+    String[][] tableData;
 
     public void setTable(Rsrc rsrc) {
         ArrayList<Integer> countList = new ArrayList<>();
@@ -70,17 +70,16 @@ public class ResEditIndex extends JFrame {
             }
         }
 
-
-        tabledata = new String[typeList.size()][2];
+        tableData = new String[typeList.size()][2];
 
         int i;
         for (i = 0; i < typeList.size(); i++) {
-            tabledata[i][0] = typeList.get(i);
-            tabledata[i][1] = Integer.toString(countList.get(i));
+            tableData[i][0] = typeList.get(i);
+            tableData[i][1] = Integer.toString(countList.get(i));
         }
 
-        table = new JTable(tabledata, columnNames);
-        // table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table = new JTable(tableData, columnNames);
+        //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setEnabled(false);
         table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
@@ -97,7 +96,7 @@ public class ResEditIndex extends JFrame {
                     int idx = table.rowAtPoint(pt);
                     if (idx >= 0) {
                         int row = table.convertRowIndexToModel(idx);
-                        new ResEdit(stack.pcard, tabledata[row][0], null);
+                        new ResEdit(stack.pcard, tableData[row][0], null);
                     }
                 }
             }
@@ -109,10 +108,10 @@ public class ResEditIndex extends JFrame {
         scrollPane = new JScrollPane(table);
         add(scrollPane);
         scrollPane.getVerticalScrollBar().setValue(scroll);
-        /*scrollPane.removeAll();
-        scrollPane.add(table);
-        scrollPane.setViewportView(table);*/
+//        scrollPane.removeAll();
+//        scrollPane.add(table);
+//        scrollPane.setViewportView(table);
         scrollPane.setBounds(rect);
-        // repaint();
+        //repaint();
     }
 }

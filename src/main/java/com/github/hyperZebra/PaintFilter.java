@@ -71,7 +71,7 @@ class PaintFilter extends JDialog implements ActionListener {
         this.getContentPane().repaint();
 
         if (owner.tool instanceof ToolSelectInterface tl &&
-                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
+                tl.getSelectedSurface(owner) != null) {
             save_bi = tl.getSelectedSurface(owner);
         } else return;
 
@@ -205,29 +205,29 @@ class PaintFilter extends JDialog implements ActionListener {
             String selectedFilter = PCARD.getEngText("dialog", str);
             switch (selectedFilter) {
                 case "None" -> newbi = srcbi;
-                case "Trace Edges" -> newbi = TraceEdges(srcbi);
-                case "Trace Edges 2" -> newbi = TraceEdges2(srcbi);
-                case "Spread Edges Dark" -> newbi = SpreadPixel(srcbi, 0);
-                case "Spread Edges Light" -> newbi = SpreadPixel(srcbi, 1);
-                case "Spread Edges" -> newbi = SpreadPixel(srcbi, 2);
-                case "Small Median" -> newbi = Median5(srcbi);
-                case "Median" -> newbi = Median(srcbi);
-                case "Large Median" -> newbi = Median25(srcbi);
-                case "Motion Blur" -> newbi = MotionBlur(srcbi);
-                case "Blur" -> newbi = Blur(srcbi);
-                case "Sharpen" -> newbi = Sharpen(srcbi);
-                case "Glass Tile" -> newbi = GlassTile(srcbi);
-                case "Frosted Glass" -> newbi = FrostedGlass(srcbi);
-                case "Horizontal Wave" -> newbi = WaveH(srcbi);
-                case "Vertical Wave" -> newbi = WaveV(srcbi);
-                case "Noise" -> newbi = Noise(srcbi);
-                case "Higher Contrast" -> newbi = HighContrast(srcbi);
-                case "Lower Contrast" -> newbi = LowContrast(srcbi);
-                case "Higher Saturation" -> newbi = HighSaturation(srcbi);
-                case "Lower Saturation" -> newbi = LowSaturation(srcbi);
-                case "Grayscale" -> newbi = Grayscale(srcbi);
+                case "Trace Edges" -> newbi = traceEdges(srcbi);
+                case "Trace Edges 2" -> newbi = traceEdges2(srcbi);
+                case "Spread Edges Dark" -> newbi = spreadPixel(srcbi, 0);
+                case "Spread Edges Light" -> newbi = spreadPixel(srcbi, 1);
+                case "Spread Edges" -> newbi = spreadPixel(srcbi, 2);
+                case "Small Median" -> newbi = median5(srcbi);
+                case "Median" -> newbi = median(srcbi);
+                case "Large Median" -> newbi = median25(srcbi);
+                case "Motion Blur" -> newbi = motionBlur(srcbi);
+                case "Blur" -> newbi = blur(srcbi);
+                case "Sharpen" -> newbi = sharpen(srcbi);
+                case "Glass Tile" -> newbi = glassTile(srcbi);
+                case "Frosted Glass" -> newbi = frostedGlass(srcbi);
+                case "Horizontal Wave" -> newbi = waveH(srcbi);
+                case "Vertical Wave" -> newbi = waveV(srcbi);
+                case "Noise" -> newbi = noise(srcbi);
+                case "Higher Contrast" -> newbi = highContrast(srcbi);
+                case "Lower Contrast" -> newbi = lowContrast(srcbi);
+                case "Higher Saturation" -> newbi = highSaturation(srcbi);
+                case "Lower Saturation" -> newbi = lowSaturation(srcbi);
+                case "Grayscale" -> newbi = grayscale(srcbi);
                 case "Binarization" -> {
-                    newbi = BinarizationDither(srcbi, dithermode);
+                    newbi = binarizationDither(srcbi, dithermode);
                     dithercombo.setVisible(true);
                 }
                 case "Index Color" -> {
@@ -248,7 +248,7 @@ class PaintFilter extends JDialog implements ActionListener {
             String str = (String) filtercombo.getSelectedItem();
             String selectedFilter = PCARD.getEngText("dialog", str);
             if (selectedFilter.equals("Binarization")) {
-                newbi = BinarizationDither(srcbi, dithermode);
+                newbi = binarizationDither(srcbi, dithermode);
             } else if (selectedFilter.equals("Index Color")) {
                 newbi = IndexColor(srcbi, color, dithermode);
             }
@@ -262,7 +262,6 @@ class PaintFilter extends JDialog implements ActionListener {
         }
         owner.mainPane.repaint();
     }
-
 
     private BufferedImage getBigImage(BufferedImage bi) {
         // Increase image size to handle edge processing
@@ -293,7 +292,6 @@ class PaintFilter extends JDialog implements ActionListener {
 
         return bigbi;
     }
-
 
     private BufferedImage getBigImage(BufferedImage bi, int awidth, int aheight) {
         // Increase image size to handle edge processing
@@ -345,8 +343,7 @@ class PaintFilter extends JDialog implements ActionListener {
         }
     }
 
-
-    private static BufferedImage SpreadPixel(BufferedImage srcbi, int mode) {
+    private static BufferedImage spreadPixel(BufferedImage srcbi, int mode) {
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D newg = newbi.createGraphics();
         newg.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -410,8 +407,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newbi;
     }
 
-
-    private BufferedImage TraceEdges(BufferedImage bi) {
+    private BufferedImage traceEdges(BufferedImage bi) {
         // Border the selected area
 
         BufferedImage bigbi = getBigImage(bi);
@@ -480,8 +476,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private BufferedImage TraceEdges2(BufferedImage bi) {
+    private BufferedImage traceEdges2(BufferedImage bi) {
         // Border with filter
 
         // Increase image size to handle edge processing
@@ -507,8 +502,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage Median(BufferedImage srcbi) {
+    private static BufferedImage median(BufferedImage srcbi) {
         // Median of selected area (taking the median value)
 
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -565,8 +559,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newbi;
     }
 
-
-    private static BufferedImage Median5(BufferedImage srcbi) {
+    private static BufferedImage median5(BufferedImage srcbi) {
         // Median of selected area (taking the median value)(5 neighbors)
 
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -629,8 +622,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newbi;
     }
 
-
-    private static BufferedImage Median25(BufferedImage srcbi) {
+    private static BufferedImage median25(BufferedImage srcbi) {
         // Median of selected area (taking the median value)
 
         BufferedImage newbi = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -687,8 +679,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newbi;
     }
 
-
-    private BufferedImage MotionBlur(BufferedImage bi) {
+    private BufferedImage motionBlur(BufferedImage bi) {
 
         // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
@@ -713,8 +704,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private BufferedImage GlassTile(BufferedImage bi) {
+    private BufferedImage glassTile(BufferedImage bi) {
         // my filter processing
         int patWidth = 10;
         int patHeight = 10;
@@ -749,8 +739,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private BufferedImage WaveH(BufferedImage bi) {
+    private BufferedImage waveH(BufferedImage bi) {
         // my filter processing
         int patWidth = 20;
         int patHeight = 20;
@@ -789,8 +778,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private BufferedImage WaveV(BufferedImage bi) {
+    private BufferedImage waveV(BufferedImage bi) {
         // my filter processing
         int patWidth = 20;
         int patHeight = 20;
@@ -829,8 +817,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private BufferedImage FrostedGlass(BufferedImage bi) {
+    private BufferedImage frostedGlass(BufferedImage bi) {
         int patWidth = 10;
         int patHeight = 10;
 
@@ -866,8 +853,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage Noise(BufferedImage srcbi) {
+    private static BufferedImage noise(BufferedImage srcbi) {
         // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
@@ -900,17 +886,16 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage HighContrast(BufferedImage srcbi) {
+    private static BufferedImage highContrast(BufferedImage srcbi) {
         // Processing
-        BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
-        DataBuffer newdb = newimg.getRaster().getDataBuffer();
+        BufferedImage newImg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        DataBuffer srcDb = srcbi.getRaster().getDataBuffer();
+        DataBuffer newDb = newImg.getRaster().getDataBuffer();
         int width = srcbi.getWidth();
         int height = srcbi.getHeight();
         for (int v = 0; v < height; v++) {
             for (int h = 0; h < width; h++) {
-                int c = srcdb.getElem(h + v * width);
+                int c = srcDb.getElem(h + v * width);
                 int a = c >> 24;
                 int r = (c >> 16) & 0xFF;
                 int g = (c >> 8) & 0xFF;
@@ -927,15 +912,14 @@ class PaintFilter extends JDialog implements ActionListener {
                 if (b > 255) b = 255;
 
                 int d = (a << 24) + (r << 16) + (g << 8) + b;
-                newdb.setElem(h + v * width, d);
+                newDb.setElem(h + v * width, d);
             }
         }
 
-        return newimg;
+        return newImg;
     }
 
-
-    private static BufferedImage LowContrast(BufferedImage srcbi) {
+    private static BufferedImage lowContrast(BufferedImage srcbi) {
         // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
@@ -962,8 +946,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage HighSaturation(BufferedImage srcbi) {
+    private static BufferedImage highSaturation(BufferedImage srcbi) {
         // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
@@ -992,8 +975,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage LowSaturation(BufferedImage srcbi) {
+    private static BufferedImage lowSaturation(BufferedImage srcbi) {
         // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
@@ -1022,8 +1004,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage Grayscale(BufferedImage srcbi) {
+    private static BufferedImage grayscale(BufferedImage srcbi) {
         // Processing
         BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
@@ -1046,14 +1027,13 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private static BufferedImage BinarizationDither(BufferedImage srcbi, int dithermode) {
-        BufferedImage newimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    private static BufferedImage binarizationDither(BufferedImage srcbi, int dithermode) {
+        BufferedImage newImg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
         if (dithermode == -1) {
             // No dither
             DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
-            DataBuffer newdb = newimg.getRaster().getDataBuffer();
+            DataBuffer newdb = newImg.getRaster().getDataBuffer();
             int width = srcbi.getWidth();
             int height = srcbi.getHeight();
             for (int v = 0; v < height; v++) {
@@ -1074,7 +1054,7 @@ class PaintFilter extends JDialog implements ActionListener {
         } else if (dithermode == 0) {
             // Floyd-Steinburg Algorithm
 
-            DataBuffer newdb = newimg.getRaster().getDataBuffer();
+            DataBuffer newdb = newImg.getRaster().getDataBuffer();
             int width = srcbi.getWidth();
             int height = srcbi.getHeight();
             for (int v = 0; v < height; v++) {
@@ -1091,7 +1071,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
                     // Calculate brightness
                     int brightness = (int) (0.29891f * ((color >> 16) & 0xFF) + 0.58661f * ((color >> 8) & 0xFF) + 0.1144f * ((color) & 0xFF));
-                    // Gamma adjustment brightness = (int) (Math.pow(brightness/256f, 1.8)*256);
+                    // Gamma adjustment brightness = (int) (Math.pow(brightness / 256f, 1.8) * 256);
                     brightness += newdb.getElem(h + v * width);
 
                     // Make pixel white or black
@@ -1117,7 +1097,7 @@ class PaintFilter extends JDialog implements ActionListener {
             // Bill Atkinson's HyperScan Algorithm
             // http: // verlagmartinkoch.at/software/dither/index.html
 
-            DataBuffer newdb = newimg.getRaster().getDataBuffer();
+            DataBuffer newdb = newImg.getRaster().getDataBuffer();
             int width = srcbi.getWidth();
             int height = srcbi.getHeight();
             for (int v = 0; v < height; v++) {
@@ -1158,68 +1138,97 @@ class PaintFilter extends JDialog implements ActionListener {
                     if (v + 2 < height) newdb.setElem(h + (v + 2) * width, carry);
 
                     // Spread error(Burkes)
-                    /*int carry = brightness;
-                    if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*4/16);
-                    if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*2/16);
-                    if(v+1>=height) continue;
-                    if(h-2>=0) newdb.setElem(h-2+(v+1)*width, newdb.getElem(h-2+(v+1)*width)+carry*1/16);
-                    if(h-1>=0) newdb.setElem(h-1+(v+1)*width, newdb.getElem(h-1+(v+1)*width)+carry*2/16);
-                    newdb.setElem(h+(v+1)*width, newdb.getElem(h+(v+1)*width)+carry*4/16);
-                    if(h+1<width) newdb.setElem(h+1+(v+1)*width, newdb.getElem(h+1+(v+1)*width)+carry*2/16);
-                    if(h+2<width) newdb.setElem(h+2+(v+1)*width, newdb.getElem(h+2+(v+1)*width)+carry*1/16);
-                    */
+//                    int carry = brightness;
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + carry * 4 / 16);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + v * width, newdb.getElem(h + 2 + v * width) + carry * 2 / 16);
+//                    if (v + 1 >= height) continue;
+//                    if (h - 2 >= 0)
+//                        newdb.setElem(h - 2 + (v + 1) * width, newdb.getElem(h - 2 + (v + 1) * width) + carry * 1 / 16);
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 1) * width, newdb.getElem(h - 1 + (v + 1) * width) + carry * 2 / 16);
+//                    newdb.setElem(h + (v + 1) * width, newdb.getElem(h + (v + 1) * width) + carry * 4 / 16);
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + (v + 1) * width, newdb.getElem(h + 1 + (v + 1) * width) + carry * 2 / 16);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + (v + 1) * width, newdb.getElem(h + 2 + (v + 1) * width) + carry * 1 / 16);
                     // Spread error(Stucki)
-                    /*int carry = brightness;
-                    if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*8/42);
-                    if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*4/42);
-                    if(v+1>=height) continue;
-                    if(h-2>=0) newdb.setElem(h-2+(v+1)*width, newdb.getElem(h-2+(v+1)*width)+carry*2/42);
-                    if(h-1>=0) newdb.setElem(h-1+(v+1)*width, newdb.getElem(h-1+(v+1)*width)+carry*4/42);
-                    newdb.setElem(h+(v+1)*width, newdb.getElem(h+(v+1)*width)+carry*8/42);
-                    if(h+1<width) newdb.setElem(h+1+(v+1)*width, newdb.getElem(h+1+(v+1)*width)+carry*4/42);
-                    if(h+2<width) newdb.setElem(h+2+(v+1)*width, newdb.getElem(h+2+(v+1)*width)+carry*2/42);
-                    if(v+2>=height) continue;
-                    if(h-2>=0) newdb.setElem(h-2+(v+2)*width, newdb.getElem(h-2+(v+2)*width)+carry*1/42);
-                    if(h-1>=0) newdb.setElem(h-1+(v+2)*width, newdb.getElem(h-1+(v+2)*width)+carry*2/42);
-                    newdb.setElem(h+(v+2)*width, newdb.getElem(h+(v+2)*width)+carry*4/42);
-                    if(h+1<width) newdb.setElem(h+1+(v+2)*width, newdb.getElem(h+1+(v+2)*width)+carry*2/42);
-                    if(h+2<width) newdb.setElem(h+2+(v+2)*width, newdb.getElem(h+2+(v+2)*width)+carry*1/42);
-                    */
+//                    int carry = brightness;
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + carry * 8 / 42);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + v * width, newdb.getElem(h + 2 + v * width) + carry * 4 / 42);
+//                    if (v + 1 >= height) continue;
+//                    if (h - 2 >= 0)
+//                        newdb.setElem(h - 2 + (v + 1) * width, newdb.getElem(h - 2 + (v + 1) * width) + carry * 2 / 42);
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 1) * width, newdb.getElem(h - 1 + (v + 1) * width) + carry * 4 / 42);
+//                    newdb.setElem(h + (v + 1) * width, newdb.getElem(h + (v + 1) * width) + carry * 8 / 42);
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + (v + 1) * width, newdb.getElem(h + 1 + (v + 1) * width) + carry * 4 / 42);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + (v + 1) * width, newdb.getElem(h + 2 + (v + 1) * width) + carry * 2 / 42);
+//                    if (v + 2 >= height) continue;
+//                    if (h - 2 >= 0)
+//                        newdb.setElem(h - 2 + (v + 2) * width, newdb.getElem(h - 2 + (v + 2) * width) + carry * 1 / 42);
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 2) * width, newdb.getElem(h - 1 + (v + 2) * width) + carry * 2 / 42);
+//                    newdb.setElem(h + (v + 2) * width, newdb.getElem(h + (v + 2) * width) + carry * 4 / 42);
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + (v + 2) * width, newdb.getElem(h + 1 + (v + 2) * width) + carry * 2 / 42);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + (v + 2) * width, newdb.getElem(h + 2 + (v + 2) * width) + carry * 1 / 42);
                     // Spread error(JaJuNi)
-                    /*int carry = brightness;
-                    if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*7/48);
-                    if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*5/48);
-                    if(v+1>=height) continue;
-                    if(h-2>=0) newdb.setElem(h-2+(v+1)*width, newdb.getElem(h-2+(v+1)*width)+carry*3/48);
-                    if(h-1>=0) newdb.setElem(h-1+(v+1)*width, newdb.getElem(h-1+(v+1)*width)+carry*5/48);
-                    newdb.setElem(h+(v+1)*width, newdb.getElem(h+(v+1)*width)+carry*7/48);
-                    if(h+1<width) newdb.setElem(h+1+(v+1)*width, newdb.getElem(h+1+(v+1)*width)+carry*5/48);
-                    if(h+2<width) newdb.setElem(h+2+(v+1)*width, newdb.getElem(h+2+(v+1)*width)+carry*3/48);
-                    if(v+2>=height) continue;
-                    if(h-2>=0) newdb.setElem(h-2+(v+2)*width, newdb.getElem(h-2+(v+2)*width)+carry*1/48);
-                    if(h-1>=0) newdb.setElem(h-1+(v+2)*width, newdb.getElem(h-1+(v+2)*width)+carry*3/48);
-                    newdb.setElem(h+(v+2)*width, newdb.getElem(h+(v+2)*width)+carry*5/48);
-                    if(h+1<width) newdb.setElem(h+1+(v+2)*width, newdb.getElem(h+1+(v+2)*width)+carry*3/48);
-                    if(h+2<width) newdb.setElem(h+2+(v+2)*width, newdb.getElem(h+2+(v+2)*width)+carry*1/48);
-                    */
+//                    int carry = brightness;
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + carry * 7 / 48);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + v * width, newdb.getElem(h + 2 + v * width) + carry * 5 / 48);
+//                    if (v + 1 >= height) continue;
+//                    if (h - 2 >= 0)
+//                        newdb.setElem(h - 2 + (v + 1) * width, newdb.getElem(h - 2 + (v + 1) * width) + carry * 3 / 48);
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 1) * width, newdb.getElem(h - 1 + (v + 1) * width) + carry * 5 / 48);
+//                    newdb.setElem(h + (v + 1) * width, newdb.getElem(h + (v + 1) * width) + carry * 7 / 48);
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + (v + 1) * width, newdb.getElem(h + 1 + (v + 1) * width) + carry * 5 / 48);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + (v + 1) * width, newdb.getElem(h + 2 + (v + 1) * width) + carry * 3 / 48);
+//                    if (v + 2 >= height) continue;
+//                    if (h - 2 >= 0)
+//                        newdb.setElem(h - 2 + (v + 2) * width, newdb.getElem(h - 2 + (v + 2) * width) + carry * 1 / 48);
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 2) * width, newdb.getElem(h - 1 + (v + 2) * width) + carry * 3 / 48);
+//                    newdb.setElem(h + (v + 2) * width, newdb.getElem(h + (v + 2) * width) + carry * 5 / 48);
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + (v + 2) * width, newdb.getElem(h + 1 + (v + 2) * width) + carry * 3 / 48);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + (v + 2) * width, newdb.getElem(h + 2 + (v + 2) * width) + carry * 1 / 48);
                     // Spread error(Sierra 2line)
-                    /*int carry = brightness;
-                    if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*4/16);
-                    if(h+2<width) newdb.setElem(h+2+v*width, newdb.getElem(h+2+v*width)+carry*3/16);
-                    if(v+1>=height) continue;
-                    if(h-2>=0) newdb.setElem(h-2+(v+1)*width, newdb.getElem(h-2+(v+1)*width)+carry*1/16);
-                    if(h-1>=0) newdb.setElem(h-1+(v+1)*width, newdb.getElem(h-1+(v+1)*width)+carry*2/16);
-                    newdb.setElem(h+(v+1)*width, newdb.getElem(h+(v+1)*width)+carry*3/16);
-                    if(h+1<width) newdb.setElem(h+1+(v+1)*width, newdb.getElem(h+1+(v+1)*width)+carry*2/16);
-                    if(h+2<width) newdb.setElem(h+2+(v+1)*width, newdb.getElem(h+2+(v+1)*width)+carry*1/16);
-                    */
+//                    int carry = brightness;
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + carry * 4 / 16);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + v * width, newdb.getElem(h + 2 + v * width) + carry * 3 / 16);
+//                    if (v + 1 >= height) continue;
+//                    if (h - 2 >= 0)
+//                        newdb.setElem(h - 2 + (v + 1) * width, newdb.getElem(h - 2 + (v + 1) * width) + carry * 1 / 16);
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 1) * width, newdb.getElem(h - 1 + (v + 1) * width) + carry * 2 / 16);
+//                    newdb.setElem(h + (v + 1) * width, newdb.getElem(h + (v + 1) * width) + carry * 3 / 16);
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + (v + 1) * width, newdb.getElem(h + 1 + (v + 1) * width) + carry * 2 / 16);
+//                    if (h + 2 < width)
+//                        newdb.setElem(h + 2 + (v + 1) * width, newdb.getElem(h + 2 + (v + 1) * width) + carry * 1 / 16);
                     // Spread error(Sierra lite)
-                    /*int carry = brightness;
-                    if(h+1<width) newdb.setElem(h+1+v*width, newdb.getElem(h+1+v*width)+carry*2/4);
-                    if(v+1>=height) continue;
-                    if(h-1>=0) newdb.setElem(h-1+(v+1)*width, newdb.getElem(h-1+(v+1)*width)+carry*1/4);
-                    newdb.setElem(h+(v+1)*width, newdb.getElem(h+(v+1)*width)+carry*1/4);
-                    */
+//                    int carry = brightness;
+//                    if (h + 1 < width)
+//                        newdb.setElem(h + 1 + v * width, newdb.getElem(h + 1 + v * width) + carry * 2 / 4);
+//                    if (v + 1 >= height) continue;
+//                    if (h - 1 >= 0)
+//                        newdb.setElem(h - 1 + (v + 1) * width, newdb.getElem(h - 1 + (v + 1) * width) + carry * 1 / 4);
+//                    newdb.setElem(h + (v + 1) * width, newdb.getElem(h + (v + 1) * width) + carry * 1 / 4);
                 }
             }
 
@@ -1233,9 +1242,9 @@ class PaintFilter extends JDialog implements ActionListener {
             BufferedImage ditherimg = new BufferedImage(srcbi.getWidth(), srcbi.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, colorModel);
             ditherimg.createGraphics().drawImage(srcbi, 0, 0, null);
 
-            newimg.createGraphics().drawImage(ditherimg, 0, 0, null);
+            newImg.createGraphics().drawImage(ditherimg, 0, 0, null);
             DataBuffer srcdb = srcbi.getRaster().getDataBuffer();
-            DataBuffer newdb = newimg.getRaster().getDataBuffer();
+            DataBuffer newdb = newImg.getRaster().getDataBuffer();
             int width = srcbi.getWidth();
             int height = srcbi.getHeight();
             for (int v = 0; v < height; v++) {
@@ -1248,11 +1257,10 @@ class PaintFilter extends JDialog implements ActionListener {
             }
         }
 
-        return newimg;
+        return newImg;
     }
 
-
-    private BufferedImage Blur(BufferedImage bi) {
+    private BufferedImage blur(BufferedImage bi) {
         // Processing
         // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
@@ -1277,8 +1285,7 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    private BufferedImage Sharpen(BufferedImage bi) {
+    private BufferedImage sharpen(BufferedImage bi) {
         // Processing
         // Increase image size to handle edge processing
         BufferedImage bigbi = getBigImage(bi);
@@ -1303,11 +1310,11 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-    static class colorCnt {
+    static class ColorCnt {
 
-        public colorCnt(int redmin, int redmax, int greenmin, int greenmax, int bluemin, int bluemax, int cnt) {
-            this.redmin = redmin;
-            this.redmax = redmax;
+        public ColorCnt(int redMin, int redMax, int greenmin, int greenmax, int bluemin, int bluemax, int cnt) {
+            this.redMin = redMin;
+            this.redMax = redMax;
             this.greenmin = greenmin;
             this.greenmax = greenmax;
             this.bluemin = bluemin;
@@ -1315,8 +1322,8 @@ class PaintFilter extends JDialog implements ActionListener {
             this.count = cnt;
         }
 
-        int redmin; // Color space area
-        int redmax;
+        int redMin; // Color space area
+        int redMax;
         int greenmin;
         int greenmax;
         int bluemin;
@@ -1331,7 +1338,7 @@ class PaintFilter extends JDialog implements ActionListener {
 
         int[] initArea = new int[6];
 
-        void setInitArea(colorCnt parentCnt) {
+        void setInitArea(ColorCnt parentCnt) {
             initArea[0] = parentCnt.initArea[0];
             initArea[1] = parentCnt.initArea[1];
             initArea[2] = parentCnt.initArea[2];
@@ -1340,14 +1347,13 @@ class PaintFilter extends JDialog implements ActionListener {
             initArea[5] = parentCnt.initArea[5];
         }
 
-
         void setDist(int[] countHist, int[] counts, int dithermode, int colorsize, byte[] gradarea) {
             int iredmin = -1;
             int iredmax = 0;
             // int average = 0;
             this.redavr = 0;
             float pixtotal = 0;
-            for (int i = this.redmin; i < this.redmax; i++) {
+            for (int i = this.redMin; i < this.redMax; i++) {
                 // Count pixels
                 countHist[i] = 0;
                 for (int g = this.greenmin; g < this.greenmax; g++) {
@@ -1361,19 +1367,19 @@ class PaintFilter extends JDialog implements ActionListener {
                     // There are pixels, reflect in min and max
                     if (iredmin == -1) {
                         iredmin = i;
-                        this.redmin = i;
+                        this.redMin = i;
                     }
                     iredmax = i + 1;
                 }
             }
-            this.redmax = iredmax;
+            this.redMax = iredmax;
             this.redavr /= (pixtotal);
             // Calculate total deviation from average value
             this.reddist = 0;
-            for (int i = this.redmin; i < this.redmax; i++) {
-                this.reddist = (int) (this.reddist + countHist[i] * Math.abs(i - this.redavr))/*/(this.redmax-this.redmin)*/;
+            for (int i = this.redMin; i < this.redMax; i++) {
+                this.reddist = (int) (this.reddist + countHist[i] * Math.abs(i - this.redavr))/*/(this.redMax-this.redMin)*/;
             }
-            if (this.redmax - this.redmin <= 1) {
+            if (this.redMax - this.redMin <= 1) {
                 this.reddist = 0;
             }
 
@@ -1384,7 +1390,7 @@ class PaintFilter extends JDialog implements ActionListener {
             for (int i = this.greenmin; i < this.greenmax; i++) {
                 // Count pixels
                 countHist[i] = 0;
-                for (int r = this.redmin; r < this.redmax; r++) {
+                for (int r = this.redMin; r < this.redMax; r++) {
                     for (int b = this.bluemin; b < this.bluemax; b++) {
                         countHist[i] += counts[r * 256 * 64 + i * 64 + b];
                     }
@@ -1419,7 +1425,7 @@ class PaintFilter extends JDialog implements ActionListener {
             for (int i = this.bluemin; i < this.bluemax; i++) {
                 // Count pixels
                 countHist[i] = 0;
-                for (int r = this.redmin; r < this.redmax; r++) {
+                for (int r = this.redMin; r < this.redMax; r++) {
                     for (int g = this.greenmin; g < this.greenmax; g++) {
                         countHist[i] += counts[r * 256 * 64 + g * 64 + i];
                     }
@@ -1450,7 +1456,7 @@ class PaintFilter extends JDialog implements ActionListener {
             int countBright = 0;
             if (reddist > this.bluedist) {
                 // Number of areas that are both bright
-                for (int r = ((int) this.redavr + this.redmax) / 2; r < this.redmax; r++) {
+                for (int r = ((int) this.redavr + this.redMax) / 2; r < this.redMax; r++) {
                     for (int g = ((int) this.greenavr + this.greenmax) / 2; g < this.greenmax; g++) {
                         for (int b = this.bluemin; b < this.bluemax; b++) {
                             countBright += counts[r * 256 * 64 + g * 64 + b];
@@ -1458,7 +1464,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     }
                 }
                 // Number of areas that are both dark
-                for (int r = this.redmin; r < ((int) this.redavr + this.redmin) / 2; r++) {
+                for (int r = this.redMin; r < ((int) this.redavr + this.redMin) / 2; r++) {
                     for (int g = this.greenmin; g < ((int) this.greenavr + this.greenmax) / 2; g++) {
                         for (int b = this.bluemin; b < this.bluemax; b++) {
                             countBright += counts[r * 256 * 64 + g * 64 + b];
@@ -1467,7 +1473,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             } else {
                 // Number of areas that are both bright
-                for (int r = this.redmin; r < this.redmax; r++) {
+                for (int r = this.redMin; r < this.redMax; r++) {
                     for (int g = ((int) this.greenavr + this.greenmax) / 2; g < this.greenmax; g++) {
                         for (int b = ((int) this.blueavr + this.bluemax) / 2; b < this.bluemax; b++) {
                             countBright += counts[r * 256 * 64 + g * 64 + b];
@@ -1475,7 +1481,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     }
                 }
                 // Number of areas that are both dark
-                for (int r = this.redmin; r < this.redmax; r++) {
+                for (int r = this.redMin; r < this.redMax; r++) {
                     for (int g = this.greenmin; g < ((int) this.greenavr + this.greenmax) / 2; g++) {
                         for (int b = this.bluemin; b < ((int) this.blueavr + this.bluemin) / 2; b++) {
                             countBright += counts[r * 256 * 64 + g * 64 + b];
@@ -1493,7 +1499,7 @@ class PaintFilter extends JDialog implements ActionListener {
             if (countBright > pixtotal * 2 / 16 && (dithermode == -1 && colorsize > 16)) {
                 int c565 = (((int) this.redavr >> 1) << 11) + (((int) this.greenavr >> 2) << 5) + (((int) this.blueavr >> 1));
                 float grad = 1.0f;
-                // System.out.println("gradarea[c565]:"+gradarea[c565]);
+                //logger.log(Level.DEBUG, "gradarea[c565]: " + gradarea[c565]);
                 if (colorsize > 32) {
                     // Prioritize brightness in gradient area
                     if (gradarea[c565] >= 64) grad = 1.3f;
@@ -1556,12 +1562,12 @@ class PaintFilter extends JDialog implements ActionListener {
                 this.bluedist = (int) (this.bluedist * 0.8);
             }
 
-            if ((this.greenmax / 4 > 48 && this.redmax > 54) && this.blueavr < 32) {
+            if ((this.greenmax / 4 > 48 && this.redMax > 54) && this.blueavr < 32) {
                 // When red and green are dominant and blue is weak, ignore blue changes
                 this.bluedist = (int) (this.bluedist * 0.1);
                 this.greendist = (int) (this.greendist * 0.8);
                 this.reddist = (int) (this.reddist * 0.7);
-            } else if ((this.greenmax / 4 > 48 || this.redmax > 54) && this.blueavr < 32) {
+            } else if ((this.greenmax / 4 > 48 || this.redMax > 54) && this.blueavr < 32) {
                 // When red or green is dominant and blue is weak, ignore blue changes
                 this.bluedist = (int) (this.bluedist * 0.3);
                 this.greendist = (int) (this.greendist * 1.0);
@@ -1571,7 +1577,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 this.reddist = (int) (this.reddist * 0.3);
                 this.greendist = (int) (this.greendist * 1.0);
                 this.bluedist = (int) (this.bluedist * 0.9);
-            } else if ((this.redmax > 48 && this.redmax > 54) && this.greenavr / 4 < 12) {
+            } else if ((this.redMax > 48 && this.redMax > 54) && this.greenavr / 4 < 12) {
                 // When red and blue are dominant and green is weak, ignore green changes
                 this.greendist = (int) (this.greendist * 0.50);
             }
@@ -1587,14 +1593,14 @@ class PaintFilter extends JDialog implements ActionListener {
                 // this.reddist *= 1.3;
                 this.greendist = (int) (this.greendist * 1.3);
                 // this.bluedist *= 1.3;
-            } else if ((this.redmin > 48 && this.redavr <= 55 || this.bluemin > 48 && this.blueavr <= 55) &&
+            } else if ((this.redMin > 48 && this.redavr <= 55 || this.bluemin > 48 && this.blueavr <= 55) &&
                     (this.greendist > this.reddist) && (this.greendist > this.bluedist)) {
                 // Large green change
                 this.greendist = (int) (this.greendist * 1.5);
-            } else if (this.greenavr / 4 > 54 && this.greenmin / 2 > this.bluemax && this.greenmin / 4 > this.redmax && (this.greenmax / 4 - this.greenmin / 4 <= 8)) {
+            } else if (this.greenavr / 4 > 54 && this.greenmin / 2 > this.bluemax && this.greenmin / 4 > this.redMax && (this.greenmax / 4 - this.greenmin / 4 <= 8)) {
                 // Green is dominant and green is narrow
                 this.greendist = this.greendist * 3 / 4;
-            } else if (this.redmax + this.greenmax / 4 + this.bluemax <= 32) {
+            } else if (this.redMax + this.greenmax / 4 + this.bluemax <= 32) {
                 // Dark color area
                 if (this.reddist > this.greendist / 2) {
                     this.reddist = (int) (this.reddist * 0.6);
@@ -1609,23 +1615,22 @@ class PaintFilter extends JDialog implements ActionListener {
                     this.greendist = (int) (this.greendist * 0.6);
                     this.bluedist = (int) (this.bluedist * 0.05);
                 }
-                if (this.redmax + this.greenmax / 4 + this.bluemax <= 16) {
+                if (this.redMax + this.greenmax / 4 + this.bluemax <= 16) {
                     // In quite dark areas, halve it further
                     this.reddist = (int) (this.reddist * 0.5);
                     this.greendist = (int) (this.greendist * 0.5);
                     this.bluedist = (int) (this.bluedist * 0.5);
                 }
-            } else if (this.redmax + this.greenmax / 4 + this.bluemax <= 64) {
+            } else if (this.redMax + this.greenmax / 4 + this.bluemax <= 64) {
                 // Somewhat dark area
-                // this.reddist *= 0.9;
-                // this.greendist *= 0.9;
-                // this.bluedist *= 0.8;
+                //this.reddist *= 0.9;
+                //this.greendist *= 0.9;
+                //this.bluedist *= 0.8;
             }
         }
     }
 
-    private static BufferedImage IndexColor(BufferedImage srcbi,
-                                            int colors, int dithermode) {
+    private static BufferedImage IndexColor(BufferedImage srcbi, int colors, int dithermode) {
         // Convert to 20bit of 6+8+6
         int width = srcbi.getWidth();
         int height = srcbi.getHeight();
@@ -1649,8 +1654,8 @@ class PaintFilter extends JDialog implements ActionListener {
         byte[] gradarea = new byte[1 << 16]; // Store gradient area with 5,6,5
 
         // Count included colors
-        // DataBuffer db = srcbi.getRaster().getDataBuffer();
-        // DataBuffer minidb = minibi.getRaster().getDataBuffer();
+        //DataBuffer db = srcbi.getRaster().getDataBuffer();
+        //DataBuffer minidb = minibi.getRaster().getDataBuffer();
         int[] grad_d = new int[8];
         int cnt_renzoku;
         for (int v = 0; v < height; v++) {
@@ -1668,7 +1673,7 @@ class PaintFilter extends JDialog implements ActionListener {
                     // Skin tone area
                     counts[d] += 1;
                 }
-                if ((colors == -1 || colors >= 32) && h - 1 >= 0 && v - 1 >= 0 && /*r+g+b<364 &&*/ r + g + b > 24) {
+                if ((colors == -1 || colors >= 32) && h - 1 >= 0 && v - 1 >= 0 && /* r + g + b < 364 && */ r + g + b > 24) {
                     // Plane
                     int dd1 = minidb.getElem(h - 1 + v * width);
                     int dd2 = minidb.getElem(h + (v - 1) * width);
@@ -1716,7 +1721,7 @@ class PaintFilter extends JDialog implements ActionListener {
                                 int ddr = ((grad_d[k] >> 14) & 0x3F) >> 1;
                                 int ddg = ((grad_d[k] >> 6) & 0xFF) >> 2;
                                 int ddb = ((grad_d[k]) & 0x3F) >> 1;
-                                // counts[grad_d[k]]+=8;
+                                //counts[grad_d[k]] += 8;
                                 if (gradarea[((ddr) << 11) + ((ddg) << 5) + (ddb)] < 64) {
                                     gradarea[((ddr) << 11) + ((ddg) << 5) + (ddb)] = (byte) (gradarea[((ddr) << 11) + ((ddg) << 5) + (ddb)] + add);
                                 }
@@ -1808,7 +1813,7 @@ class PaintFilter extends JDialog implements ActionListener {
         }
 
         // Analyze color distribution and split somewhere
-        ArrayList<colorCnt> colorList = new ArrayList<>();
+        ArrayList<ColorCnt> colorList = new ArrayList<>();
         int total = 0;
         for (int k : counts) {
             total += k;
@@ -1820,7 +1825,7 @@ class PaintFilter extends JDialog implements ActionListener {
         }
         int[] countHist = new int[256];
 
-        colorList.add(new colorCnt(0, 64, 0, 256, 0, 64, total));
+        colorList.add(new ColorCnt(0, 64, 0, 256, 0, 64, total));
         colorList.get(0).initArea[0] = 0;
         colorList.get(0).initArea[1] = 64;
         colorList.get(0).initArea[2] = 0;
@@ -1835,13 +1840,13 @@ class PaintFilter extends JDialog implements ActionListener {
 
             // Determine the area to split. The area with a wide range and many pixels.
             float maxdist = 0;
-            colorCnt maxarea = null;
+            ColorCnt maxarea = null;
             for (int i = 0; i < colorList.size(); i++) {
-                colorCnt colarea = colorList.get(i);
+                ColorCnt colarea = colorList.get(i);
                 float dist = ((float) colarea.reddist + 1) +
                         ((float) colarea.greendist + 1) +
                         ((float) colarea.bluedist + 1);
-                // float dist = Math.max(((float)colarea.reddist+1)/**(colarea.redmax-colarea.redmin)*// **(colarea.redmax-colarea.redmin)*/,
+                // float dist = Math.max(((float)colarea.reddist+1)/**(colarea.redMax-colarea.redMin)*// **(colarea.redMax-colarea.redMin)*/,
                 //        Math.max(((float)colarea.greendist+1)/**(colarea.greenmax-colarea.greenmin)/2*// **(colarea.greenmax-colarea.greenmin)/2*/,
                 //                ((float)colarea.bluedist+1)/**(colarea.bluemax-colarea.bluemin)*// **(colarea.bluemax-colarea.bluemin)*/));
                 dist = (dist) * (colarea.count + (float) total / colorList.size() * 100);
@@ -1856,13 +1861,13 @@ class PaintFilter extends JDialog implements ActionListener {
                 maxarea = colorList.get(0);
             }
 
-            /*System.out.println("select area!  count:"+maxarea.count);
-            System.out.println("redmin:"+maxarea.redmin+" redmax:"+maxarea.redmax
-                    +" greenmin:"+maxarea.greenmin+" greenmax:"+maxarea.greenmax
-                    +" bluemin:"+maxarea.bluemin+" bluemax:"+maxarea.bluemax);
-            System.out.println("reddist:"+maxarea.reddist
-                    +" greendist:"+maxarea.greendist
-                    +" bluedist:"+maxarea.bluedist);*/
+//            logger.log(Level.DEBUG, "select area!  count:" + maxarea.count);
+//            logger.log(Level.DEBUG, "redMin:" + maxarea.redMin + " redMax:" + maxarea.redMax
+//                    + " greenmin:" + maxarea.greenmin + " greenmax:" + maxarea.greenmax
+//                    + " bluemin:" + maxarea.bluemin + " bluemax:" + maxarea.bluemax);
+//            logger.log(Level.DEBUG, "reddist:" + maxarea.reddist
+//                    + " greendist:" + maxarea.greendist
+//                    + " bluedist:" + maxarea.bluedist);
 
             // Determine split direction (r,g,b) Position where pixels are biased in that color direction and can be split into many pixels
             if (maxarea.reddist == 0 && maxarea.greendist == 0 && maxarea.bluedist == 0) {
@@ -1880,8 +1885,8 @@ class PaintFilter extends JDialog implements ActionListener {
                 }
             }
 
-            colorCnt newarea;
-            newarea = new colorCnt(maxarea.redmin, maxarea.redmax, maxarea.greenmin, maxarea.greenmax, maxarea.bluemin, maxarea.bluemax, 0);
+            ColorCnt newarea;
+            newarea = new ColorCnt(maxarea.redMin, maxarea.redMax, maxarea.greenmin, maxarea.greenmax, maxarea.bluemin, maxarea.bluemax, 0);
 
             if (maxarea.reddist >= maxarea.greendist && maxarea.reddist >= maxarea.bluedist) {
                 // Split red
@@ -1891,7 +1896,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 // Create histogram
                 float average = 0;
                 int counttotal = 0;
-                for (int r = maxarea.redmin; r < maxarea.redmax; r++) {
+                for (int r = maxarea.redMin; r < maxarea.redMax; r++) {
                     countHist[r] = 0;
                     for (int g = newarea.greenmin; g < newarea.greenmax; g++) {
                         for (int b = newarea.bluemin; b < newarea.bluemax; b++) {
@@ -1902,40 +1907,40 @@ class PaintFilter extends JDialog implements ActionListener {
                     counttotal += countHist[r];
                 }
                 average /= counttotal;
-                int areawidth = (maxarea.redmax - maxarea.redmin) * 4;
+                int areawidth = (maxarea.redMax - maxarea.redMin) * 4;
                 if (areawidth > 32) {
                     // Smooth histogram
                     for (int j = 0; j < areawidth / 32; j++) {
-                        for (int i = newarea.redmin + 1; i < newarea.redmax - 1; i++) {
+                        for (int i = newarea.redMin + 1; i < newarea.redMax - 1; i++) {
                             countHist[i] = (countHist[i - 1] + 2 * countHist[i] + countHist[i + 1]) / 4;
                         }
                     }
                 }
-                // System.out.println("average"+average+"    counttotal:"+counttotal);
+                //logger.log(Level.DEBUG, "average: " + average + "    counttotal: " + counttotal);
 
                 // Find a place near the average value with few pixels
                 float maxrank = -1000000;
-                for (int i = maxarea.redmin + 1; i < maxarea.redmax; i++) {
+                for (int i = maxarea.redMin + 1; i < maxarea.redMax; i++) {
                     float rank = (((float) counttotal) / (countHist[i] + (float) (1 * counttotal) / areawidth) - (5 + 32.0f / areawidth) * Math.abs(average - i));
-                    // System.out.println("rank"+rank+"    "+countHist[i]);
+                    //logger.log(Level.DEBUG, "rank"+rank+"    "+countHist[i]);
                     if (rank >= maxrank) {
                         int splitcount = 0;
-                        for (int j = maxarea.redmin; j <= i; j++) {
+                        for (int j = maxarea.redMin; j <= i; j++) {
                             splitcount += countHist[j];
                         }
                         if (splitcount > maxarea.count * 2 / 8 && splitcount < maxarea.count * 6 / 8) {
                             // Split
                             maxrank = rank;
-                            newarea.redmin = i;
+                            newarea.redMin = i;
                         }
                     }
                 }
-                if (maxrank == -1000000) newarea.redmin = (int) average + 1;
-                maxarea.redmax = newarea.redmin;
+                if (maxrank == -1000000) newarea.redMin = (int) average + 1;
+                maxarea.redMax = newarea.redMin;
 
                 newarea.setInitArea(maxarea); // Remember initial color space
-                newarea.initArea[0] = newarea.redmin;
-                maxarea.initArea[1] = maxarea.redmax;
+                newarea.initArea[0] = newarea.redMin;
+                maxarea.initArea[1] = maxarea.redMax;
             } else if (maxarea.greendist >= maxarea.reddist && maxarea.greendist >= maxarea.bluedist) {
                 // Split green
 
@@ -1946,7 +1951,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 int counttotal = 0;
                 for (int g = maxarea.greenmin; g < maxarea.greenmax; g++) {
                     countHist[g] = 0;
-                    for (int r = newarea.redmin; r < newarea.redmax; r++) {
+                    for (int r = newarea.redMin; r < newarea.redMax; r++) {
                         for (int b = newarea.bluemin; b < newarea.bluemax; b++) {
                             countHist[g] += counts[r * 256 * 64 + g * 64 + b];
                         }
@@ -1964,13 +1969,13 @@ class PaintFilter extends JDialog implements ActionListener {
                         }
                     }
                 }
-                // System.out.println("average"+average+"    counttotal:"+counttotal);
+                //logger.log(Level.DEBUG, "average " + average + "    counttotal: " + counttotal);
 
                 // Find a place near the average value with few pixels
                 float maxrank = -1000000;
                 for (int i = maxarea.greenmin + 1; i < maxarea.greenmax; i++) {
                     float rank = (((float) counttotal) / (countHist[i] + (float) (1 * counttotal) / areawidth) - (5 + 32.0f / areawidth) * Math.abs(average - i));
-                    // System.out.println("rank"+rank+"    "+countHist[i]);
+                    //logger.log(Level.DEBUG, "rank " + rank + "    " + countHist[i]);
                     if (rank >= maxrank) {
                         int splitcount = 0;
                         for (int j = maxarea.greenmin; j <= i; j++) {
@@ -1999,7 +2004,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 int counttotal = 0;
                 for (int b = maxarea.bluemin; b < maxarea.bluemax; b++) {
                     countHist[b] = 0;
-                    for (int r = newarea.redmin; r < newarea.redmax; r++) {
+                    for (int r = newarea.redMin; r < newarea.redMax; r++) {
                         for (int g = newarea.greenmin; g < newarea.greenmax; g++) {
                             countHist[b] += counts[r * 256 * 64 + g * 64 + b];
                         }
@@ -2023,13 +2028,13 @@ class PaintFilter extends JDialog implements ActionListener {
                         }
                     }
                 }
-                // System.out.println("average"+average+"    counttotal:"+counttotal);
+                //logger.log(Level.DEBUG, "average " + average + "    counttotal: " + counttotal);
 
                 // Find a place near the average value with few pixels
                 float maxrank = -1000000;
                 for (int i = maxarea.bluemin + 1; i < maxarea.bluemax; i++) {
                     float rank = (((float) counttotal) / (countHist[i] + (float) (1 * counttotal) / areawidth) - (5 + 32.0f / areawidth) * Math.abs(average - i));
-                    // System.out.println("rank"+rank+"    "+countHist[i]);
+                    //logger.log(Level.DEBUG, "rank " + rank + "    " + countHist[i]);
                     if (rank >= maxrank) {
                         int splitcount = 0;
                         for (int j = maxarea.bluemin; j <= i; j++) {
@@ -2050,10 +2055,9 @@ class PaintFilter extends JDialog implements ActionListener {
                 maxarea.initArea[5] = maxarea.bluemax;
             }
 
-
             // Count pixels in new area
             int count = 0;
-            for (int r = newarea.redmin; r < newarea.redmax; r++) {
+            for (int r = newarea.redMin; r < newarea.redMax; r++) {
                 for (int g = newarea.greenmin; g < newarea.greenmax; g++) {
                     for (int b = newarea.bluemin; b < newarea.bluemax; b++) {
                         count += counts[r * 256 * 64 + g * 64 + b];
@@ -2063,7 +2067,7 @@ class PaintFilter extends JDialog implements ActionListener {
             newarea.count = count;
 
             maxarea.count = 0;
-            for (int r = maxarea.redmin; r < maxarea.redmax; r++) {
+            for (int r = maxarea.redMin; r < maxarea.redMax; r++) {
                 for (int g = maxarea.greenmin; g < maxarea.greenmax; g++) {
                     for (int b = maxarea.bluemin; b < maxarea.bluemax; b++) {
                         maxarea.count += counts[r * 256 * 64 + g * 64 + b];
@@ -2078,21 +2082,21 @@ class PaintFilter extends JDialog implements ActionListener {
             // Add to list
             colorList.add(newarea);
 
-            /*System.out.println("newarea.count:"+newarea.count);
-            System.out.println(" redmin:"+newarea.redmin+" redmax:"+newarea.redmax
-                    +" greenmin:"+newarea.greenmin+" greenmax:"+newarea.greenmax
-                    +" bluemin:"+newarea.bluemin+" bluemax:"+newarea.bluemax);
-            System.out.println(" reddist:"+newarea.reddist
-                    +" greendist:"+newarea.greendist
-                    +" bluedist:"+newarea.bluedist);
-
-            System.out.println("maxarea.count:"+maxarea.count);
-            System.out.println(" redmin:"+maxarea.redmin+" redmax:"+maxarea.redmax
-                    +" greenmin:"+maxarea.greenmin+" greenmax:"+maxarea.greenmax
-                    +" bluemin:"+maxarea.bluemin+" bluemax:"+maxarea.bluemax);
-            System.out.println(" reddist:"+maxarea.reddist
-                    +" greendist:"+maxarea.greendist
-                    +" bluedist:"+maxarea.bluedist);*/
+//            logger.log(Level.DEBUG, "newarea.count:" + newarea.count);
+//            logger.log(Level.DEBUG, " redMin:" + newarea.redMin + " redMax:" + newarea.redMax
+//                    + " greenmin:" + newarea.greenmin + " greenmax:" + newarea.greenmax
+//                    + " bluemin:" + newarea.bluemin + " bluemax:" + newarea.bluemax);
+//            logger.log(Level.DEBUG, " reddist:" + newarea.reddist
+//                    + " greendist:" + newarea.greendist
+//                    + " bluedist:" + newarea.bluedist);
+//
+//            logger.log(Level.DEBUG, "maxarea.count:" + maxarea.count);
+//            logger.log(Level.DEBUG, " redMin:" + maxarea.redMin + " redMax:" + maxarea.redMax
+//                    + " greenmin:" + maxarea.greenmin + " greenmax:" + maxarea.greenmax
+//                    + " bluemin:" + maxarea.bluemin + " bluemax:" + maxarea.bluemax);
+//            logger.log(Level.DEBUG, " reddist:" + maxarea.reddist
+//                    + " greendist:" + maxarea.greendist
+//                    + " bluedist:" + maxarea.bluedist);
         }
 
         Color[] srcColorBest = new Color[colors];
@@ -2107,16 +2111,16 @@ class PaintFilter extends JDialog implements ActionListener {
                 int maxpix = 0;
                 int maxrgb = 0;
 
-                colorCnt area = colorList.get(i);
-                for (int r = area.redmin; r < area.redmax; r++) {
+                ColorCnt area = colorList.get(i);
+                for (int r = area.redMin; r < area.redMax; r++) {
                     for (int g = area.greenmin; g < area.greenmax; g++) {
                         for (int b = area.bluemin; b < area.bluemax; b++) {
                             int c = counts[r * 256 * 64 + g * 64 + b];
                             if (c == 0) continue;
-                            /*if(r>=28*2 && r<g/2+12*2 && r>g/2+2*2 &&g/2<b+8*2 && g/2>b+1*2){
-                                // Skin tone area is considered when counting the first number of pixels, not here
-                                c *= 2;
-                            }*/
+//                            if (r >= 28 * 2 && r < g / 2 + 12 * 2 && r > g / 2 + 2 * 2 && g / 2 < b + 8 * 2 && g / 2 > b + 1 * 2) {
+//                                // Skin tone area is considered when counting the first number of pixels, not here
+//                                c *= 2;
+//                            }
                             red += r * c;
                             green += g * c;
                             blue += b * c;
@@ -2138,15 +2142,15 @@ class PaintFilter extends JDialog implements ActionListener {
                     srcColorBest[i] = new Color(red / totalpix * 255 / 63, green / totalpix * 255 / 255, blue / totalpix * 255 / 63);
                 }
 
-                // srcColorBest[i] = new Color(i, (i*4)%256, (i*16)%256); // Color by index
+//                srcColorBest[i] = new Color(i, (i * 4) % 256, (i * 16) % 256); // Color by index
             }
 
             // Write which color in color space is closest
             short[] colorAry = new short[1 << 20];
             Arrays.fill(colorAry, (short) -1);
             for (short i = 0; i < colorList.size(); i++) {
-                colorCnt area = colorList.get(i);
-                for (int r = area.redmin; r < area.redmax; r++) {
+                ColorCnt area = colorList.get(i);
+                for (int r = area.redMin; r < area.redMax; r++) {
                     for (int g = area.greenmin; g < area.greenmax; g++) {
                         for (int b = area.bluemin; b < area.bluemax; b++) {
                             colorAry[r * 256 * 64 + g * 64 + b] = i;
@@ -2204,37 +2208,36 @@ class PaintFilter extends JDialog implements ActionListener {
             }
 
             // Palette display
-            /*for(int y=0; y<8; y++){
-                for(int x=0; x<srcColorBest.length/8; x++){
-                    if(srcColorBest[x+y*srcColorBest.length/8]==null) continue;
-                    int d = 0xFF000000+(srcColorBest[x+y*srcColorBest.length/8].getRed()<<16)+(srcColorBest[x+y*srcColorBest.length/8].getGreen()<<8)+(srcColorBest[x+y*srcColorBest.length/8].getBlue()<<0);
-                    for(int i=0; i<4; i++){
-                        for(int j=0; j<4; j++){
-                            db.setElem(x*4+i+(y*4+j)*width, d);
-                        }
-                    }
-                }
-            }*/
+//            for (int y = 0; y < 8; y++) {
+//                for (int x = 0; x < srcColorBest.length / 8; x++) {
+//                    if (srcColorBest[x + y * srcColorBest.length / 8] == null) continue;
+//                    int d = 0xFF000000 + (srcColorBest[x + y * srcColorBest.length / 8].getRed() << 16) + (srcColorBest[x + y * srcColorBest.length / 8].getGreen() << 8) + (srcColorBest[x + y * srcColorBest.length / 8].getBlue() << 0);
+//                    for (int i = 0; i < 4; i++) {
+//                        for (int j = 0; j < 4; j++) {
+//                            db.setElem(x * 4 + i + (y * 4 + j) * width, d);
+//                        }
+//                    }
+//                }
+//            }
 
-            /*for(int i=0; i<srcColorBest.length-1; i++)
-            {
-                Color color1 = srcColorBest[i];
-                Color color2 = srcColorBest[i+1];
-                float[] hsb1 = Color.RGBtoHSB(color1.getRed(), color1.getGreen(), color1.getBlue(), null);
-                float[] hsb2 = Color.RGBtoHSB(color2.getRed(), color2.getGreen(), color2.getBlue(), null);
-
-
-                System.out.println("srcColorBest "+i+":"+color1.getRed()+","+color1.getGreen()+","+color1.getBlue());
-                System.out.println("hsb "+i+":"+hsb1[0]+","+hsb1[1]+","+hsb1[2]);
-
-                float d = 4*Math.abs(hsb1[0] - hsb2[0])*Math.max(0.0f, hsb1[1]+hsb2[1]-0.05f)*Math.max(0.0f, Math.max(hsb1[2]+hsb2[2]-0.3f, (hsb1[2]+hsb2[2])/4-0.1f))
-                + 2*Math.abs(hsb1[1] - hsb2[1])*Math.max(hsb1[2]+hsb2[2]-0.3f, (hsb1[2]+hsb2[2])/4)
-                + 4*Math.abs(hsb1[2] - hsb2[2]);
-
-                System.out.println("d "+i+":"+d+"="+4*Math.abs(hsb1[0] - hsb2[0])*Math.max(0.0f, hsb1[1]+hsb2[1]-0.05f)*Math.max(0.0f, Math.max(hsb1[2]+hsb2[2]-0.3f, (hsb1[2]+hsb2[2])/4-0.1f))
-                        +" + "+2*Math.abs(hsb1[1] - hsb2[1])*Math.max(hsb1[2]+hsb2[2]-0.3f, (hsb1[2]+hsb2[2])/4)
-                        +" + "+4*Math.abs(hsb1[2] - hsb2[2]));
-            }*/
+//            for (int i = 0; i < srcColorBest.length - 1; i++) {
+//                Color color1 = srcColorBest[i];
+//                Color color2 = srcColorBest[i + 1];
+//                float[] hsb1 = Color.RGBtoHSB(color1.getRed(), color1.getGreen(), color1.getBlue(), null);
+//                float[] hsb2 = Color.RGBtoHSB(color2.getRed(), color2.getGreen(), color2.getBlue(), null);
+//
+//
+//                logger.log(Level.DEBUG, "srcColorBest " + i + ":" + color1.getRed() + "," + color1.getGreen() + "," + color1.getBlue());
+//                logger.log(Level.DEBUG, "hsb " + i + ":" + hsb1[0] + "," + hsb1[1] + "," + hsb1[2]);
+//
+//                float d = 4 * Math.abs(hsb1[0] - hsb2[0]) * Math.max(0.0f, hsb1[1] + hsb2[1] - 0.05f) * Math.max(0.0f, Math.max(hsb1[2] + hsb2[2] - 0.3f, (hsb1[2] + hsb2[2]) / 4 - 0.1f))
+//                        + 2 * Math.abs(hsb1[1] - hsb2[1]) * Math.max(hsb1[2] + hsb2[2] - 0.3f, (hsb1[2] + hsb2[2]) / 4)
+//                        + 4 * Math.abs(hsb1[2] - hsb2[2]);
+//
+//                logger.log(Level.DEBUG, "d " + i + ":" + d + "=" + 4 * Math.abs(hsb1[0] - hsb2[0]) * Math.max(0.0f, hsb1[1] + hsb2[1] - 0.05f) * Math.max(0.0f, Math.max(hsb1[2] + hsb2[2] - 0.3f, (hsb1[2] + hsb2[2]) / 4 - 0.1f))
+//                        + " + " + 2 * Math.abs(hsb1[1] - hsb2[1]) * Math.max(hsb1[2] + hsb2[2] - 0.3f, (hsb1[2] + hsb2[2]) / 4)
+//                        + " + " + 4 * Math.abs(hsb1[2] - hsb2[2]));
+//            }
 
             return srcbi;
         }
@@ -2242,7 +2245,6 @@ class PaintFilter extends JDialog implements ActionListener {
         //
         // When using dither
         //
-
 
         // Determine the color. Average color of pixels in the area. If pixel difference is sufficient, use representative value
         for (int i = 0; i < colorList.size(); i++) {
@@ -2253,8 +2255,8 @@ class PaintFilter extends JDialog implements ActionListener {
             int maxpix = 0;
             int maxrgb = 0;
 
-            colorCnt area = colorList.get(i);
-            for (int r = area.redmin; r < area.redmax; r++) {
+            ColorCnt area = colorList.get(i);
+            for (int r = area.redMin; r < area.redMax; r++) {
                 for (int g = area.greenmin; g < area.greenmax; g++) {
                     for (int b = area.bluemin; b < area.bluemax; b++) {
                         int c = counts[r * 256 * 64 + g * 64 + b];
@@ -2291,7 +2293,7 @@ class PaintFilter extends JDialog implements ActionListener {
                 int gbsat = -255;
                 int rbsat = -255;
                 for (int j = 0; j < colorList.size(); j++) {
-                    colorCnt aarea = colorList.get(j);
+                    ColorCnt aarea = colorList.get(j);
                     if (i == j) continue;
                     if (aarea.redavr + aarea.greenavr / 4 + aarea.blueavr < minbright) {
                         minbright = (int) (aarea.redavr + aarea.greenavr / 4 + aarea.blueavr);
@@ -2299,55 +2301,55 @@ class PaintFilter extends JDialog implements ActionListener {
                     if (aarea.redavr + aarea.greenavr / 4 + aarea.blueavr > maxbright) {
                         maxbright = (int) (aarea.redavr + aarea.greenavr / 4 + aarea.blueavr);
                     }
-                    if (aarea.redmax - Math.min(aarea.greenmax / 4, aarea.bluemax) > redsat) {
-                        redsat = aarea.redmax - Math.min(aarea.greenmax / 4, aarea.bluemax);
+                    if (aarea.redMax - Math.min(aarea.greenmax / 4, aarea.bluemax) > redsat) {
+                        redsat = aarea.redMax - Math.min(aarea.greenmax / 4, aarea.bluemax);
                     }
-                    if (aarea.greenmax / 4 - Math.min(aarea.redmax, aarea.bluemax) > greensat) {
-                        greensat = aarea.greenmax / 4 - Math.min(aarea.redmax, aarea.bluemax);
+                    if (aarea.greenmax / 4 - Math.min(aarea.redMax, aarea.bluemax) > greensat) {
+                        greensat = aarea.greenmax / 4 - Math.min(aarea.redMax, aarea.bluemax);
                     }
-                    if (aarea.bluemax - Math.min(aarea.greenmax / 4, aarea.redmax) > bluesat) {
-                        bluesat = aarea.bluemax - Math.min(aarea.greenmax / 4, aarea.redmax);
+                    if (aarea.bluemax - Math.min(aarea.greenmax / 4, aarea.redMax) > bluesat) {
+                        bluesat = aarea.bluemax - Math.min(aarea.greenmax / 4, aarea.redMax);
                     }
-                    if (Math.min(aarea.redmax, aarea.greenmax / 4) - aarea.bluemax > rgsat) {
-                        rgsat = Math.min(aarea.redmax, aarea.greenmax / 4) - aarea.bluemax;
+                    if (Math.min(aarea.redMax, aarea.greenmax / 4) - aarea.bluemax > rgsat) {
+                        rgsat = Math.min(aarea.redMax, aarea.greenmax / 4) - aarea.bluemax;
                     }
-                    if (Math.min(aarea.bluemax, aarea.greenmax / 4) - aarea.redmax > gbsat) {
-                        gbsat = Math.min(aarea.bluemax, aarea.greenmax / 4) - aarea.redmax;
+                    if (Math.min(aarea.bluemax, aarea.greenmax / 4) - aarea.redMax > gbsat) {
+                        gbsat = Math.min(aarea.bluemax, aarea.greenmax / 4) - aarea.redMax;
                     }
-                    if (Math.min(aarea.redmax, aarea.bluemax) - aarea.greenmax / 4 > rbsat) {
-                        rbsat = Math.min(aarea.redmax, aarea.bluemax) - aarea.greenmax / 4;
+                    if (Math.min(aarea.redMax, aarea.bluemax) - aarea.greenmax / 4 > rbsat) {
+                        rbsat = Math.min(aarea.redMax, aarea.bluemax) - aarea.greenmax / 4;
                     }
                 }
                 if (area.redavr + area.greenavr / 4 + area.blueavr < minbright) {
                     // Bright
-                    cred = (cred * 3 + area.redmin * 255 / 63) / 4;
+                    cred = (cred * 3 + area.redMin * 255 / 63) / 4;
                     cgreen = (cgreen * 3 + area.greenmin * 255 / 255) / 4;
                     cblue = (cblue * 3 + area.bluemin * 255 / 63) / 4;
                 } else if (area.redavr + area.greenavr / 4 + area.blueavr > maxbright) {
                     // Dark
-                    cred = (cred * 3 + area.redmax * 255 / 63) / 4;
+                    cred = (cred * 3 + area.redMax * 255 / 63) / 4;
                     cgreen = (cgreen * 3 + area.greenmax * 255 / 255) / 4;
                     cblue = (cblue * 3 + area.bluemax * 255 / 63) / 4;
-                } else if (Math.min(area.redmax, area.bluemax) - area.greenmax / 4 > rbsat) {
-                    cred = (cred * 3 + area.redmax * 255 / 63) / 4;
+                } else if (Math.min(area.redMax, area.bluemax) - area.greenmax / 4 > rbsat) {
+                    cred = (cred * 3 + area.redMax * 255 / 63) / 4;
                     cblue = (cblue * 3 + area.bluemax * 255 / 63) / 4;
-                } else if (Math.min(area.redmax, area.greenmax / 4) - area.bluemax > rgsat) {
-                    cred = (cred * 3 + area.redmax * 255 / 63) / 4;
+                } else if (Math.min(area.redMax, area.greenmax / 4) - area.bluemax > rgsat) {
+                    cred = (cred * 3 + area.redMax * 255 / 63) / 4;
                     cgreen = (cgreen * 3 + area.greenmax * 255 / 255) / 4;
-                } else if (Math.min(area.bluemax, area.greenmax / 4) - area.redmax > gbsat) {
+                } else if (Math.min(area.bluemax, area.greenmax / 4) - area.redMax > gbsat) {
                     cgreen = (cgreen * 3 + area.greenmax * 255 / 255) / 4;
                     cblue = (cblue * 3 + area.bluemax * 255 / 63) / 4;
-                } else if (area.redmax - Math.min(area.greenmax / 4, area.bluemax) > redsat) {
-                    cred = (cred * 3 + area.redmax * 255 / 63) / 4;
-                } else if (area.greenmax / 4 - Math.min(area.redmax, area.bluemax) > greensat) {
+                } else if (area.redMax - Math.min(area.greenmax / 4, area.bluemax) > redsat) {
+                    cred = (cred * 3 + area.redMax * 255 / 63) / 4;
+                } else if (area.greenmax / 4 - Math.min(area.redMax, area.bluemax) > greensat) {
                     cgreen = (cgreen * 3 + area.greenmax * 255 / 255) / 4;
-                } else if (area.bluemax - Math.min(area.greenmax / 4, area.redmax) > bluesat) {
+                } else if (area.bluemax - Math.min(area.greenmax / 4, area.redMax) > bluesat) {
                     cblue = (cblue * 3 + area.bluemax * 255 / 63) / 4;
                 }
                 srcColorBest[i] = new Color(cred, cgreen, cblue);
             }
 
-            // srcColorBest[i] = new Color(i, (i*4)%256, (i*16)%256); // Color by index
+//            srcColorBest[i] = new Color(i, (i * 4) % 256, (i * 16) % 256); // Color by index
         }
 
         counts = null;
@@ -2357,11 +2359,11 @@ class PaintFilter extends JDialog implements ActionListener {
         if (dithermode == 0 || dithermode == 1) {
             // Write which color in color space is closest
             short[] colorAry = new short[1 << 20];
-            /*for(int i=0; i<colorAry.length; i++){
-                colorAry[i] = -1;
-            }*/
+//            for (int i = 0; i < colorAry.length; i++) {
+//                colorAry[i] = -1;
+//            }
             for (short i = 0; i < colorList.size(); i++) {
-                colorCnt area = colorList.get(i);
+                ColorCnt area = colorList.get(i);
                 for (int r = area.initArea[0]; r < area.initArea[1]; r++) {
                     for (int g = area.initArea[2]; g < area.initArea[3]; g++) {
                         for (int b = area.initArea[4]; b < area.initArea[5]; b++) {
@@ -2370,7 +2372,6 @@ class PaintFilter extends JDialog implements ActionListener {
                     }
                 }
             }
-
 
             DataBuffer newdb = newimg.getRaster().getDataBuffer();
             width = srcbi.getWidth();
@@ -2597,20 +2598,18 @@ class PaintFilter extends JDialog implements ActionListener {
         return newimg;
     }
 
-
-    /*private final boolean isNear(Color color1, Color color2, int near){
-        if(Math.abs(color1.getRed()-color2.getRed())>near){
-            return false;
-        }
-        if(Math.abs(color1.getGreen()-color2.getGreen())>near){
-            return false;
-        }
-        if(Math.abs(color1.getBlue()-color2.getBlue())>near){
-            return false;
-        }
-        return true;
-    }*/
-
+//    private final boolean isNear(Color color1, Color color2, int near) {
+//        if (Math.abs(color1.getRed() - color2.getRed()) > near) {
+//            return false;
+//        }
+//        if (Math.abs(color1.getGreen() - color2.getGreen()) > near) {
+//            return false;
+//        }
+//        if (Math.abs(color1.getBlue() - color2.getBlue()) > near) {
+//            return false;
+//        }
+//        return true;
+//    }
 
     private static boolean isNear(int argb, Color color, int near) {
         if (Math.abs(color.getRed() - ((argb >> 16) & 0xFF)) > near) {
@@ -2622,15 +2621,15 @@ class PaintFilter extends JDialog implements ActionListener {
         if (Math.abs(color.getBlue() - ((argb >> 0) & 0xFF)) > near) {
             return false;
         }
-        /*if((color.getBlue()-((argb>>0)&0xFF)) - (color.getGreen()-((argb>>8)&0xFF))>near){
-            return false;
-        }
-        if((color.getGreen()-((argb>>8)&0xFF)) - (color.getRed()-((argb>>16)&0xFF))>near){
-            return false;
-        }
-        if((color.getRed()-((argb>>16)&0xFF)) - (color.getBlue()-((argb>>0)&0xFF))>near){
-            return false;
-        }*/
+//        if ((color.getBlue() - ((argb >> 0) & 0xFF)) - (color.getGreen() - ((argb >> 8) & 0xFF)) > near) {
+//            return false;
+//        }
+//        if ((color.getGreen() - ((argb >> 8) & 0xFF)) - (color.getRed() - ((argb >> 16) & 0xFF)) > near) {
+//            return false;
+//        }
+//        if ((color.getRed() - ((argb >> 16) & 0xFF)) - (color.getBlue() - ((argb >> 0) & 0xFF)) > near) {
+//            return false;
+//        }
         return true;
     }
 }

@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -37,10 +39,13 @@ import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 import javax.swing.JPanel;
 
-import com.github.hyperZebra.Rsrc.addcolorClass;
+import com.github.hyperZebra.Rsrc.AddColorClass;
+import com.github.hyperZebra.Rsrc.AddColorObjClass;
 
 
 public class TXcmd {
+
+    private static final Logger logger = System.getLogger(TXcmd.class.getName());
 
     static TXcmd txcmd = new TXcmd();
 
@@ -48,7 +53,7 @@ public class TXcmd {
     public static Result CallExternalCommand(String message, String[] params, OObject target, MemoryData memData, boolean isFunc, Result result)
             throws XTalkException {
         if (0 == message.compareToIgnoreCase("UxBack")) {
-            System.out.println("Undefined XCMD: " + message);
+            logger.log(Level.DEBUG, "Undefined XCMD: " + message);
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("Movie")) {
             // QuickTime for Java cannot be used in 64-bit and does not seem to be supported, so nothing can be done.
@@ -56,7 +61,7 @@ public class TXcmd {
 
             // Play if +.mp3 file exists
             // Use MP3SPI
-            // Movie (path1&TheMovieName),"borderLess","0,0","invisible","floating"
+            // Movie(path1 & TheMovieName), "borderLess", "0,0", "invisible", "floating"
             if (params.length >= 1) {
                 String path = params[0];
                 for (int i = 0; i < path.length(); i++) {
@@ -72,7 +77,7 @@ public class TXcmd {
                     result.ret = 0;
                 } else {
                     TMP3 mp3 = new TMP3(path, params[0]);
-                    if (mp3.mp3ok() == true) {
+                    if (mp3.mp3ok()) {
                         new OWindow(mp3);
                     } else {
                         result.theResult = "Cannot play file " + path;
@@ -213,7 +218,7 @@ public class TXcmd {
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("FontExists")) {
             if (params.length >= 1) {
-                result.theResult = (Font.decode(params[0]).getFontName().equals(params[0])) ? "true" : "false";
+                result.theResult = Boolean.toString(Font.decode(params[0]).getFontName().equals(params[0]));
             }
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("getmonitor")) {
@@ -287,11 +292,11 @@ public class TXcmd {
                                 String path = PCARD.pc.stack.rsrc.getFilePathAll(trz.pictnum, "picture");
                                 BufferedImage bi = null;
                                 if (path != null) {
-                                    // String path = PCARD.pc.stack.file.getParent()+File.separatorChar+fileName;
+                                    //String path = PCARD.pc.stack.file.getParent() + File.separatorChar + fileName;
                                     try {
                                         bi = ImageIO.read(new File(path));
                                     } catch (IOException e) {
-                                        e.printStackTrace();
+                                        logger.log(Level.ERROR, e.getMessage(), e);
                                     }
                                 }
                                 if (bi != null) {
@@ -315,11 +320,11 @@ public class TXcmd {
             result.theResult = "32";
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("addcolor")) {
-            /*String paramStr = "";
-            for(int i=0; i<params.length; i++){
-                paramStr += params[i]+",";
-            }
-            System.out.println("addcolor "+paramStr);*/
+//            String paramStr = "";
+//            for (int i = 0; i < params.length; i++) {
+//                paramStr += params[i] + ",";
+//            }
+//            logger.log(Level.DEBUG, "addcolor " + paramStr);
 
             if (params.length >= 1 && params[0].equalsIgnoreCase("remove")) {
                 AddColor.remove();
@@ -381,7 +386,7 @@ public class TXcmd {
             for (String param : params) {
                 paramStr.append(param).append(",");
             }
-            System.out.println("colorizehc " + paramStr);
+            logger.log(Level.DEBUG, "colorizehc " + paramStr);
 
             if (params.length >= 1 && (params[0].equalsIgnoreCase("dispose") || params[0].equalsIgnoreCase("new"))) {
                 AddColor.remove();
@@ -417,7 +422,7 @@ public class TXcmd {
             String[] srcText = params[0].split("\n");
             for (String s : srcText) {
                 if (s.contains(params[1])) {
-                    if (resStr.length() > 0) resStr.append("\n");
+                    if (!resStr.isEmpty()) resStr.append("\n");
                     resStr.append(s);
                 }
             }
@@ -433,62 +438,62 @@ public class TXcmd {
                     rect.width = Integer.parseInt(rectStr[2]) - rect.x;
                     rect.height = Integer.parseInt(rectStr[3]) - rect.y;
                 }
-                animegifThread = new CaptureAnimationGIF(rect);
-                animegifThread.start();
+                animeGifThread = new CaptureAnimationGIF(rect);
+                animeGifThread.start();
             } else {
-                if (animegifThread != null) {
-                    animegifThread.endFlag = true;
+                if (animeGifThread != null) {
+                    animeGifThread.endFlag = true;
                 }
             }
         } else if (0 == message.compareToIgnoreCase("senttcp")) {
             if (params.length < 1) {
             } else if (params[0].equalsIgnoreCase("listen")) {
                 // sentTCP "listen",localPort
-                System.out.println("SentTCP:listen unimplement");
+                logger.log(Level.DEBUG, "SentTCP:listen unimplement");
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("connect")) {
-                // sentTCP "connect",remoteIP,remotePort
-                // String encode = "US-ASCII";
-                // if(params.length>=4){
-                //    encode = params[3];
-                // }
+                // sentTCP "connect", remoteIP, remotePort
+//                String encode = "US-ASCII";
+//                if (params.length >= 4) {
+//                    encode = params[3];
+//                }
                 int conID = -1;
                 try {
                     Socket socket = new Socket(params[1], Integer.parseInt(params[2]));
                     conID = sentTCP.addSentTCP(socket);
-                    /*BufferedReader reader = new BufferedReader
-                        (new InputStreamReader(socket.getInputStream(), encode));
-                    OutputStream output = socket.getOutputStream();
-                    output.write("HELO\r\n".getBytes("US-ASCII"));
-
-                    System.out.println(reader.readLine());*/
+//                    BufferedReader reader = new BufferedReader
+//                            (new InputStreamReader(socket.getInputStream(), encode));
+//                    OutputStream output = socket.getOutputStream();
+//                    output.write("HELO\r\n".getBytes("US-ASCII"));
+//
+//                    logger.log(Level.DEBUG, reader.readLine());
                 } catch (NumberFormatException | IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
 
                 result.theResult = Integer.toString(conID);
                 result.ret = 0;
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("send")) {
-                // sentTCP "send",connectionID,dataToSend[,encode]
+                // sentTCP "send", connectionID, dataToSend [,encode]
                 String encode = "US-ASCII";
                 if (params.length >= 4) {
                     encode = params[3];
                 }
                 int conID = Integer.parseInt(params[1]);
                 if (conID < 0 || conID >= sentTCPAry.length) {
-                    System.out.println("SentTCP:connectionID failure");
+                    logger.log(Level.DEBUG, "SentTCP:connectionID failure");
                     result.theResult = Integer.toString(-1);
                     result.ret = 0;
                 } else {
                     try {
                         Socket socket = sentTCPAry[conID].socket;
-                        /*BufferedReader reader = new BufferedReader
-                            (new InputStreamReader(socket.getInputStream(), encode));*/
+//                        BufferedReader reader = new BufferedReader
+//                                (new InputStreamReader(socket.getInputStream(), encode));
                         OutputStream output = socket.getOutputStream();
                         output.write(params[2].getBytes(encode));
 
-                        /*System.out.println(reader.readLine());*/
+                        //logger.log(Level.DEBUG, reader.readLine());
                     } catch (NumberFormatException | IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("receive")) {
@@ -507,7 +512,7 @@ public class TXcmd {
                 }
                 int conID = Integer.parseInt(params[1]);
                 if (conID < 0 || conID >= sentTCPAry.length) {
-                    System.out.println("SentTCP:connectionID failure");
+                    logger.log(Level.DEBUG, "SentTCP:connectionID failure");
                     result.theResult = Integer.toString(-1);
                     result.ret = 0;
                 } else {
@@ -524,19 +529,19 @@ public class TXcmd {
                                 break;
                             }
                         } catch (NumberFormatException | IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     }
                 }
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("status")) {
-                // sentTCP "status",connectionID
+                // sentTCP "status", connectionID
                 int conID = Integer.parseInt(params[1]);
                 if (conID < 0 || conID >= sentTCPAry.length) {
-                    System.out.println("SentTCP:connectionID failure");
+                    logger.log(Level.DEBUG, "SentTCP:connectionID failure");
                     result.theResult = Integer.toString(-1);
                     result.ret = 0;
                 } else if (sentTCPAry[conID].listen) {
-                    System.out.println("SentTCP:listen unimplement2");
+                    logger.log(Level.DEBUG, "SentTCP:listen unimplement2");
                 } else {
                     Socket socket = sentTCPAry[conID].socket;
                     if (socket.isClosed()) {
@@ -548,10 +553,10 @@ public class TXcmd {
                     }
                 }
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("close")) {
-                // sentTCP "close",connectionID
+                // sentTCP "close", connectionID
                 int conID = Integer.parseInt(params[1]);
                 if (conID < 0 || conID >= sentTCPAry.length) {
-                    System.out.println("SentTCP:connectionID failure");
+                    logger.log(Level.DEBUG, "SentTCP:connectionID failure");
                     result.theResult = Integer.toString(-1);
                     result.ret = 0;
                 } else {
@@ -561,13 +566,13 @@ public class TXcmd {
                         try {
                             socket.close();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                             result.theResult = Integer.toString(-2);
                         }
                     }
                 }
             } else if (params.length >= 3 && params[0].equalsIgnoreCase("nameToAddr")) {
-                // sentTCP "nameToAddr",name
+                // sentTCP "nameToAddr", name
                 try {
                     InetAddress ia = InetAddress.getByName(params[1]);
                     byte[] bs = ia.getAddress();
@@ -576,10 +581,10 @@ public class TXcmd {
                         if (i + 1 < bs.length) result.theResult += ".";
                     }
                 } catch (UnknownHostException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
             } else {
-                System.out.println("SentTCP:Unimplemented command:" + params[0]);
+                logger.log(Level.DEBUG, "SentTCP:Unimplemented command:" + params[0]);
             }
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("pgcolorx") || 0 == message.compareToIgnoreCase("mirage")) {
@@ -608,7 +613,7 @@ public class TXcmd {
                         }
                     }
                 } else if (params[0].equalsIgnoreCase("CopyBits") || params[0].equalsIgnoreCase("BufToBuf")) {
-                    // PgColorX "CopyBits",sourcePort,destinationPort,<*sourceRect>,<*destinationTopLeft/rect>,<*mode>,<*opColor>
+                    // PgColorX "CopyBits", sourcePort, destinationPort, <*sourceRect>, <*destinationTopLeft/rect>, <*mode>, <*opColor>
 
                     if (params.length >= 5 && params[4].split("\n").length >= 2) {
                         // Join with newlines for speedup and other complicated stuff...
@@ -668,7 +673,7 @@ public class TXcmd {
                         srcbi = PgColorX[srcport].bi;
                     } else if (srcport == -1) {
                         VEffect.setOldOff();
-                        srcbi = VEffect.oldoff;
+                        srcbi = VEffect.oldOff;
                     }
 
                     Graphics2D dstGraphics = null;
@@ -715,7 +720,7 @@ public class TXcmd {
                         srcbi = PgColorX[srcport].bi;
                     } else if (srcport == -1) {
                         VEffect.setOldOff();
-                        srcbi = VEffect.oldoff;
+                        srcbi = VEffect.oldOff;
                     }
 
                     Graphics2D dstGraphics = null;
@@ -769,7 +774,7 @@ public class TXcmd {
                         srcbi = PgColorX[srcport].bi;
                     } else if (srcport == -1) {
                         VEffect.setOldOff();
-                        srcbi = VEffect.oldoff;
+                        srcbi = VEffect.oldOff;
                     }
 
                     Graphics2D dstGraphics = null;
@@ -794,7 +799,7 @@ public class TXcmd {
                         dstRect.x += srcRect.width / 8;
                     }
                 } else if (params[0].equalsIgnoreCase("Pict") || params[0].equalsIgnoreCase("Add") || params[0].equalsIgnoreCase("LoadPict")) {
-                    // PgColorX "Pict",port,<PICT Name/ID>,<*topleft/rect/"original">
+                    // PgColorX "Pict", port, <PICT Name/ID>, <*topleft/rect/"original">
                     int port = getPort(params[1]);
                     BufferedImage bi = null;
 
@@ -825,8 +830,8 @@ public class TXcmd {
                                 0, 0, bi.getWidth(), bi.getHeight(), PCARD.pc);
                     }
                 } else if (params[0].equalsIgnoreCase("String") || params[0].equalsIgnoreCase("DrawString")) {
-                    // PgColorX "String",port,<text>,<color>,<topleft>,<*mode>,<*opColor>
-                    // PgColorX "DrawString",<text>,<color>,<topleft>,<*mode>,<*opColor>
+                    // PgColorX "String", port, <text>, <color>, <topleft>, <*mode>, <*opColor>
+                    // PgColorX "DrawString", <text>, <color>, <topleft>, <*mode>, <*opColor>
 
                     int offset = 0;
                     int port = -1;
@@ -874,7 +879,7 @@ public class TXcmd {
                         Arrays.fill(PgColorX, null);
                     }
                 } else {
-                    System.out.println("PgColorX:Unimplemented command:" + params[0]);
+                    logger.log(Level.DEBUG, "PgColorX:Unimplemented command:" + params[0]);
                 }
             }
             result.ret = 0;
@@ -916,12 +921,12 @@ public class TXcmd {
             result.theResult = "";
             result.ret = 0;
         } else if (0 == message.compareToIgnoreCase("MtFilesInFldr")) {
-            // MtFilesInFldr(folderpath,"T:STAK")
+            // MtFilesInFldr(folderpath, "T:STAK")
             String parentpath = params[0];
-            /*String which = null;
-            if(params.length>=2){
-                which = params[1];
-            }*/
+//            String which = null;
+//            if (params.length >= 2) {
+//                which = params[1];
+//            }
 
             File parent = new File(parentpath);
             if (parent.isDirectory()) {
@@ -938,23 +943,22 @@ public class TXcmd {
             }
 
             result.ret = 0;
+//        } else if (0 == message.compareToIgnoreCase("shell")) {
+//            ProcessBuilder pb = new ProcessBuilder(params[0], params[1], params[2], params[3],
+//                    params[4], params[5], params[6], params[7], params[8], params[9],
+//                    params[10], params[11], params[12], params[13], params[14], params[15]);
+//            try {
+//                Process p = pb.start();
+//            } catch (IOException e1) {
+//                logger.log(Level.ERROR, e1.getMessage(), e1);
+//            }
         }
-        /*else if(0==message.compareToIgnoreCase("shell")){
-            ProcessBuilder pb = new ProcessBuilder(params[0], params[1], params[2], params[3],
-                    params[4], params[5], params[6], params[7], params[8], params[9],
-                    params[10], params[11], params[12], params[13], params[14], params[15]);
-            try {
-                Process p = pb.start();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        }*/
         else if (0 == message.compareToIgnoreCase("UxSetDialogFont")) {
             // Do nothing
         } else if (0 == message.compareToIgnoreCase("UxShowHideCS")) {
             // Control strip? Do nothing
         } else {
-            System.out.println("Unimplemented XCMD/XFCN: " + message);
+            logger.log(Level.DEBUG, "Unimplemented XCMD/XFCN: " + message);
             result.ret = 0;
             throw new XTalkException("Unimplemented XCMD/XFCN:" + message);
         }
@@ -1106,7 +1110,7 @@ public class TXcmd {
                 srcbi = PgColorX[srcport].bi;
             } else if (srcport == -1) {
                 VEffect.setOldOff();
-                srcbi = VEffect.oldoff;
+                srcbi = VEffect.oldOff;
             }
 
             Graphics2D dstGraphics = null;
@@ -1154,12 +1158,11 @@ public class TXcmd {
             PCARD.pc.stack.addColor = null;
         }
 
-
         static void colorCard(String effect, int time) {
-            // Find addcolorClass
-            List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
-            Rsrc.addcolorClass accd = null;
-            for (Rsrc.addcolorClass addcolorClass : cdList) {
+            // Find AddColorClass
+            List<AddColorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
+            AddColorClass accd = null;
+            for (AddColorClass addcolorClass : cdList) {
                 if (PCARD.pc.stack.curCard.id == addcolorClass.id) {
                     accd = addcolorClass;
                     break;
@@ -1167,24 +1170,24 @@ public class TXcmd {
             }
             if (accd == null) return;
 
-            // Draw objects in addcolorClass
+            // Draw objects in AddColorClass
             BufferedImage bi = new BufferedImage(PCARD.pc.stack.width, PCARD.pc.stack.height, BufferedImage.TYPE_INT_ARGB);
 
-            ArrayList<Rsrc.addcolorObjClass> objList = accd.objList;
-            Rsrc.addcolorObjClass obj = null;
-            for (Rsrc.addcolorObjClass addcolorObjClass : objList) {
+            ArrayList<AddColorObjClass> objList = accd.objList;
+            AddColorObjClass obj = null;
+            for (AddColorObjClass addcolorObjClass : objList) {
                 obj = addcolorObjClass;
                 if (!obj.visible) continue;
                 if (obj.getClass() == Rsrc.PictObject.class) {
                     Rsrc.PictObject picobj = (Rsrc.PictObject) obj;
                     int pictid = PCARD.pc.stack.rsrc.getRsrcIdAll(picobj.name, "picture");
                     String path = PCARD.pc.stack.rsrc.getFilePathAll(pictid, "picture");
-                    // String path = (PCARD.pc.stack.file.getParent()+File.separatorChar+fileName);
+                    //String path = PCARD.pc.stack.file.getParent() + File.separatorChar + fileName;
                     BufferedImage pict = null;
                     try {
                         pict = ImageIO.read(new File(path));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                     if (pict != null) {
                         bi.getGraphics().drawImage(pict, picobj.rect.x, picobj.rect.y, null);
@@ -1212,7 +1215,6 @@ public class TXcmd {
                 }
             }
 
-
             VEffect.setOldOff();
 
             // Add display component for AddColor
@@ -1220,7 +1222,7 @@ public class TXcmd {
 
             // Draw back buffer to front buffer
             PCARD.pc.stack.addColor = bi;
-            // PCARD.pc.mainPane.repaint();
+            //PCARD.pc.mainPane.repaint();
 
             int speed;
             if (time < 15) speed = 1;
@@ -1238,7 +1240,6 @@ public class TXcmd {
             }
         }
 
-
         static void colorPict(String pict, Point p, Rectangle r, String mode, String effect, int time) {
             // Prepare back buffer
             BufferedImage bi = PCARD.pc.stack.addColor;
@@ -1251,12 +1252,12 @@ public class TXcmd {
             // Draw PICT
             int pictid = PCARD.pc.stack.rsrc.getRsrcIdAll(pict, "picture");
             String path = PCARD.pc.stack.rsrc.getFilePathAll(pictid, "picture");
-            // String path = (PCARD.pc.stack.file.getParent()+File.separatorChar+fileName);
+            //String path = PCARD.pc.stack.file.getParent() + File.separatorChar + fileName;
             BufferedImage pictbi = null;
             try {
                 pictbi = ImageIO.read(new File(path));
             } catch (IOException e1) {
-                e1.printStackTrace();
+                logger.log(Level.ERROR, e1.getMessage(), e1);
             }
             if (pictbi != null) {
                 if (p != null) {
@@ -1289,7 +1290,6 @@ public class TXcmd {
             } catch (XTalkException e) {
             }
         }
-
 
         static void colorFill(Color color, Rectangle r, String mode, String effect, int time) {
             // Prepare back buffer
@@ -1324,88 +1324,60 @@ public class TXcmd {
             Collections.addAll(effList, effects);
             try {
                 VEffect.visualEffect(0xFF & TUtil.getVisualMode(effList, 0, 0), 0, speed);
-            } catch (XTalkException e) {
+            } catch (XTalkException ignored) {
             }
         }
-
 
         static String convAddColorEffect(String effect) {
             if (effect.equalsIgnoreCase("fromLeft")) {
                 effect = "stretch from right";
-            }
-            if (effect.equalsIgnoreCase("fromRight")) {
+            } else if (effect.equalsIgnoreCase("fromRight")) {
                 effect = "stretch from left";
-            }
-            if (effect.equalsIgnoreCase("fromTop")) {
+            } else if (effect.equalsIgnoreCase("fromTop")) {
                 effect = "stretch from top";
-            }
-            if (effect.equalsIgnoreCase("fromBottom")) {
+            } else if (effect.equalsIgnoreCase("fromBottom")) {
                 effect = "stretch from bottom";
-            }
-            if (effect.equalsIgnoreCase("fromTopLeft")) {
+            } else if (effect.equalsIgnoreCase("fromTopLeft")) {
                 effect = "stretch from topleft";
-            }
-            if (effect.equalsIgnoreCase("fromTopRight")) {
+            } else if (effect.equalsIgnoreCase("fromTopRight")) {
                 effect = "stretch from topright";
-            }
-            if (effect.equalsIgnoreCase("fromBottomLeft")) {
+            } else if (effect.equalsIgnoreCase("fromBottomLeft")) {
                 effect = "stretch from bottomleft";
-            }
-            if (effect.equalsIgnoreCase("fromBottomRight")) {
+            } else if (effect.equalsIgnoreCase("fromBottomRight")) {
                 effect = "stretch from bottomright";
-            }
-            if (effect.equalsIgnoreCase("irisOpen")) {
+            } else if (effect.equalsIgnoreCase("irisOpen")) {
                 effect = "iris open";
-            }
-            if (effect.equalsIgnoreCase("irisClose")) {
+            } else if (effect.equalsIgnoreCase("irisClose")) {
                 effect = "iris close";
-            }
-            if (effect.equalsIgnoreCase("checkerBoardOpen")) {
+            } else if (effect.equalsIgnoreCase("checkerBoardOpen")) {
                 effect = "checkerboard";
-            }
-            if (effect.equalsIgnoreCase("checkerBoardClose")) {
+            } else if (effect.equalsIgnoreCase("checkerBoardClose")) {
                 effect = "checkerboard";
-            }
-            if (effect.equalsIgnoreCase("circleCheckerOpen")) {
+            } else if (effect.equalsIgnoreCase("circleCheckerOpen")) {
                 effect = "checkerboard";
-            }
-            if (effect.equalsIgnoreCase("checkerBoardClose")) {
-                effect = "checkerboard";
-            }
-            if (effect.equalsIgnoreCase("barnDoorOpen")) {
+            } else if (effect.equalsIgnoreCase("barnDoorOpen")) {
                 effect = "barn door open";
-            }
-            if (effect.equalsIgnoreCase("barnDoorClose")) {
+            } else if (effect.equalsIgnoreCase("barnDoorClose")) {
                 effect = "barn door close";
-            }
-            if (effect.equalsIgnoreCase("combVertical")) {
+            } else if (effect.equalsIgnoreCase("combVertical")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("combHorizontal")) {
+            } else if (effect.equalsIgnoreCase("combHorizontal")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("rectOpen")) {
+            } else if (effect.equalsIgnoreCase("rectOpen")) {
                 effect = "iris open";
-            }
-            if (effect.equalsIgnoreCase("rectClose")) {
+            } else if (effect.equalsIgnoreCase("rectClose")) {
                 effect = "iris close";
-            }
-            if (effect.equalsIgnoreCase("venetianBlindsHorizontal")) {
+            } else if (effect.equalsIgnoreCase("venetianBlindsHorizontal")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("venetianBlindsVertical")) {
+            } else if (effect.equalsIgnoreCase("venetianBlindsVertical")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("rakeHorizOpen")) {
+            } else if (effect.equalsIgnoreCase("rakeHorizOpen")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("rakeHorizClose")) {
+            } else if (effect.equalsIgnoreCase("rakeHorizClose")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("rakeVertOpen")) {
+            } else if (effect.equalsIgnoreCase("rakeVertOpen")) {
                 effect = "venetian blinds";
-            }
-            if (effect.equalsIgnoreCase("rakeVertClose")) {
+            } else if (effect.equalsIgnoreCase("rakeVertClose")) {
                 effect = "venetian blinds";
             }
 
@@ -1442,16 +1414,16 @@ public class TXcmd {
                 PCARD.pc.mainPane.paintUnscaled(offg);
                 lock = false;
 
-                DataBuffer offdb = offImage.getRaster().getDataBuffer();
-                DataBuffer adddb = PCARD.pc.stack.addColor.getRaster().getDataBuffer();
+                DataBuffer offDb = offImage.getRaster().getDataBuffer();
+                DataBuffer addDb = PCARD.pc.stack.addColor.getRaster().getDataBuffer();
                 int width = PCARD.pc.stack.addColor.getWidth();
-                Rectangle cliprect = g.getClipBounds();
-                for (int y = cliprect.y; y < cliprect.y + cliprect.height; y++) {
-                    for (int x = cliprect.x; x < cliprect.x + cliprect.width; x++) {
-                        int a = offdb.getElem(0, y * width + x);
-                        int b = adddb.getElem(0, y * width + x);
+                Rectangle clipRect = g.getClipBounds();
+                for (int y = clipRect.y; y < clipRect.y + clipRect.height; y++) {
+                    for (int x = clipRect.x; x < clipRect.x + clipRect.width; x++) {
+                        int a = offDb.getElem(0, y * width + x);
+                        int b = addDb.getElem(0, y * width + x);
                         if (a == 0xFFFFFFFF || mode != null && mode.equalsIgnoreCase("o"))
-                            offdb.setElem(0, y * width + x, b);
+                            offDb.setElem(0, y * width + x, b);
                         else {
                             int pr = (a >> 16) & 0xFF + (b >> 16) & 0xFF;
                             if (pr > 0xFF) pr = 0xFF;
@@ -1460,7 +1432,7 @@ public class TXcmd {
                             int pb = (a) & 0xFF + (b) & 0xFF;
                             if (pb > 0xFF) pb = 0xFF;
                             int result = 0xFF000000 + (pr << 16) + (pg << 8) + pb;
-                            offdb.setElem(0, y * width + x, result);
+                            offDb.setElem(0, y * width + x, result);
                         }
                     }
                 }
@@ -1471,7 +1443,7 @@ public class TXcmd {
     }
 
     // Terazza
-    static ArrayList<Terazza> terazzaAry;
+    static List<Terazza> terazzaAry;
 
     static class Terazza {
 
@@ -1488,15 +1460,15 @@ public class TXcmd {
         boolean visible;
     }
 
-    static void TerazzaAnime() {
+    static void animeTerazza() {
         if (terazzaAry == null) return;
         for (Terazza trz : terazzaAry) {
             if (trz.visible && trz.speed > 0) {
                 double now = (new Date().getTime() - trz.time) / 1500.0 * trz.speed;
-                // System.out.println("now="+now+"     trz.time="+trz.time);
+                //logger.log(Level.DEBUG, "now=" + now + "     trz.time=" + trz.time);
                 if (now > 1000.0) now = 1000.0;
                 int h = (int) ((trz.eh * (now) + trz.h * (1000.0 - now)) / 1000.0);
-                // System.out.println("h="+h+"   trz.eh="+trz.eh+"   trz.h="+trz.h);
+                //logger.log(Level.DEBUG, "h=" + h + "   trz.eh=" + trz.eh + "   trz.h=" + trz.h);
                 int v = (int) ((trz.ev * (now) + trz.v * (1000.0 - now)) / 1000.0);
                 int pictnum = trz.pictnum;
                 if (now < 100.0) pictnum = trz.pictnums;
@@ -1505,11 +1477,11 @@ public class TXcmd {
                     String path = PCARD.pc.stack.rsrc.getFilePathAll(pictnum, "picture");
                     BufferedImage bi = null;
                     if (path != null) {
-                        // String path = PCARD.pc.stack.file.getParent()+File.separatorChar+fileName;
+                        //String path = PCARD.pc.stack.file.getParent() + File.separatorChar + fileName;
                         try {
                             bi = ImageIO.read(new File(path));
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     }
                     if (bi != null) {
@@ -1519,12 +1491,12 @@ public class TXcmd {
                     if (trz.pictnum > 0) {
                         String path = PCARD.pc.stack.rsrc.getFilePathAll(pictnum, "picture");
                         if (path != null) {
-                            // String path = PCARD.pc.stack.file.getParent()+File.separatorChar+fileName;
+                            //String path = PCARD.pc.stack.file.getParent() + File.separatorChar + fileName;
                             BufferedImage bi = null;
                             try {
                                 bi = ImageIO.read(new File(path));
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                logger.log(Level.ERROR, e.getMessage(), e);
                             }
                             PCARD.pc.mainPane.repaint(h, v, bi.getWidth(), bi.getHeight());
                         }
@@ -1534,7 +1506,7 @@ public class TXcmd {
         }
     }
 
-    static CaptureAnimationGIF animegifThread;
+    static CaptureAnimationGIF animeGifThread;
 
     static class CaptureAnimationGIF extends Thread {
 
@@ -1552,7 +1524,7 @@ public class TXcmd {
             try {
                 robot = new Robot();
             } catch (AWTException ex) {
-                ex.printStackTrace();
+                logger.log(Level.ERROR, ex.getMessage(), ex);
                 return;
             }
 
@@ -1564,12 +1536,11 @@ public class TXcmd {
             try {
                 imageOutputStream = ImageIO.createImageOutputStream(new File("./anime.gif"));
             } catch (IOException e1) {
-                e1.printStackTrace();
+                logger.log(Level.ERROR, e1.getMessage(), e1);
             }
             if (imageOutputStream == null) return;
 
             iw.setOutput(imageOutputStream);
-
 
             try {
                 iw.prepareWriteSequence(null);
@@ -1657,7 +1628,7 @@ public class TXcmd {
                     try {
                         Thread.sleep(50);
                         waitTime += 5;
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException ignored) {
                     }
                 }
 
@@ -1672,7 +1643,7 @@ public class TXcmd {
                 imageOutputStream.close();
                 iw.dispose();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
     }

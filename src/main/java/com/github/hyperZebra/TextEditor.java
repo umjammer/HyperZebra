@@ -26,11 +26,9 @@ import javax.swing.undo.UndoManager;
 
 public class TextEditor extends JFrame {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     static TextEditor TextEditor;
     TextArea area;
 
@@ -65,7 +63,7 @@ public class TextEditor extends JFrame {
         // scrollpane.add(area);
         scrollpane.setViewportView(area);
 
-        area.setFont(new Font(PCARD.scriptFont, 0, PCARD.scriptFontSize));
+        area.setFont(new Font(PCARD.scriptFont, Font.PLAIN, PCARD.scriptFontSize));
 
         toFront();
         setVisible(true);
@@ -75,32 +73,33 @@ public class TextEditor extends JFrame {
         TextEditor = this;
     }
 
-    /*static boolean saveAlert(TextArea area){
-        if(area == null || area.saved) {
-            return true;
-        }
-        saveScript(area);
-        return true;
-    }
-
-    static void saveScript(TextArea area){
-        String allStr = "";
-        try {
-            allStr = area.getDocument().getText(0, area.getDocument().getLength());
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
-
-        OObject obj = area.object;
-
-        if(obj != null){
-            obj.text = allStr;
-            area.savedScript();
-        } else {
-            System.out.println("Failed to save text");
-        }
-    }*/
+//    static boolean saveAlert(TextArea area) {
+//        if (area == null || area.saved) {
+//            return true;
+//        }
+//        saveScript(area);
+//        return true;
+//    }
+//
+//    static void saveScript(TextArea area) {
+//        String allStr = "";
+//        try {
+//            allStr = area.getDocument().getText(0, area.getDocument().getLength());
+//        } catch (BadLocationException e) {
+//            logger.log(Level.ERROR, e.getMessage(), e);
+//        }
+//
+//        OObject obj = area.object;
+//
+//        if (obj != null) {
+//            obj.text = allStr;
+//            area.savedScript();
+//        } else {
+//            logger.log(Level.DEBUG, "Failed to save text");
+//        }
+//    }
 }
+
 
 class teListener implements DocumentListener {
 
@@ -131,18 +130,17 @@ class teListener implements DocumentListener {
     }
 }
 
+
 class TextArea extends JTextArea {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     OObject object;
     //
     boolean saved = true;
-    UndoManager undo = null;
-    teListener teListener = null;
+    UndoManager undo;
+    teListener teListener;
 
     public TextArea(String text) {
         super(text);
@@ -162,13 +160,13 @@ class TextArea extends JTextArea {
 
     void changedScript() {
         saved = false;
-        // TextEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.TRUE);
+        //TextEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.TRUE);
         setCanUndo();
     }
 
     void savedScript() {
         saved = true;
-        // TextEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.FALSE);
+        // extEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.FALSE);
     }
 
     static void setCanUndo() {
@@ -186,9 +184,6 @@ class TEMenu {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
-    /**
-     *
-     */
     static JMenuItem undoMenu = null;
     static JMenuItem redoMenu = null;
 
@@ -237,6 +232,7 @@ class TEMenu {
         mi.addActionListener(listener);
     }
 }
+
 
 // Menu actions
 class TEMenuListener implements ActionListener {

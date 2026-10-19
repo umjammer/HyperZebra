@@ -8,6 +8,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 
+import com.github.hyperZebra.TTalk.WordType;
+
 
 public class OObject {
 
@@ -23,7 +25,7 @@ public class OObject {
     ArrayList<String> scriptList;
     TreeSet<String> handlerList;
     ArrayList<String>[] stringList;
-    ArrayList<TTalk.wordType>[] typeList;
+    ArrayList<WordType>[] typeList;
     ArrayList<Integer> handlerLineList;
     private boolean visible = true;
     boolean enabled = true;

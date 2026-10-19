@@ -23,6 +23,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -149,7 +151,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        // System.out.println("keyPressed:"+e.getKeyCode());
+        //logger.log(Level.DEBUG, "keyPressed: " + e.getKeyCode());
         int k = e.getKeyCode();
         if (k >= 32 && k < 128) { // Numbers and symbols as-is, alphabets are uppercase code
             if (k > 'a' && k <= 'z')
@@ -234,7 +236,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
-        // System.out.println("keyReleased:"+e.getKeyCode());
+        //logger.log(Level.DEBUG, "keyReleased: " + e.getKeyCode());
         int k = e.getKeyCode();
         if (k >= 32 && k < 128) {
             if (k > 'a' && k <= 'z')
@@ -297,12 +299,12 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
     public void keyTyped(KeyEvent e) {
         // Seems to be called when a character is input
 
-        /*int k = e.getKeyCode();
-        if(k>=32 && k<128){
-            if(k>'a' && k<='z')
-                k -= 'a'-'A';
-            key[k] = 1;
-        }*/
+//        int k = e.getKeyCode();
+//        if (k >= 32 && k < 128) {
+//            if (k > 'a' && k <= 'z')
+//                k -= 'a' - 'A';
+//            key[k] = 1;
+//        }
     }
 
     public static void keyEventCheck() {
@@ -330,7 +332,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
                     // Script trace
                     /*if(false==PCARDFrame.pc.stack.cantAbort)*/
                     TTalk.traceMode = 2;
-                    ScriptEditor.setTracemode();
+                    ScriptEditor.setTraceMode();
                     isOpened = true;
                     addAllListener();
                 }
@@ -571,7 +573,7 @@ class GButton implements ActionListener, MouseListener, MouseMotionListener {
     public void mouseClicked(MouseEvent e) {
         //
         if (TTalk.idle == true) {
-            if (((MyButton) e.getSource()).autoHilite == false &&
+            if (((MyButton) e.getSource()).autoHighlight == false &&
                     ((MyButton) e.getSource()).btnData.enabled == true) {
                 if (e.getClickCount() == 2) TTalk.CallMessage("mouseDoubleClick", ((MyButton) e.getSource()).btnData);
                 TTalk.CallMessage("mouseUp", ((MyButton) e.getSource()).btnData);
@@ -631,7 +633,7 @@ class GCheckBox implements ActionListener, MouseListener {
         // String cmd = e.getActionCommand();
         if (TTalk.idle == true) {
             TTalk.CallMessage("mouseUp", ((MyCheck) e.getSource()).btnData);
-            ((MyCheck) e.getSource()).btnData.check_hilite = ((MyCheck) e.getSource()).isSelected();
+            ((MyCheck) e.getSource()).btnData.checkHilite = ((MyCheck) e.getSource()).isSelected();
             ((MyCheck) e.getSource()).btnData.setHilite(((MyCheck) e.getSource()).isSelected());
         } else {
             GUI.clickH = ((JComponent) e.getSource()).getX() + 1;
@@ -724,7 +726,7 @@ class GRadio implements ActionListener, MouseListener {
         // String cmd = e.getActionCommand();
         if (TTalk.idle == true) {
             TTalk.CallMessage("mouseUp", ((MyRadio) e.getSource()).btnData);
-            ((MyRadio) e.getSource()).btnData.check_hilite = ((MyRadio) e.getSource()).isSelected();
+            ((MyRadio) e.getSource()).btnData.checkHilite = ((MyRadio) e.getSource()).isSelected();
             ((MyRadio) e.getSource()).btnData.setHilite(((MyRadio) e.getSource()).isSelected());
         } else {
             GUI.clickH = ((JComponent) e.getSource()).getX() + 1;
@@ -806,7 +808,7 @@ class GField implements MouseListener, MouseMotionListener {
                             }
                             GUI.clickLine = "line " + (line) + " of " + fld.getShortName();
                             GUI.clickField = fld;
-                            // System.out.println("clickline:"+GUI.clickLine);
+                            //logger.log(Level.DEBUG, "clickline: " + GUI.clickLine);
 
                         }
                         if (cnt == line + 1) {
@@ -937,19 +939,19 @@ class paintGUI implements MouseListener, MouseMotionListener/*, WindowListener*/
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        /*clickH = e.getX()-PPaint.ppaint.toolbar.tb.getWidth();
-        clickV = e.getY()-PPaint.ppaint.getInsets().top;
-        PaintTool.mouseUp(clickH, clickV);
-        PaintTool.lastTime = 0;*/
+//        clickH = e.getX() - PPaint.ppaint.toolbar.tb.getWidth();
+//        clickV = e.getY() - PPaint.ppaint.getInsets().top;
+//        PaintTool.mouseUp(clickH, clickV);
+//        PaintTool.lastTime = 0;
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        // mouseDown = true;
+        //mouseDown = true;
         right = (javax.swing.SwingUtilities.isRightMouseButton(e));
         Rectangle r = ((Component) e.getSource()).getBounds();
-        int x = e.getX() + r.x/*-PCARD.pc.toolbar.getTWidth()*/;
-        int y = e.getY() + r.y/*-PCARD.pc.toolbar.getTHeight()*//*-PCARD.pc.getInsets().top*/;
+        int x = e.getX() + r.x /* - PCARD.pc.toolbar.getTWidth() */;
+        int y = e.getY() + r.y /* - PCARD.pc.toolbar.getTHeight() */ /* - PCARD.pc.getInsets().top */;
         if (e.getSource() == PCARD.pc.getRootPane()) {
             x -= PCARD.pc.toolbar.getTWidth();
             y -= PCARD.pc.toolbar.getTHeight() + PCARD.pc.getInsets().top + PCARD.pc.getJMenuBar().getHeight();
@@ -959,10 +961,10 @@ class paintGUI implements MouseListener, MouseMotionListener/*, WindowListener*/
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        // mouseDown = false;
+        //mouseDown = false;
         Rectangle r = ((Component) e.getSource()).getBounds();
-        int x = e.getX() + r.x/*-PCARD.pc.toolbar.getTWidth()*/;
-        int y = e.getY() + r.y/*-PCARD.pc.toolbar.getTHeight()*//*-PCARD.pc.getInsets().top*/;
+        int x = e.getX() + r.x /* - PCARD.pc.toolbar.getTWidth() */;
+        int y = e.getY() + r.y /* - PCARD.pc.toolbar.getTHeight() */ /* - PCARD.pc.getInsets().top */;
         if (e.getSource() == PCARD.pc.getRootPane()) {
             x -= PCARD.pc.toolbar.getTWidth();
             y -= PCARD.pc.toolbar.getTHeight() + PCARD.pc.getInsets().top + PCARD.pc.getJMenuBar().getHeight();
@@ -982,57 +984,64 @@ class paintGUI implements MouseListener, MouseMotionListener/*, WindowListener*/
     @Override
     public void mouseDragged(MouseEvent e) {
         Rectangle r = ((Component) e.getSource()).getBounds();
-        int x = e.getX() + r.x/*-PCARD.pc.toolbar.getTWidth()*/;
-        int y = e.getY() + r.y/*-PCARD.pc.toolbar.getTHeight()*//*-PCARD.pc.getInsets().top*/;
+        int x = e.getX() + r.x /* - PCARD.pc.toolbar.getTWidth() */;
+        int y = e.getY() + r.y /* - PCARD.pc.toolbar.getTHeight() */ /* - PCARD.pc.getInsets().top */;
         if (e.getSource() == PCARD.pc.getRootPane()) {
             x -= PCARD.pc.toolbar.getTWidth();
             y -= PCARD.pc.toolbar.getTHeight() + PCARD.pc.getInsets().top + PCARD.pc.getJMenuBar().getHeight();
         }
         PaintTool.mouseStillDown(x, y);
-        // PaintTool.lastTime = System.currentTimeMillis();
+        //PaintTool.lastTime = System.currentTimeMillis();
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
         Rectangle r = ((Component) e.getSource()).getBounds();
-        int x = e.getX() + r.x/*-PCARD.pc.toolbar.getTWidth()*/;
-        int y = e.getY() + r.y/*-PCARD.pc.toolbar.getTHeight()*//*-PCARD.pc.getInsets().top*/;
+        int x = e.getX() + r.x /* - PCARD.pc.toolbar.getTWidth() */;
+        int y = e.getY() + r.y /* - PCARD.pc.toolbar.getTHeight() */ /* - PCARD.pc.getInsets().top */;
         if (e.getSource() == PCARD.pc.getRootPane()) {
             x -= PCARD.pc.toolbar.getTWidth();
             y -= PCARD.pc.toolbar.getTHeight() + PCARD.pc.getInsets().top + PCARD.pc.getJMenuBar().getHeight();
         }
         PaintTool.mouseWithin(x, y);
-        // PaintTool.lastTime = System.currentTimeMillis();
+        //PaintTool.lastTime = System.currentTimeMillis();
     }
 
-    /*public void windowActivated(WindowEvent arg0) {
-        // Why does the menu stay disabled when focus moves to toolbar??
-        JMenuBar mb = PCARD.pc.getJMenuBar();
-        int count = mb.getMenuCount();
-        for(int i=0; i<count; i++){
-            JMenu m = mb.getMenu(i);
-            m.setEnabled(true);
-        }
-
-        PaintTool.owner = PCARD.pc;
-    }
-    public void windowClosed(WindowEvent arg0) {
-    }
-    public void windowClosing(WindowEvent arg0) {
-    }
-    public void windowDeactivated(WindowEvent arg0) {
-    }
-    public void windowDeiconified(WindowEvent arg0) {
-    }
-    public void windowIconified(WindowEvent arg0) {
-    }
-    public void windowOpened(WindowEvent arg0) {
-    }*/
-
+//    public void windowActivated(WindowEvent arg0) {
+//        // Why does the menu stay disabled when focus moves to toolbar??
+//        JMenuBar mb = PCARD.pc.getJMenuBar();
+//        int count = mb.getMenuCount();
+//        for (int i = 0; i < count; i++) {
+//            JMenu m = mb.getMenu(i);
+//            m.setEnabled(true);
+//        }
+//
+//        PaintTool.owner = PCARD.pc;
+//    }
+//
+//    public void windowClosed(WindowEvent arg0) {
+//    }
+//
+//    public void windowClosing(WindowEvent arg0) {
+//    }
+//
+//    public void windowDeactivated(WindowEvent arg0) {
+//    }
+//
+//    public void windowDeiconified(WindowEvent arg0) {
+//    }
+//
+//    public void windowIconified(WindowEvent arg0) {
+//    }
+//
+//    public void windowOpened(WindowEvent arg0) {
+//    }
 }
 
 
 class MyPaintDropListener extends DropTargetAdapter {
+
+    private static final Logger logger = System.getLogger(MyPaintDropListener.class.getName());
 
     @Override
     public void drop(DropTargetDropEvent e) {
@@ -1048,7 +1057,7 @@ class MyPaintDropListener extends DropTargetAdapter {
                 try {
                     bi = javax.imageio.ImageIO.read(new File(path));
                 } catch (IOException e2) {
-                    e2.printStackTrace();
+                    logger.log(Level.ERROR, e2.getMessage(), e2);
                 }
                 if (bi != null) {
                     PCARD.pc.toolbar.selectToolButton.doClick();
@@ -1060,10 +1069,7 @@ class MyPaintDropListener extends DropTargetAdapter {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.log(Level.ERROR, ex.getMessage(), ex);
         }
     }
 }
-
-
-

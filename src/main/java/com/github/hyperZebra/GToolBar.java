@@ -375,7 +375,7 @@ class TBButton extends JToggleButton {
             setContentAreaFilled(false);
             setBorderPainted(false);
         } catch (IOException e) {
-            // e.printStackTrace();
+            //logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
@@ -455,37 +455,37 @@ class TBButtonListener implements ActionListener, MouseListener {
             if (rb.getString("main.Pencil").equals(cmd)) {
                 GMenuPaint.doMenu("FatBits");
             }
-            /*if(rb.getString("main.Button").equals(cmd)){
-                try {
-                    GMenuBrowse.doMenu("New Button");
-                } catch (XTalkException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(rb.getString("main.Field").equals(cmd)){
-                try {
-                    GMenuBrowse.doMenu("New Field");
-                } catch (XTalkException e) {
-                    e.printStackTrace();
-                }
-            }*/
+//            if (rb.getString("main.Button").equals(cmd)) {
+//                try {
+//                    GMenuBrowse.doMenu("New Button");
+//                } catch (XTalkException e) {
+//                    logger.log(Level.ERROR, e.getMessage(), e);
+//                }
+//            }
+//            if (rb.getString("main.Field").equals(cmd)) {
+//                try {
+//                    GMenuBrowse.doMenu("New Field");
+//                } catch (XTalkException e) {
+//                    logger.log(Level.ERROR, e.getMessage(), e);
+//                }
+//            }
         }
     }
 
     @Override
-    public void mouseEntered(MouseEvent arg0) {
+    public void mouseEntered(MouseEvent e) {
     }
 
     @Override
-    public void mouseExited(MouseEvent arg0) {
+    public void mouseExited(MouseEvent e) {
     }
 
     @Override
-    public void mousePressed(MouseEvent arg0) {
+    public void mousePressed(MouseEvent e) {
     }
 
     @Override
-    public void mouseReleased(MouseEvent arg0) {
+    public void mouseReleased(MouseEvent e) {
     }
 
     @Override
@@ -493,9 +493,9 @@ class TBButtonListener implements ActionListener, MouseListener {
         String in_cmd = ((JComponent) ae.getSource()).getName();
         String cmd = PCARD.getText("main", in_cmd);
         ChangeTool(cmd, ae);
-        // if(((TBButton)ae.getSource()).getParent()==PCARD.pc.stack.toolbar.tb){
-        // PCARD.pc.toFront();
-        // }
+//        if (((TBButton) ae.getSource()).getParent() == PCARD.pc.stack.toolbar.tb) {
+//            PCARD.pc.toFront();
+//        }
         if (rb.getString("main.Close").equals(cmd)) {
             PCARD.pc.toolbar.tb.setVisible(false);
         }
@@ -544,13 +544,13 @@ class TBButtonListener implements ActionListener, MouseListener {
                 PCARD.pc.getRootPane().removeMouseMotionListener(paintGUI.gui);
                 paintGUI.gui.removeListenerFromParts();
 
-                // PCARD.pc.stack.curCard.pict.getGraphics().drawImage(PCARD.pc.mainImg, 0, 0, PCARD.pc);
-                // PCARD.pc.stack.curCard.bg.pict.getGraphics().drawImage(PCARD.pc.bgImg, 0, 0, PCARD.pc);
+                //PCARD.pc.stack.curCard.pict.getGraphics().drawImage(PCARD.pc.mainImg, 0, 0, PCARD.pc);
+                //PCARD.pc.stack.curCard.bg.pict.getGraphics().drawImage(PCARD.pc.bgImg, 0, 0, PCARD.pc);
                 PCARD.pc.mainPane.repaint();
 
-                // PCARD.pc.paIdle.interrupt();
-                // PCARD.pc.pidle = new Pidle();
-                // PCARD.pc.pidle.start();
+                //PCARD.pc.paIdle.interrupt();
+                //PCARD.pc.pidle = new Pidle();
+                //PCARD.pc.pidle.start();
 
                 {
                     // Paint buffer
@@ -561,7 +561,7 @@ class TBButtonListener implements ActionListener, MouseListener {
                 }
 
                 // This doesn't switch
-                // PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
+                //PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
 
                 GMenu.menuUpdate(PCARD.pc.menu.mb);
             }
@@ -765,8 +765,8 @@ class TBButtonListener implements ActionListener, MouseListener {
             GMenu.menuUpdate(PCARD.pc.paintMenu.mb);
 
             // PCARD.pc.pidle.interrupt();
-            /*PCARD.pc.paIdle = new PaintIdle();
-            PCARD.pc.paIdle.start();*/
+//            PCARD.pc.paIdle = new PaintIdle();
+//            PCARD.pc.paIdle.start();
 
             // Menu
             {
@@ -789,6 +789,7 @@ class TBButtonListener implements ActionListener, MouseListener {
         return true;
     }
 }
+
 
 class TBCursor {
 

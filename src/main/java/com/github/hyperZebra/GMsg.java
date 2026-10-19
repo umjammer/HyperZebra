@@ -28,7 +28,7 @@ public class GMsg extends JDialog {
     GMsg(Frame owner, String text) {
         super(owner);
         OWindow.msgwindow = new OWindow(this);
-        /* getContentPane(). */setLayout(null); // new BorderLayout());
+        /* getContentPane(). */ setLayout(null); // new BorderLayout());
         //this.setBackground(Color.WHITE);
 
         // Add panel
@@ -43,7 +43,7 @@ public class GMsg extends JDialog {
         area.setBounds(0, 0, 480, 28);
         area.setOpaque(false);
         //topPanel.add(area);
-        /* getContentPane(). */add(area);
+        /* getContentPane(). */ add(area);
 
         setBounds(owner.getX() + owner.getWidth() / 2 - 240, owner.getY() + owner.getHeight(), 480, 48 /* + PCARD.pc.getInsets().top */);
         setResizable(false);
@@ -89,6 +89,7 @@ public class GMsg extends JDialog {
         return area.getText();
     }
 }
+
 
 class GMsgListener implements KeyListener {
 

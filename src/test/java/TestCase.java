@@ -11,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import org.junit.jupiter.api.condition.EnabledOnOs;
 
 import com.github.hyperZebra.PCARD;
 import vavi.util.properties.annotation.Property;

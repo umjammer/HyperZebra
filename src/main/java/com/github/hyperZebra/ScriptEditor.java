@@ -17,6 +17,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,11 +50,15 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
+import com.github.hyperZebra.TTalk.WordType;
+
 
 public class ScriptEditor extends JFrame {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(ScriptEditor.class.getName());
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -112,7 +118,7 @@ public class ScriptEditor extends JFrame {
     }
 
     private static void openScriptEditor1(Frame owner, OObject obj, int line) {
-        // System.out.println("openScriptEditor");
+        //logger.log(Level.DEBUG, "openScriptEditor");
 
         ArrayList<String> scriptList = obj.scriptList;
         if (PCARD.pc.stack.scriptEditor == null) {
@@ -129,13 +135,13 @@ public class ScriptEditor extends JFrame {
                 if (scrPane.getViewport().getComponentCount() < 1) {
                     continue;
                 }
-                if (scrPane.isValid() == false) {
+                if (!scrPane.isValid()) {
                     PCARD.pc.stack.scriptEditor.dispose();
                     PCARD.pc.stack.scriptEditor = new ScriptEditor(owner);
                     return; // Corrupted
                 }
                 ScriptArea area = (ScriptArea) scrPane.getViewport().getComponent(0);
-                if (area.compareObject(obj) == true) {
+                if (area.compareObject(obj)) {
                     if (line > 0) {
                         // Jump to specified line
                         String[] newAry = area.getText().split("\n");
@@ -192,9 +198,8 @@ public class ScriptEditor extends JFrame {
         area.getPreferredSize();
         area.setOpaque(false);
         area.setCaretPosition(0);
-        // scrollpane.add(area);
+        //scrollpane.add(area);
         scrollpane.setViewportView(area);
-
 
         if (tabPane.getComponentCount() > 2) {
             for (int i = 0; i < tabPane.getComponentCount(); i++) {
@@ -231,14 +236,14 @@ public class ScriptEditor extends JFrame {
         try {
             PCARD.pc.stack.scriptEditor.setVisible(true);
         } catch (Exception e) {
-            System.out.println("Error: PCARD.pc.stack.scriptEditor.setVisible(true);");
+            logger.log(Level.DEBUG, "Error: PCARD.pc.stack.scriptEditor.setVisible(true);");
             SwingUtilities.invokeLater(() -> PCARD.pc.stack.scriptEditor.setVisible(true));
         }
 
         try {
             tabPane.setSelectedComponent(scrollpane);
         } catch (Exception e) {
-            System.out.println("Error: tabPane.setSelectedComponent(scrollpane);");
+            logger.log(Level.DEBUG, "Error: tabPane.setSelectedComponent(scrollpane);");
         }
 
         area.requestFocus();
@@ -252,13 +257,13 @@ public class ScriptEditor extends JFrame {
             JScrollPane scrPane = (JScrollPane) tabPane.getComponent(i);
             if (scrPane.getViewport().getComponentCount() == 0) return;
             ScriptArea area = (ScriptArea) scrPane.getViewport().getComponent(0);
-            if (false == saveAlert(area)) {
+            if (!saveAlert(area)) {
                 return; // Cancel close
             }
         }
         PCARD.pc.stack.scriptEditor.setVisible(false);
-        // PCARD.pc.stack.scriptEditor.dispose();
-        // PCARD.pc.stack.scriptEditor = null;
+        //PCARD.pc.stack.scriptEditor.dispose();
+        //PCARD.pc.stack.scriptEditor = null;
     }
 
     static boolean saveAlert(ScriptArea area) {
@@ -266,9 +271,11 @@ public class ScriptEditor extends JFrame {
             return true;
         }
         java.awt.Toolkit.getDefaultToolkit().beep();
-        Object[] options = {rb.getString("dialog.Save"),
+        Object[] options = {
+                rb.getString("dialog.Save"),
                 rb.getString("dialog.Discard"),
-                rb.getString("dialog.Cancel")};
+                rb.getString("dialog.Cancel")
+        };
         int retValue = JOptionPane.showOptionDialog(PCARD.pc.stack.scriptEditor,
                 rb.getString("dialog.Script_is_not_saved."),
                 "Exit Options",
@@ -290,30 +297,29 @@ public class ScriptEditor extends JFrame {
         try {
             allStr = area.getDocument().getText(0, area.getDocument().getLength());
         } catch (BadLocationException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
-        /*OObject obj = null;
-        // If card (bg) is open, rewrite object info in memory
-        if(area.ParentId==0 || area.compareParent(PCARD.pc.stack.curCard)){
-            obj = area.getObject(PCARD.pc.stack.curCard);
-        } else {
-            obj = area.getObjectOtherCard();
-        }*/
+//        OObject obj = null;
+//        // If card (bg) is open, rewrite object info in memory
+//        if (area.ParentId == 0 || area.compareParent(PCARD.pc.stack.curCard)) {
+//            obj = area.getObject(PCARD.pc.stack.curCard);
+//        } else {
+//            obj = area.getObjectOtherCard();
+//        }
         OObject obj = area.object;
 
         if (obj != null) {
             obj.setScript(allStr);
             area.savedScript();
         } else {
-            System.out.println("Failed to save script");
+            logger.log(Level.DEBUG, "Failed to save script");
         }
     }
 
-
-    static void setTracemode() {
+    static void setTraceMode() {
         if (PCARD.pc.stack.scriptEditor == null) {
-            SwingUtilities.invokeLater(ScriptEditor::setTracemode);
+            SwingUtilities.invokeLater(ScriptEditor::setTraceMode);
             return;
         }
         JMenuBar mb = PCARD.pc.stack.scriptEditor.getJMenuBar();
@@ -388,29 +394,29 @@ class seListener implements DocumentListener {
 
 class ScriptArea extends JTextPane {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(ScriptArea.class.getName());
+
     OObject object;
     //
     boolean saved = true;
-    // UndoManager undo = null;
+    //UndoManager undo = null;
     ScriptEditor parent = null;
-    // String ParentType;
-    // int ParentId;
-    // String ObjType;
-    // int ObjId;
+    //String ParentType;
+    //int ParentId;
+    //String ObjType;
+    //int ObjId;
     seListener seListener = null;
 
     public ScriptArea(ScriptEditor se, String text) {
         super();
         parent = se;
         // undo = new UndoManager();
-        undobuf.add(text);
+        undoBuf.add(text);
 
-        setFont(new Font(PCARD.scriptFont, 0, PCARD.scriptFontSize));
+        setFont(new Font(PCARD.scriptFont, Font.PLAIN, PCARD.scriptFontSize));
 
         StyleContext scontext = new StyleContext();
         DefaultStyledDocument doc = new DefaultStyledDocument(scontext);
@@ -419,43 +425,42 @@ class ScriptArea extends JTextPane {
         try {
             doc.insertString(0, text, scontext.getStyle(StyleContext.DEFAULT_STYLE));
         } catch (BadLocationException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
-        // getDocument().addUndoableEditListener(undo);
-        // getDocument().addUndoableEditListener(new UndoableEditListener() {
-        // public void undoableEditHappened(UndoableEditEvent e) {
-        // Register performed edits (character additions or deletions) with UndoManager
-                /*if (checkThreadCnt==0) {
-                    sub.addEdit(e.getEdit());
-                    sub.end();
-                    undo.addEdit(sub);
-                    sub = new UndoManager();
-                    sub.setLimit(10000);
-                }
-                else{
-                    sub.addEdit(e.getEdit());
-                }*/
-
-                /*
-                 * http: // webcache.googleusercontent.com/search?q=cache:fm8Klx9_kTAJ:gline.zapto.org/log/read.php/tech/1227234261/101-200+UndoableEditEvent+color+change+is&cd=2&hl=ja&ct=clnk&gl=jp&client=safari&source=www.google.co.jp
-                 * Note on getting stuck with javax.swing.undo.
-                    For example, when you want to undo multiple operations like deletion and insertion (such as string replacement) in one go,
-                    nest UndoManagers.
-
-                    Prepare two UndoManagers, and basically add to the sub one. When a block of processing finishes, call end() to add to the main one.
-
-                    void undoableEditHappened(UndoableEditEvent e) {
-                    　　sub.addEdit(e.getEdit());
-                    　　if (!compound) {
-                    　　　　sub.end();
-                    　　　　main.addEdit(sub);
-                    　　　　sub = new UndoManager();
-                    　　}
-                    }
-                 */
-        // }
-        // });
+//        getDocument().addUndoableEditListener(undo);
+//        getDocument().addUndoableEditListener(new UndoableEditListener() {
+//            public void undoableEditHappened(UndoableEditEvent e) {
+//                // Register performed edits (character additions or deletions) with UndoManager
+//                if (checkThreadCnt == 0) {
+//                    sub.addEdit(e.getEdit());
+//                    sub.end();
+//                    undo.addEdit(sub);
+//                    sub = new UndoManager();
+//                    sub.setLimit(10000);
+//                } else {
+//                    sub.addEdit(e.getEdit());
+//                }
+//            }
+//
+//            /*
+//             * http: // webcache.googleusercontent.com/search?q=cache:fm8Klx9_kTAJ:gline.zapto.org/log/read.php/tech/1227234261/101-200+UndoableEditEvent+color+change+is&cd=2&hl=ja&ct=clnk&gl=jp&client=safari&source=www.google.co.jp
+//             * Note on getting stuck with javax.swing.undo.
+//             *  For example, when you want to undo multiple operations like deletion and insertion (such as string replacement) in one go,
+//             *   nest UndoManagers.
+//             *
+//
+//                Prepare two UndoManagers, and basically add to the sub one. When a block of processing finishes, call end() to add to the main one.
+//             */
+//            void undoableEditHappened(UndoableEditEvent e) {
+//                        sub.addEdit(e.getEdit());
+//                        if (!compound) {
+//                            sub.end();
+//                            main.addEdit(sub);
+//                            sub = new UndoManager();
+//                        }
+//            }
+//        });
 
         addFocusListener(new SAFocusListener());
         seListener = new seListener(this);
@@ -466,7 +471,7 @@ class ScriptArea extends JTextPane {
 
     void checkIndentCall() {
         SwingUtilities.invokeLater(() -> {
-            if (flag == false) {
+            if (!flag) {
                 flag = true;
                 checkIndent();
                 new checkWordsThread().start();
@@ -518,10 +523,10 @@ class ScriptArea extends JTextPane {
                 spacing++;
 
             ArrayList<String> stringList = new ArrayList<>();
-            ArrayList<TTalk.wordType> typeList = new ArrayList<>();
+            ArrayList<WordType> typeList = new ArrayList<>();
             checkWordsLine(scrAry[i], stringList, typeList, true, false);
             for (int j = 0; j < typeList.size(); j++) {
-                if (typeList.get(j) == TTalk.wordType.COMMENT) {
+                if (typeList.get(j) == WordType.COMMENT) {
                     typeList.remove(j);
                     stringList.remove(j);
                     break;
@@ -531,21 +536,20 @@ class ScriptArea extends JTextPane {
             String[] words = new String[stringList.size()];
             stringList.toArray(words);
 
-            // String[] words = scrAry[i].substring(spacing).split(" ");
-            /*for(int j=0; j<words.length; j++){
-                if(words[j].indexOf("--")==0){
-                    words[j] = "";
-                    if(j-1 >= 0) words[words.length-1] = words[j-1];
-                    else words[words.length-1] = "";
-                    break;
-                }
-                else if(words[j].indexOf("--")>=0){
-                    words[j] = words[j].substring(0,words[j].indexOf("--"));
-                    if(j-1 >= 0) words[words.length-1] = words[j-1];
-                    else words[words.length-1] = "";
-                    break;
-                }
-            }*/
+//            String[] words = scrAry[i].substring(spacing).split(" ");
+//            for (int j = 0; j < words.length; j++) {
+//                if (words[j].indexOf("--") == 0) {
+//                    words[j] = "";
+//                    if (j - 1 >= 0) words[words.length - 1] = words[j - 1];
+//                    else words[words.length - 1] = "";
+//                    break;
+//                } else if (words[j].indexOf("--") >= 0) {
+//                    words[j] = words[j].substring(0, words[j].indexOf("--"));
+//                    if (j - 1 >= 0) words[words.length - 1] = words[j - 1];
+//                    else words[words.length - 1] = "";
+//                    break;
+//                }
+//            }
 
             if (words[0].equalsIgnoreCase("on") && words.length >= 2) {
                 if (indent == 0) {
@@ -651,7 +655,6 @@ class ScriptArea extends JTextPane {
             }
             selEnd += selectedEndChar;
 
-
             // Set text
             getDocument().removeDocumentListener(seListener);
             setText(newScript.toString());
@@ -670,7 +673,7 @@ class ScriptArea extends JTextPane {
         String[] scriptAry = text.split("\n");
 
         ArrayList<String>[] stringList = new ArrayList[scriptAry.length];
-        ArrayList<TTalk.wordType>[] typeList = new ArrayList[scriptAry.length];
+        ArrayList<WordType>[] typeList = new ArrayList[scriptAry.length];
         StringBuilder handler = new StringBuilder();
         TreeSet<String> varSet = new TreeSet<>();
 
@@ -692,7 +695,6 @@ class ScriptArea extends JTextPane {
             checkWordsLine2(scriptAry[i], stringList[i], typeList[i], true, handler, varSet);
         }
 
-
         getDocument().removeDocumentListener(seListener);
 
         // Colorize characters
@@ -700,31 +702,31 @@ class ScriptArea extends JTextPane {
         for (int i = 0; i < scriptAry.length; i++) {
             MutableAttributeSet attr = new SimpleAttributeSet();
             for (int j = 0; j < stringList[i].size(); j++) {
-                if (typeList[i].get(j) == TTalk.wordType.STRING || typeList[i].get(j) == TTalk.wordType.CONST) {
+                if (typeList[i].get(j) == WordType.STRING || typeList[i].get(j) == WordType.CONST) {
                     StyleConstants.setForeground(attr, new Color(0, 0, 16));
-                } else if (typeList[i].get(j) == TTalk.wordType.COMMENT) {
+                } else if (typeList[i].get(j) == WordType.COMMENT) {
                     StyleConstants.setForeground(attr, new Color(0, 96, 0));
-                } else if (typeList[i].get(j) == TTalk.wordType.XCMD || typeList[i].get(j) == TTalk.wordType.XFCN) {
+                } else if (typeList[i].get(j) == WordType.XCMD || typeList[i].get(j) == WordType.XFCN) {
                     StyleConstants.setForeground(attr, new Color(64, 0, 128));
-                } else if (typeList[i].get(j) == TTalk.wordType.CMD || typeList[i].get(j) == TTalk.wordType.CMD_SUB || typeList[i].get(j) == TTalk.wordType.GLOBAL) {
+                } else if (typeList[i].get(j) == WordType.CMD || typeList[i].get(j) == WordType.CMD_SUB || typeList[i].get(j) == WordType.GLOBAL) {
                     StyleConstants.setForeground(attr, new Color(64, 0, 32));
-                } else if (typeList[i].get(j) == TTalk.wordType.FUNC || typeList[i].get(j) == TTalk.wordType.OF_FUNC || typeList[i].get(j) == TTalk.wordType.THE_FUNC) {
+                } else if (typeList[i].get(j) == WordType.FUNC || typeList[i].get(j) == WordType.OF_FUNC || typeList[i].get(j) == WordType.THE_FUNC) {
                     StyleConstants.setForeground(attr, new Color(16, 0, 8));
-                } else if (typeList[i].get(j) == TTalk.wordType.VARIABLE) {
+                } else if (typeList[i].get(j) == WordType.VARIABLE) {
                     StyleConstants.setForeground(attr, new Color(0, 64, 128));
-                } else if (typeList[i].get(j) == TTalk.wordType.OBJECT || typeList[i].get(j) == TTalk.wordType.OF_OBJ) {
+                } else if (typeList[i].get(j) == WordType.OBJECT || typeList[i].get(j) == WordType.OF_OBJ) {
                     StyleConstants.setForeground(attr, new Color(16, 0, 0));
-                } else if (typeList[i].get(j) == TTalk.wordType.CHUNK || typeList[i].get(j) == TTalk.wordType.OF_CHUNK) {
+                } else if (typeList[i].get(j) == WordType.CHUNK || typeList[i].get(j) == WordType.OF_CHUNK) {
                     StyleConstants.setForeground(attr, new Color(0, 0, 0));
-                } else if (typeList[i].get(j) == TTalk.wordType.X) {
+                } else if (typeList[i].get(j) == WordType.X) {
                     StyleConstants.setForeground(attr, new Color(16, 16, 16));
-                } else if (typeList[i].get(j) == TTalk.wordType.IF || typeList[i].get(j) == TTalk.wordType.THEN || typeList[i].get(j) == TTalk.wordType.ELSE || typeList[i].get(j) == TTalk.wordType.ENDIF) {
+                } else if (typeList[i].get(j) == WordType.IF || typeList[i].get(j) == WordType.THEN || typeList[i].get(j) == WordType.ELSE || typeList[i].get(j) == WordType.ENDIF) {
                     StyleConstants.setForeground(attr, new Color(128, 32, 0));
-                } else if (typeList[i].get(j) == TTalk.wordType.ON_HAND || typeList[i].get(j) == TTalk.wordType.END_HAND || typeList[i].get(j) == TTalk.wordType.ON_FUNC || typeList[i].get(j) == TTalk.wordType.EXIT || typeList[i].get(j) == TTalk.wordType.PASS || typeList[i].get(j) == TTalk.wordType.RETURN) {
+                } else if (typeList[i].get(j) == WordType.ON_HAND || typeList[i].get(j) == WordType.END_HAND || typeList[i].get(j) == WordType.ON_FUNC || typeList[i].get(j) == WordType.EXIT || typeList[i].get(j) == WordType.PASS || typeList[i].get(j) == WordType.RETURN) {
                     StyleConstants.setForeground(attr, new Color(128, 0, 0));
-                } else if (typeList[i].get(j) == TTalk.wordType.REPEAT || typeList[i].get(j) == TTalk.wordType.END_REPEAT || typeList[i].get(j) == TTalk.wordType.EXIT_REP || typeList[i].get(j) == TTalk.wordType.NEXT_REP) {
+                } else if (typeList[i].get(j) == WordType.REPEAT || typeList[i].get(j) == WordType.END_REPEAT || typeList[i].get(j) == WordType.EXIT_REP || typeList[i].get(j) == WordType.NEXT_REP) {
                     StyleConstants.setForeground(attr, new Color(128, 64, 0));
-                } else if (typeList[i].get(j) == TTalk.wordType.PROPERTY || typeList[i].get(j) == TTalk.wordType.OF_PROP) {
+                } else if (typeList[i].get(j) == WordType.PROPERTY || typeList[i].get(j) == WordType.OF_PROP) {
                     StyleConstants.setForeground(attr, new Color(0, 32, 0));
                 } else {
                     StyleConstants.setForeground(attr, new Color(0, 0, 0));
@@ -738,18 +740,17 @@ class ScriptArea extends JTextPane {
                 if (start + len >= getDocument().getLength()) len = 0;
                 ((DefaultStyledDocument) getDocument()).setCharacterAttributes(start, len, attr, false);
                 start += len;
-                // System.out.println(stringList[i].get(j)+"   "+len+":"+start);
+                //logger.log(Level.DEBUG, stringList[i].get(j)+"   "+len+": " + start);
             }
         }
 
         getDocument().addDocumentListener(seListener);
     }
 
-
-    static void checkWordsLine(String script, ArrayList<String> stringList, ArrayList<TTalk.wordType> typeList, boolean isCmd, boolean isEditor) {
+    static void checkWordsLine(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, boolean isCmd, boolean isEditor) {
         StringBuilder str = new StringBuilder(16);
         boolean inFunc = false;
-        ArrayList<TTalk.wordType> Brackets = new ArrayList<>();
+        ArrayList<WordType> Brackets = new ArrayList<>();
 
         // Split into words. Separate operators, parentheses, comments, and strings.
         for (int i = 0; i < script.length(); i++) {
@@ -761,23 +762,23 @@ class ScriptArea extends JTextPane {
                     typeList.remove(typeList.size() - 1);
                     stringList.remove(stringList.size() - 1);
                     // Comment to end of line
-                    typeList.add(TTalk.wordType.COMMENT);
+                    typeList.add(WordType.COMMENT);
                     stringList.add(script.substring(i - 1));
                     break;
                 }
                 if (!str.isEmpty()) {
-                    if (Character.isDigit(str.charAt(0))) typeList.add(TTalk.wordType.STRING);
-                    else typeList.add(TTalk.wordType.X);
+                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+                    else typeList.add(WordType.X);
                     stringList.add(str.toString().toLowerCase().intern());
                     str.setLength(0);
                 }
-                typeList.add(TTalk.wordType.OPERATOR);
+                typeList.add(WordType.OPERATOR);
                 stringList.add(String.valueOf(code).intern());
             } else if (code == '(') {
-                if (!str.isEmpty() || !typeList.isEmpty() && typeList.get(typeList.size() - 1) == TTalk.wordType.X) {
+                if (!str.isEmpty() || !typeList.isEmpty() && typeList.get(typeList.size() - 1) == WordType.X) {
                     if (!str.isEmpty()) {
-                        if (Character.isDigit(str.charAt(0))) typeList.add(TTalk.wordType.STRING);
-                        else typeList.add(TTalk.wordType.X);
+                        if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+                        else typeList.add(WordType.X);
                         stringList.add(str.toString().toLowerCase().intern());
                         str.setLength(0);
                     }
@@ -795,48 +796,48 @@ class ScriptArea extends JTextPane {
                             funcstr.equals("id") ||
                             funcstr.equals("or") || funcstr.equals("and") || funcstr.equals("not") ||
                             funcstr.equals("div") || funcstr.equals("mod") || funcstr.equals("is") || funcstr.equals("in") || funcstr.equals("within") || funcstr.equals("a") || funcstr.equals("an")) {
-                        typeList.add(TTalk.wordType.LBRACKET);
+                        typeList.add(WordType.LBRACKET);
                     } else if (funcstr.equals("of") && stringList.size() >= 2 && (
-                            /*stringList.get(stringList.size()-2).matches("^[0-9]*$") ||
-                            stringList.get(stringList.size()-2)=="char" ||
-                            stringList.get(stringList.size()-2)=="character" ||
-                            stringList.get(stringList.size()-2)=="item" ||
-                            stringList.get(stringList.size()-2)=="word" ||
-                            stringList.get(stringList.size()-2)=="line" ||*/
+//                            stringList.get(stringList.size() - 2).matches("^[0-9]*$") ||
+//                            stringList.get(stringList.size() - 2) == "char" ||
+//                            stringList.get(stringList.size() - 2) == "character" ||
+//                            stringList.get(stringList.size() - 2) == "item" ||
+//                            stringList.get(stringList.size() - 2) == "word" ||
+//                            stringList.get(stringList.size() - 2) == "line" ||
                             !TTalk.funcSet.contains(stringList.get(stringList.size() - 2)))) {
-                        typeList.add(TTalk.wordType.LBRACKET);
-                        Brackets.add(TTalk.wordType.LBRACKET);
+                        typeList.add(WordType.LBRACKET);
+                        Brackets.add(WordType.LBRACKET);
                         inFunc = false;
                     } else if (isCmd && typeList.size() == 1) {
                         // When left side is recognized as command
-                        typeList.add(TTalk.wordType.LBRACKET);
-                        Brackets.add(TTalk.wordType.LBRACKET);
+                        typeList.add(WordType.LBRACKET);
+                        Brackets.add(WordType.LBRACKET);
                         inFunc = false;
                     } else {
-                        typeList.add(TTalk.wordType.LFUNC);
-                        Brackets.add(TTalk.wordType.LFUNC);
+                        typeList.add(WordType.LFUNC);
+                        Brackets.add(WordType.LFUNC);
                         inFunc = true;
                     }
                     stringList.add("(");
                 } else {
-                    typeList.add(TTalk.wordType.LBRACKET);
+                    typeList.add(WordType.LBRACKET);
                     stringList.add("(");
                 }
             } else if (code == ')') {
                 if (!str.isEmpty()) {
-                    if (Character.isDigit(str.charAt(0))) typeList.add(TTalk.wordType.STRING);
-                    else typeList.add(TTalk.wordType.X);
+                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+                    else typeList.add(WordType.X);
                     stringList.add(str.toString().toLowerCase().intern());
                     str.setLength(0);
                 }
-                if (Brackets.isEmpty() || Brackets.get(Brackets.size() - 1) == TTalk.wordType.LBRACKET) {
-                    typeList.add(TTalk.wordType.RBRACKET);
+                if (Brackets.isEmpty() || Brackets.get(Brackets.size() - 1) == WordType.LBRACKET) {
+                    typeList.add(WordType.RBRACKET);
                     if (!Brackets.isEmpty()) Brackets.remove(Brackets.size() - 1);
-                } else if (Brackets.get(Brackets.size() - 1) == TTalk.wordType.LFUNC) {
-                    typeList.add(TTalk.wordType.RFUNC);
+                } else if (Brackets.get(Brackets.size() - 1) == WordType.LFUNC) {
+                    typeList.add(WordType.RFUNC);
                     if (!Brackets.isEmpty()) Brackets.remove(Brackets.size() - 1);
                 }
-                if (Brackets.isEmpty() || Brackets.get(Brackets.size() - 1) == TTalk.wordType.LBRACKET) {
+                if (Brackets.isEmpty() || Brackets.get(Brackets.size() - 1) == WordType.LBRACKET) {
                     inFunc = false;
                 } else {
                     inFunc = true;
@@ -844,20 +845,20 @@ class ScriptArea extends JTextPane {
                 stringList.add(")");
             } else if (code == ',') {
                 if (!str.isEmpty()) {
-                    if (Character.isDigit(str.charAt(0))) typeList.add(TTalk.wordType.STRING);
-                    else typeList.add(TTalk.wordType.X);
+                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+                    else typeList.add(WordType.X);
                     stringList.add(str.toString().toLowerCase().intern());
                     str.setLength(0);
                 }
                 if (inFunc) {
-                    typeList.add(TTalk.wordType.COMMA_FUNC); // Function argument specification
+                    typeList.add(WordType.COMMA_FUNC); // Function argument specification
                 } else {
-                    typeList.add(TTalk.wordType.COMMA); // loc/rect or global, or handler arguments
+                    typeList.add(WordType.COMMA); // loc/rect or global, or handler arguments
                 }
                 stringList.add(",");
             } else if (code == '"') {
                 if (!str.isEmpty()) {
-                    typeList.add(TTalk.wordType.X);
+                    typeList.add(WordType.X);
                     stringList.add(str.toString().toLowerCase().intern());
                     str.setLength(0);
                 }
@@ -869,30 +870,30 @@ class ScriptArea extends JTextPane {
                     i++;
                 }
                 if (isEditor) {
-                    typeList.add(TTalk.wordType.QUOTE);
+                    typeList.add(WordType.QUOTE);
                     stringList.add("\"");
                 }
 
-                typeList.add(TTalk.wordType.STRING);
+                typeList.add(WordType.STRING);
                 stringList.add(str.toString());
                 str.setLength(0);
 
                 if (isEditor) {
-                    typeList.add(TTalk.wordType.QUOTE);
+                    typeList.add(WordType.QUOTE);
                     stringList.add("\"");
                 }
             } else if (code == ' ' || code == '\t') {
                 if (!str.isEmpty()) {
-                    if (Character.isDigit(str.charAt(0))) typeList.add(TTalk.wordType.STRING);
-                    else typeList.add(TTalk.wordType.X);
+                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+                    else typeList.add(WordType.X);
                     stringList.add(str.toString().toLowerCase().intern());
                     str.setLength(0);
                 }
             } else if (i == script.length() - 1) {
                 str.append(code);
                 if (!str.isEmpty()) {
-                    if (Character.isDigit(str.charAt(0))) typeList.add(TTalk.wordType.STRING);
-                    else typeList.add(TTalk.wordType.X);
+                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+                    else typeList.add(WordType.X);
                     stringList.add(str.toString().toLowerCase().intern());
                     str.setLength(0);
                 }
@@ -902,37 +903,35 @@ class ScriptArea extends JTextPane {
         }
     }
 
-
-    static void checkWordsLine2(String script, ArrayList<String> stringList, ArrayList<TTalk.wordType> typeList, boolean isCmd, StringBuilder handler, TreeSet<String> varSet) {
+    static void checkWordsLine2(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, boolean isCmd, StringBuilder handler, TreeSet<String> varSet) {
         String command = "";
-
 
         // Identify operators
         for (int i = 0; i < typeList.size(); i++) {
-            TTalk.wordType theType = typeList.get(i);
+            WordType theType = typeList.get(i);
 
-            if ((theType == TTalk.wordType.X || theType == TTalk.wordType.OPERATOR) &&
-                    TTalk.operatorSet.contains(stringList.get(i)/*.toLowerCase()*/)) {
+            if ((theType == WordType.X || theType == WordType.OPERATOR) &&
+                    TTalk.operatorSet.contains(stringList.get(i) /* .toLowerCase() */)) {
                 switch (stringList.get(i)) {
-                    case "div" -> typeList.set(i, TTalk.wordType.OPERATOR);
-                    case "mod" -> typeList.set(i, TTalk.wordType.OPERATOR);
-                    case "not" -> typeList.set(i, TTalk.wordType.OPERATOR);
-                    case "and" -> typeList.set(i, TTalk.wordType.OPERATOR);
-                    case "or" -> typeList.set(i, TTalk.wordType.OPERATOR);
-                    case "contains" -> typeList.set(i, TTalk.wordType.OPERATOR);
-                    case "within" -> typeList.set(i, TTalk.wordType.OPERATOR);
+                    case "div" -> typeList.set(i, WordType.OPERATOR);
+                    case "mod" -> typeList.set(i, WordType.OPERATOR);
+                    case "not" -> typeList.set(i, WordType.OPERATOR);
+                    case "and" -> typeList.set(i, WordType.OPERATOR);
+                    case "or" -> typeList.set(i, WordType.OPERATOR);
+                    case "contains" -> typeList.set(i, WordType.OPERATOR);
+                    case "within" -> typeList.set(i, WordType.OPERATOR);
                     case "there" -> {
                         if (i <= typeList.size() - 1 && stringList.get(i + 1).equals("is")) {
                             if (i <= typeList.size() - 2 && (stringList.get(i + 2).equals("a") || stringList.get(i + 2).equals("an"))) {
-                                typeList.set(i, TTalk.wordType.OPERATOR);
-                                typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
-                                typeList.set(i + 2, TTalk.wordType.OPERATOR_SUB);
+                                typeList.set(i, WordType.OPERATOR);
+                                typeList.set(i + 1, WordType.OPERATOR_SUB);
+                                typeList.set(i + 2, WordType.OPERATOR_SUB);
                             } else if (i <= typeList.size() - 3 && 0 == stringList.get(i + 2).compareToIgnoreCase("not")) {
                                 if (0 == stringList.get(i + 3).compareToIgnoreCase("a") || 0 == stringList.get(i + 3).compareToIgnoreCase("an")) {
-                                    typeList.set(i, TTalk.wordType.OPERATOR);
-                                    typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
-                                    typeList.set(i + 2, TTalk.wordType.OPERATOR_SUB);
-                                    typeList.set(i + 3, TTalk.wordType.OPERATOR_SUB);
+                                    typeList.set(i, WordType.OPERATOR);
+                                    typeList.set(i + 1, WordType.OPERATOR_SUB);
+                                    typeList.set(i + 2, WordType.OPERATOR_SUB);
+                                    typeList.set(i + 3, WordType.OPERATOR_SUB);
                                 }
                                 // else throw new XTalkException("a/an is required after there is not");
                             }
@@ -941,77 +940,76 @@ class ScriptArea extends JTextPane {
                     }
                     case "is" -> {
                         if (i < stringList.size() - 1 && (stringList.get(i + 1).equals("in") || stringList.get(i + 1).equals("a") || stringList.get(i + 1).equals("an"))) {
-                            typeList.set(i, TTalk.wordType.OPERATOR);
-                            typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
+                            typeList.set(i, WordType.OPERATOR);
+                            typeList.set(i + 1, WordType.OPERATOR_SUB);
                         } else if (i <= typeList.size() - 2 && stringList.get(i + 1).equals("not")) {
                             if (0 == stringList.get(i + 2).compareToIgnoreCase("in") || 0 == stringList.get(i + 2).compareToIgnoreCase("a") || 0 == stringList.get(i + 2).compareToIgnoreCase("an")) {
-                                typeList.set(i, TTalk.wordType.OPERATOR);
-                                typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
-                                typeList.set(i + 2, TTalk.wordType.OPERATOR_SUB);
+                                typeList.set(i, WordType.OPERATOR);
+                                typeList.set(i + 1, WordType.OPERATOR_SUB);
+                                typeList.set(i + 2, WordType.OPERATOR_SUB);
                             } else { // is not
-                                typeList.set(i, TTalk.wordType.OPERATOR);
-                                typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
+                                typeList.set(i, WordType.OPERATOR);
+                                typeList.set(i + 1, WordType.OPERATOR_SUB);
                             }
-                        } else typeList.set(i, TTalk.wordType.OPERATOR);
+                        } else typeList.set(i, WordType.OPERATOR);
                     }
                     case "<" -> {
                         if (i < typeList.size() - 1 && (stringList.get(i + 1).equals("=") || stringList.get(i + 1).equals(">"))) {
-                            typeList.set(i, TTalk.wordType.OPERATOR);
-                            typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
+                            typeList.set(i, WordType.OPERATOR);
+                            typeList.set(i + 1, WordType.OPERATOR_SUB);
                         }
                     }
                     case ">" -> {
                         if (i < typeList.size() - 1 && stringList.get(i + 1).equals("=")) {
-                            typeList.set(i, TTalk.wordType.OPERATOR);
-                            typeList.set(i + 1, TTalk.wordType.OPERATOR_SUB);
+                            typeList.set(i, WordType.OPERATOR);
+                            typeList.set(i + 1, WordType.OPERATOR_SUB);
                         }
                     }
                 }
+//            } else if (theType == WordType.LFUNC) {
+//                if (i >= start + 1 && (typeAry[i - 1] == WordType.OPERATOR ||
+//                        stringList.get(i - 1) == "to"))
+//                    typeAry[i] = WordType.LBRACKET;
             }
-            /*else if(theType==wordType.LFUNC) {
-                if(i>=start+1 && (typeAry[i-1]==wordType.OPERATOR ||
-                        stringList.get(i-1)=="to"))
-                    typeAry[i]=wordType.LBRACKET;
-            }*/
         }
 
         // Classify each word
         for (int i = 0; i < typeList.size(); i++) {
-            TTalk.wordType type = typeList.get(i);
-            if (type == TTalk.wordType.X) {
+            WordType type = typeList.get(i);
+            if (type == WordType.X) {
                 String str = stringList.get(i);
                 if (i == 0 && isCmd) {
                     // First word on line
                     switch (str) {
                         case "repeat" -> {
-                            typeList.set(i, TTalk.wordType.REPEAT);
+                            typeList.set(i, WordType.REPEAT);
                             command = "repeat";
                             continue;
                         }
                         case "if" -> {
-                            typeList.set(i, TTalk.wordType.IF);
+                            typeList.set(i, WordType.IF);
                             continue;
                         }
                         case "else" -> {
-                            typeList.set(i, TTalk.wordType.ELSE);
+                            typeList.set(i, WordType.ELSE);
                             continue;
                         }
                         case "end" -> {
                             if (typeList.size() > i + 1) {
                                 if (stringList.get(i + 1).equals("if")) {
-                                    typeList.set(i, TTalk.wordType.ENDIF);
+                                    typeList.set(i, WordType.ENDIF);
                                     i++;
-                                    typeList.set(i, TTalk.wordType.ENDIF);
+                                    typeList.set(i, WordType.ENDIF);
                                     continue;
                                 } else if (stringList.get(i + 1).equals("repeat")) {
-                                    typeList.set(i, TTalk.wordType.END_REPEAT);
+                                    typeList.set(i, WordType.END_REPEAT);
                                     i++;
-                                    typeList.set(i, TTalk.wordType.END_REPEAT);
+                                    typeList.set(i, WordType.END_REPEAT);
                                     continue;
                                 } else if (stringList.get(i + 1).equalsIgnoreCase(handler.toString())) {
-                                    typeList.set(i, TTalk.wordType.END_HAND);
+                                    typeList.set(i, WordType.END_HAND);
                                     i++;
-                                    typeList.set(i, TTalk.wordType.END_HAND);
+                                    typeList.set(i, WordType.END_HAND);
                                     varSet.clear();
                                     handler.delete(0, handler.length());
                                     continue;
@@ -1020,197 +1018,197 @@ class ScriptArea extends JTextPane {
                         }
                         case "on" -> {
                             if (typeList.size() > i + 1) {
-                                typeList.set(i, TTalk.wordType.ON_HAND);
+                                typeList.set(i, WordType.ON_HAND);
                                 i++;
-                                typeList.set(i, TTalk.wordType.ON_HAND);
+                                typeList.set(i, WordType.ON_HAND);
                                 handler.append(stringList.get(i));
                                 continue;
                             }
                         }
                         case "function" -> {
                             if (typeList.size() > i + 1) {
-                                typeList.set(i, TTalk.wordType.ON_FUNC);
+                                typeList.set(i, WordType.ON_FUNC);
                                 i++;
-                                typeList.set(i, TTalk.wordType.ON_FUNC);
+                                typeList.set(i, WordType.ON_FUNC);
                                 handler.append(stringList.get(i));
                                 continue;
                             }
                         }
                     }
                 }
-                if ((i == 0 && isCmd) || i >= 1 && (typeList.get(i - 1) == TTalk.wordType.THEN || typeList.get(i - 1) == TTalk.wordType.ELSE)) {
+                if ((i == 0 && isCmd) || i >= 1 && (typeList.get(i - 1) == WordType.THEN || typeList.get(i - 1) == WordType.ELSE)) {
                     // First word where a command can be placed
                     if (PCARD.pc.stack.rsrc != null && PCARD.pc.stack.rsrc.getxcmdId(str, "command") > 0) {
-                        typeList.set(i, TTalk.wordType.XCMD);
+                        typeList.set(i, WordType.XCMD);
                     } else if (str.equals("global")) {
-                        typeList.set(i, TTalk.wordType.GLOBAL);
+                        typeList.set(i, WordType.GLOBAL);
                     } else if (TTalk.commandSet.contains(str)) {
-                        typeList.set(i, TTalk.wordType.CMD);
+                        typeList.set(i, WordType.CMD);
                         command = str;
                     } else if (str.equals("return")) {
-                        typeList.set(i, TTalk.wordType.RETURN);
+                        typeList.set(i, WordType.RETURN);
                     } else if (str.equals("pass")) {
                         if (typeList.size() > i + 1 && stringList.get(i + 1).equalsIgnoreCase(handler.toString())) {
-                            typeList.set(i, TTalk.wordType.PASS);
+                            typeList.set(i, WordType.PASS);
                             i++;
-                            typeList.set(i, TTalk.wordType.PASS);
+                            typeList.set(i, WordType.PASS);
                         }
                     } else if (str.equals("exit")) {
                         if (typeList.size() > i + 1 && stringList.get(i + 1).equalsIgnoreCase(handler.toString())) {
-                            typeList.set(i, TTalk.wordType.EXIT);
+                            typeList.set(i, WordType.EXIT);
                             i++;
-                            typeList.set(i, TTalk.wordType.EXIT);
+                            typeList.set(i, WordType.EXIT);
                         } else if (typeList.size() > i + 2 && stringList.get(i + 1).equalsIgnoreCase("to") && stringList.get(i + 2).equalsIgnoreCase("hypercard")) {
-                            typeList.set(i, TTalk.wordType.EXIT);
+                            typeList.set(i, WordType.EXIT);
                             i++;
-                            typeList.set(i, TTalk.wordType.EXIT);
+                            typeList.set(i, WordType.EXIT);
                             i++;
-                            typeList.set(i, TTalk.wordType.EXIT);
+                            typeList.set(i, WordType.EXIT);
                         } else if (typeList.size() > i + 1 && stringList.get(i + 1).equalsIgnoreCase("repeat")) {
-                            typeList.set(i, TTalk.wordType.EXIT_REP);
+                            typeList.set(i, WordType.EXIT_REP);
                             i++;
-                            typeList.set(i, TTalk.wordType.EXIT_REP);
+                            typeList.set(i, WordType.EXIT_REP);
                         }
                     } else if (str.equals("next")) {
                         if (typeList.size() > i + 1 && stringList.get(i + 1).equalsIgnoreCase("repeat")) {
-                            typeList.set(i, TTalk.wordType.NEXT_REP);
+                            typeList.set(i, WordType.NEXT_REP);
                             i++;
-                            typeList.set(i, TTalk.wordType.NEXT_REP);
+                            typeList.set(i, WordType.NEXT_REP);
                         }
                     } else if (str.equals("if")) {
-                        typeList.set(i, TTalk.wordType.IF);
+                        typeList.set(i, WordType.IF);
                     } else if (str.equals("else")) {
-                        typeList.set(i, TTalk.wordType.ELSE);
+                        typeList.set(i, WordType.ELSE);
                     } else if (str.equals("then")) {
-                        typeList.set(i, TTalk.wordType.THEN);
+                        typeList.set(i, WordType.THEN);
                     } else {
-                        typeList.set(i, TTalk.wordType.USER_CMD);
+                        typeList.set(i, WordType.USER_CMD);
                     }
                 } else {
                     // Where a command cannot be written
                     if (str.equals("else")) {
-                        typeList.set(i, TTalk.wordType.ELSE);
+                        typeList.set(i, WordType.ELSE);
                         continue;
                     } else if (str.equals("then")) {
-                        typeList.set(i, TTalk.wordType.THEN);
+                        typeList.set(i, WordType.THEN);
                         continue;
                     } else if (PCARD.pc.stack.rsrc != null && PCARD.pc.stack.rsrc.getxcmdId(str, "function") > 0) {
-                        typeList.set(i, TTalk.wordType.XFCN);
+                        typeList.set(i, WordType.XFCN);
                         continue;
-                    } else if (typeList.get(0) == TTalk.wordType.ON_HAND ||
-                            typeList.get(0) == TTalk.wordType.ON_FUNC) {
+                    } else if (typeList.get(0) == WordType.ON_HAND ||
+                            typeList.get(0) == WordType.ON_FUNC) {
                         // Arguments
-                        typeList.set(i, TTalk.wordType.VARIABLE);
+                        typeList.set(i, WordType.VARIABLE);
                         varSet.add(str);
                         continue;
                     } else if (str.equals("it") || (i > 0 && !stringList.get(i - 1).equals("the")) && (varSet != null && varSet.contains(str))) {
-                        typeList.set(i, TTalk.wordType.VARIABLE);
+                        typeList.set(i, WordType.VARIABLE);
                         continue;
                     } else if (TTalk.constantSet.contains(str)) {
-                        typeList.set(i, TTalk.wordType.CONST);
+                        typeList.set(i, WordType.CONST);
                         continue;
                     } else if (str.equals("of") && i >= 1) {
-                        if (typeList.get(i - 1) == TTalk.wordType.OBJECT) {
-                            typeList.set(i, TTalk.wordType.OF_OBJ);
+                        if (typeList.get(i - 1) == WordType.OBJECT) {
+                            typeList.set(i, WordType.OF_OBJ);
                             continue;
-                        } else if (typeList.get(i - 1) == TTalk.wordType.CHUNK) {
-                            typeList.set(i, TTalk.wordType.OF_CHUNK);
+                        } else if (typeList.get(i - 1) == WordType.CHUNK) {
+                            typeList.set(i, WordType.OF_CHUNK);
                             continue;
-                        } else if (typeList.get(i - 1) == TTalk.wordType.FUNC) {
-                            typeList.set(i, TTalk.wordType.OF_FUNC);
+                        } else if (typeList.get(i - 1) == WordType.FUNC) {
+                            typeList.set(i, WordType.OF_FUNC);
                             continue;
-                        } else if (typeList.get(i - 1) == TTalk.wordType.PROPERTY) {
-                            typeList.set(i, TTalk.wordType.OF_PROP);
+                        } else if (typeList.get(i - 1) == WordType.PROPERTY) {
+                            typeList.set(i, WordType.OF_PROP);
                             continue;
                         }
                         if (i >= 2) {
-                            if (typeList.get(i - 2) == TTalk.wordType.OBJECT) {
-                                typeList.set(i, TTalk.wordType.OF_OBJ);
+                            if (typeList.get(i - 2) == WordType.OBJECT) {
+                                typeList.set(i, WordType.OF_OBJ);
                                 continue;
-                            } else if (typeList.get(i - 2) == TTalk.wordType.CHUNK) {
-                                typeList.set(i, TTalk.wordType.OF_CHUNK);
+                            } else if (typeList.get(i - 2) == WordType.CHUNK) {
+                                typeList.set(i, WordType.OF_CHUNK);
                                 continue;
                             }
                         }
-                    } else if (typeList.get(0) == TTalk.wordType.GLOBAL) {
+                    } else if (typeList.get(0) == WordType.GLOBAL) {
                         // Global variable
-                        typeList.set(i, TTalk.wordType.VARIABLE);
+                        typeList.set(i, WordType.VARIABLE);
                         varSet.add(str);
                         continue;
-                    } else if (i >= 1 && typeList.get(i - 1) == TTalk.wordType.REPEAT && (str.equals("with") || str.equals("until") || str.equals("while"))) {
-                        typeList.set(i, TTalk.wordType.REPEAT);
+                    } else if (i >= 1 && typeList.get(i - 1) == WordType.REPEAT && (str.equals("with") || str.equals("until") || str.equals("while"))) {
+                        typeList.set(i, WordType.REPEAT);
                         continue;
-                    } else if (i >= 1 && typeList.get(i - 1) == TTalk.wordType.REPEAT && stringList.get(i - 1).equals("with")) {
+                    } else if (i >= 1 && typeList.get(i - 1) == WordType.REPEAT && stringList.get(i - 1).equals("with")) {
                         // repeat variable
-                        typeList.set(i, TTalk.wordType.VARIABLE);
+                        typeList.set(i, WordType.VARIABLE);
                         varSet.add(str);
                         continue;
                     } else if (command.equals("put") && (str.equals("into") || str.equals("after") || str.equals("before"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("add") && str.equals("to")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("subtract") && str.equals("from")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("divide") && str.equals("by")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("multiply") && str.equals("by")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("show") && str.equals("at")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("answer") && (str.equals("with") || str.equals("or"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("ask") && str.equals("with")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("set") && str.equals("to")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("send") && str.equals("to")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("visual") && str.equals("effect")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("play") && str.equals("stop")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("pop") && str.equals("card")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("push") && str.equals("card")) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("drag") && (str.equals("from") || str.equals("to") || str.equals("with"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("click") && (str.equals("at") || str.equals("with"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if ((command.equals("lock") || command.equals("unlock")) &&
                             (str.equals("screen") || str.equals("with") || str.equals("messages") || str.equals("recent") || str.equals("errordialogs"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("wait") && (str.equals("until") || str.equals("while"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("convert") && (str.equals("to"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("open") && (str.equals("file"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("read") && (str.equals("from") || str.equals("file") || str.equals("at") || str.equals("for") || str.equals("until"))) {
-                        typeList.set(i, TTalk.wordType.CMD_SUB);
+                        typeList.set(i, WordType.CMD_SUB);
                         continue;
                     } else if (command.equals("repeat") && (str.equals("to") || str.equals("down"))) {
-                        typeList.set(i, TTalk.wordType.REPEAT);
+                        typeList.set(i, WordType.REPEAT);
                         continue;
                     } else if (str.equals("cd") || str.equals("card")
                             || str.equals("bg") || str.equals("bkgnd") || str.equals("background")
@@ -1223,17 +1221,17 @@ class ScriptArea extends JTextPane {
                             || str.equals("hypercard")
                             || str.equals("me")
                             || (str.equals("id") && i + 1 < stringList.size() && !stringList.get(i + 1).equals("of"))) {
-                        typeList.set(i, TTalk.wordType.OBJECT);
+                        typeList.set(i, WordType.OBJECT);
                         continue;
                     } else if (str.equals("char") || str.equals("character")
                             || str.equals("item") || str.equals("word")
                             || str.equals("line")) {
-                        typeList.set(i, TTalk.wordType.CHUNK);
+                        typeList.set(i, WordType.CHUNK);
                         continue;
-                    } else if (i >= 1 && typeList.get(i - 1) == TTalk.wordType.CMD_SUB &&
+                    } else if (i >= 1 && typeList.get(i - 1) == WordType.CMD_SUB &&
                             (command.equals("put") || command.equals("add") || command.equals("subtract") || command.equals("divide") || command.equals("multiply"))) {
                         // Variable
-                        typeList.set(i, TTalk.wordType.VARIABLE);
+                        typeList.set(i, WordType.VARIABLE);
                         varSet.add(str);
                         continue;
                     } else if (TTalk.propertySet.contains(str) ||
@@ -1241,7 +1239,7 @@ class ScriptArea extends JTextPane {
                         if ((i >= 1 && stringList.get(i - 1).equals("the")) ||
                                 (i >= 1 && stringList.get(i - 1).equals("set")) ||
                                 (i + 1 < stringList.size() && stringList.get(i + 1).equals("of"))) {
-                            typeList.set(i, TTalk.wordType.PROPERTY);
+                            typeList.set(i, WordType.PROPERTY);
                             continue;
                         }
                     }
@@ -1249,129 +1247,128 @@ class ScriptArea extends JTextPane {
                         if (str.equals("number") && i + 2 < stringList.size() && stringList.get(i + 1).equals("of") &&
                                 !stringList.get(i + 2).matches("s$")) {
                             // number of xxs is a function, otherwise it is a property
-                            typeList.set(i, TTalk.wordType.PROPERTY);
+                            typeList.set(i, WordType.PROPERTY);
                         } else if (str.equals("number") && i - 1 > 0 && stringList.get(i - 1).equals("a")) {
-                            typeList.set(i, TTalk.wordType.X);
+                            typeList.set(i, WordType.X);
                         } else {
-                            typeList.set(i, TTalk.wordType.FUNC);
+                            typeList.set(i, WordType.FUNC);
                         }
-                    } else if (i + 1 < stringList.size() && !stringList.get(i).equals("of") && typeList.get(i + 1) == TTalk.wordType.LFUNC) {
-                        typeList.set(i, TTalk.wordType.USER_FUNC);
+                    } else if (i + 1 < stringList.size() && !stringList.get(i).equals("of") && typeList.get(i + 1) == WordType.LFUNC) {
+                        typeList.set(i, WordType.USER_FUNC);
                     }
                 }
             }
         }
 
         for (int i = 0; i < typeList.size(); i++) {
-            TTalk.wordType type = typeList.get(i);
-            if (type == TTalk.wordType.X) {
+            WordType type = typeList.get(i);
+            if (type == WordType.X) {
                 String str = stringList.get(i);
-                if ((str.equals("first") || str.equals("last") || str.equals("prev") || str.equals("previous") || str.equals("next")) && i + 1 < stringList.size() && typeList.get(i + 1) == TTalk.wordType.OBJECT) {
-                    typeList.set(i, TTalk.wordType.OBJECT);
+                if ((str.equals("first") || str.equals("last") || str.equals("prev") || str.equals("previous") || str.equals("next")) && i + 1 < stringList.size() && typeList.get(i + 1) == WordType.OBJECT) {
+                    typeList.set(i, WordType.OBJECT);
                 }
-                if ((str.equals("first") || str.equals("last") || str.equals("middle") || str.equals("any")) && i + 1 < stringList.size() && typeList.get(i + 1) == TTalk.wordType.CHUNK) {
-                    typeList.set(i, TTalk.wordType.CHUNK);
+                if ((str.equals("first") || str.equals("last") || str.equals("middle") || str.equals("any")) && i + 1 < stringList.size() && typeList.get(i + 1) == WordType.CHUNK) {
+                    typeList.set(i, WordType.CHUNK);
                 }
             }
         }
 
         for (int i = 0; i < typeList.size(); i++) {
-            TTalk.wordType type = typeList.get(i);
-            if (type == TTalk.wordType.X) {
+            WordType type = typeList.get(i);
+            if (type == WordType.X) {
                 String str = stringList.get(i);
-                if (str.equals("the") && i + 1 < stringList.size() && typeList.get(i + 1) == TTalk.wordType.FUNC && (i + 2 >= stringList.size() || !stringList.get(i + 2).equals("of"))) {
-                    typeList.set(i, TTalk.wordType.THE_FUNC);
+                if (str.equals("the") && i + 1 < stringList.size() && typeList.get(i + 1) == WordType.FUNC && (i + 2 >= stringList.size() || !stringList.get(i + 2).equals("of"))) {
+                    typeList.set(i, WordType.THE_FUNC);
                 }
-                if (str.equals("the") && i + 1 < stringList.size() && typeList.get(i + 1) == TTalk.wordType.PROPERTY) {
-                    typeList.set(i, TTalk.wordType.PROPERTY);
+                if (str.equals("the") && i + 1 < stringList.size() && typeList.get(i + 1) == WordType.PROPERTY) {
+                    typeList.set(i, WordType.PROPERTY);
                 }
-                if (str.equals("this") && i + 1 < stringList.size() && typeList.get(i + 1) == TTalk.wordType.OBJECT) {
-                    typeList.set(i, TTalk.wordType.OBJECT);
+                if (str.equals("this") && i + 1 < stringList.size() && typeList.get(i + 1) == WordType.OBJECT) {
+                    typeList.set(i, WordType.OBJECT);
                 }
             }
         }
     }
-
 
     boolean compareObject(OObject obj) {
         return (obj == this.object);
     }
-    /*
-        if(ObjType.equals(obj.objectType) && ObjId == obj.id){
-            if(obj.parent != null){
-                if(ParentType.equals(obj.parent.objectType) && ParentId == obj.parent.id){
-                    return true;
-                }
-            }else if(obj.objectType.equals("stack")){
-                return true; // Always matches since each stack has its own editor window
-            }
-        }
-        return false;
-    }*/
+
+//        if (ObjType.equals(obj.objectType) && ObjId == obj.id) {
+//            if (obj.parent != null) {
+//                if (ParentType.equals(obj.parent.objectType) && ParentId == obj.parent.id) {
+//                    return true;
+//                }
+//            } else if (obj.objectType.equals("stack")) {
+//                return true; // Always matches since each stack has its own editor window
+//            }
+//        }
+//        return false;
+//    }
 
     // Whether the object parent matches
-    /*boolean compareParent(OObject parent){
-        if(ParentType!=null && ParentType.equals("background") && parent != null && parent.objectType.equals("card")){
-            OCard cd = (OCard)parent;
-            if(ParentId == cd.bg.id){
-                return true;
-            }
-        } else {
-            if(ParentType!=null && ParentType.equals(parent.objectType) && ParentId == parent.id){
-                return true;
-            }
-        }
-        return false;
-    }*/
+//    boolean compareParent(OObject parent) {
+//        if (ParentType != null && ParentType.equals("background") && parent != null && parent.objectType.equals("card")) {
+//            OCard cd = (OCard) parent;
+//            if (ParentId == cd.bg.id) {
+//                return true;
+//            }
+//        } else {
+//            if (ParentType != null && ParentType.equals(parent.objectType) && ParentId == parent.id) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     void setObject(OObject obj) {
         this.object = obj;
     }
-    /*    ObjType = obj.objectType;
-        ObjId = obj.id;
-        if(obj.parent != null){
-            ParentType = obj.parent.objectType;
-            ParentId = obj.parent.id;
-        }
-    }*/
+//        ObjType = obj.objectType;
+//        ObjId = obj.id;
+//        if (obj.parent != null) {
+//            ParentType = obj.parent.objectType;
+//            ParentId = obj.parent.id;
+//        }
+//    }
 
-    /*OObject getObject(OCard parent){
-        if(ObjType.equals("stack")) return parent.stack;
-        if(ObjType.equals("background") && ObjId == parent.bgid) return parent.bg;
-        if(ObjType.equals("card") && ObjId == parent.id) return parent;
-        if(ParentType.equals("bg")){
-            OBackground bg = parent.bg;
-            if(bg == null){
-                bg = PCARD.pc.stack.GetBackgroundbyId(ParentId);
-            }
-            if(ObjType.equals("field") && ParentId == parent.bgid) return bg.GetFldbyId(ObjId);
-            if(ObjType.equals("button") && ParentId == parent.bgid) return bg.GetBtnbyId(ObjId);
-        }else{
-            if(ObjType.equals("field") && ParentId == parent.id) return parent.GetFldbyId(ObjId);
-            if(ObjType.equals("button") && ParentId == parent.id) return parent.GetBtnbyId(ObjId);
-        }
-        return null;
-    }*/
+//    OObject getObject(OCard parent) {
+//        if (ObjType.equals("stack")) return parent.stack;
+//        if (ObjType.equals("background") && ObjId == parent.bgid) return parent.bg;
+//        if (ObjType.equals("card") && ObjId == parent.id) return parent;
+//        if (ParentType.equals("bg")) {
+//            OBackground bg = parent.bg;
+//            if (bg == null) {
+//                bg = PCARD.pc.stack.GetBackgroundbyId(ParentId);
+//            }
+//            if (ObjType.equals("field") && ParentId == parent.bgid) return bg.GetFldbyId(ObjId);
+//            if (ObjType.equals("button") && ParentId == parent.bgid) return bg.GetBtnbyId(ObjId);
+//        } else {
+//            if (ObjType.equals("field") && ParentId == parent.id) return parent.GetFldbyId(ObjId);
+//            if (ObjType.equals("button") && ParentId == parent.id) return parent.GetBtnbyId(ObjId);
+//        }
+//        return null;
+//    }
 
-    /*OObject getObjectOtherCard(){
-        if(ParentType.equals("card")){
-            OCard card = PCARD.pc.stack.GetCardbyId(ParentId);
-            return getObject(card);
-        } else {
-            OCard card = PCARD.pc.stack.GetCardofBackgroundbyId(ParentId);
-            return getObject(card);
-        }
-    }*/
+//    OObject getObjectOtherCard() {
+//        if (ParentType.equals("card")) {
+//            OCard card = PCARD.pc.stack.GetCardbyId(ParentId);
+//            return getObject(card);
+//        } else {
+//            OCard card = PCARD.pc.stack.GetCardofBackgroundbyId(ParentId);
+//            return getObject(card);
+//        }
+//    }
 
     void changedScript() {
         saved = false;
         parent.getRootPane().putClientProperty("windowModified", Boolean.TRUE);
-        if (!getText().equals(undobuf.get(undobuf.size() - 1))) {
-            undobuf.add(getText());
-            if (undobuf.size() >= 2) {
-                // Register with undobuf in word units
-                String str1 = undobuf.get(undobuf.size() - 2);
-                String str2 = undobuf.get(undobuf.size() - 1);
+        if (!getText().equals(undoBuf.get(undoBuf.size() - 1))) {
+            undoBuf.add(getText());
+            if (undoBuf.size() >= 2) {
+                // Register with undoBuf in word units
+                String str1 = undoBuf.get(undoBuf.size() - 2);
+                String str2 = undoBuf.get(undoBuf.size() - 1);
                 boolean wordflag = false;
                 int i1 = 0, i2 = 0;
                 for (int i = 0; i + i1 < str1.length() && i + i2 < str2.length(); i++) {
@@ -1387,14 +1384,14 @@ class ScriptArea extends JTextPane {
                         i--;
                     }
                 }
-                if (wordflag == false) {
-                    undobuf.remove(undobuf.size() - 2);
+                if (!wordflag) {
+                    undoBuf.remove(undoBuf.size() - 2);
                 }
             }
-            if (undobuf.size() > 32) {
-                undobuf.remove(0);
+            if (undoBuf.size() > 32) {
+                undoBuf.remove(0);
             }
-            redobuf.clear();
+            redoBuf.clear();
             setCanUndo();
         }
     }
@@ -1408,28 +1405,28 @@ class ScriptArea extends JTextPane {
         SEMenu.undoMenu.setEnabled(true);
     }
 
-    ArrayList<String> undobuf = new ArrayList<>();
-    ArrayList<String> redobuf = new ArrayList<>();
+    ArrayList<String> undoBuf = new ArrayList<>();
+    ArrayList<String> redoBuf = new ArrayList<>();
 
     void undoStatus() {
-        // SEMenu.undoMenu.setEnabled(undo.canUndo());
-        // SEMenu.redoMenu.setEnabled(undo.canRedo());
-        SEMenu.undoMenu.setEnabled(undobuf.size() > 1);
-        SEMenu.redoMenu.setEnabled(!redobuf.isEmpty());
+        //SEMenu.undoMenu.setEnabled(undo.canUndo());
+        //SEMenu.redoMenu.setEnabled(undo.canRedo());
+        SEMenu.undoMenu.setEnabled(undoBuf.size() > 1);
+        SEMenu.redoMenu.setEnabled(!redoBuf.isEmpty());
     }
 
     void undo() {
-        if (undobuf.size() > 1) {
+        if (undoBuf.size() > 1) {
             String str1 = getText();
-            String str2 = undobuf.get(undobuf.size() - 2);
+            String str2 = undoBuf.get(undoBuf.size() - 2);
             int pos = getCaretPosition() + str2.length() - str1.length();
-            redobuf.add(str1);
+            redoBuf.add(str1);
             getDocument().removeDocumentListener(seListener);
             setText(str2);
-            undobuf.remove(undobuf.size() - 1);
+            undoBuf.remove(undoBuf.size() - 1);
             getDocument().addDocumentListener(seListener);
             undoStatus();
-            new checkWordsThread().start();
+            new ScriptArea.checkWordsThread().start();
             if (pos >= 0 && pos < getText().length()) {
                 setCaretPosition(pos);
             }
@@ -1437,12 +1434,12 @@ class ScriptArea extends JTextPane {
     }
 
     void redo() {
-        if (!redobuf.isEmpty()) {
+        if (!redoBuf.isEmpty()) {
             int pos = getCaretPosition();
-            undobuf.add(getText());
+            undoBuf.add(getText());
             getDocument().removeDocumentListener(seListener);
-            setText(redobuf.get(redobuf.size() - 1));
-            redobuf.remove(redobuf.size() - 1);
+            setText(redoBuf.get(redoBuf.size() - 1));
+            redoBuf.remove(redoBuf.size() - 1);
             getDocument().addDocumentListener(seListener);
             undoStatus();
             new checkWordsThread().start();
@@ -1451,7 +1448,6 @@ class ScriptArea extends JTextPane {
             }
         }
     }
-
 
     class SAFocusListener implements FocusListener {
 
@@ -1574,7 +1570,6 @@ class SEMenu {
         m.add(mi = new JMenuItem(rb.getString("main.Uncomment")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, s));
         mi.addActionListener(listener);
-
     }
 }
 
@@ -1864,25 +1859,24 @@ class ReplaceDialog extends JDialog implements ActionListener {
         String text1 = owner.FindStr;
         area1 = new JTextField(text1);
         area1.setPreferredSize(new Dimension(380, 28));
-        // area1.setMargin(new Insets(8,16,8,16));
-        // area1.setLineWrap(true);
-        // area1.setBorder(new LineBorder(Color.BLACK));
+        //area1.setMargin(new Insets(8, 16, 8, 16));
+        //area1.setLineWrap(true);
+        //area1.setBorder(new LineBorder(Color.BLACK));
         topPanel.add(area1);
 
 
         String text2 = owner.ReplaceStr;
         area2 = new JTextField(text2);
         area2.setPreferredSize(new Dimension(380, 28));
-        // area2.setMargin(new Insets(8,16,8,16));
-        // area2.setLineWrap(true);
-        // area2.setBorder(new LineBorder(Color.BLACK));
+        //area2.setMargin(new Insets(8, 16, 8, 16));
+        //area2.setLineWrap(true);
+        //area2.setBorder(new LineBorder(Color.BLACK));
         area2.transferFocus();
         topPanel.add(area2);
         topPanel.add(area1);
 
         // Tab key navigation
-        Set<KeyStroke>
-                strokes = new HashSet<>(Collections.singletonList(KeyStroke.getKeyStroke("pressed TAB")));
+        Set<KeyStroke> strokes = new HashSet<>(Collections.singletonList(KeyStroke.getKeyStroke("pressed TAB")));
         area1.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, strokes);
         strokes = new HashSet<>(Collections.singletonList(KeyStroke.getKeyStroke("pressed TAB")));
         area2.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, strokes);

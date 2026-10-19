@@ -7,21 +7,25 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Locale;
+import java.util.List;
 import javax.imageio.ImageIO;
 
 
 public class HCData {
 
+    private static final Logger logger = System.getLogger(HCData.class.getName());
+
     public static boolean readDataFork(DataInputStream dis, OStack stack) {
-        // System.out.println("==readDataFork==");
+        //logger.log(Level.DEBUG, "==readDataFork==");
 
         boolean result = false;
         boolean isReadStack = false;
@@ -38,7 +42,7 @@ public class HCData {
                         stack.bar.setValue(stack.barOffset + (73 * (stack.totalSize - dis.available())) / stack.totalSize);
                         stack.bar.paintImmediately(stack.bar.getBounds());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
 
@@ -97,7 +101,7 @@ label:
                             stack.bar.setString("Converting Background Data...");
                             OBackground bg = new OBackground(PCARDFrame.pc.stack);
                             if (bg.readBackgroundBlock(dis, blockSize)) {
-                                stack.AddNewBg(bg);
+                                stack.addNewBg(bg);
                             } else {
                                 errCount++;
                             }
@@ -139,17 +143,17 @@ label:
                                 // Try to fix alignment
                                 blockSize = (0x00FFFFFF & blockSize) << 8;
                                 blockSize += (0x00FF & (typeCode >> 24));
-                                // System.out.println("<blockSize:"+blockSize);
+                                //logger.log(Level.DEBUG, "<blockSize: " + blockSize);
 
                                 typeCode = typeCode << 8;
                                 int read = readCode(dis, 1);
                                 if (read == -1) throw new IOException();
                                 typeCode += read;
-                                // System.out.println("<typeCode:"+typeCode);
+                                //logger.log(Level.DEBUG, "<typeCode: " + typeCode);
 
                                 aligncnt++;
                                 if (aligncnt == 32) {
-                                    // System.out.println("!");
+                                    //logger.log(Level.DEBUG, "!");
                                 }
 
                                 if ((typeCode & 0xFF000000) != 0x00000000) {
@@ -159,9 +163,9 @@ label:
                             continue;
                     }
                     // HCStackDebug.debuginfo("<<end of "+typeStr+">>");
-                    // HCStackDebug.debuginfo("size:"+Integer.toString(blockSize));
-                    // System.out.println("blockSize:"+blockSize);
-                    // System.out.println("typeStr:"+typeStr);
+                    // HCStackDebug.debuginfo("size: " + Integer.toString(blockSize));
+                    //logger.log(Level.DEBUG, "blockSize: " + blockSize);
+                    //logger.log(Level.DEBUG, "typeStr: " + typeStr);
                     aligncnt = 0;
                     break;
                 }
@@ -171,28 +175,28 @@ label:
 
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         // Output debug info
-        /*File f = new File("./debug_"+stack.name+".txt");
-        try {
-            FileOutputStream stream = new FileOutputStream(f);
-            stream.write(HCStackDebug.allStr.toString().getBytes());
-            stream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
+//        File f = new File("./debug_" + stack.name + ".txt");
+//        try {
+//            FileOutputStream stream = new FileOutputStream(f);
+//            stream.write(HCStackDebug.allStr.toString().getBytes());
+//            stream.close();
+//        } catch (IOException e) {
+//            logger.log(Level.ERROR, e.getMessage(), e);
+//        }
 
         if (result == true) {
             // Check number of cards
-            // System.out.println(stack.cdCacheList.size()+","+stack.cardIdList.size());
+            //logger.log(Level.DEBUG, stack.cdCacheList.size()+","+stack.cardIdList.size());
             if (stack.cdCacheList.size() != stack.cardIdList.size()) {
-                System.out.println("number of cards check error.");
+                logger.log(Level.DEBUG, "number of cards check error.");
                 result = false;
             }
             if (errCount > 0) {
-                System.out.println("errCount=" + errCount);
+                logger.log(Level.DEBUG, "errCount=" + errCount);
                 result = false;
             }
         }
@@ -212,22 +216,22 @@ label:
                 HCStackDebug.read(c);
                 opcode[i] = (byte) c;
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         int iop = 0;
         if (size == 1) {
             iop = (opcode[0]) & 0xff;
-            // System.out.println("code1:"+opcode[0]);
+            //logger.log(Level.DEBUG, "code1: " + opcode[0]);
         } else if (size == 2) {
             iop = (short) ((opcode[0] & 0xff) << 8) + (opcode[1] & 0xff);
-            // System.out.println("code2:"+opcode[0]+" "+opcode[1]);
+            //logger.log(Level.DEBUG, "code2: " + opcode[0]+" "+opcode[1]);
         } else if (size == 4) {
             iop = ((opcode[0] & 0xff) << 24) + ((opcode[1] & 0xff) << 16)
                     + ((opcode[2] & 0xff) << 8) + (opcode[3] & 0xff);
-            // System.out.println("code4:"+opcode[0]+" "+opcode[1]+" "+opcode[2]+" "+opcode[3]);
+            //logger.log(Level.DEBUG, "code4: " + opcode[0]+" "+opcode[1]+" "+opcode[2]+" "+opcode[3]);
         } else {
-            // System.out.println("!!!");
+            //logger.log(Level.DEBUG, "!!!");
         }
         return iop;
     }
@@ -242,14 +246,14 @@ label:
                 str.append((char) v);
                 // debugStr += " "+v;
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         // if(debugStr.length()<40){
-        // System.out.println("str:"+debugStr);
+        //logger.log(Level.DEBUG, "str: " + debugStr);
         // }else{
-        // System.out.println("str/:"+debugStr.substring(0,40));
-        // System.out.println("/str"+debugStr.substring(debugStr.length()-40));
+        //logger.log(Level.DEBUG, "str/: " + debugStr.substring(0,40));
+        //logger.log(Level.DEBUG, "/str"+debugStr.substring(debugStr.length()-40));
         // }
         return str.toString();
     }
@@ -279,7 +283,7 @@ label:
                 b[i] = (byte) c;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
         byte[] raw = Arrays.copyOf(b, i);
         result.rawBytes = raw;
@@ -307,7 +311,7 @@ label:
                 b[i] = (byte) c;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         byte[] raw = Arrays.copyOf(b, i);
@@ -318,7 +322,7 @@ label:
 
     static String decodeBytes(byte[] b, int offset, int len) {
         if (b == null || len <= 0) return "";
-        String enc = (PCARD.pc != null && PCARD.pc.textEncoding != null) ? PCARD.pc.textEncoding : "Auto";
+        String enc = (PCARD.pc != null && PCARD.pc.textEncoding != null) ? PCARD.pc.textEncoding : "JisAutoDetect";
         String charsetName = null;
         if (!enc.equalsIgnoreCase("Auto")) {
             if (enc.equalsIgnoreCase("Shift_JIS") || enc.equalsIgnoreCase("SJIS")) {
@@ -446,7 +450,7 @@ label:
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
             // Convert to PNG format and save to file
             String filename = "PAT_" + (i + 1) + ".png";
@@ -454,18 +458,17 @@ label:
             try {
                 ImageIO.write(bi, "png", ofile);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
             patAry[i] = filename;
         }
         return patAry;
     }
 
-
-    static ArrayList<Thread> threadList = new ArrayList<>();
+    static List<Thread> threadList = new ArrayList<>();
 
     public static boolean readPictureBlock(DataInputStream dis, int blockSize, OStack stack) {
-        // System.out.println("readPictureBlock");
+        //logger.log(Level.DEBUG, "readPictureBlock");
 
         if (blockSize > 200000 || blockSize < 0) {
             return false;
@@ -473,54 +476,52 @@ label:
 
         // Read block data sequentially
         int bitmapId = HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("bitmapId:"+Integer.toString(bitmapId));
-        // System.out.println("bitmapId:"+bitmapId);
-        /*String filler =*/
-        HCData.readStr(dis, 12);
-        // System.out.println("filler:"+filler);
+        // HCStackDebug.debuginfo("bitmapId: " + Integer.toString(bitmapId));
+        //logger.log(Level.DEBUG, "bitmapId: " + bitmapId);
+        /* String filler = */ HCData.readStr(dis, 12);
+        //logger.log(Level.DEBUG, "filler: " + filler);
 
         int top = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("top:"+Integer.toString(top));
+        // HCStackDebug.debuginfo("top: " + Integer.toString(top));
         int left = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("left:"+Integer.toString(left));
+        // HCStackDebug.debuginfo("left: " + Integer.toString(left));
         int bottom = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("bottom:"+Integer.toString(bottom));
+        // HCStackDebug.debuginfo("bottom: " + Integer.toString(bottom));
         int right = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("right:"+Integer.toString(right));
+        // HCStackDebug.debuginfo("right: " + Integer.toString(right));
 
         int maskTop = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("maskTop:"+Integer.toString(maskTop));
+        // HCStackDebug.debuginfo("maskTop: " + Integer.toString(maskTop));
         int maskLeft = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("maskLeft:"+Integer.toString(maskLeft));
+        // HCStackDebug.debuginfo("maskLeft: " + Integer.toString(maskLeft));
         int maskBottom = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("maskBottom:"+Integer.toString(maskBottom));
+        // HCStackDebug.debuginfo("maskBottom: " + Integer.toString(maskBottom));
         int maskRight = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("maskRight:"+Integer.toString(maskRight));
+        // HCStackDebug.debuginfo("maskRight: " + Integer.toString(maskRight));
 
         int imgTop = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("imgTop:"+Integer.toString(imgTop));
+        // HCStackDebug.debuginfo("imgTop: " + Integer.toString(imgTop));
         int imgLeft = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("imgLeft:"+Integer.toString(imgLeft));
+        // HCStackDebug.debuginfo("imgLeft: " + Integer.toString(imgLeft));
         int imgBottom = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("imgBottom:"+Integer.toString(imgBottom));
+        // HCStackDebug.debuginfo("imgBottom: " + Integer.toString(imgBottom));
         int imgRight = HCData.readCode(dis, 2);
-        // HCStackDebug.debuginfo("imgRight:"+Integer.toString(imgRight));
+        // HCStackDebug.debuginfo("imgRight: " + Integer.toString(imgRight));
 
-        /*String filler2 =*/
-        HCData.readStr(dis, 8);
-        // System.out.println("filler2:"+filler2);
+        /* String filler2 = */ HCData.readStr(dis, 8);
+        //logger.log(Level.DEBUG, "filler2: " + filler2);
 
         int maskSize = HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("maskSize:"+Integer.toString(maskSize));
+        //HCStackDebug.debuginfo("maskSize: " + Integer.toString(maskSize));
         int imgSize = HCData.readCode(dis, 4);
-        // HCStackDebug.debuginfo("imgSize:"+Integer.toString(imgSize));
+        //HCStackDebug.debuginfo("imgSize: " + Integer.toString(imgSize));
 
         if (blockSize < 64 + maskSize + imgSize) {
-            // System.out.println("!:");
+            //logger.log(Level.DEBUG, "!:");
             return false;
         }
         if (maskSize < 0 || imgSize < 0) {
-            // System.out.println("!:");
+            //logger.log(Level.DEBUG, "!:");
             return false;
         }
 
@@ -536,7 +537,7 @@ label:
                     mask[i] = (byte) v;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
@@ -550,7 +551,7 @@ label:
                 img[i] = (byte) v;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         // Load image in separate thread at the end
@@ -559,28 +560,25 @@ label:
                 maskLeft, maskTop, maskRight, maskBottom,
                 imgLeft, imgTop, imgRight, imgBottom, stack);
         threadList.add(p);
-        if (stack.GetCardbyId(stack.firstCard) != null &&
-                stack.GetCardbyId(stack.firstCard).bitmapName != null &&
-                stack.GetCardbyId(stack.firstCard).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
+        if (stack.getCardbyId(stack.firstCard) != null &&
+                stack.getCardbyId(stack.firstCard).bitmapName != null &&
+                stack.getCardbyId(stack.firstCard).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
             p.start();
-        } else if (stack.GetBackgroundbyId(stack.firstBg) != null &&
-                stack.GetBackgroundbyId(stack.firstBg).bitmapName != null &&
-                stack.GetBackgroundbyId(stack.firstBg).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
+        } else if (stack.getBackgroundById(stack.firstBg) != null &&
+                stack.getBackgroundById(stack.firstBg).bitmapName != null &&
+                stack.getBackgroundById(stack.firstBg).bitmapName.equals("BMAP_" + bitmapId + ".png")) {
             p.start();
         }
-
 
         // Alignment adjustment
         int remainLength = blockSize - (64 + maskSize + imgSize);
         HCStackDebug.debuginfo("remainLength:" + remainLength);
-        // System.out.println("remainLength:"+remainLength);
-        /*String padding =*/
-        HCData.readStr(dis, remainLength);
-        // System.out.println("padding:"+padding);
+        //logger.log(Level.DEBUG, "remainLength: " + remainLength);
+        /* String padding = */ HCData.readStr(dis, remainLength);
+        //logger.log(Level.DEBUG, "padding: " + padding);
 
         return true;
     }
-
 
     private static class convertPictureThread extends Thread {
 
@@ -602,7 +600,7 @@ label:
                         try {
                             Thread.sleep(20);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     }
                     lastp2 = lastp;
@@ -708,7 +706,7 @@ label:
             try {
                 ImageIO.write(mainBi, "png", file.toFile());
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
 
             for (int i = 0; i < threadList.size(); i++) {
@@ -719,7 +717,6 @@ label:
                 }
             }
         }
-
 
         // Read HyperCard picture format (Wrath Of Bill Atkinson)
         private static BufferedImage readWOBA(byte[] img, int id, int cdWidth, int cdHeight,
@@ -749,7 +746,7 @@ label:
 
             int i = 0;
             for (int y = top; y < bottom; y++) {
-                // debugStr += "\n"+"line "+y;// ####
+//                debugStr += "\n" + "line " + y; // ####
 
                 int opcode = 0;
                 int x = left;
@@ -757,12 +754,12 @@ label:
                     if (repeatInstructionCount > 0) {
                         i = repeatInstructionIndex;
                         repeatInstructionCount--;
-                        // debugStr += "rep ";// ####
+//                        debugStr += "rep "; // ####
                     }
                     opcode = (0x00FF & img[i]);
                     i++;
-                    // System.out.println("opcode("+i+")="+Integer.toHexString(opcode));
-                    // debugStr += "["+Integer.toHexString(opcode)+"]";// ####
+                    //logger.log(Level.DEBUG, "opcode("+i+")="+Integer.toHexString(opcode));
+//                    debugStr += "[" + Integer.toHexString(opcode) + "]"; // ####
 
                     if (opcode <= 0x7F) {
                         int dataBytes = opcode >> 4;
@@ -779,7 +776,7 @@ label:
                                 db.setElem(x + y * cdWidth, (0x01 & (img[i] >> (7 - k))) != 0 ? 0xFF000000 : 0xFFFFFFFF);
                                 x++;
                             }
-                            // debugStr += Integer.toHexString((int)(0x00ff&img[i]))+" ";// ####
+//                            debugStr += Integer.toHexString((int) (0x00ff & img[i])) + " "; // ####
                             i++;
                         }
                     } else if (opcode >= 0x80 && opcode <= 0x8F) {
@@ -790,7 +787,7 @@ label:
                                         db.setElem(x + y * cdWidth, (0x01 & (img[i] >> (7 - k))) != 0 ? 0xFF000000 : 0xFFFFFFFF);
                                         x++;
                                     }
-                                    // debugStr += Integer.toHexString((int)(0x00FF&img[i]))+" ";// ####
+//                                    debugStr += Integer.toHexString((int) (0x00FF & img[i])) + " ";// ####
                                     i++;
                                 }
                                 break;
@@ -813,7 +810,7 @@ label:
                                         x++;
                                     }
                                 }
-                                // debugStr += Integer.toHexString(img[i])+" ";// ####
+//                                debugStr += Integer.toHexString(img[i]) + " "; // ####
                                 keepArray[y % 8] = img[i];
                                 i++;
                                 break;
@@ -884,7 +881,7 @@ label:
                                 break;
 
                             default:
-                                // System.out.println("!");
+                                //logger.log(Level.DEBUG, "!");
                                 break;
                         }
                     } else if (opcode >= 0xA0 && opcode <= 0xBF) {
@@ -900,7 +897,7 @@ label:
                                 x++;
                             }
                             count--;
-                            // debugStr += Integer.toHexString((int)(0x00FF&img[i]))+" ";// ####
+//                            debugStr += Integer.toHexString((int) (0x00FF & img[i])) + " ";// ####
                             i++;
                         }
                     } else if (opcode >= 0xE0 && opcode <= 0xFF) {
@@ -922,12 +919,12 @@ label:
                 }
 
                 //
-                // debugStr += " dh="+dh+" dv="+dv;// ####
+                //debugStr += " dh = " + dh + " dv = " + dv; // ####
                 if (y < bottom) {
                     if (dh > 0) {
                         x = left + dh;
                         while (x < right) {
-                            // int v = 0xFF000000|0x00FFFFFF&(db.getElem(0, x+y*cdWidth)^db.getElem(0, (x-dh)+y*cdWidth));
+//                            int v = 0xFF000000 | 0x00FFFFFF & (db.getElem(0, x + y * cdWidth) ^ db.getElem(0, (x - dh) + y * cdWidth));
                             int a1 = db.getElem(0, x + y * cdWidth);
                             int a2 = db.getElem(0, (x - dh) + y * cdWidth);
                             int a3 = a1 ^ a2;
@@ -952,14 +949,14 @@ label:
                 // go next row
             }
 
-            /*File f = new File("./woba_debug_"+id+".txt");
-            try {
-                FileOutputStream stream = new FileOutputStream(f);
-                stream.write(debugStr.getBytes());
-                stream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }*/
+//            File f = new File("./woba_debug_" + id + ".txt");
+//            try {
+//                FileOutputStream stream = new FileOutputStream(f);
+//                stream.write(debugStr.getBytes());
+//                stream.close();
+//            } catch (IOException e) {
+//                logger.log(Level.ERROR, e.getMessage(), e);
+//            }
 
             return bi;
         }
@@ -984,32 +981,32 @@ class HCStackDebug {
     static int block_counter;
 
     public static void read(int code) {
-        /*if(block_counter%16==0){
-            allStr.append("\n");
-            allStr.append(Integer.toHexString(all_counter));
-            allStr.append(" ");
-            allStr.append(Integer.toHexString(block_counter));
-            allStr.append(" ");
-            allStr.append(hexstr);
-            hexstr = "";
-            allStr.append(" ");
-            allStr.append(debugStr);
-            debugStr = new StringBuilder(100);
-        }
-        hexstr += " "+Integer.toHexString(code);
-        all_counter+=1;
-        block_counter+=1;*/
+//        if (block_counter % 16 == 0) {
+//            allStr.append("\n");
+//            allStr.append(Integer.toHexString(all_counter));
+//            allStr.append(" ");
+//            allStr.append(Integer.toHexString(block_counter));
+//            allStr.append(" ");
+//            allStr.append(hexstr);
+//            hexstr = "";
+//            allStr.append(" ");
+//            allStr.append(debugStr);
+//            debugStr = new StringBuilder(100);
+//        }
+//        hexstr += " " + Integer.toHexString(code);
+//        all_counter += 1;
+//        block_counter += 1;
     }
 
     public static void debuginfo(String str) {
-        /*debugStr.append(" ");
-        debugStr.append(str);*/
+//        debugStr.append(" ");
+//        debugStr.append(str);
     }
 
     public static void blockstart(String str) {
-        /*block_counter = 0;
-        debugStr.append("\n\nBLOCK<<");
-        debugStr.append(" "+str);
-        debugStr.append(">>");*/
+//        block_counter = 0;
+//        debugStr.append("\n\nBLOCK<<");
+//        debugStr.append(" " + str);
+//        debugStr.append(">>");
     }
 }

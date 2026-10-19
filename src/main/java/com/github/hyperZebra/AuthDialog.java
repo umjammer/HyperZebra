@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ResourceBundle;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -35,6 +37,8 @@ public class AuthDialog extends JDialog {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(AuthDialog.class.getName());
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -200,7 +204,7 @@ public class AuthDialog extends JDialog {
                 propPanel.add(check);
                 if (obtn.parent.objectType.equals("background")) {
                     check = new JCheckBox(rb.getString("dialog.Shared_Hilite"));
-                    check.setSelected(obtn.sharedHilite);
+                    check.setSelected(obtn.sharedHighlight);
                     check.addActionListener(btnlistener);
                     propPanel.add(check);
                 }
@@ -463,8 +467,8 @@ public class AuthDialog extends JDialog {
                 label = new JLabel(typeStr + rb.getString("dialog.ID:_") + ocard.id);
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + ocard.stack.GetNumberof(ocard)
-                        + " / " + (ocard.stack.GetCardListSize()));
+                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + ocard.stack.getNumberOf(ocard)
+                        + " / " + (ocard.stack.getCardListSize()));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
 
@@ -544,8 +548,8 @@ public class AuthDialog extends JDialog {
                 label = new JLabel(typeStr + rb.getString("dialog.ID:_") + obkgnd.id);
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
-                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + obkgnd.stack.GetNumberof(obkgnd)
-                        + " / " + (obkgnd.stack.GetBgListSize()));
+                label = new JLabel(typeStr + rb.getString("dialog.Number:_") + obkgnd.stack.getNumberOf(obkgnd)
+                        + " / " + (obkgnd.stack.getBgListSize()));
                 label.setPreferredSize(new Dimension(w, label.getPreferredSize().height));
                 infoPanel.add(label);
 
@@ -577,7 +581,7 @@ public class AuthDialog extends JDialog {
             // Add panel
             {
                 JPanel buttonPanel = new JPanel();
-                // buttonPanel.setLayout(new GridLayout(1,1));
+                //buttonPanel.setLayout(new GridLayout(1,1));
                 authDialog.getContentPane().add(buttonPanel);
 
                 jbtn = new JButton(rb.getString("dialog.Script…"));
@@ -710,7 +714,7 @@ public class AuthDialog extends JDialog {
                 }
                 case "Shared Hilite" -> {
                     if (object.objectType.equals("button")) {
-                        ((OButton) object).sharedHilite = ((JCheckBox) e.getSource()).isSelected();
+                        ((OButton) object).sharedHighlight = ((JCheckBox) e.getSource()).isSelected();
                     }
                 }
                 case "Scale Icon" -> {
@@ -727,13 +731,11 @@ public class AuthDialog extends JDialog {
                     ((OButton) object).setTextFont(GFontDialog.selectedFont);
                 }
                 case "Icon…" -> new ResEdit(PCARD.pc, "icon", object);
-                case "LinkTo…" -> {
-                }
-                case "Effect…" -> {
+                case "LinkTo…", "Effect…" -> {
                 }
                 case "Script…" -> ScriptEditor.openScriptEditor(PCARD.pc, object);
                 case "Content…" -> new TextEditor(PCARD.pc, object);
-                default -> System.out.println("AuthTool AuthButtonListener actionPerformed Error!!");
+                default -> logger.log(Level.DEBUG, "AuthTool AuthButtonListener actionPerformed Error!!");
             }
 
             if (object.getClass() == OStack.class) {
@@ -842,7 +844,7 @@ public class AuthDialog extends JDialog {
                     ((OField) object).setTextFont(GFontDialog.selectedFont);
                 }
                 case "Script…" -> ScriptEditor.openScriptEditor(PCARD.pc, object);
-                default -> System.out.println("AuthTool AuthFieldListener actionPerformed Error!!");
+                default -> logger.log(Level.DEBUG, "AuthTool AuthFieldListener actionPerformed Error!!");
             }
 
             if (((OField) object).getComponent() != null) {
@@ -883,7 +885,7 @@ public class AuthDialog extends JDialog {
                     }
                 }
                 case "Script…" -> ScriptEditor.openScriptEditor(PCARD.pc, object);
-                default -> System.out.println("AuthTool AuthCardListener actionPerformed Error!!");
+                default -> logger.log(Level.DEBUG, "AuthTool AuthCardListener actionPerformed Error!!");
             }
 
             if (((OCard) object).label != null) {
@@ -919,7 +921,7 @@ public class AuthDialog extends JDialog {
                     }
                 }
                 case "Script…" -> ScriptEditor.openScriptEditor(PCARD.pc, object);
-                default -> System.out.println("AuthTool AuthBgListener actionPerformed Error!!");
+                default -> logger.log(Level.DEBUG, "AuthTool AuthBgListener actionPerformed Error!!");
             }
 
             if (((OBackground) object).label != null) {
@@ -945,31 +947,31 @@ public class AuthDialog extends JDialog {
                     StringBuilder str = new StringBuilder();
                     for (int i = 0; i < PCARD.pc.stack.cardIdList.size(); i++) {
                         int id = PCARD.pc.stack.cardIdList.get(i);
-                        OCard card = PCARD.pc.stack.GetCardbyId(id);
+                        OCard card = PCARD.pc.stack.getCardbyId(id);
                         str.append("card(").append(i).append(") id:").append(id).append(" name:").append(card.name).append(" btns:").append(card.btnList.size()).append(" flds:").append(card.fldList.size()).append("\n");
                     }
                     new GScrollDialog(null, str.toString(), null, null, null, "OK");
                 }
-                default -> System.out.println("AuthTool AuthStackListener actionPerformed Error!!");
+                default -> logger.log(Level.DEBUG, "AuthTool AuthStackListener actionPerformed Error!!");
             }
         }
     }
 
     static class AuthTextListener implements DocumentListener {
 
-        JTextField jfield;
+        JTextField textField;
 
         public AuthTextListener(JTextField fld) {
-            jfield = fld;
+            textField = fld;
         }
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-            if (jfield.getName().equals("name")) {
+            if (textField.getName().equals("name")) {
                 if (object.objectType.equals("button")) {
-                    ((OButton) object).setName(jfield.getText());
+                    ((OButton) object).setName(textField.getText());
                 } else {
-                    object.name = jfield.getText();
+                    object.name = textField.getText();
                 }
             }
         }
@@ -984,7 +986,6 @@ public class AuthDialog extends JDialog {
             changedUpdate(e);
         }
     }
-
 
     static class SizeDialog extends JDialog implements ActionListener {
 
@@ -1007,7 +1008,7 @@ public class AuthDialog extends JDialog {
             {
                 JPanel panel = new JPanel();
                 panel.setLayout(new FlowLayout());
-                // panel.setPreferredSize(new Dimension(320,32));
+                //panel.setPreferredSize(new Dimension(320,32));
 
                 JLabel label = new JLabel(rb.getString("dialog.Width:"));
                 label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
@@ -1021,7 +1022,7 @@ public class AuthDialog extends JDialog {
             }
             {
                 JPanel panel = new JPanel();
-                // panel.setPreferredSize(new Dimension(320,32));
+                //panel.setPreferredSize(new Dimension(320,32));
 
                 JLabel label = new JLabel(rb.getString("dialog.Height:"));
                 label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
@@ -1059,7 +1060,6 @@ public class AuthDialog extends JDialog {
             });
 
             setVisible(true);
-
         }
 
         @Override
@@ -1088,6 +1088,7 @@ public class AuthDialog extends JDialog {
         }
     }
 }
+
 
 class AuthColorButton extends CPButton {
 

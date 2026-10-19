@@ -1,6 +1,5 @@
 package com.github.hyperZebra;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
@@ -22,8 +21,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -267,7 +267,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 obtn.color = obtn2.color;
                 obtn.bgColor = obtn2.bgColor;
                 obtn.group = obtn2.group;
-                obtn.check_hilite = obtn2.check_hilite;
+                obtn.checkHilite = obtn2.checkHilite;
                 obtn.setAutoHilite(obtn2.getAutoHilite());
                 if (obtn2.getAutoHilite()) {
                     obtn.setHilite(false);
@@ -279,7 +279,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                 obtn.top = obtn2.top;
                 obtn.width = obtn2.width;
                 obtn.height = obtn2.height;
-                obtn.sharedHilite = obtn2.sharedHilite;
+                obtn.sharedHighlight = obtn2.sharedHighlight;
                 obtn.showName = obtn2.showName;
                 obtn.style = obtn2.style;
                 obtn.textAlign = obtn2.textAlign;
@@ -434,7 +434,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                         }
                         target.setBounds(newr);
                         if (target instanceof MyButton) {
-                            ((MyButton) target).setAutoHilite(false);
+                            ((MyButton) target).setAutoHighlight(false);
                         }
                     } else {
                         // Resize
@@ -452,7 +452,7 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
                         }
                         target.setBounds(newr);
                         if (target instanceof MyButton) {
-                            ((MyButton) target).setAutoHilite(false);
+                            ((MyButton) target).setAutoHighlight(false);
                         }
 
                         OButton obtn = null;
@@ -618,6 +618,8 @@ class ButtonGUI implements MouseListener, MouseMotionListener {
 
 class MyButtonDropListener extends DropTargetAdapter {
 
+    private static final Logger logger = System.getLogger(MyButtonDropListener.class.getName());
+
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     @Override
@@ -649,7 +651,7 @@ class MyButtonDropListener extends DropTargetAdapter {
                             bi = javax.imageio.ImageIO.read(path.toFile());
                         }
                     } catch (IOException e2) {
-                        e2.printStackTrace();
+                        logger.log(Level.ERROR, e2.getMessage(), e2);
                     }
                     if (bi != null) {
                         String name = path.getFileName().toString();
@@ -702,7 +704,7 @@ class MyButtonDropListener extends DropTargetAdapter {
                 OCard.reloadCurrentCard();
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.log(Level.ERROR, ex.getMessage(), ex);
         }
     }
 }
@@ -911,7 +913,7 @@ class FieldGUI implements MouseListener, MouseMotionListener {
                 ofld.scroll = obtn2.scroll;
                 ofld.sharedText = obtn2.sharedText;
                 ofld.showLines = obtn2.showLines;
-                ofld.hilite = obtn2.hilite;
+                ofld.highLight = obtn2.highLight;
                 ofld.multipleLines = obtn2.multipleLines;
                 ofld.wideMargins = obtn2.wideMargins;
 
@@ -1205,6 +1207,8 @@ class FieldGUI implements MouseListener, MouseMotionListener {
 
 class MyFieldDropListener extends DropTargetAdapter {
 
+    private static final Logger logger = System.getLogger(MyFieldDropListener.class.getName());
+
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     @Override
@@ -1234,7 +1238,7 @@ class MyFieldDropListener extends DropTargetAdapter {
 //                        bi = PictureFile.loadPICT(path);
 //                    }
 //                } catch (IOException e2) {
-//                    e2.printStackTrace();
+//                    logger.log(Level.ERROR, e2.getMessage(), e2);
 //                }
 //                if (bi != null) {
 //                    String name = new File(path).getName();
@@ -1269,7 +1273,7 @@ class MyFieldDropListener extends DropTargetAdapter {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.log(Level.ERROR, ex.getMessage(), ex);
         }
     }
 }

@@ -9,12 +9,12 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.channels.FileChannel;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,16 +23,15 @@ import java.util.ResourceBundle;
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
 
-// import org.apache.tools.tar.TarEntry;
-// import org.apache.tools.tar.TarInputStream;
-
 
 public class HCConvert {
+
+    private static final Logger logger = System.getLogger(HCConvert.class.getName());
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     public static boolean openHCStack(String path, OStack stack) {
-        // System.out.println("openHCStack...");
+        //logger.log(Level.DEBUG, "openHCStack...");
 
         // Start progress display
         stack.barDialog = new JDialog(stack.pcard);
@@ -51,21 +50,20 @@ public class HCConvert {
         stack.bar.setString("Make tar archive");
 
         // Create tar in Apple-Double format to read resources from Java
-        File tarFile = MakeAppleDoubleTar(path);
+        File tarFile = makeAppleDoubleTar(path);
 
         // Create directory
-        if (!CreateStackFolder(stack, Paths.get(path))) {
+        if (!createStackFolder(stack, Paths.get(path))) {
             tarFile.delete();
             stack.barDialog.remove(stack.bar);
             stack.barDialog.dispose();
         }
 
-
         if (tarFile != null) {
             stack.bar.setString("readFromTar");
             // Extract data fork and resource fork from tar
             if (!readFromTar(tarFile, stack)) {
-                System.out.println("Error occured at read data from tar file.");
+                logger.log(Level.DEBUG, "Error occured at read data from tar file.");
             } else {
                 // Read successful
                 tarFile.delete();
@@ -80,7 +78,7 @@ public class HCConvert {
                 return true;
             }
         } else { // Read directly without resource fork
-            // System.out.println("Load File Direct");
+            //logger.log(Level.DEBUG, "Load File Direct");
             stack.bar.setString("Load File Direct");
 
             DataInputStream dis = null;
@@ -88,12 +86,12 @@ public class HCConvert {
                 FileInputStream fis = new FileInputStream(path);
                 dis = new DataInputStream(fis);
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
 
             // Read data fork
             if (dis == null || !HCData.readDataFork(dis, stack)) {
-                System.out.println("Error occured at reading data from file.");
+                logger.log(Level.DEBUG, "Error occured at reading data from file.");
                 new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_HyperCard_stack_data."),
                         null, "OK", null, null);
             } else {
@@ -110,13 +108,13 @@ public class HCConvert {
                     try {
                         rsrc_dis = new DataInputStream(new FileInputStream(rsrcFile));
                     } catch (FileNotFoundException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
 
                     // Read as AppleDouble header file
                     HCResource.readAppleDoubleHeader(rsrc_dis, stack);
                 } else {
-                    System.out.println("Resource file is not found.");
+                    logger.log(Level.DEBUG, "Resource file is not found.");
                     new GDialog(PCARDFrame.pc, rb.getString("dialog.Resource_data_is_not_found."),
                             null, "OK", null, null);
                 }
@@ -141,9 +139,8 @@ public class HCConvert {
         return false;
     }
 
-
     public static boolean openMacBinaryStack(String path, OStack stack) {
-        // System.out.println("openMacBinaryHCStack...");
+        //logger.log(Level.DEBUG, "openMacBinaryHCStack...");
 
         // Start progress display
         stack.barDialog = new JDialog(stack.pcard);
@@ -160,7 +157,7 @@ public class HCConvert {
         stack.bar.paintImmediately(stack.bar.getBounds());
 
         // Create directory
-        if (!CreateStackFolder(stack, Paths.get(path))) {
+        if (!createStackFolder(stack, Paths.get(path))) {
             stack.barDialog.remove(stack.bar);
             stack.barDialog.dispose();
         }
@@ -176,7 +173,7 @@ public class HCConvert {
         try {
             fis = new FileInputStream(path);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         byte[] header = new byte[128];
@@ -184,7 +181,7 @@ public class HCConvert {
             fis.read(header, 0, 128);
             fis.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
         if (header[65] == 'S' && header[66] == 'T' && header[67] == 'A' && header[68] == 'K') {
             int dataForkLen = ((0x00FF & header[83]) << 24) +
@@ -200,7 +197,7 @@ public class HCConvert {
             try {
                 fis.read(dataBytes, 0, dataForkLen);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
             DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dataBytes));
 
@@ -220,7 +217,7 @@ public class HCConvert {
                     try {
                         fis.read(nullBytes, 0, 128 - ((dataForkLen - 1) % 128 + 1));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
 
                     // Read resource fork portion into byte array
@@ -232,7 +229,7 @@ public class HCConvert {
                     try {
                         fis.read(rsrcBytes, 0, rsrcForkLen);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
 
@@ -246,12 +243,12 @@ public class HCConvert {
                     stack.setName(new File(path).getName());
                     return true;
                 } else {
-                    System.out.println("Error occured at reading resource data from MacBinary file.");
+                    logger.log(Level.DEBUG, "Error occured at reading resource data from MacBinary file.");
                     new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_MacBinary_HyperCard_stack_data."),
                             null, "OK", null, null);
                 }
             } else {
-                System.out.println("Error occured at reading data from MacBinary file.");
+                logger.log(Level.DEBUG, "Error occured at reading data from MacBinary file.");
                 new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_MacBinary_HyperCard_stack_data."),
                         null, "OK", null, null);
             }
@@ -263,8 +260,7 @@ public class HCConvert {
         return false;
     }
 
-
-    private static boolean CreateStackFolder(OStack stack, Path path) {
+    private static boolean createStackFolder(OStack stack, Path path) {
         stack.bar.setValue(2);
         stack.bar.setString("Create a new folder");
         stack.bar.paintImmediately(stack.bar.getBounds());
@@ -289,8 +285,7 @@ public class HCConvert {
         return true;
     }
 
-
-    public static File MakeAppleDoubleTar(String path) {
+    public static File makeAppleDoubleTar(String path) {
         // Must be on MacOSX
         String os = System.getProperty("os.name");
         if (os != null && os.startsWith("Mac OS X")) {
@@ -332,9 +327,9 @@ public class HCConvert {
 //                            destChannel.close();
 //                        }
 //                    } catch (FileNotFoundException e) {
-//                        e.printStackTrace();
+//                        logger.log(Level.ERROR, e.getMessage(), e);
 //                    } catch (IOException e) {
-//                        e.printStackTrace();
+//                        logger.log(Level.ERROR, e.getMessage(), e);
 //                    }
                 }
 
@@ -365,7 +360,7 @@ public class HCConvert {
             for (; ; ) {
                 String line = br.readLine();
                 if (line == null) break;
-                // System.out.println("tar>"+line);
+                //logger.log(Level.DEBUG, "tar>"+line);
                 if (line.startsWith("a " + srcpath)) {
                     isSuccess = true;
                     break;
@@ -373,10 +368,10 @@ public class HCConvert {
             }
             if (!isSuccess) {
                 // Not successful
-                // System.out.println("Error occured at creating tar archive.");
+                //logger.log(Level.DEBUG, "Error occured at creating tar archive.");
             }
         } catch (IOException | InterruptedException e1) {
-            e1.printStackTrace();
+            logger.log(Level.ERROR, e1.getMessage(), e1);
             file = null;
         }
 
@@ -399,7 +394,7 @@ public class HCConvert {
         try {
             sjisByte = inPath.getBytes("SJIS");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         String sjisPath = "";
@@ -409,14 +404,14 @@ public class HCConvert {
     }
 
     public static boolean readFromTar(File tarFile, OStack stack) {
-        // System.out.println("readFromTar...");
+        //logger.log(Level.DEBUG, "readFromTar...");
         FileInputStream fis;
         MyTarInputStream tin = null;
         try {
             fis = new FileInputStream(tarFile);
             tin = new MyTarInputStream(fis);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
         // Handle tar with Apache ant library
         if (tin == null) return false;
@@ -433,13 +428,13 @@ public class HCConvert {
                 if (name.contains("._")) {
                     // Apple Double Header File (includes resource fork)
                     if (!HCResource.readAppleDoubleHeader(dis, stack)) {
-                        System.out.println("Error occured at reading resouce fork from tar file.");
+                        logger.log(Level.DEBUG, "Error occured at reading resouce fork from tar file.");
                     }
                     stack.barOffset += 25;
                 } else if (!name.contains("PaxHeader")) {
                     // Data fork
                     if (!HCData.readDataFork(dis, stack)) {
-                        System.out.println("Error occured at reading data fork from tar file.");
+                        logger.log(Level.DEBUG, "Error occured at reading data fork from tar file.");
                         new GDialog(PCARDFrame.pc, rb.getString("dialog.Error_occured_at_reading_HyperCard_stack_data."),
                                 null, "OK", null, null);
                     }
@@ -451,7 +446,7 @@ public class HCConvert {
             }
             tin.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return true;

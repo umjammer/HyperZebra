@@ -13,6 +13,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -280,6 +282,8 @@ class PatButton extends JButton {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private static final Logger logger = System.getLogger(PatButton.class.getName());
+
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static PatButtonListener listener = new PatButtonListener();
@@ -288,13 +292,13 @@ class PatButton extends JButton {
     BufferedImage[] patterns = new BufferedImage[40];
 
     PatButton(int in_pattern, int y, int x) {
-        super(/*"Pattern"*/);
+        super(/* "Pattern" */);
         this.setFocusable(false);
         this.pattern = in_pattern;
-        // this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
+//        this.setBounds((y * 3 + x) * 24, 0 /* y * 20 */, 24, 20);
         this.setBounds(x * 26, y * 28 + 16, 26, 26);
         setMargin(new Insets(0, 0, 0, 0));
-        // this.addActionListener(listener);
+        //this.addActionListener(listener);
         this.addMouseListener(listener);
 
         for (int i = 0; i < patterns.length; i++) {
@@ -302,20 +306,20 @@ class PatButton extends JButton {
                 try {
                     patterns[i] = ImageIO.read(PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.Pattern[i]).toFile());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
                 if (patterns[i] == null && !PCARDFrame.pc.stack.Pattern[i].isEmpty()) {
                     try {
                         patterns[i] = ImageIO.read(PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.Pattern[i]).toFile());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
                 if (patterns[i] == null && !PCARDFrame.pc.stack.Pattern[i].isEmpty()) {
                     try {
                         patterns[i] = ImageIO.read(new File("resource" + File.separatorChar + "PAT_" + i + ".pbm"));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
                 if (patterns[i] == null) {
@@ -357,7 +361,7 @@ class PatButton extends JButton {
                         patterns[i] = ImageIO.read(ifile);
                         icon = new ImageIcon(patterns[i]);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
                 JCheckBoxMenuItem item = addPopupMenuItem(rb.getString("main.Pattern") + " " + i, icon, e -> {

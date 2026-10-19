@@ -12,14 +12,14 @@ import java.util.Date;
 
 public class VEffect {
 
-    static BufferedImage oldoff = null;
+    static BufferedImage oldOff = null;
 
     public static void setOldOff() {
         int width = PCARDFrame.pc.stack != null ? PCARDFrame.pc.stack.width : PCARDFrame.pc.mainPane.getWidth();
         int height = PCARDFrame.pc.stack != null ? PCARDFrame.pc.stack.height : PCARDFrame.pc.mainPane.getHeight();
         if (width <= 0 || height <= 0) return;
-        oldoff = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-        Graphics2D offg = oldoff.createGraphics();
+        oldOff = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
+        Graphics2D offg = oldOff.createGraphics();
         PCARDFrame.pc.mainPane.paintUnscaled(offg);
     }
 
@@ -30,11 +30,11 @@ public class VEffect {
         if (effect == 0) {
         } else {
             BufferedImage off = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-            // VolatileImage off = PCARD.pc.stack.pcard.createVolatileImage(width, height);
+            //VolatileImage off = PCARD.pc.stack.pcard.createVolatileImage(width, height);
             Graphics2D offg = off.createGraphics();
             Graphics paneg = PCARDFrame.pc.mainPane.getGraphics();
 
-            /* to black1 white2 grey3 inverse4 */
+            // to black1 white2 grey3 inverse4
             if (toEffect == 0) {
                 // Draw to offscreen
                 // PCARD.lockedScreen = false;
@@ -64,7 +64,7 @@ public class VEffect {
                 offg.fillRect(0, 0, width, height);
             }
 
-            if (oldoff != null) paneg.drawImage(oldoff, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
+            if (oldOff != null) paneg.drawImage(oldOff, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
 
             long start = new Date().getTime();
             long now = start;
@@ -89,18 +89,18 @@ public class VEffect {
                     paneg.drawImage(off, width - v, 0, width, height, width - v, 0, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 3 && oldoff != null) { // dissolve
+            } else if (effect == 3 && oldOff != null) { // dissolve
                 for (int i = 0; i < 16; ) {
                     now = new Date().getTime();
                     int v = (int) (16 * ((double) (now - start) / (end - start)));
                     if (v < i) {
                         try {
                             Thread.sleep(5);
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
                         }
                         continue;
                     }
-                    DataBuffer oldoffdb = oldoff.getRaster().getDataBuffer();
+                    DataBuffer oldoffdb = oldOff.getRaster().getDataBuffer();
                     DataBuffer offdb = off.getRaster().getDataBuffer();
                     while (i < v && i < 16) {
                         for (int y = getDissolveOffY(i); y < height; y += 2) {
@@ -110,7 +110,7 @@ public class VEffect {
                         }
                         i++;
                     }
-                    paneg.drawImage(oldoff, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
                 }
             } else if (effect == 4) { // venetian blinds
                 while (now < end) {
@@ -150,31 +150,31 @@ public class VEffect {
                     paneg.drawImage(off, width - h, v, width, height - v, width - h, v, width, height - v, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 8 && oldoff != null) { // scroll left
+            } else if (effect == 8 && oldOff != null) { // scroll left
                 while (now < end) {
                     int v = (int) (width * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, 0, width - v, height, v, 0, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, 0, width - v, height, v, 0, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, width - v, 0, width, height, width - v, 0, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 9 && oldoff != null) { // scroll right
+            } else if (effect == 9 && oldOff != null) { // scroll right
                 while (now < end) {
                     int v = (int) (width * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, v, 0, width, height, 0, 0, width - v, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, v, 0, width, height, 0, 0, width - v, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, 0, v, height, 0, 0, v, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 10 && oldoff != null) { // scroll up
+            } else if (effect == 10 && oldOff != null) { // scroll up
                 while (now < end) {
                     int v = (int) (height * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, 0, width, height - v, 0, v, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, 0, width, height - v, 0, v, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, height - v, width, height, 0, height - v, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 11 && oldoff != null) { // scroll down
+            } else if (effect == 11 && oldOff != null) { // scroll down
                 while (now < end) {
                     int v = (int) (height * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, v, width, height, 0, 0, width, height - v, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, v, width, height, 0, 0, width, height - v, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, 0, width, v, 0, 0, width, v, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
@@ -220,24 +220,24 @@ public class VEffect {
                     paneg.drawRect(width / 2 - h / 2, height / 2 - v / 2, h, v);
                     now = new Date().getTime();
                 }
-            } else if (effect == 18 && oldoff != null) { // shrink to top
+            } else if (effect == 18 && oldOff != null) { // shrink to top
                 while (now < end) {
                     int v = (int) (height * ((double) (end - now) / (end - start)));
-                    paneg.drawImage(oldoff, 0, 0, width, v, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, 0, width, v, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, v, width, height, 0, v, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 19 && oldoff != null) { // shrink to bottom
+            } else if (effect == 19 && oldOff != null) { // shrink to bottom
                 while (now < end) {
                     int v = (int) (height * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, v, width, height, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, v, width, height, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, 0, width, v, 0, 0, width, v, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 20 && oldoff != null) { // shrink to center
+            } else if (effect == 20 && oldOff != null) { // shrink to center
                 while (now < end) {
                     int v = (int) ((double) height / 2 * ((double) (end - now) / (end - start)));
-                    paneg.drawImage(oldoff, 0, height / 2 - v, width, height / 2 + v, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, height / 2 - v, width, height / 2 + v, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, 0, width, height / 2 - v, 0, 0, width, height / 2 - v, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, height / 2 + v, width, height, 0, height / 2 + v, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
@@ -260,31 +260,31 @@ public class VEffect {
                     paneg.drawImage(off, 0, height / 2 - v, width, height / 2 + v, 0, 0, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 24 && oldoff != null) { // push left
+            } else if (effect == 24 && oldOff != null) { // push left
                 while (now < end) {
                     int v = (int) (width * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, 0, width - v, height, v, 0, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, 0, width - v, height, v, 0, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, width - v, 0, width, height, 0, 0, v, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 25 && oldoff != null) { // push right
+            } else if (effect == 25 && oldOff != null) { // push right
                 while (now < end) {
                     int v = (int) (width * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, v, 0, width, height, 0, 0, width - v, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, v, 0, width, height, 0, 0, width - v, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, 0, v, height, width - v, 0, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 26 && oldoff != null) { // push up
+            } else if (effect == 26 && oldOff != null) { // push up
                 while (now < end) {
                     int v = (int) (height * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, 0, width, height - v, 0, v, width, height, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, 0, width, height - v, 0, v, width, height, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, height - v, width, height, 0, 0, width, v, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
-            } else if (effect == 27 && oldoff != null) { // push down
+            } else if (effect == 27 && oldOff != null) { // push down
                 while (now < end) {
                     int v = (int) (height * ((double) (now - start) / (end - start)));
-                    paneg.drawImage(oldoff, 0, v, width, height, 0, 0, width, height - v, PCARDFrame.pc.stack.pcard);
+                    paneg.drawImage(oldOff, 0, v, width, height, 0, 0, width, height - v, PCARDFrame.pc.stack.pcard);
                     paneg.drawImage(off, 0, 0, width, v, 0, height - v, width, height, PCARDFrame.pc.stack.pcard);
                     now = new Date().getTime();
                 }
@@ -293,10 +293,10 @@ public class VEffect {
 
         // Display card after movement
         PCARD.lockedScreen = false;
-        // PCARD.pc.mainPane.paintImmediately(0, 0, PCARD.pc.stack.width, PCARD.pc.stack.height);
+        //PCARD.pc.mainPane.paintImmediately(0, 0, PCARD.pc.stack.width, PCARD.pc.stack.height);
         PCARDFrame.pc.mainPane.repaint();
 
-        oldoff = null;
+        oldOff = null;
     }
 
     private static int getDissolveOffY(int i) {

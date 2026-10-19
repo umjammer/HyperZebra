@@ -20,13 +20,13 @@ public class VariableWatcher extends JDialog {
     private static final long serialVersionUID = 3795782126509780013L;
 
     static VariableWatcher watcherWindow;
-    static private JScrollPane scrollpane;
+    static private JScrollPane scrollPane;
     static int rowSize;
 
     private final String[] columnNames = {"Name", "Value"};
 
     public VariableWatcher() {
-        super(/*PCARD.pc*/);
+        super(/* PCARD.pc */);
 
         // Register object in window list
         setTitle("VariableWatcher");
@@ -34,16 +34,16 @@ public class VariableWatcher extends JDialog {
         watcherWindow = this;
 
         // Prepare table
-        String[][] tabledata = {{"it", ""}};
+        String[][] tableData = {{"it", ""}};
 
-        JTable table = new JTable(tabledata, columnNames);
-        // table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JTable table = new JTable(tableData, columnNames);
+        //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setEnabled(false);
         table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
         // Scroll
-        scrollpane = new JScrollPane(table);
-        add(scrollpane);
+        scrollPane = new JScrollPane(table);
+        add(scrollPane);
 
         // Set window position and size
         setBounds(0, 0, 320, 240);
@@ -70,23 +70,24 @@ public class VariableWatcher extends JDialog {
         rowSize = TTalk.globalData.nameList.size();
 
         JTable table = new JTable(tabledata, columnNames);
-        // table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setEnabled(false);
         table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
-        Rectangle rect = scrollpane.getBounds();
-        int scroll = scrollpane.getVerticalScrollBar().getValue();
-        remove(scrollpane);
-        scrollpane = new JScrollPane(table);
-        add(scrollpane);
-        scrollpane.getVerticalScrollBar().setValue(scroll);
-        /*scrollpane.removeAll();
-        scrollpane.add(table);
-        scrollpane.setViewportView(table);*/
-        scrollpane.setBounds(rect);
-        // repaint();
+        Rectangle rect = scrollPane.getBounds();
+        int scroll = scrollPane.getVerticalScrollBar().getValue();
+        remove(scrollPane);
+        scrollPane = new JScrollPane(table);
+        add(scrollPane);
+        scrollPane.getVerticalScrollBar().setValue(scroll);
+//        scrollPane.removeAll();
+//        scrollPane.add(table);
+//        scrollPane.setViewportView(table);
+        scrollPane.setBounds(rect);
+        //repaint();
     }
 }
+
 
 class MultiLineCellRenderer extends JTextArea implements TableCellRenderer {
 

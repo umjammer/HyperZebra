@@ -2,6 +2,8 @@ package com.github.hyperZebra;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -13,6 +15,8 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 
 public class TMP3 extends Thread {
+
+    private static final Logger logger = System.getLogger(TMP3.class.getName());
 
     private AudioFormat decodedFormat;
     private AudioInputStream in;
@@ -43,7 +47,7 @@ public class TMP3 extends Thread {
             start();
         } catch (Exception e) {
             // Handle exception.
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
@@ -73,7 +77,7 @@ public class TMP3 extends Thread {
                 control = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
                 control.setValue((float) Math.log10(vol / 256.0F) * 20);
             } catch (IllegalArgumentException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
     }
@@ -106,7 +110,7 @@ public class TMP3 extends Thread {
             try {
                 rawplay();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
             playing_flag = false;
             pause_flag = true;
@@ -118,7 +122,7 @@ public class TMP3 extends Thread {
                 in = AudioSystem.getAudioInputStream(file);
                 din = AudioSystem.getAudioInputStream(decodedFormat, in);
             } catch (IOException | UnsupportedAudioFileException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
@@ -129,7 +133,7 @@ public class TMP3 extends Thread {
             din.close();
             in.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
@@ -140,7 +144,7 @@ public class TMP3 extends Thread {
         try {
             line = getLine(decodedFormat);
         } catch (LineUnavailableException e1) {
-            e1.printStackTrace();
+            logger.log(Level.ERROR, e1.getMessage(), e1);
         }
         if (line != null) {
             // Start

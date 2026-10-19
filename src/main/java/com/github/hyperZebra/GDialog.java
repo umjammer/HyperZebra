@@ -6,7 +6,6 @@ import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.Serial;
 import java.nio.file.Path;
 import javax.swing.BoxLayout;
@@ -131,7 +130,6 @@ class GScrollDialog extends JDialog implements ActionListener {
         getContentPane().add("South", btmPanel);
         //JPanel topPanel = new JPanel();
         //topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
-
 
         String[] texts2 = text.split("\r");
         StringBuilder text2 = new StringBuilder();

@@ -4,7 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -20,9 +23,11 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class TSound implements LineListener {
 
+    private static final Logger logger = System.getLogger(TSound.class.getName());
+
     static private final double[] note_freq = new double[96];
-    private final ArrayList<Clip> clipList = new ArrayList<>();
-    private final ArrayList<String> nameList = new ArrayList<>();
+    private final List<Clip> clipList = new ArrayList<>();
+    private final List<String> nameList = new ArrayList<>();
     private volatile boolean nowPlaying = false;
     private Clip nowClip = null;
     public volatile String name = "";
@@ -148,31 +153,31 @@ public class TSound implements LineListener {
         try {
             int rsrcid = stack.rsrc.getRsrcIdAll(soundRsrc, "sound");
             String path = stack.rsrc.getFilePathAll(rsrcid, "sound");
-            sound = AudioSystem.getAudioInputStream(new File(path/*stack.file.getParent()+File.separatorChar+fileName*/));
+            sound = AudioSystem.getAudioInputStream(new File(path /* stack.file.getParent() + File.separatorChar + fileName */));
         } catch (UnsupportedAudioFileException e) {
-            // throw new XTalkException("Does not support audio file for sound \""+soundRsrc+"\"");
+            // throw new XTalkException("Does not support audio file for sound \"" + soundRsrc + "\"");
             return false;
         } catch (Exception e) {
-            /*String path = (PCARDFrame.pc.stack.file.getParent()+File.separatorChar+"resource"+File.separatorChar+soundRsrc);
-            try {
-                sound = AudioSystem.getAudioInputStream(new File(path+".wav"));
-            } catch (Exception e2) {
-                try {
-                    sound = AudioSystem.getAudioInputStream(new File(path+".aiff"));
-                } catch (Exception e3) {*/
+//            String path = (PCARDFrame.pc.stack.file.getParent() + File.separatorChar + "resource" + File.separatorChar + soundRsrc);
+//            try {
+//                sound = AudioSystem.getAudioInputStream(new File(path + ".wav"));
+//            } catch (Exception e2) {
+//                try {
+//                    sound = AudioSystem.getAudioInputStream(new File(path + ".aiff"));
+//                } catch (Exception e3) {
             String cpath = ("resource" + File.separatorChar + soundRsrc);
             try {
                 sound = AudioSystem.getAudioInputStream(new File(cpath + ".wav"));
             } catch (FileNotFoundException e4) {
                 sound = null;
-                // throw new XTalkException("Sound \"" + soundRsrc + "\" not found");
+                //throw new XTalkException("Sound \"" + soundRsrc + "\" not found");
             } catch (IOException e4) {
                 throw new XTalkException("Cannot open sound \"" + soundRsrc + "\"");
             } catch (UnsupportedAudioFileException e4) {
                 throw new XTalkException("Does not support audio file for sound \"" + soundRsrc + "\"");
             }
-            // }
-            // }
+            //}
+            //}
         }
 
         try {
@@ -258,7 +263,7 @@ public class TSound implements LineListener {
             playQueue.offer(new AudioItem(soundRsrc, pcmData, gen));
             ensurePlayerStarted();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return true;
@@ -386,6 +391,7 @@ public class TSound implements LineListener {
             c.close();
         }
     }
+
     // todo: volume adjustment
 
     @Override

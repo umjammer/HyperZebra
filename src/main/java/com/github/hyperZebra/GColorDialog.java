@@ -10,10 +10,12 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ResourceBundle;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -74,15 +76,14 @@ class GColorDialog extends JDialog implements ActionListener {
         btn1.addActionListener(this);
         panel.add(btn1);
 
-        /*if(point!=null){
-            setBounds(point.x, point.y, chooser.getPreferredSize().width, chooser.getPreferredSize().height+40);
-        }else if(frame!=null){
-            setBounds(frame.getX()+frame.getWidth()/2-300/2, frame.getY()+frame.getHeight()/2-200/2, chooser.getPreferredSize().width, chooser.getPreferredSize().height+40);
-        }else*/
-        {
+//        if (point != null) {
+//            setBounds(point.x, point.y, chooser.getPreferredSize().width, chooser.getPreferredSize().height + 40);
+//        } else if (frame != null) {
+//            setBounds(frame.getX() + frame.getWidth() / 2 - 300 / 2, frame.getY() + frame.getHeight() / 2 - 200 / 2, chooser.getPreferredSize().width, chooser.getPreferredSize().height + 40);
+//        } else {
             PointerInfo info = MouseInfo.getPointerInfo();
             setBounds(info.getLocation().x - 180, info.getLocation().y - 150, chooser.getPreferredSize().width, chooser.getPreferredSize().height + 40);
-        }
+//        }
 
         setVisible(true);
     }
@@ -104,6 +105,8 @@ class GColorDialog extends JDialog implements ActionListener {
 
 class CaptureThread extends Thread {
 
+    private static final Logger logger = System.getLogger(CaptureThread.class.getName());
+
     JDialog owner;
 
     CaptureThread(JDialog owner) {
@@ -111,27 +114,25 @@ class CaptureThread extends Thread {
         this.owner = owner;
     }
 
-
     @Override
     public void run() {
         Robot robot;
         try {
             robot = new Robot();
         } catch (AWTException ex) {
-            ex.printStackTrace();
+            logger.log(Level.ERROR, ex.getMessage(), ex);
             return;
         }
 
-
         JWindow window = new JWindow();
         JLabel lbl = new JLabel();
-        lbl.addMouseListener(new mouseListener());
+        lbl.addMouseListener(new MyMouseListener());
         window.getContentPane().add(lbl);
 
         Color color = Color.WHITE;
         clicked = false;
         PointerInfo lastinfo = null;
-        while (!clicked /*&& owner.isVisible()*/) {
+        while (!clicked /* && owner.isVisible() */) {
             PointerInfo info = MouseInfo.getPointerInfo();
             if (lastinfo != null &&
                     info.getLocation().x == lastinfo.getLocation().x &&
@@ -164,27 +165,11 @@ class CaptureThread extends Thread {
 
     static boolean clicked = false;
 
-    private static class mouseListener implements MouseListener {
+    private static class MyMouseListener extends MouseAdapter {
 
         @Override
-        public void mouseClicked(MouseEvent arg0) {
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent arg0) {
-        }
-
-        @Override
-        public void mouseExited(MouseEvent arg0) {
-        }
-
-        @Override
-        public void mousePressed(MouseEvent arg0) {
+        public void mousePressed(MouseEvent e) {
             clicked = true;
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent arg0) {
         }
     }
 }

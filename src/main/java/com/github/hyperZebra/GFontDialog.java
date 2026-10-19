@@ -34,7 +34,6 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
     static MyTextArea sampleArea;
     PCARDFrame owner;
 
-
     GFontDialog(PCARDFrame owner, String defaultFont, int defaultSize, int defaultStyle, int defaultAlign) {
         super(owner, true);
         this.owner = owner;
@@ -225,9 +224,9 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
     public void mousePressed(MouseEvent e) {
         MyTextArea area = (MyTextArea) e.getSource();
         {
-            int line = (e.getY() /*+ area.pr_scrl.getVerticalScrollBar().getValue()*/ + area.getLineHeight() - 1) / area.getLineHeight();
-            // System.out.println("getValue="+fld.pr_scrl.getVerticalScrollBar().getValue() );
-            // System.out.println("line="+line);
+            int line = (e.getY() /* + area.pr_scrl.getVerticalScrollBar().getValue() */ + area.getLineHeight() - 1) / area.getLineHeight();
+            //logger.log(Level.DEBUG, "getValue = " + fld.pr_scrl.getVerticalScrollBar().getValue());
+            //logger.log(Level.DEBUG, "line= " + line);
             lineSelect(line, area);
             setStyleSample(selectedFont, selectedSize, selectedStyle, selectedAlign);
         }
@@ -294,10 +293,10 @@ public class GFontDialog extends JDialog implements ActionListener, MouseListene
     }
 
     @Override
-    public void mouseEntered(MouseEvent arg0) {
+    public void mouseEntered(MouseEvent e) {
     }
 
     @Override
-    public void mouseExited(MouseEvent arg0) {
+    public void mouseExited(MouseEvent e) {
     }
 }
