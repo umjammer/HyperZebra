@@ -50,8 +50,54 @@ public class TXcmd {
     static TXcmd txcmd = new TXcmd();
 
     // XCMD,XFCN
+    /** @return true if the XCMD/XFCN is implemented in Java (it works without the code resource) */
+    static boolean isBuiltin(String message) {
+        String m = message.toLowerCase();
+        return HyperTint.handles(m) || switch (m) {
+            case "movie", "picture", "decurse", "movecursor", "xclip", "xline", "xabout", "xsetsoundvol",
+                 "xgetsoundvol", "xmemory", "xvirtual", "variant", "xdepth", "setmode", "getmode", "htsavepict",
+                 "xwindowframe", "movieinfo" -> true;
+            default -> false;
+        };
+    }
+
+    /** Java implementations of XCMDs used by some commercial stacks (e.g. Myst) */
+    private static boolean callBuiltin(String message, String[] params, Result result) {
+        String m = message.toLowerCase();
+        if (HyperTint.handles(m)) {
+            HyperTint.call(m, params, result);
+            return true;
+        }
+        result.ret = 0;
+        switch (m) {
+            case "movie" -> {
+                String err = TMovie.openMovie(params);
+                if (!err.isEmpty()) {
+                    // fallback: "<name>.mp3"
+                    return false;
+                }
+                result.theResult = "";
+            }
+            case "picture" -> result.theResult = TMovie.openPicture(params);
+            case "decurse", "movecursor", "xclip", "xline", "xabout", "xsetsoundvol", "xmemory", "variant",
+                 "xwindowframe", "movieinfo" ->
+                    result.theResult = "";
+            case "xgetsoundvol" -> result.theResult = "7";
+            case "xvirtual" -> result.theResult = "0";
+            case "xdepth", "getmode" -> result.theResult = "8";
+            case "setmode" -> result.theResult = "";
+            default -> {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static Result CallExternalCommand(String message, String[] params, OObject target, MemoryData memData, boolean isFunc, Result result)
             throws XTalkException {
+        if (callBuiltin(message, params, result)) {
+            return result;
+        }
         if (0 == message.compareToIgnoreCase("UxBack")) {
             logger.log(Level.DEBUG, "Undefined XCMD: " + message);
             result.ret = 0;

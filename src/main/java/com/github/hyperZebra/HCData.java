@@ -87,7 +87,7 @@ label:
                         case "CARD":
                             HCStackDebug.blockstart(typeStr);
                             stack.bar.setString("Converting Card Data...");
-                            OCard cd = new OCard(PCARDFrame.pc.stack);
+                            OCard cd = new OCard(stack);
                             if (cd.readCardBlock(dis, blockSize)) {
                                 // stack.cdCacheList.add(cd); // Registered by new OCard()
                             } else {
@@ -99,7 +99,7 @@ label:
                         case "BKGD":
                             HCStackDebug.blockstart(typeStr);
                             stack.bar.setString("Converting Background Data...");
-                            OBackground bg = new OBackground(PCARDFrame.pc.stack);
+                            OBackground bg = new OBackground(stack);
                             if (bg.readBackgroundBlock(dis, blockSize)) {
                                 stack.addNewBg(bg);
                             } else {
@@ -702,7 +702,7 @@ label:
 
             // Save to file (this takes time)
             String filename = "BMAP_" + bitmapId + ".png";
-            Path file = PCARDFrame.pc.stack.file.getParent().resolve(filename);
+            Path file = stack.file.getParent().resolve(filename);
             try {
                 ImageIO.write(mainBi, "png", file.toFile());
             } catch (IOException e) {

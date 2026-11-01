@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Serial;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -358,10 +359,36 @@ public class TTalk extends Thread {
     static int traceMode = 0;
     static boolean stepFlag;
     static MemoryData globalData = new MemoryData();
+
+    /** drops queued messages except the ones opening a stack */
+    static void clearMessages() {
+        synchronized (messageList) {
+            messageList.removeIf(m -> m.message == null ||
+                    !m.message.toLowerCase().matches("startup|openstack|openbackground|opencard|resumestack"));
+        }
+    }
+
+    /** "-DhyperZebra.traceMessages=true" logs messages sent by scripts */
+    static final boolean TRACE_MESSAGES = Boolean.getBoolean("hyperZebra.traceMessages");
+
+    /** @return the value of the global variable, null if not declared */
+    static String getGlobalValue(String name) {
+        MemoryData g = globalData;
+        if (g == null || g.nameList == null) return null;
+        synchronized (g) {
+            for (int i = 0; i < g.nameList.size(); i++) {
+                if (name.equalsIgnoreCase(g.nameList.get(i))) {
+                    return g.valueList.get(i);
+                }
+            }
+        }
+        return null;
+    }
     static ArrayList<String> pushCardList = new ArrayList<>();
     static Result lastResult;
     static int fastLockScreen = 0;
-    static boolean lockErrorDialogs = false;
+    /** "-DhyperZebra.lockErrorDialogs=true" suppresses script error dialogs (errors are logged only) */
+    static boolean lockErrorDialogs = Boolean.getBoolean("hyperZebra.lockErrorDialogs");
     static long lastErrorTime;
     static boolean lockMessages = false;
     static int dragSpeed = 0;
@@ -710,6 +737,12 @@ public class TTalk extends Thread {
 
         propertySet.add("audiolevel"); // xcmd set
         propertySet.add("currtime"); // xcmd set
+        // Movie XCMD window properties
+        for (String p : new String[] {"rate", "duration", "starttime", "endtime", "loop", "closeonfinish", "mute",
+                "callbacktime", "callbackmsg", "timeformat", "timescale", "movie", "windowname", "donterase", "fastidle",
+                "moviecursorid", "badge", "controllervisible", "seeallframes", "passmovieclick"}) {
+            propertySet.add(p);
+        }
         propertySet.add("scale"); // xcmd set
 
         globalData.treeset = new TreeSet<>();
@@ -892,7 +925,7 @@ public class TTalk extends Thread {
 
     private Result ReceiveMessage(String message, String[] params, OObject object, OObject target, MemoryData memData)
             throws XTalkException {
-        //logger.log(Level.DEBUG, "ReceiveMessage " + message + " " + object.getShortName());
+        if (TRACE_MESSAGES) logger.log(Level.INFO, "message: " + message + " " + (params != null ? String.join(",", params) : "") + " -> " + (object != null ? object.getShortName() : null));
         Result result = new Result();
         return ReceiveMessage(message, params, object, target, memData, result, false, false, false, 0);
     }
@@ -920,10 +953,7 @@ public class TTalk extends Thread {
             object.handlerLineList = new ArrayList<>();
             for (int line = 0; line < object.scriptList.size(); line++) {
                 String str = object.scriptList.get(line);
-                while (str.substring(0, 0).equals(" ")) {
-                    str = str.substring(1);
-                }
-                String[] words = str.split(" ");
+                String[] words = str.strip().split("\\s+");
                 if (words.length <= 1) {
                     continue;
                 }
@@ -956,10 +986,7 @@ public class TTalk extends Thread {
             for (int i = 0; object.handlerLineList != null && i < object.handlerLineList.size(); i++) {
                 int line = object.handlerLineList.get(i);
                 String str = object.scriptList.get(line);
-                while (str.substring(0, 0).equals(" ")) {
-                    str = str.substring(1);
-                }
-                String[] words = str.split(" ");
+                String[] words = str.strip().split("\\s+");
                 if (words.length <= 1) {
                     line++;
                     continue;
@@ -983,7 +1010,7 @@ public class TTalk extends Thread {
                         memData2.valueList = new ArrayList<>();
 
                         // Arguments
-                        String[] handlerWords = object.scriptList.get(start - 1).split(" ");
+                        String[] handlerWords = object.scriptList.get(start - 1).strip().split("\\s+");
                         if (handlerWords.length >= 3) { // on handler param
                             StringBuilder paramStr = new StringBuilder();
                             for (int k = 2; k < handlerWords.length; k++) paramStr.append(handlerWords[k]);
@@ -1050,6 +1077,11 @@ public class TTalk extends Thread {
                 if (object.objectType.equals("stack")) stack = (OStack) object;
                 else if (object.parent.objectType.equals("stack")) stack = (OStack) object.parent;
                 else if (object.parent.parent.objectType.equals("stack")) stack = (OStack) object.parent.parent;
+                if (stack != null && stack != PCARD.pc.stack && PCARD.pc.stack != null && PCARD.pc.stack.usingStacks != null &&
+                        PCARD.pc.stack.usingStacks.contains(stack)) {
+                    // a stack in use passes the message to the next stack in use of the current stack
+                    stack = PCARD.pc.stack;
+                }
                 if (stack != null && stack.usingStacks != null && usingCnt < stack.usingStacks.size() &&
                         stack.usingStacks.get(usingCnt) != null && stack.usingStacks.get(usingCnt).scriptList != null) {
                     usingCnt++;
@@ -1061,6 +1093,28 @@ public class TTalk extends Thread {
         }
 
         return result; // 0 if found, 1 if not found so look for next object
+    }
+
+    /** @return the line without the continuation character (and a comment after it), null if the line does not continue */
+    static String stripContinuation(String line) {
+        // remove a comment outside quotes
+        boolean quoted = false;
+        int end = line.length();
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') quoted = !quoted;
+            else if (!quoted && c == '-' && i + 1 < line.length() && line.charAt(i + 1) == '-') {
+                end = i;
+                break;
+            }
+        }
+        String s = line.substring(0, end).stripTrailing();
+        if (s.isEmpty()) return null;
+        char last = s.charAt(s.length() - 1);
+        if (last == '\u00ac' || last == '\uff82' || last == '~') {
+            return s.substring(0, s.length() - 1);
+        }
+        return null;
     }
 
     // mode=0 normal    mode=1 internal call so no error
@@ -1127,16 +1181,22 @@ public class TTalk extends Thread {
         result.ret = 0;
 
         if (object != null && !object.wrapFlag && object.scriptList == scriptList) {
+            // Line continuation ("¬", "ﾂ" when decoded as Shift_JIS, or "~"), a comment may follow it.
+            // The joined line takes the place of the last line so that line numbers do not change.
             for (int i = 0; i < scriptList.size(); i++) {
-                String str = scriptList.get(i);
-                while (!str.isEmpty() &&
-                        (str.charAt(str.length() - 1) == 'ﾂ' ||
-                                str.charAt(str.length() - 1) == '~')) {
+                String str = stripContinuation(scriptList.get(i));
+                while (str != null && i + 1 < scriptList.size()) {
                     i++;
-                    if (i > scriptList.size()) break;
-                    str = str.substring(0, str.length() - 1) + " " + scriptList.get(i);
+                    String next = scriptList.get(i);
+                    String cont = stripContinuation(next);
                     scriptList.set(i - 1, "");
-                    scriptList.set(i, str);
+                    if (cont != null) {
+                        str = str + " " + cont;
+                        scriptList.set(i, "");
+                    } else {
+                        scriptList.set(i, str + " " + next);
+                        str = null;
+                    }
                 }
             }
             object.wrapFlag = true;
@@ -1776,7 +1836,7 @@ label:
             String str = "";
             if (line < scriptList.size()) str = scriptList.get(line);
             while (str.length() > 1 && str.charAt(0) == ' ') str = str.substring(1);
-            logger.log(Level.DEBUG, "Error occurred at:" + str);
+            logger.log(Level.WARNING, "Error occurred at: " + str + (object != null ? " (line " + line + " of " + object.getShortName() + ")" : ""));
 
             if (mode == 1) { // Internal call so do not show dialog here, throw to upper caller
                 throw new XTalkException(e.getMessage());
@@ -1784,7 +1844,7 @@ label:
 
             if (object != null && mode == 0) logger.log(Level.DEBUG, "line " + line + " of " + object.getShortName());
 
-            messageList.clear();
+            clearMessages();
 
             lastErrorTime = System.currentTimeMillis();
 
@@ -1858,6 +1918,15 @@ label:
 
     private static void fullresolution(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, TreeSet<String> treeSet, boolean isCmd) {
         resolution(script, stringList, typeList, isCmd);
+        // "the abbreviated name" is the same as "the name"
+        for (int i = stringList.size() - 2; i >= 0; i--) {
+            String w = stringList.get(i);
+            if ((w.equalsIgnoreCase("abbreviated") || w.equalsIgnoreCase("abbrev") || w.equalsIgnoreCase("abbr")) &&
+                    stringList.get(i + 1).equalsIgnoreCase("name")) {
+                stringList.remove(i);
+                typeList.remove(i);
+            }
+        }
 
         StringBuilder handler = new StringBuilder();
         TreeSet<String> varSet;
@@ -2104,7 +2173,19 @@ label:
 //                            logger.log(Level.DEBUG, "param " + stringList.get(j) + " :" + j + " " + i);
 //                        }
 
-                        paramAry[o] = evaluation(stringList, typeAry, j, i - 1, memData, object, target);
+                        StringBuilder literal = new StringBuilder();
+                        for (int k = j; k <= i - 1 && k < stringList.size(); k++) {
+                            if (literal.length() > 0) literal.append(' ');
+                            literal.append(stringList.get(k));
+                        }
+                        try {
+                            // evaluate copies, the built-in command parses the line again
+                            paramAry[o] = evaluation(new ArrayList<>(stringList), typeAry.clone(), j, i - 1, memData, object, target);
+                        } catch (XTalkException e) {
+                            // a HyperCard command ("go card foo") gets its text as the parameter
+                            if (!commandSet.contains(stringList.get(0).toLowerCase())) throw e;
+                            paramAry[o] = literal.toString();
+                        }
                         j = i + 1;
                         o++;
                     }
@@ -2123,7 +2204,7 @@ label:
             }
             if (sendObject == null) sendObject = object;
             if (!flag) result = ReceiveMessage(stringList.get(0), paramAry, sendObject, target, memData);
-            if (result.ret == 1) {
+            if (result.ret == 1 && !commandSet.contains(str)) {
                 // Evaluate value (for msg box)
                 result.theResult = evaluation(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
                 result.ret = 0;
@@ -3863,9 +3944,10 @@ label:
                     next++;
                     if (next >= stringList.size()) throw new XTalkException("close window is unknown");
 
-                    OObject obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
-                    if (obj != null) {
-                        ((OWindow) obj).Close();
+                    // the object is "window <name>"
+                    OObject obj = getObject(stringList, typeAry, next - 1, stringList.size() - 1, memData, object, target);
+                    if (obj instanceof OWindow w) {
+                        w.Close();
                     }
                 } else if (stringList.get(next).equals("file")) {
                     next++;
@@ -4379,20 +4461,25 @@ label:
 
                 String pathStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
-                // Double using not allowed
-                if (PCARD.pc.stack.usingStacks != null) {
-                    for (int i = 0; i < PCARD.pc.stack.usingStacks.size(); i++) {
-                        if (pathStr.equals(PCARD.pc.stack.usingStacks.get(i).path)) {
-                            PCARD.pc.stack.usingStacks.remove(i);
-                            break;
-                        }
-                    }
+                Path source = MacFiles.find(pathStr, MacFiles.stacksSearchPath());
+                if (source == null) {
+                    result.theResult = "Can't find stack " + pathStr;
+                    result.ret = 0;
+                    break;
                 }
-
-                OStack ostack = new OStack(PCARD.pc);
-                OStack.openStackFile(pathStr, true);
-                if (PCARD.pc.stack.usingStacks != null && PCARD.pc.stack.usingStacks.size() <= 8) {
-                    PCARD.pc.stack.usingStacks.add(ostack);
+                OStack library = OStack.loadLibraryStack(source);
+                if (library == null) {
+                    result.theResult = "Can't open stack " + pathStr;
+                    result.ret = 0;
+                    break;
+                }
+                logger.log(Level.INFO, "start using stack " + pathStr + ": " + source + ", script lines: " + (library.scriptList != null ? library.scriptList.size() : -1));
+                if (library != PCARD.pc.stack && PCARD.pc.stack.usingStacks != null) {
+                    // Double using not allowed, the last one is searched first
+                    PCARD.pc.stack.usingStacks.remove(library);
+                    if (PCARD.pc.stack.usingStacks.size() < 16) {
+                        PCARD.pc.stack.usingStacks.add(library);
+                    }
                 }
             }
             case "stop" -> {
@@ -4408,9 +4495,10 @@ label:
 
                 String pathStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
-
+                String leaf = MacFiles.normalize(MacFiles.leafName(pathStr));
                 for (int i = 0; i < PCARD.pc.stack.usingStacks.size(); i++) {
-                    if (pathStr.equals(PCARD.pc.stack.usingStacks.get(i).path)) {
+                    OStack s = PCARD.pc.stack.usingStacks.get(i);
+                    if (pathStr.equals(s.path) || (s.name != null && MacFiles.normalize(s.name).equals(leaf))) {
                         PCARD.pc.stack.usingStacks.remove(i);
                         break;
                     }
@@ -4610,6 +4698,16 @@ label:
     private static String evaluation(List<String> stringList, WordType[] typeAry, int start, int end,
                                      MemoryData memData, OObject object, OObject target)
             throws XTalkException {
+        // "window <variable>": the variable holds the window name
+        for (int i = start; i < end; i++) {
+            if (typeAry[i] == WordType.OBJECT && stringList.get(i).equalsIgnoreCase("window") && typeAry[i + 1] == WordType.X) {
+                List<String> resolved = windowNameResolved(stringList, typeAry, i, memData);
+                if (resolved != stringList) {
+                    stringList.set(i + 1, resolved.get(i + 1));
+                    typeAry[i + 1] = WordType.STRING;
+                }
+            }
+        }
         // Interpret/operate on words entered in the list
         // When the number of words decreases, keep the left side and set the right side to WordType.NOP
 
@@ -4902,7 +5000,7 @@ label:
                     String str = stringList.get(i);
                     ObjResult objres = null;
                     try {
-                        objres = getObjectfromList(stringList, typeAry, i + 2, object, target);
+                        objres = getObjectfromList(windowNameResolved(stringList, typeAry, i + 2, memData), typeAry, i + 2, object, target);
                     } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
@@ -5423,7 +5521,8 @@ label:
                     int j = i;
                     ObjResult objres = null;
                     try {
-                        objres = getObjectfromList(stringList, typeAry, i + 3, object, target);
+                        objres = stackExistence(stringList, typeAry, i + 3, end, memData, object, target);
+                        if (objres == null) objres = getObjectfromList(windowNameResolved(stringList, typeAry, i + 3, memData), typeAry, i + 3, object, target);
                     } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
@@ -5450,7 +5549,8 @@ label:
                     int j = i;
                     ObjResult objres = null;
                     try {
-                        objres = getObjectfromList(stringList, typeAry, i + 4, object, target);
+                        objres = stackExistence(stringList, typeAry, i + 4, end, memData, object, target);
+                        if (objres == null) objres = getObjectfromList(windowNameResolved(stringList, typeAry, i + 4, memData), typeAry, i + 4, object, target);
                     } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
@@ -6338,6 +6438,46 @@ label:
         } else throw new XTalkException("Variable name does not start with alphabetic character: " + name);
     }
 
+    /** @return the list, a copy whose window name is the value of the variable for "window &lt;variable&gt;" */
+    private static List<String> windowNameResolved(List<String> stringList, WordType[] typeAry, int i, MemoryData memData) {
+        if (i + 1 < stringList.size() && stringList.get(i).equalsIgnoreCase("window")) {
+            String raw = stringList.get(i + 1);
+            for (OWindow w : OWindow.list) {
+                if (raw.equalsIgnoreCase(w.name)) return stringList;
+            }
+            try {
+                String v = getVariable(memData, raw);
+                if (v == null) v = getVariable(memData, raw.toLowerCase());
+                if (v != null) {
+                    List<String> copy = new ArrayList<>(stringList);
+                    copy.set(i + 1, v);
+                    return copy;
+                }
+            } catch (Exception e) {
+                logger.log(Level.TRACE, e.toString());
+            }
+        }
+        return stringList;
+    }
+
+    /**
+     * "there is a stack X": finds the stack file.
+     * @return null if the expression at start is not "stack ..."
+     */
+    private static ObjResult stackExistence(List<String> stringList, WordType[] typeAry, int start, int end,
+                                            MemoryData memData, OObject object, OObject target) throws XTalkException {
+        if (start + 1 > end || !stringList.get(start).equalsIgnoreCase("stack")) return null;
+        int last = start + 1;
+        while (last + 1 <= end && typeAry[last + 1] != WordType.OPERATOR && typeAry[last + 1] != WordType.OPERATOR_SUB) last++;
+        String name = evaluation(new ArrayList<>(stringList), typeAry.clone(), start + 1, last, memData, object, target);
+        ObjResult objres = new ObjResult();
+        objres.cnt = last - start + 1;
+        boolean exists = (PCARD.pc.stack != null && PCARD.pc.stack.name != null && MacFiles.normalize(PCARD.pc.stack.name).equals(MacFiles.normalize(MacFiles.leafName(name))))
+                || MacFiles.find(name, MacFiles.stacksSearchPath()) != null;
+        objres.obj = exists ? PCARD.pc.stack : null;
+        return objres;
+    }
+
     private static ObjResult getObjectfromList(List<String> stringList, WordType[] typeAry, int start,
                                                OObject object, OObject target)
             throws XTalkException {
@@ -6381,6 +6521,12 @@ label:
         if (0 == str.compareToIgnoreCase("the") && 0 == str2.compareToIgnoreCase("target")) {
             objres.cnt = 2;
             objres.obj = target;
+            return objres;
+        }
+        if (0 == str.compareToIgnoreCase("the") && (0 == str2.compareToIgnoreCase("cd") || 0 == str2.compareToIgnoreCase("card")) &&
+                next + 1 < stringList.size() && 0 == stringList.get(next + 1).compareToIgnoreCase("window")) {
+            objres.cnt = 3;
+            objres.obj = OWindow.cdwindow;
             return objres;
         }
         if (0 == str.compareToIgnoreCase("this")) {
@@ -6449,6 +6595,10 @@ label:
             if (str2.equalsIgnoreCase("message") || str2.equalsIgnoreCase("msg")) {
                 objres.cnt = 2;
                 objres.obj = OMsg.msg;
+            }
+            if (objres.obj == null && str2.toLowerCase().matches("scroll|pattern|patterns|tool|tools|fatbits|navigator|message watcher|variable watcher")) {
+                objres.cnt = 2;
+                objres.obj = new OWindow(str2);
             }
             return objres;
         } else if (0 == str2.compareToIgnoreCase("window")) {
@@ -6879,6 +7029,33 @@ label:
         return "";
     }
 
+    /** @return the index of an ordinal chunk ("first", "last", "middle", "second", ...) of the value, 0 if unknown */
+    static int chunkOrdinal(String mode, String ordinal, String value) {
+        if (ordinal == null) return 0;
+        String o = ordinal.toLowerCase(Locale.ROOT);
+        String[] words = {"first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"};
+        for (int i = 0; i < words.length; i++) {
+            if (o.equals(words[i])) return i + 1;
+        }
+        int count;
+        if (mode.startsWith("char")) {
+            count = value.length();
+        } else if (mode.equals("item")) {
+            count = value.isEmpty() ? 0 : value.split(Pattern.quote(itemDelimiter), -1).length;
+            if (value.endsWith(itemDelimiter)) count--;
+        } else if (mode.equals("line")) {
+            count = value.isEmpty() ? 0 : value.split("\\r\\n|\\r|\\n", -1).length;
+            if (value.endsWith("\n") || value.endsWith("\r")) count--;
+        } else {
+            count = value.trim().isEmpty() ? 0 : value.trim().split("\\s+").length;
+        }
+        return switch (o) {
+            case "last" -> count;
+            case "middle", "mid" -> (count + 1) / 2;
+            default -> 0;
+        };
+    }
+
     private static void setChunkVariable(String mode, String chunkStart, String chunkEnd, String setstr, String name,
                                          MemoryData memData)
             throws XTalkException {
@@ -6896,6 +7073,12 @@ label:
 
         String oldvalue = getVariable(memData, name);
         if (oldvalue == null) oldvalue = "";
+
+        // ordinals ("last char", "first word", ...)
+        if (start <= 0) start = chunkOrdinal(mode, chunkStart, oldvalue);
+        if (chunkEnd == null) end = start;
+        else if (end <= 0) end = chunkOrdinal(mode, chunkEnd, oldvalue);
+        if (start <= 0) start = 1;
 
         if (end <= 0) {
             //logger.log(Level.DEBUG, "!");
@@ -7227,6 +7410,11 @@ label:
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("window")) {
             obj = OWindow.cdwindow;
             //next++;
+        } else if (0 == stringList.get(next).compareToIgnoreCase("the") && next + 2 <= end &&
+                (0 == stringList.get(next + 1).compareToIgnoreCase("cd") || 0 == stringList.get(next + 1).compareToIgnoreCase("card")) &&
+                0 == stringList.get(next + 2).compareToIgnoreCase("window")) {
+            obj = OWindow.cdwindow;
+            next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("msg") || 0 == stringList.get(next).compareToIgnoreCase("message")) {
             obj = OMsg.msg;
             //next++;
@@ -7244,6 +7432,9 @@ label:
             }
             if (obj == null && str.equalsIgnoreCase("message")) {
                 obj = OMsg.msg;
+            }
+            if (obj == null && str.toLowerCase().matches("scroll|pattern|patterns|tool|tools|fatbits|navigator|message watcher|variable watcher")) {
+                obj = new OWindow(str);
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("menu")) {
             int j;

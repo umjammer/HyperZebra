@@ -39,7 +39,7 @@ public class HCConvert {
         stack.barDialog.getContentPane().setLayout(new BorderLayout());
         stack.bar = new JProgressBar();
         stack.bar.setStringPainted(true);
-        PCARD.pc.stack.bar.setSize(new Dimension(PCARD.pc.getWidth(), 20));
+        stack.bar.setSize(new Dimension(PCARD.pc.getWidth(), 20));
         stack.bar.setString("");
         stack.bar.setValue(0);
         stack.barOffset = 0;
@@ -49,12 +49,18 @@ public class HCConvert {
         stack.bar.paintImmediately(stack.bar.getBounds());
         stack.bar.setString("Make tar archive");
 
+        stack.sourceFile = Paths.get(path);
+        MacFiles.addRootOf(stack.sourceFile);
+
+        // A raw resource fork extracted next to the data fork ("<name>.rsrc") takes precedence
+        File sidecarRsrc = new File(path + ".rsrc");
+
         // Create tar in Apple-Double format to read resources from Java
-        File tarFile = makeAppleDoubleTar(path);
+        File tarFile = sidecarRsrc.isFile() ? null : makeAppleDoubleTar(path);
 
         // Create directory
         if (!createStackFolder(stack, Paths.get(path))) {
-            tarFile.delete();
+            if (tarFile != null) tarFile.delete();
             stack.barDialog.remove(stack.bar);
             stack.barDialog.dispose();
         }
@@ -103,7 +109,14 @@ public class HCConvert {
                     searchPath = new File(path).getParent() + "__MACOSX" + File.separatorChar + new File(path).getName();
                     rsrcFile = new File(searchPath);
                 }
-                if (rsrcFile.exists()) {
+                if (sidecarRsrc.isFile()) {
+                    // Read as raw resource fork
+                    try {
+                        HCResource.readResourceFork(Files.readAllBytes(sidecarRsrc.toPath()), stack);
+                    } catch (IOException e) {
+                        logger.log(Level.ERROR, e.getMessage(), e);
+                    }
+                } else if (rsrcFile.exists()) {
                     DataInputStream rsrc_dis = null;
                     try {
                         rsrc_dis = new DataInputStream(new FileInputStream(rsrcFile));
@@ -147,7 +160,7 @@ public class HCConvert {
         stack.barDialog.setUndecorated(true);
         stack.bar = new JProgressBar();
         stack.bar.setStringPainted(true);
-        PCARD.pc.stack.bar.setSize(new Dimension(PCARD.pc.getWidth(), 20));
+        stack.bar.setSize(new Dimension(PCARD.pc.getWidth(), 20));
         stack.bar.setString("");
         stack.bar.setValue(0);
         stack.barOffset = 0;
@@ -265,15 +278,11 @@ public class HCConvert {
         stack.bar.setString("Create a new folder");
         stack.bar.paintImmediately(stack.bar.getBounds());
 
-        // Create directory
-        Path newdir = Paths.get("/tmp", path.getFileName() + ".hzb");
-        int i = 2;
-        while (Files.exists(newdir)) {
-            newdir = Paths.get("/tmp", path.getFileName() + " " + i + ".hzb");
-            i++;
-        }
+        // Create directory, the same stack file is converted into the same folder
+        String key = Integer.toHexString(path.toAbsolutePath().normalize().toString().hashCode());
+        Path newdir = Paths.get(System.getProperty("java.io.tmpdir"), "hyperzebra", path.getFileName() + "-" + key + ".hzb");
         try {
-            Files.createDirectory(newdir);
+            Files.createDirectories(newdir);
         } catch (IOException e) {
             new GDialog(PCARDFrame.pc, rb.getString("dialog.Can't_create_a_new_folder."),
                     null, "OK", null, null);

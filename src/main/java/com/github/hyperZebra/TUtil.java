@@ -277,9 +277,12 @@ public class TUtil {
         } else if (0 == message.compareTo("param")) {
             // param of i
             if (params.length < 1) throw new XTalkException("Argument is required");
-            int i = Integer.parseInt(params[0]) - 1;
-            if (i >= 0 && i < memData.params.length) {
-                result.theResult = memData.params[i];
+            int i = Integer.parseInt(params[0].trim());
+            result.theResult = "";
+            if (i == 0) {
+                result.theResult = memData.message != null ? memData.message : "";
+            } else if (memData.params != null && i >= 1 && i <= memData.params.length && memData.params[i - 1] != null) {
+                result.theResult = memData.params[i - 1];
             }
             result.ret = 0;
         } else if (0 == message.compareTo("annuity")) {
@@ -783,12 +786,16 @@ public class TUtil {
             }
             result.ret = 0;
         } else {
-            if (!isFunc && PCARD.pc.stack.rsrc.getxcmdId(message, "command") > 0 ||
-                    isFunc && PCARD.pc.stack.rsrc.getxcmdId(message, "function") > 0) {
+            if (!isFunc && PCARD.pc.stack.rsrc.getxcmdIdAll(message, "command") > 0 ||
+                    isFunc && PCARD.pc.stack.rsrc.getxcmdIdAll(message, "function") > 0 ||
+                    TXcmd.isBuiltin(message)) {
                 return TXcmd.CallExternalCommand(message, params, target, memData, isFunc, result);
             } else {
                 result = CallSystemFunction(message.toLowerCase(), params, target, memData, isFunc);
-                if (result.theResult == null || result.theResult.isEmpty()) {
+                if (result.theResult == null && result.ret == 0) {
+                    result.theResult = "";
+                }
+                if (result.theResult == null || result.theResult.isEmpty() && result.ret != 0) {
                     logger.log(Level.DEBUG, "Undefined function: " + message);
                     throw new XTalkException(message + " is unknown");
                 }
@@ -828,6 +835,22 @@ public class TUtil {
     public static String getProperty(
             String inProperty, OObject obj, OObject target, MemoryData memData) throws XTalkException {
         String prpty = inProperty.toLowerCase();
+        if (obj instanceof OWindow w && w.movie != null) {
+            String v = w.movie.getProperty(prpty);
+            if (v != null) return v;
+        }
+        if (obj == OWindow.cdwindow && PCARD.pc.stack != null && PCARD.pc.mainPane != null) {
+            java.awt.Point p = PCARD.pc.mainPane.isShowing() ? PCARD.pc.mainPane.getLocationOnScreen() : new java.awt.Point(0, 0);
+            int w = PCARD.pc.stack.width, h = PCARD.pc.stack.height;
+            switch (prpty) {
+                case "rect" -> { return p.x + "," + p.y + "," + (p.x + w) + "," + (p.y + h); }
+                case "loc" -> { return (p.x + w / 2) + "," + (p.y + h / 2); }
+                case "topleft" -> { return p.x + "," + p.y; }
+                case "width" -> { return Integer.toString(w); }
+                case "height" -> { return Integer.toString(h); }
+                default -> { }
+            }
+        }
         OButton btn = null;
         OField fld = null;
         OCard cd = null;
@@ -1080,6 +1103,15 @@ public class TUtil {
             OObject obj, String inProperty, String value)
             throws XTalkException {
         String prpty = inProperty.toLowerCase();
+        if (obj instanceof OWindow w) {
+            if (w.movie != null && w.movie.setProperty(prpty, value)) return;
+            if (w == OWindow.cdwindow && prpty.matches("loc|rect|topleft|width|height|scroll")) {
+                return; // the card window is laid out by HyperZebra
+            }
+            if (w.frame == null && w.dlog == null && w.mp3 == null && w.gpw == null && w.movie == null) {
+                return; // a window HyperZebra does not have
+            }
+        }
         OButton btn = null;
         OField fld = null;
         OCard cd = null;
@@ -1162,7 +1194,7 @@ public class TUtil {
                     cr = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
                 } else if (value.equalsIgnoreCase("ibeam")) {
                     cr = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
-                } else if (value.equalsIgnoreCase("none")) {
+                } else if (value.equalsIgnoreCase("none") || value.equalsIgnoreCase("blank")) {
                     BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
                     Point hotSpot = new Point(0, 0);
                     String name = "none-cursor";
@@ -1185,7 +1217,8 @@ public class TUtil {
                             logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     } else {
-                        throw new XTalkException("Cursor " + value + " does not exist");
+                        logger.log(Level.DEBUG, "Cursor " + value + " does not exist");
+                        cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
                     }
                 }
                 if (cr != null)
@@ -1222,6 +1255,8 @@ public class TUtil {
                 } else if (value.equalsIgnoreCase("false")) {
                     PaintTool.editBackground = false;
                 } else throw new XTalkException("A boolean value is required here");
+            } else if (prpty.matches("blindtyping|powerkeys|textarrows|usermodify|lockrecent|printmargins|printtextalign|printtextfont|printtextsize|printtextstyle|printtextheight|soundchannel")) {
+                logger.log(Level.DEBUG, "ignored property: " + prpty);
             } else throw new XTalkException("Property " + prpty + " is unknown");
             return;
         }

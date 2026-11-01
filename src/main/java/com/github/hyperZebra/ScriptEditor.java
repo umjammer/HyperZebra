@@ -795,7 +795,11 @@ class ScriptArea extends JTextPane {
                             funcstr.equals("menu") ||
                             funcstr.equals("id") ||
                             funcstr.equals("or") || funcstr.equals("and") || funcstr.equals("not") ||
-                            funcstr.equals("div") || funcstr.equals("mod") || funcstr.equals("is") || funcstr.equals("in") || funcstr.equals("within") || funcstr.equals("a") || funcstr.equals("an")) {
+                            funcstr.equals("div") || funcstr.equals("mod") || funcstr.equals("is") || funcstr.equals("in") || funcstr.equals("within") || funcstr.equals("a") || funcstr.equals("an") ||
+                            funcstr.equals("contains") || funcstr.equals("then") || funcstr.equals("else") || funcstr.equals("to") ||
+                            funcstr.equals("into") || funcstr.equals("before") || funcstr.equals("after") || funcstr.equals("with") ||
+                            funcstr.equals("by") || funcstr.equals("from") || funcstr.equals("while") || funcstr.equals("until") ||
+                            funcstr.equals("return")) {
                         typeList.add(WordType.LBRACKET);
                     } else if (funcstr.equals("of") && stringList.size() >= 2 && (
 //                            stringList.get(stringList.size() - 2).matches("^[0-9]*$") ||

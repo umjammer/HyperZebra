@@ -298,6 +298,28 @@ public class PCARD extends PCARDFrame /* implements MRJOpenDocumentHandler */ {
 
         HyperZebra.installMacHandler();
 
+        // debug: "-DhyperZebra.snapshot=file.png" writes the window image every 2 seconds
+        String snapshot = System.getProperty("hyperZebra.snapshot");
+        if (snapshot != null) {
+            new javax.swing.Timer(2000, e -> {
+                try {
+                    javax.swing.JRootPane rp = pc.getRootPane();
+                    if (rp.getWidth() <= 0 || rp.getHeight() <= 0 || !rp.isShowing()) return;
+                    java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(rp.getWidth(), rp.getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB);
+                    java.awt.Graphics2D g = img.createGraphics();
+                    rp.paint(g);
+                    g.dispose();
+                    ImageIO.write(img, "png", new File(snapshot));
+                    // what is on the screen (window area only)
+                    java.awt.Point p = rp.getLocationOnScreen();
+                    java.awt.image.BufferedImage screen = new java.awt.Robot().createScreenCapture(new java.awt.Rectangle(p.x, p.y, rp.getWidth(), rp.getHeight()));
+                    ImageIO.write(screen, "png", new File(snapshot.replaceAll("\\.png$", "") + "-screen.png"));
+                } catch (Exception ex) {
+                    logger.log(Level.DEBUG, ex.toString());
+                }
+            }).start();
+        }
+
         // Idle processing
         pc.pidle = new Pidle();
         pc.pidle.start();
@@ -465,12 +487,15 @@ class PCARDWindowListener implements WindowListener {
 
 class Pidle extends Thread {
 
+    /** "-DhyperZebra.idleInBackground=true" sends idle messages while the window is not active */
+    static final boolean IDLE_IN_BACKGROUND = Boolean.getBoolean("hyperZebra.idleInBackground");
+
     @Override
     public void run() {
         this.setName("idle thread");
         while (true) {
             if (PCARDFrame.pc.stack != null && PCARDFrame.pc.stack.curCard != null && PCARDFrame.pc.tool == null) {
-                if (TTalk.idle && PCARD.pc.isActive()) {
+                if (TTalk.idle && (PCARD.pc.isActive() || IDLE_IN_BACKGROUND)) {
                     if (System.currentTimeMillis() - TTalk.lastErrorTime > 10 * 1000) {
                         TTalk.CallMessage("idle", "", PCARDFrame.pc.stack.curCard, true, false);
                     }

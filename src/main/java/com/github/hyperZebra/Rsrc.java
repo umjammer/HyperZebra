@@ -597,6 +597,20 @@ public class Rsrc {
         return 0;
     }
 
+    /** @return the id of the XCMD/XFCN in this stack or the stacks in use, 0 if none */
+    public int getxcmdIdAll(String name, String type) {
+        int id = getxcmdId(name, type);
+        if (id > 0) return id;
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            OStack s = ownerStack.usingStacks.get(i);
+            if (s != null && s.rsrc != null && s.rsrc != this) {
+                id = s.rsrc.getxcmdId(name, type);
+                if (id > 0) return id;
+            }
+        }
+        return 0;
+    }
+
     public void addXcmd(XcmdClass xcmd) {
         xcmdNameMap.put(xcmd.type + xcmd.name.toLowerCase(), xcmd);
     }

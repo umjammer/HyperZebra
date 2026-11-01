@@ -36,6 +36,8 @@ public class OStack extends OObject {
 
     String path = ""; // Stack file path
     Path file;
+    /** the original HyperCard stack file this stack was converted from, null if none */
+    Path sourceFile;
     OCard curCard;
     GButton guiButton;
     GRadio guiRadio;
@@ -151,7 +153,9 @@ public class OStack extends OObject {
     // set
     public void setName(String in) {
         name = in;
-        pcard.setTitle(name);
+        if (PCARD.pc == null || PCARD.pc.stack == this) {
+            pcard.setTitle(name);
+        }
     }
 
     public void setTopLeft(int h, int v) {
@@ -251,7 +255,9 @@ public class OStack extends OObject {
         }
         String[] strArray = path.split(sepStr);
         //name = strArray[strArray.length - 1];
-        if (strArray.length - 2 >= 0) {
+        if (sourceFile != null) {
+            name = sourceFile.getFileName().toString();
+        } else if (strArray.length - 2 >= 0) {
             name = strArray[strArray.length - 2];
         } else {
             name = path;
@@ -316,6 +322,28 @@ public class OStack extends OObject {
         Rectangle r = PCARD.pc.stack.pcard.getBounds();
         int z = pcard.zoom;
         PCARD.pc.stack.pcard.setBounds(r.x, r.y, width * z + PCARD.pc.toolbar.getTWidth(), height * z + PCARD.pc.toolbar.getTHeight() + pcard.getInsets().top);
+    }
+
+    /** stacks loaded for "start using", by source file */
+    private static final java.util.Map<Path, OStack> libraryCache = new java.util.HashMap<>();
+
+    /**
+     * Loads a HyperCard stack for "start using" without making it the current stack.
+     * @return the stack, null if it cannot be read
+     */
+    static synchronized OStack loadLibraryStack(Path source) {
+        Path key = source.toAbsolutePath().normalize();
+        OStack cached = libraryCache.get(key);
+        if (cached != null) return cached;
+        OStack s = new OStack(PCARD.pc);
+        s.scriptList = new ArrayList<>();
+        if (!HCConvert.openHCStack(key.toString(), s)) {
+            logger.log(Level.WARNING, "cannot read stack: " + source);
+            return null;
+        }
+        s.buildStackFile(true);
+        libraryCache.put(key, s);
+        return s;
     }
 
     static void openStackFile(String inpath, boolean isUsingOnly) {
