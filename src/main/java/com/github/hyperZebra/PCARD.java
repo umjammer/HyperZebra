@@ -235,6 +235,7 @@ public class PCARD extends PCARDFrame /* implements MRJOpenDocumentHandler */ {
             logger.log(Level.INFO, "." + File.separatorChar + "resource" + File.separatorChar + "icon.png");
         }
 
+        GUI.installClickTracker();
         new OWindow(pc, true);
         pc.rootPane.setDoubleBuffered(true);
         pc.getRootPane().setOpaque(false);

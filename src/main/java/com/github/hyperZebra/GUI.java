@@ -53,6 +53,32 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
     static int[] key = new int[256];
 
 
+    /**
+     * Records the click location in card coordinates for every mouse release in the card window,
+     * whichever component (card, button, field, overlay) gets the event.
+     */
+    static void installClickTracker() {
+        java.awt.Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
+            if (!(ev instanceof MouseEvent e) || PCARD.pc == null || PCARD.pc.mainPane == null) return;
+            if (e.getID() != MouseEvent.MOUSE_RELEASED && e.getID() != MouseEvent.MOUSE_PRESSED) return;
+            if (!(e.getSource() instanceof java.awt.Component c) || SwingUtilities.getWindowAncestor(c) != PCARD.pc &&
+                    c != PCARD.pc) return;
+            if (!PCARD.pc.mainPane.isShowing()) return;
+            java.awt.Point origin = PCARD.pc.mainPane.getLocationOnScreen();
+            int z = Math.max(1, PCARD.pc.zoom);
+            int x = (e.getXOnScreen() - origin.x) / z;
+            int y = (e.getYOnScreen() - origin.y) / z;
+            if (e.getID() == MouseEvent.MOUSE_PRESSED) {
+                mouseDown = true;
+            } else {
+                clickH = x;
+                clickV = y;
+                mouseDown = false;
+                mouseClicked = true;
+            }
+        }, java.awt.AWTEvent.MOUSE_EVENT_MASK);
+    }
+
     public static void mouseClicked() {
         mouseClicked = true;
         mouseDown = false;
@@ -90,9 +116,7 @@ public class GUI implements MouseListener, MouseMotionListener, KeyListener {
     public void mouseClicked(MouseEvent e) {
         if (PCARD.pc.stack == null || PCARD.pc.stack.curCard == null) return;
         TTalk.CallMessage("mouseUp", PCARD.pc.stack.curCard);
-        clickH = e.getX();
-        clickV = e.getY();
-        mouseClicked();
+        mouseClicked(); // the click location is set by the global listener
     }
 
     static MyTextArea lastFocusArea;
@@ -563,8 +587,6 @@ class GButton implements ActionListener, MouseListener, MouseMotionListener {
                 ((OBackground)parent).viewCard==PCARD.pc.stack.curCard*/) {
             TTalk.CallMessage("mouseUp", ((MyButton) e.getSource()).btnData);
         } else {
-            GUI.clickH = ((JComponent) e.getSource()).getX() + 1;
-            GUI.clickV = ((JComponent) e.getSource()).getY() + 1;
             GUI.mouseClicked();
         }
     }
@@ -636,8 +658,6 @@ class GCheckBox implements ActionListener, MouseListener {
             ((MyCheck) e.getSource()).btnData.checkHilite = ((MyCheck) e.getSource()).isSelected();
             ((MyCheck) e.getSource()).btnData.setHilite(((MyCheck) e.getSource()).isSelected());
         } else {
-            GUI.clickH = ((JComponent) e.getSource()).getX() + 1;
-            GUI.clickV = ((JComponent) e.getSource()).getY() + 1;
             GUI.mouseClicked();
         }
     }
@@ -687,8 +707,6 @@ class GPopup implements ActionListener, PopupMenuListener {
         if (TTalk.idle == true) {
             TTalk.CallMessage("mouseUp", ((MyPopup) e.getSource()).btnData);
         } else {
-            GUI.clickH = ((JComponent) e.getSource()).getX() + 1;
-            GUI.clickV = ((JComponent) e.getSource()).getY() + 1;
             GUI.mouseClicked();
         }
 
@@ -729,8 +747,6 @@ class GRadio implements ActionListener, MouseListener {
             ((MyRadio) e.getSource()).btnData.checkHilite = ((MyRadio) e.getSource()).isSelected();
             ((MyRadio) e.getSource()).btnData.setHilite(((MyRadio) e.getSource()).isSelected());
         } else {
-            GUI.clickH = ((JComponent) e.getSource()).getX() + 1;
-            GUI.clickV = ((JComponent) e.getSource()).getY() + 1;
             GUI.mouseClicked();
         }
     }
@@ -779,8 +795,6 @@ class GField implements MouseListener, MouseMotionListener {
             TTalk.CallMessage("mouseUp", fld);
             if (e.getClickCount() == 2) TTalk.CallMessage("mouseDoubleClick", fld);
         } else {
-            GUI.clickH = e.getX();
-            GUI.clickV = e.getY();
             GUI.mouseClicked();
         }
     }

@@ -68,6 +68,8 @@ final class TMovie {
     private final Holder holder = new Holder();
 
     private int x, y;
+    /** the scroll of a picture window */
+    private int scrollX, scrollY;
     /** size in card coordinates */
     private int width = 1, height = 1;
     private boolean visible;
@@ -81,6 +83,8 @@ final class TMovie {
     private float volume = 1f;
     private boolean mute;
     private float lastRate;
+    /** properties of the Movie XCMD which have no effect here */
+    private final java.util.Map<String, String> otherProperties = new java.util.concurrent.ConcurrentHashMap<>();
 
     /** a container which lets mouse events go to the card */
     private class Holder extends JPanel {
@@ -100,7 +104,11 @@ final class TMovie {
 
         @Override
         protected void paintComponent(Graphics g) {
-            if (still != null) g.drawImage(still, 0, 0, getWidth(), getHeight(), null);
+            if (still != null) {
+                // a picture window shows its picture from the scroll position
+                int z = Math.max(1, PCARD.pc.zoom);
+                g.drawImage(still, -scrollX * z, -scrollY * z, still.getWidth() * z, still.getHeight() * z, null);
+            }
         }
     }
 
@@ -319,14 +327,33 @@ final class TMovie {
         };
         SwingUtilities.invokeLater(r);
         Watcher.ensure();
+        if (!relayout.isRunning()) relayout.start();
     }
+
+    /** @return the bounds of the window in the layered pane for the current zoom and card position */
+    private java.awt.Rectangle expectedBounds() {
+        Point o = SwingUtilities.convertPoint(PCARD.pc.mainPane, 0, 0, PCARD.pc.getLayeredPane());
+        int z = Math.max(1, PCARD.pc.zoom);
+        return new java.awt.Rectangle(o.x + x * z, o.y + y * z, width * z, height * z);
+    }
+
+    /** places the windows again when the zoom or the card window changed (on the EDT) */
+    private static final javax.swing.Timer relayout = new javax.swing.Timer(250, e -> {
+        if (PCARD.pc == null || PCARD.pc.mainPane == null) return;
+        for (TMovie m : movies) {
+            java.awt.Rectangle r = m.expectedBounds();
+            if (!r.equals(m.holder.getBounds())) {
+                m.holder.setBounds(r);
+                m.holder.validate();
+                m.holder.repaint();
+            }
+        }
+    });
 
     private void layout() {
         Runnable r = () -> {
             if (PCARD.pc.mainPane == null) return;
-            Point o = SwingUtilities.convertPoint(PCARD.pc.mainPane, 0, 0, PCARD.pc.getLayeredPane());
-            int z = Math.max(1, PCARD.pc.zoom);
-            holder.setBounds(o.x + x * z, o.y + y * z, width * z, height * z);
+            holder.setBounds(expectedBounds());
             holder.setVisible(visible);
             holder.validate();
             holder.repaint();
@@ -437,7 +464,7 @@ final class TMovie {
                     visible = bool(value);
                     layout();
                 }
-                case "loc", "topleft" -> {
+                case "loc", "topleft", "windowloc" -> {
                     int[] p = HyperTint.numbers(value);
                     if (p.length >= 2) {
                         if (prop.equals("loc")) {
@@ -450,7 +477,15 @@ final class TMovie {
                         layout();
                     }
                 }
-                case "rect" -> {
+                case "scroll" -> {
+                    int[] p = HyperTint.numbers(value);
+                    if (p.length >= 2) {
+                        scrollX = p[0];
+                        scrollY = p[1];
+                        SwingUtilities.invokeLater(holder::repaint);
+                    }
+                }
+                case "rect", "windowrect" -> {
                     int[] r = HyperTint.numbers(value);
                     if (r.length == 4) {
                         x = r[0];
@@ -478,9 +513,9 @@ final class TMovie {
                     if (window != null) window.name = name;
                 }
                 default -> {
-                    // timeFormat, dontErase, fastIdle, movieCursorID, badge, controllerVisible,
-                    // seeAllFrames, passMovieClick, ...
-                    return knownProperty(prop);
+                    // timeFormat, dontErase, fastIdle, movieCursorID, badge, controllerVisible, seeAllFrames,
+                    // passMovieClick, useCustomClut, ...: no effect here, the value is kept
+                    otherProperties.put(prop, value);
                 }
             }
         } catch (Exception e) {
@@ -514,14 +549,15 @@ final class TMovie {
                 case "mute" -> Boolean.toString(mute);
                 case "visible" -> Boolean.toString(visible);
                 case "loc" -> (x + width / 2) + "," + (y + height / 2);
-                case "topleft" -> x + "," + y;
-                case "rect" -> x + "," + y + "," + (x + width) + "," + (y + height);
+                case "topleft", "windowloc" -> x + "," + y;
+                case "scroll" -> scrollX + "," + scrollY;
+                case "rect", "windowrect" -> x + "," + y + "," + (x + width) + "," + (y + height);
                 case "width" -> Integer.toString(width);
                 case "height" -> Integer.toString(height);
                 case "callbacktime" -> callBackTime < 0 ? "" : Integer.toString(callBackTime);
                 case "callbackmsg" -> callBackMsg != null ? callBackMsg : "";
                 case "name", "windowname" -> name;
-                default -> knownProperty(prop) ? "" : null;
+                default -> otherProperties.getOrDefault(prop, knownProperty(prop) ? "" : null);
             };
         } catch (Exception e) {
             logger.log(Level.DEBUG, "movie " + name + " " + prop + ": " + e);
@@ -601,6 +637,16 @@ final class TMovie {
                     return;
                 }
             }
+        }
+    }
+
+    /**
+     * closes the picture windows (the "Picture" XCMD) when the card changes.
+     * a card opening one (in its idle handler) opens it again.
+     */
+    static void closePictures() {
+        for (TMovie m : movies) {
+            if (m.still != null) m.close();
         }
     }
 

@@ -743,7 +743,8 @@ public class TTalk extends Thread {
         // Movie XCMD window properties
         for (String p : new String[] {"rate", "duration", "starttime", "endtime", "loop", "closeonfinish", "mute",
                 "callbacktime", "callbackmsg", "timeformat", "timescale", "movie", "windowname", "donterase", "fastidle",
-                "moviecursorid", "badge", "controllervisible", "seeallframes", "passmovieclick"}) {
+                "moviecursorid", "badge", "controllervisible", "seeallframes", "passmovieclick", "usecustomclut",
+                "windowrect", "windowloc", "dithering"}) {
             propertySet.add(p);
         }
         propertySet.add("scale"); // xcmd set
@@ -1928,6 +1929,15 @@ label:
 
     private static void fullresolution(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, TreeSet<String> treeSet, boolean isCmd) {
         resolution(script, stringList, typeList, isCmd);
+        // "the last line of x" is "last line of x" (an ordinal chunk or object)
+        for (int i = stringList.size() - 3; i >= 0; i--) {
+            if (stringList.get(i).equalsIgnoreCase("the") &&
+                    stringList.get(i + 1).toLowerCase().matches("first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|middle|mid|any") &&
+                    stringList.get(i + 2).toLowerCase().matches("char|character|chars|characters|item|items|word|words|line|lines|cd|card|bg|bkgnd|background|btn|button|fld|field")) {
+                stringList.remove(i);
+                typeList.remove(i);
+            }
+        }
         // "the abbreviated name" is the same as "the name"
         for (int i = stringList.size() - 2; i >= 0; i--) {
             String w = stringList.get(i);
@@ -2289,12 +2299,27 @@ label:
                                         || 0 == stringList.get(next + 1).compareToIgnoreCase("first"))) {
                             String value = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                             if (0 == stringList.get(next + 1).compareToIgnoreCase("last") || 0 == stringList.get(next + 1).compareToIgnoreCase("first")) {
+                                boolean last = 0 == stringList.get(next + 1).compareToIgnoreCase("last");
                                 stringList.set(next + 1, stringList.get(next + 2));
-                                // Will be overwritten so make a copy
-                                ArrayList<String> cpstringList = (ArrayList<String>) stringList.clone();
-                                WordType[] cptypeAry = typeAry.clone();
-                                String value1 = evaluation(cpstringList, cptypeAry, next + 4, cpstringList.size() - 1, memData, object, target);
-                                stringList.set(next + 2, Integer.toString(getNumberOfChunk(cpstringList.get(next + 2) + "s", value1)));
+                                if (last) {
+                                    // the container: a field or a button, otherwise an expression (a variable)
+                                    String value1 = null;
+                                    try {
+                                        OObject container = getObject(new ArrayList<>(stringList), typeAry.clone(), next + 4, stringList.size() - 1, memData, object, target);
+                                        if (container != null && (container.objectType.equals("field") || container.objectType.equals("button"))) {
+                                            value1 = container.getText();
+                                        }
+                                    } catch (Exception e) {
+                                        logger.log(Level.TRACE, e.toString());
+                                    }
+                                    if (value1 == null) {
+                                        value1 = evaluation(new ArrayList<>(stringList), typeAry.clone(), next + 4, stringList.size() - 1, memData, object, target);
+                                    }
+                                    stringList.set(next + 2, Integer.toString(Math.max(1, getNumberOfChunk(stringList.get(next + 2) + "s", value1))));
+                                } else {
+                                    stringList.set(next + 2, "1");
+                                }
+                                typeAry[next + 2] = WordType.STRING;
                             }
                             int next2 = next + 1;
                             int nest = 0;
@@ -2461,6 +2486,21 @@ label:
                 if (next >= stringList.size()) throw new XTalkException("go is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("to"))
                     next++;
+                // go [to] [card ... of|in] stack <name>
+                int stackAt = -1;
+                for (int k = next; k < stringList.size() - 1; k++) {
+                    if (stringList.get(k).equalsIgnoreCase("stack") &&
+                            (k == next || stringList.get(k - 1).equalsIgnoreCase("of") || stringList.get(k - 1).equalsIgnoreCase("in"))) {
+                        stackAt = k;
+                        break;
+                    }
+                }
+                if (stackAt > 0) {
+                    String stackName = evaluation(new ArrayList<>(stringList), typeAry.clone(), stackAt + 1, stringList.size() - 1, memData, object, target);
+                    int cardEnd = stackAt == next ? -1 : stackAt - 2;
+                    goToStack(stackName, stringList, typeAry, next, cardEnd, memData, object, target, result);
+                    return result;
+                }
                 int id = 0;
                 if (0 == stringList.get(next).compareToIgnoreCase("next")) {
                     int i;
@@ -2569,6 +2609,7 @@ label:
                 for (int i = PCARD.pc.mainPane.getComponentCount() - 1; i >= 0; i--) {
                     // PCARD.pc.mainPane.remove(PCARD.pc.mainPane.getComponent(i));
                 }
+                TMovie.closePictures();
                 cd = OCard.getOCard(PCARD.pc.stack, id, false); // Read both components and pictures
 
                 cd.bg = OBackground.getOBackground(PCARD.pc.stack, cd, cd.bgid, false); // new OBackground(PCARD.pc.stack, cd, cd.bgid, false);
@@ -3244,9 +3285,21 @@ label:
             case "push" -> {
                 int next = 1;
                 if (next >= stringList.size()) throw new XTalkException("push is unknown");
-                if (stringList.get(next).equalsIgnoreCase("cd") ||
+                if ((stringList.get(next).equalsIgnoreCase("cd") || stringList.get(next).equalsIgnoreCase("card")) &&
+                        next + 1 < stringList.size()) {
+                    // push card id N [of stack S]: the given card
+                    StringBuilder spec = new StringBuilder();
+                    boolean hasStack = false;
+                    for (int k = next; k < stringList.size(); k++) {
+                        if (stringList.get(k).equalsIgnoreCase("stack")) hasStack = true;
+                        spec.append(' ').append(typeAry[k] == WordType.STRING ? "\"" + stringList.get(k) + "\"" : stringList.get(k));
+                    }
+                    if (!hasStack) spec.append(" of stack \"").append(PCARD.pc.stack.name).append('"');
+                    pushCardList.add(spec.toString().trim());
+                } else if (stringList.get(next).equalsIgnoreCase("cd") ||
                         stringList.get(next).equalsIgnoreCase("card")) {
-                    pushCardList.add(PCARD.pc.stack.curCard.getShortName());
+                    // push card: the current card of the current stack
+                    pushCardList.add("card id " + PCARD.pc.stack.curCard.id + " of stack \"" + PCARD.pc.stack.name + "\"");
                 } else {
                     if (next >= stringList.size())
                         throw new XTalkException("push " + stringList.get(next) + " is unknown");
@@ -4711,6 +4764,21 @@ label:
                     stringList.set(i + 1, resolved.get(i + 1));
                     typeAry[i + 1] = WordType.STRING;
                 }
+            } else if (typeAry[i] == WordType.OBJECT && stringList.get(i).equalsIgnoreCase("window") && typeAry[i + 1] == WordType.CHUNK) {
+                // "window line 1 of soundList": the name is a chunk expression, up to an operator
+                int j = i + 1;
+                while (j + 1 <= end && typeAry[j + 1] != WordType.OPERATOR && typeAry[j + 1] != WordType.OPERATOR_SUB &&
+                        typeAry[j + 1] != WordType.COMMA && typeAry[j + 1] != WordType.RBRACKET && typeAry[j + 1] != WordType.RFUNC) {
+                    j++;
+                }
+                try {
+                    String name = evaluation(new ArrayList<>(stringList), typeAry.clone(), i + 1, j, memData, object, target);
+                    stringList.set(i + 1, name);
+                    typeAry[i + 1] = WordType.STRING;
+                    for (int k = i + 2; k <= j; k++) typeAry[k] = WordType.NOP;
+                } catch (XTalkException e) {
+                    logger.log(Level.DEBUG, "window name: " + e.getMessage());
+                }
             }
         }
         // Interpret/operate on words entered in the list
@@ -5268,6 +5336,15 @@ label:
 
         // Function called with of
         for (int i = end; i >= start; i--) {
+            if (typeAry[i] == WordType.FUNC &&
+                    (i + 1 > end || !stringList.get(i + 1).equals("of") && typeAry[i + 1] != WordType.LFUNC && typeAry[i + 1] != WordType.LBRACKET) &&
+                    (i - 1 < start || typeAry[i - 1] != WordType.THE_FUNC && !stringList.get(i - 1).equalsIgnoreCase("the"))) {
+                // a function name without "the", "of" or "()" is a variable or a literal ("arrow Time,0,1439")
+                String v = getVariable(memData, stringList.get(i));
+                stringList.set(i, v != null ? v : stringList.get(i));
+                typeAry[i] = WordType.STRING;
+                continue;
+            }
             if (typeAry[i] == WordType.FUNC) {
                 // number of/function call using of
                 char c = ' ';
@@ -6026,18 +6103,19 @@ label:
                             typeAry[i] = WordType.NOP;
                             typeAry[i + 1] = WordType.NOP;
                         } catch (Exception err) {
-                            boolean value = false;
-//                            if (0 == opr.compareTo("<"))
-//                                value = str1.compareTo(str2) < 0;
-//                            else if (0 == opr.compareTo("<=") || 0 == opr.compareTo("≤"))
-//                                value = str1.compareTo(str2) <= 0;
-//                            else
-                            if (0 == opr.compareTo("<>") || 0 == opr.compareTo("≠"))
-                                value = str1.compareTo(str2) != 0;
-//                            else if (0 == opr.compareTo(">"))
-//                                value = str1.compareTo(str2) > 0;
-//                            else if (0 == opr.compareTo(">=") || 0 == opr.compareTo("≥"))
-//                                value = str1.compareTo(str2) >= 0;
+                            // HyperCard compares non-numbers as text (case insensitive)
+                            int c = str1.compareToIgnoreCase(str2);
+                            boolean value;
+                            if (0 == opr.compareTo("<"))
+                                value = c < 0;
+                            else if (0 == opr.compareTo("<=") || 0 == opr.compareTo("≤"))
+                                value = c <= 0;
+                            else if (0 == opr.compareTo("<>") || 0 == opr.compareTo("≠"))
+                                value = c != 0;
+                            else if (0 == opr.compareTo(">"))
+                                value = c > 0;
+                            else if (0 == opr.compareTo(">=") || 0 == opr.compareTo("≥"))
+                                value = c >= 0;
                             else throw new XTalkException("Cannot compare non-numbers: " + str1 + " and " + str2);
                             typeAry[j] = WordType.STRING;
                             stringList.set(j, value ? "true" : "false");
@@ -6181,6 +6259,17 @@ label:
 
         // 8. Number or text comparison
         for (int i = start; i <= end; i++) {
+            if (typeAry[i] == WordType.OPERATOR && stringList.get(i).matches("≠|=|<|>|<=|>=|≤|≥|is|<>")) {
+                boolean hasLeft = false;
+                for (int j = i - 1; j >= start && !hasLeft; j--) {
+                    hasLeft = typeAry[j] == WordType.STRING || typeAry[j] == WordType.X;
+                }
+                if (!hasLeft) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int k = start; k <= end; k++) sb.append(stringList.get(k)).append('[').append(typeAry[k]).append("] ");
+                    throw new XTalkException("No value before " + stringList.get(i) + ": " + sb.toString().trim());
+                }
+            }
             if (typeAry[i] == WordType.OPERATOR) {
                 String opr = stringList.get(i);
                 if (opr.equals("≠")) {
@@ -6200,7 +6289,6 @@ label:
                     } catch (Exception err) {
                         value = (0 != str1.compareToIgnoreCase(str2));
                     }
-                    value = (0 != str1.compareToIgnoreCase(str2));
                     typeAry[j] = WordType.STRING;
                     stringList.set(j, value ? "true" : "false");
                     typeAry[i] = WordType.NOP;
@@ -6482,6 +6570,102 @@ label:
             HCMenus.put(m.menu, dirStr, value, msg);
         } else {
             throw new XTalkException("No such menu");
+        }
+    }
+
+    /**
+     * go [to] [card ... of|in] stack <name>: opens the stack (the stacks in use stay in use) and goes to the card.
+     * @param cardStart the first word of the card specification
+     * @param cardEnd the last word of the card specification, -1 for the first card
+     */
+    private void goToStack(String stackName, ArrayList<String> stringList, WordType[] typeAry, int cardStart, int cardEnd,
+                           MemoryData memData, OObject object, OObject target, Result result) throws XTalkException {
+        OStack old = PCARD.pc.stack;
+        java.nio.file.Path source = MacFiles.find(stackName, MacFiles.stacksSearchPath());
+        boolean same = old.name != null && MacFiles.normalize(old.name).equals(MacFiles.normalize(MacFiles.leafName(stackName))) ||
+                source != null && old.sourceFile != null && source.toAbsolutePath().normalize().equals(old.sourceFile.toAbsolutePath().normalize());
+        if (same) {
+            // a card of this stack
+            if (cardEnd < cardStart) return;
+            ArrayList<String> sl = new ArrayList<>();
+            sl.add("go");
+            for (int k = cardStart; k <= cardEnd; k++) sl.add(stringList.get(k));
+            WordType[] ta = new WordType[sl.size()];
+            ta[0] = typeAry[0];
+            for (int k = cardStart; k <= cardEnd; k++) ta[k - cardStart + 1] = typeAry[k];
+            Result r = execCommand(sl, ta, object, target, memData, 0);
+            result.theResult = r.theResult;
+            return;
+        }
+        if (source == null) {
+            result.theResult = "No such stack";
+            return;
+        }
+        OStack stack = OStack.loadLibraryStack(source);
+        if (stack == null || stack.cardIdList.isEmpty()) {
+            result.theResult = "Can't open stack " + stackName;
+            return;
+        }
+        logger.log(Level.INFO, "go to stack " + stackName + ": " + source);
+
+        // close the current stack
+        if (!lockMessages) {
+            talk.ReceiveMessage("closeCard", new String[0], old.curCard, old.curCard, null);
+            if (old.curCard != null && old.curCard.bg != null) {
+                talk.ReceiveMessage("closeBackground", new String[0], old.curCard, old.curCard, null);
+            }
+            talk.ReceiveMessage("closeStack", new String[0], old.curCard, old.curCard, null);
+        }
+        clearMessages();
+        TMovie.closePictures();
+        boolean saveLockedScreen = PCARD.lockedScreen;
+        PCARD.lockedScreen = true;
+        if (old.curCard != null) {
+            old.curCard.removeData();
+            if (old.curCard.bg != null) old.curCard.bg.removeData();
+            if (old.curCard.label != null) {
+                PCARD.pc.mainPane.remove(old.curCard.label);
+                old.curCard.label = null;
+                old.curCard.pict = null;
+            }
+            old.curCard.bg = null;
+        }
+
+        // the stacks in use stay in use
+        List<OStack> using = old.usingStacks != null ? old.usingStacks : new ArrayList<>();
+        using.remove(stack);
+        stack.usingStacks = using;
+        PCARD.pc.stack = stack;
+        stack.setName(stack.name);
+
+        // the card
+        int id = stack.cardIdList.get(0);
+        if (cardEnd >= cardStart) {
+            ArrayList<String> sl = new ArrayList<>(stringList.subList(cardStart, cardEnd + 1));
+            WordType[] ta = java.util.Arrays.copyOfRange(typeAry, cardStart, cardEnd + 1);
+            OObject obj = null;
+            try {
+                obj = getObject(sl, ta, 0, sl.size() - 1, memData, object, target);
+            } catch (XTalkException e) {
+                logger.log(Level.DEBUG, "card: " + e.getMessage());
+            }
+            if (obj != null && obj.objectType.equals("card")) {
+                id = obj.id;
+            } else {
+                result.theResult = "No such card";
+            }
+        }
+        OCard cd = OCard.getOCard(stack, id, false);
+        cd.bg = OBackground.getOBackground(stack, cd, cd.bgid, false);
+        cd.parent = cd.bg;
+        stack.curCard = cd;
+        PCARD.lockedScreen = saveLockedScreen;
+        PCARD.pc.mainPane.repaint();
+
+        if (!lockMessages) {
+            talk.ReceiveMessage("openStack", new String[0], cd, cd, null);
+            talk.ReceiveMessage("openBackground", new String[0], cd, cd, null);
+            talk.ReceiveMessage("openCard", new String[0], cd, cd, null);
         }
     }
 
@@ -6820,9 +7004,11 @@ label:
         // field
         if (0 == str.compareToIgnoreCase("fld") || 0 == str.compareToIgnoreCase("field") ||
                 0 == str2.compareToIgnoreCase("fld") || 0 == str2.compareToIgnoreCase("field")) {
-            boolean bg = false;
-            OCardBase cdbase = PCARD.pc.stack.curCard.bg;
+            // "field" without "card" is a background field (with the text of the current card) as HyperCard
+            boolean bg = true;
+            OCardBase cdbase = PCARD.pc.stack.curCard;
             if (0 == str.compareToIgnoreCase("cd") || 0 == str.compareToIgnoreCase("card")) {
+                bg = false;
                 cdbase = PCARD.pc.stack.curCard;
                 next++;
             } else if (0 == str.compareToIgnoreCase("bg") || 0 == str.compareToIgnoreCase("bkgnd") || 0 == str.compareToIgnoreCase("background")) {
@@ -6979,7 +7165,7 @@ label:
             return source.length();
         }
         if (0 == mode.compareTo("items")) {
-            String[] strAry = source.split(itemDelimiter);
+            String[] strAry = source.split(Pattern.quote(itemDelimiter));
             return strAry.length;
         }
         if (0 == mode.compareTo("words")) { // Need to handle newlines and "" grouping
@@ -7025,7 +7211,7 @@ label:
         }
         if (0 == mode.compareTo("item")) {
             StringBuilder value = new StringBuilder();
-            String[] strAry = source.split(itemDelimiter);
+            String[] strAry = source.split(Pattern.quote(itemDelimiter));
             if (start - 1 < strAry.length && start >= 1) value = new StringBuilder(strAry[start - 1]);
             else return "";
             for (int i = start; i <= end - 1; i++) {
@@ -7089,7 +7275,7 @@ label:
         if (mode.startsWith("char")) {
             count = value.length();
         } else if (mode.equals("item")) {
-            count = value.isEmpty() ? 0 : value.split(Pattern.quote(itemDelimiter), -1).length;
+            count = value.isEmpty() ? 0 : value.split(Pattern.quote(itemDelimiter)).length;
             if (value.endsWith(itemDelimiter)) count--;
         } else if (mode.equals("line")) {
             count = value.isEmpty() ? 0 : value.split("\\r\\n|\\r|\\n", -1).length;
@@ -7157,7 +7343,7 @@ label:
                 }
                 delimiter = "\n";
             }
-            String[] strAry = oldvalue.split(delimiter);
+            String[] strAry = oldvalue.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -7217,7 +7403,7 @@ label:
             }
             delimiter2 = "\n";
         }
-        String[] strAry2 = oldvalue.split(delimiter2);
+        String[] strAry2 = oldvalue.split(Pattern.quote(delimiter2));
 
         StringBuilder value = new StringBuilder();
         for (int i = 0; i < start2 - 1; i++) {
@@ -7242,7 +7428,7 @@ label:
             if (0 == mode.compareTo("line")) {
                 delimiter = "\n";
             }
-            String[] strAry = text2.split(delimiter);
+            String[] strAry = text2.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -7306,7 +7492,7 @@ label:
                 }
                 delimiter = "\n";
             }
-            String[] strAry = text.split(delimiter);
+            String[] strAry = text.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -7375,7 +7561,7 @@ label:
             }
             delimiter2 = "\n";
         }
-        String[] strAry2 = text.split(delimiter2);
+        String[] strAry2 = text.split(Pattern.quote(delimiter2));
 
         StringBuilder value = new StringBuilder();
         for (int i = 0; i < start2 - 1; i++) {
@@ -7398,7 +7584,7 @@ label:
             if (0 == mode.compareTo("line")) {
                 delimiter = "\n";
             }
-            String[] strAry = text2.split(delimiter);
+            String[] strAry = text2.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);

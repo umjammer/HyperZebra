@@ -93,6 +93,7 @@ public final class MacFiles {
         }
         String leaf = leafName(ref);
         List<Path> candidates = index.get(normalize(leaf));
+        if (candidates != null) candidates = candidates.stream().filter(Files::isRegularFile).toList();
         if (candidates == null || candidates.isEmpty()) {
             logger.log(Level.DEBUG, "not found: " + ref);
             return null;
