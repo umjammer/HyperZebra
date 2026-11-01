@@ -792,7 +792,7 @@ class ScriptArea extends JTextPane {
                             funcstr.equals("item") || funcstr.equals("word") ||
                             funcstr.equals("line") ||
                             funcstr.equals("window") ||
-                            funcstr.equals("menu") ||
+                            funcstr.equals("menu") || funcstr.equals("menuitem") ||
                             funcstr.equals("id") ||
                             funcstr.equals("or") || funcstr.equals("and") || funcstr.equals("not") ||
                             funcstr.equals("div") || funcstr.equals("mod") || funcstr.equals("is") || funcstr.equals("in") || funcstr.equals("within") || funcstr.equals("a") || funcstr.equals("an") ||
@@ -1220,7 +1220,7 @@ class ScriptArea extends JTextPane {
                             || str.equals("fld") || str.equals("field")
                             || str.equals("stack")
                             || str.equals("window")
-                            || str.equals("menu")
+                            || str.equals("menu") || str.equals("menuitem")
                             || str.equals("menubar") || str.equals("titlebar") || str.equals("msg") || str.equals("message")
                             || str.equals("hypercard")
                             || str.equals("me")

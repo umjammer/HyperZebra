@@ -286,6 +286,7 @@ public class OStack extends OObject {
 
         // Open the first card
         if (!cardIdList.isEmpty()) {
+            TTalk.stackOpening = true;
             mainPane.removeAll();
             try {
                 curCard = OCard.getOCard(this, cardIdList.get(0), false);

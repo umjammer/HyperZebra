@@ -326,6 +326,26 @@ class OMenu extends OObject {
 }
 
 
+/** a menu item of HyperCard 2 menu scripting */
+class OMenuItem extends OObject {
+
+    javax.swing.JMenu menu;
+    javax.swing.JMenuItem item;
+
+    public OMenuItem(javax.swing.JMenu menu, javax.swing.JMenuItem item) {
+        objectType = "menuitem";
+        this.menu = menu;
+        this.item = item;
+        this.name = item.getText();
+    }
+
+    @Override
+    public String getText() {
+        return item.getText();
+    }
+}
+
+
 class OMonitor extends OObject {
 
     static OMonitor monitor = new OMonitor();

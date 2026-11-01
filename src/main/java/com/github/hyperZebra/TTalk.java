@@ -360,6 +360,9 @@ public class TTalk extends Thread {
     static boolean stepFlag;
     static MemoryData globalData = new MemoryData();
 
+    /** true while a stack is being opened (until its first openCard is handled), no idle is sent */
+    static volatile boolean stackOpening;
+
     /** drops queued messages except the ones opening a stack */
     static void clearMessages() {
         synchronized (messageList) {
@@ -767,12 +770,19 @@ public class TTalk extends Thread {
                 }
             }
             if (msg != null) {
+                if (msg.idle && stackOpening) {
+                    continue; // idle is sent after the stack is opened
+                }
                 try {
                     if (msg.do_script) {
                         doScriptforMenu(msg.message);
                     } else ReceiveMessage(msg.message, msg.param, msg.object, null, msg.idle);
                 } catch (Exception e) {
                     logger.log(Level.ERROR, e.getMessage(), e);
+                } finally {
+                    if (!msg.idle && "openCard".equalsIgnoreCase(msg.message) && stackOpening) {
+                        stackOpening = false;
+                    }
                 }
             } else {
                 /*if(idle==false)*/
@@ -2234,7 +2244,10 @@ label:
                         }
                         next++;
                     }
-                    if (next + 1 >= stringList.size()) {
+                    if (next + 1 < stringList.size() && (stringList.get(next + 1).equalsIgnoreCase("menu") ||
+                            stringList.get(next + 1).equalsIgnoreCase("menuitem"))) {
+                        putIntoMenu(stringList, typeAry, next, dirStr, memData, object, target);
+                    } else if (next + 1 >= stringList.size()) {
                         // put xx
                         String value = evaluation(stringList, typeAry, 1, stringList.size() - 1, memData, object, target);
                         GMsg.setText(value);
@@ -3521,19 +3534,7 @@ label:
                 if (next >= stringList.size()) throw new XTalkException("delete is unknown");
                 if (stringList.get(next).equalsIgnoreCase("menu")) {
                     // Delete menu
-                    for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
-                        Component c = PCARDFrame.pc.menu.mb.getComponent(i);
-                        if (c.getClass() == JMenu.class) {
-                            JMenu menu = (JMenu) c;
-                            String v = evaluation(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
-                            if (menu.getText().equalsIgnoreCase(v)) {
-                                PCARDFrame.pc.menu.mb.remove(menu);
-                                // Reflect menu
-                                GMenu.menuUpdate(PCARD.pc.menu.mb);
-                                break;
-                            }
-                        }
-                    }
+                    HCMenus.delete(evaluation(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target));
                 } else if (stringList.get(next).equalsIgnoreCase("menuItem")) {
                     // Delete menu item
                     for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
@@ -3810,9 +3811,13 @@ label:
                     next++;
                     if (next >= stringList.size()) throw new XTalkException("create menu is unknown");
 
-                    JMenu m = new JMenu(stringList.get(next));
-                    PCARD.pc.menu.mb.add(m);
-                    PCARD.pc.getJMenuBar().add(m);
+                    String menuName = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                    if (next == stringList.size() - 1 && typeAry[next] != WordType.STRING && !menuName.isEmpty() &&
+                            menuName.equals(menuName.toLowerCase())) {
+                        // an unquoted name is lower cased by the parser ("create menu File")
+                        menuName = Character.toUpperCase(menuName.charAt(0)) + menuName.substring(1);
+                    }
+                    HCMenus.create(menuName);
                 } else if (stringList.get(next).equalsIgnoreCase("button") ||
                         stringList.get(next).equalsIgnoreCase("btn")) {
                     OCardBase cdbase = PCARD.pc.stack.curCard;
@@ -5588,7 +5593,8 @@ label:
                         for (int j = i + 1; j < i + objres.cnt && j <= end; j++) {
                             typeAry[j] = WordType.NOP;
                         }
-                    } else if (0 == objres.obj.objectType.compareTo("button") || 0 == objres.obj.objectType.compareTo("field")) {
+                    } else if (0 == objres.obj.objectType.compareTo("button") || 0 == objres.obj.objectType.compareTo("field") ||
+                            0 == objres.obj.objectType.compareTo("menuitem")) {
                         stringList.set(i, objres.obj.getText());
                         typeAry[i] = WordType.STRING;
                         for (int j = i + 1; j < i + objres.cnt && j <= end; j++) {
@@ -6438,6 +6444,47 @@ label:
         } else throw new XTalkException("Variable name does not start with alphabetic character: " + name);
     }
 
+    /** put value before|after|into menu m [with menuMsg msg], put value into menuItem n of menu m [with menuMsg msg] */
+    private static void putIntoMenu(List<String> stringList, WordType[] typeAry, int dir, String dirStr,
+                                    MemoryData memData, OObject object, OObject target) throws XTalkException {
+        String value = evaluation(new ArrayList<>(stringList), typeAry.clone(), 1, dir - 1, memData, object, target);
+        int end = stringList.size() - 1;
+        int with = -1;
+        for (int k = dir + 1; k < stringList.size(); k++) {
+            if (stringList.get(k).equalsIgnoreCase("with") && k + 1 < stringList.size() &&
+                    (stringList.get(k + 1).equalsIgnoreCase("menumsg") || stringList.get(k + 1).equalsIgnoreCase("menumessage"))) {
+                with = k;
+                break;
+            }
+        }
+        String msg = null;
+        if (with >= 0) {
+            StringBuilder literal = new StringBuilder();
+            for (int k = with + 2; k <= end; k++) {
+                if (literal.length() > 0) literal.append(' ');
+                literal.append(stringList.get(k));
+            }
+            // a message like "transition 1" is not an expression
+            msg = literal.toString();
+            if (with + 2 == end) {
+                try {
+                    msg = evaluation(new ArrayList<>(stringList), typeAry.clone(), with + 2, end, memData, object, target);
+                } catch (XTalkException e) {
+                    // literal
+                }
+            }
+            end = with - 1;
+        }
+        OObject obj = getObject(new ArrayList<>(stringList), typeAry.clone(), dir + 1, end, memData, object, target);
+        if (obj instanceof OMenuItem mi) {
+            HCMenus.putIntoItem(mi.item, value, msg);
+        } else if (obj instanceof OMenu m) {
+            HCMenus.put(m.menu, dirStr, value, msg);
+        } else {
+            throw new XTalkException("No such menu");
+        }
+    }
+
     /** @return the list, a copy whose window name is the value of the variable for "window &lt;variable&gt;" */
     private static List<String> windowNameResolved(List<String> stringList, WordType[] typeAry, int i, MemoryData memData) {
         if (i + 1 < stringList.size() && stringList.get(i).equalsIgnoreCase("window")) {
@@ -6611,23 +6658,24 @@ label:
             }
             return objres;
         } else if (0 == str.compareToIgnoreCase("menu")) {
-            if (str2.matches("[0-9]*")) {
-                int i = Integer.parseInt(str2);
-                if (i <= PCARD.pc.getJMenuBar().getComponentCount()) {
-                    objres.cnt = 2;
-                    objres.obj = new OMenu((JMenu) PCARD.pc.getJMenuBar().getComponent(i));
-                }
-                return objres;
-            } else {
-                for (int i = 0; i < PCARD.pc.getJMenuBar().getComponentCount(); i++) {
-                    JMenu menu = (JMenu) PCARD.pc.getJMenuBar().getComponent(i);
-                    if (menu.getText().equalsIgnoreCase(str2)) {
-                        objres.cnt = 2;
-                        objres.obj = new OMenu(menu);
-                    }
-                }
-                return objres;
+            JMenu menu = HCMenus.find(str2);
+            if (menu != null) {
+                objres.cnt = 2;
+                objres.obj = new OMenu(menu);
             }
+            return objres;
+        } else if (0 == str.compareToIgnoreCase("menuitem")) {
+            // menuItem <n|name> of menu <name>
+            if (next + 3 < stringList.size() && stringList.get(next + 1).equalsIgnoreCase("of") &&
+                    stringList.get(next + 2).equalsIgnoreCase("menu")) {
+                JMenu menu = HCMenus.find(stringList.get(next + 3));
+                JMenuItem item = HCMenus.item(menu, str2);
+                if (item != null) {
+                    objres.cnt = 5;
+                    objres.obj = new OMenuItem(menu, item);
+                }
+            }
+            return objres;
         } else if (0 == str.compareToIgnoreCase("folder")) {
             String path = "";
             path = str2.replace(':', File.separatorChar);
@@ -7445,17 +7493,25 @@ label:
             }
             j--;
             String str = evaluation(stringList, typeAry, next + 1, j, memData, object, target);
-
-            for (int i = 0; i < PCARD.pc.menu.mb.getComponentCount(); i++) {
-                Component c = PCARD.pc.menu.mb.getComponent(i);
-                if (c.getClass() == JMenu.class) {
-                    JMenu menu = (JMenu) c;
-                    if (str.equalsIgnoreCase(menu.getText()) ||
-                            str.equalsIgnoreCase(PCARD.getEngText("main", menu.getText()))) {
-                        obj = new OMenu(menu);
-                        break;
-                    }
-                }
+            JMenu menu = HCMenus.find(str);
+            if (menu != null) obj = new OMenu(menu);
+        } else if (0 == stringList.get(next).compareToIgnoreCase("menuitem")) {
+            // menuItem <n|name> of menu <name>
+            int of = next + 1;
+            int depth = 0;
+            for (; of <= end; of++) {
+                if (typeAry[of] == WordType.LBRACKET || typeAry[of] == WordType.LFUNC) depth++;
+                else if (typeAry[of] == WordType.RBRACKET || typeAry[of] == WordType.RFUNC) depth--;
+                else if (depth == 0 && stringList.get(of).equalsIgnoreCase("of")) break;
+            }
+            if (of + 2 <= end && stringList.get(of + 1).equalsIgnoreCase("menu")) {
+                String spec = evaluation(new ArrayList<>(stringList), typeAry.clone(), next + 1, of - 1, memData, object, target);
+                int j = of + 2;
+                while (j + 1 <= end && !stringList.get(j + 1).equalsIgnoreCase("with")) j++;
+                String menuName = evaluation(new ArrayList<>(stringList), typeAry.clone(), of + 2, j, memData, object, target);
+                JMenu menu = HCMenus.find(menuName);
+                JMenuItem item = HCMenus.item(menu, spec);
+                if (item != null) obj = new OMenuItem(menu, item);
             }
         } else if ((0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card")) &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("picture")) {

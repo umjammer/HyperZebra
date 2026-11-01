@@ -495,7 +495,7 @@ class Pidle extends Thread {
         this.setName("idle thread");
         while (true) {
             if (PCARDFrame.pc.stack != null && PCARDFrame.pc.stack.curCard != null && PCARDFrame.pc.tool == null) {
-                if (TTalk.idle && (PCARD.pc.isActive() || IDLE_IN_BACKGROUND)) {
+                if (TTalk.idle && !TTalk.stackOpening && (PCARD.pc.isActive() || IDLE_IN_BACKGROUND)) {
                     if (System.currentTimeMillis() - TTalk.lastErrorTime > 10 * 1000) {
                         TTalk.CallMessage("idle", "", PCARDFrame.pc.stack.curCard, true, false);
                     }

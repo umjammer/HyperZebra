@@ -79,10 +79,16 @@ public class TXcmd {
                 result.theResult = "";
             }
             case "picture" -> result.theResult = TMovie.openPicture(params);
-            case "decurse", "movecursor", "xclip", "xline", "xabout", "xsetsoundvol", "xmemory", "variant",
+            case "decurse", "movecursor", "xclip", "xline", "xabout", "xmemory", "variant",
                  "xwindowframe", "movieinfo" ->
                     result.theResult = "";
-            case "xgetsoundvol" -> result.theResult = "7";
+            // the Mac sound volume (0 - 7) is the master volume
+            case "xsetsoundvol" -> {
+                int[] v = HyperTint.numbers(params != null && params.length > 0 ? params[0] : "");
+                if (v.length > 0) Volume.set(Math.max(0, Math.min(7, v[0])) / 7f);
+                result.theResult = "";
+            }
+            case "xgetsoundvol" -> result.theResult = Integer.toString(Math.round(Volume.get() * 7));
             case "xvirtual" -> result.theResult = "0";
             case "xdepth", "getmode" -> result.theResult = "8";
             case "setmode" -> result.theResult = "";

@@ -839,6 +839,10 @@ public class TUtil {
             String v = w.movie.getProperty(prpty);
             if (v != null) return v;
         }
+        if (obj instanceof OMenuItem mi) {
+            String v = HCMenus.getProperty(mi.item, prpty);
+            if (v != null) return v;
+        }
         if (obj == OWindow.cdwindow && PCARD.pc.stack != null && PCARD.pc.mainPane != null) {
             java.awt.Point p = PCARD.pc.mainPane.isShowing() ? PCARD.pc.mainPane.getLocationOnScreen() : new java.awt.Point(0, 0);
             int w = PCARD.pc.stack.width, h = PCARD.pc.stack.height;
@@ -1103,6 +1107,9 @@ public class TUtil {
             OObject obj, String inProperty, String value)
             throws XTalkException {
         String prpty = inProperty.toLowerCase();
+        if (obj instanceof OMenuItem mi && HCMenus.setProperty(mi.item, prpty, value)) {
+            return;
+        }
         if (obj instanceof OWindow w) {
             if (w.movie != null && w.movie.setProperty(prpty, value)) return;
             if (w == OWindow.cdwindow && prpty.matches("loc|rect|topleft|width|height|scroll")) {
