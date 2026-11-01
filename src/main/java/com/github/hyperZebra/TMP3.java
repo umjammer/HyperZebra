@@ -30,6 +30,7 @@ public class TMP3 extends Thread {
 
     public TMP3(String filename, String title) {
         name = "";
+        Volume.addListener(this::applyVolume);
         try {
             file = new File(filename);
             if ((title + ".mp3").contains(file.getName()))
@@ -70,12 +71,22 @@ public class TMP3 extends Thread {
         end_flag = true;
     }
 
+    /** the volume set by the script, 0 - 256 */
+    private int volume = 256;
+
     public void setVolume(int vol) {
+        volume = vol;
+        applyVolume();
+    }
+
+    private void applyVolume() {
+        int vol = volume;
         if (vol <= 256 && line != null) {
             try {
                 FloatControl control;
                 control = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-                control.setValue((float) Math.log10(vol / 256.0F) * 20);
+                float level = Math.max(vol / 256.0F * Volume.get(), 0.0001f);
+                control.setValue(Math.max(control.getMinimum(), Math.min(control.getMaximum(), (float) Math.log10(level) * 20)));
             } catch (IllegalArgumentException e) {
                 logger.log(Level.ERROR, e.getMessage(), e);
             }
@@ -149,6 +160,7 @@ public class TMP3 extends Thread {
         if (line != null) {
             // Start
             line.start();
+            applyVolume();
             int nBytesRead = 0 /*, nBytesWritten = 0 */;
             while (nBytesRead != -1 && !end_flag && !pause_flag) {
                 nBytesRead = din.read(data, 0, data.length);

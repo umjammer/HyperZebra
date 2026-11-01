@@ -506,6 +506,11 @@ public class GMenu {
         m.add(cb = new JCheckBoxMenuItem(rb.getString("main.Zoom_x4")));
         cb.setSelected(pcard.zoom == 4);
         cb.addActionListener(listener);
+        m.addSeparator();
+        // a slider cannot be shown in the screen menu bar of macOS, the item opens a slider panel
+        JMenuItem volumeItem = new JMenuItem(rb.getString("main.Volume") + "\u2026");
+        volumeItem.addActionListener(e -> Volume.showPanel());
+        m.add(volumeItem);
 
         // Font menu
         m = new JMenu(rb.getString("main.Font"));

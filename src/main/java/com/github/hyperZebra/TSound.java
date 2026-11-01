@@ -86,7 +86,7 @@ public class TSound implements LineListener {
                 int chunk = 2048;
                 while (offset < item.pcmData.length && item.gen == generation) {
                     int len = Math.min(chunk, item.pcmData.length - offset);
-                    line.write(item.pcmData, offset, len);
+                    line.write(Volume.scalePcm16le(item.pcmData, offset, len), 0, len);
                     offset += len;
                 }
                 if (playQueue.isEmpty() && item.gen == generation) {

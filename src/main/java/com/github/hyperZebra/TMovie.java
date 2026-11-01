@@ -54,6 +54,10 @@ final class TMovie {
 
     private static boolean sessionOpened;
 
+    static {
+        Volume.addListener(() -> movies.forEach(TMovie::applyVolume));
+    }
+
     /** the window object */
     OWindow window;
     /** the window name */
@@ -392,7 +396,7 @@ final class TMovie {
 
     private void applyVolume() {
         try {
-            if (movie != null) movie.setVolume(mute ? 0f : volume);
+            if (movie != null) movie.setVolume(mute ? 0f : volume * Volume.get());
         } catch (Exception e) {
             logger.log(Level.TRACE, e.toString());
         }
