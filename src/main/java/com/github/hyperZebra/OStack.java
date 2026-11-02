@@ -12,16 +12,14 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -29,31 +27,30 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-import vavi.util.Debug;
-
 
 public class OStack extends OObject {
 
-    static Logger logger = Logger.getLogger(OStack.class.getName());
+    static Logger logger = System.getLogger(OStack.class.getName());
 
     PCARDFrame pcard;
 
-    Charset charset = StandardCharsets.UTF_8; // Character encoding
     String path = ""; // Stack file path
     Path file;
+    /** the original HyperCard stack file this stack was converted from, null if none */
+    Path sourceFile;
     OCard curCard;
-    GButton GUI_btn;
-    GRadio GUI_radio;
-    GCheckBox GUI_check;
-    GPopup GUI_popup;
-    GField GUI_fld;
+    GButton guiButton;
+    GRadio guiRadio;
+    GCheckBox guiCheck;
+    GPopup guiPopup;
+    GField guiField;
     ScriptEditor scriptEditor;
     JPanel mainPane;
     Rsrc rsrc = new Rsrc(this);
     String[] Pattern = new String[40];
     BufferedImage addColor;
     boolean changed;
-    XMLwrite saveXML;
+    XMLWrite saveXML;
     List<OStack> usingStacks = new ArrayList<>();
 
     // Progress dialog
@@ -103,26 +100,6 @@ public class OStack extends OObject {
         return scriptList;
     }
 
-    @Override
-    public int getLeft() {
-        return left;
-    }
-
-    @Override
-    public int getTop() {
-        return top;
-    }
-
-    @Override
-    public int getWidth() {
-        return width;
-    }
-
-    @Override
-    public int getHeight() {
-        return height;
-    }
-
     public Boolean getCantAbort() {
         return cantAbort;
     }
@@ -147,10 +124,10 @@ public class OStack extends OObject {
     public void clean() {
         if (curCard != null) {
             if (curCard.bg != null) {
-                // curCard.bg.removeData();
+                //curCard.bg.removeData();
                 curCard.bg.clean();
             }
-            // curCard.removeData();
+            //curCard.removeData();
             curCard.clean();
         }
         pcard = null;
@@ -176,7 +153,9 @@ public class OStack extends OObject {
     // set
     public void setName(String in) {
         name = in;
-        pcard.setTitle(name);
+        if (PCARD.pc == null || PCARD.pc.stack == this) {
+            pcard.setTitle(name);
+        }
     }
 
     public void setTopLeft(int h, int v) {
@@ -227,11 +206,11 @@ public class OStack extends OObject {
 
         pcard = pc;
         // PCARD.pc.stack = this;
-        GUI_btn = new GButton();
-        GUI_radio = new GRadio();
-        GUI_check = new GCheckBox();
-        GUI_popup = new GPopup();
-        GUI_fld = new GField();
+        guiButton = new GButton();
+        guiRadio = new GRadio();
+        guiCheck = new GCheckBox();
+        guiPopup = new GPopup();
+        guiField = new GField();
         mainPane = pc.mainPane;
 
         if (mainPane != null) {
@@ -248,7 +227,6 @@ public class OStack extends OObject {
         styleTableID = (int) (20000 * Math.random() + 1000);
         listId = (int) (20000 * Math.random() + 1000);
     }
-
 
     @SuppressWarnings("unchecked")
     public void buildStackFile(boolean isUsingOnly) {
@@ -267,7 +245,6 @@ public class OStack extends OObject {
             usingStacks.add(PCARD.home);
         }
 
-
         if (PCARD.pc.toolbar == null) {
             PCARD.pc.toolbar = new GToolBar(PCARD.pc);
         }
@@ -277,8 +254,10 @@ public class OStack extends OObject {
             sepStr = "\\\\";
         }
         String[] strArray = path.split(sepStr);
-        // name=strArray[strArray.length-1];
-        if (strArray.length - 2 >= 0) {
+        //name = strArray[strArray.length - 1];
+        if (sourceFile != null) {
+            name = sourceFile.getFileName().toString();
+        } else if (strArray.length - 2 >= 0) {
             name = strArray[strArray.length - 2];
         } else {
             name = path;
@@ -299,28 +278,28 @@ public class OStack extends OObject {
             pcard.setBounds(left, top - height * z - 20, width * z, height * z + 20);
         }
         pcard.setVisible(true);
-        // pcard.setLocationRelativeTo(null);
+        //pcard.setLocationRelativeTo(null);
         pcard.setResizable(resizable);
         setNewBounds();
 
         PCARD.pc.msg.setBounds(PCARD.pc.getX() + PCARD.pc.getWidth() / 2 - 240, PCARD.pc.getY() + PCARD.pc.getHeight(), 480, 28 + PCARD.pc.getInsets().top);
 
-
         // Open the first card
         if (!cardIdList.isEmpty()) {
+            TTalk.stackOpening = true;
             mainPane.removeAll();
             try {
                 curCard = OCard.getOCard(this, cardIdList.get(0), false);
                 curCard.bg = OBackground.getOBackground(this, curCard, curCard.bgid, false);
                 curCard.parent = curCard.bg;
             } catch (XTalkException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
                 curCard = cdCacheList.get(0);
                 try {
                     curCard.bg = OBackground.getOBackground(this, curCard, curCard.bgid, false);
                     curCard.parent = curCard.bg;
                 } catch (XTalkException e2) {
-                    e2.printStackTrace();
+                    logger.log(Level.ERROR, e2.getMessage(), e2);
                 }
             }
 
@@ -336,7 +315,7 @@ public class OStack extends OObject {
 
         // Start a thread for change monitoring & XML saving
         if (!System.getProperty("java.version").startsWith("1.5")) { // JRE1.5.x is not supported
-            saveXML = new XMLwrite(this);
+            saveXML = new XMLWrite(this);
         }
     }
 
@@ -344,6 +323,28 @@ public class OStack extends OObject {
         Rectangle r = PCARD.pc.stack.pcard.getBounds();
         int z = pcard.zoom;
         PCARD.pc.stack.pcard.setBounds(r.x, r.y, width * z + PCARD.pc.toolbar.getTWidth(), height * z + PCARD.pc.toolbar.getTHeight() + pcard.getInsets().top);
+    }
+
+    /** stacks loaded for "start using", by source file */
+    private static final java.util.Map<Path, OStack> libraryCache = new java.util.HashMap<>();
+
+    /**
+     * Loads a HyperCard stack for "start using" without making it the current stack.
+     * @return the stack, null if it cannot be read
+     */
+    static synchronized OStack loadLibraryStack(Path source) {
+        Path key = source.toAbsolutePath().normalize();
+        OStack cached = libraryCache.get(key);
+        if (cached != null) return cached;
+        OStack s = new OStack(PCARD.pc);
+        s.scriptList = new ArrayList<>();
+        if (!HCConvert.openHCStack(key.toString(), s)) {
+            logger.log(Level.WARNING, "cannot read stack: " + source);
+            return null;
+        }
+        s.buildStackFile(true);
+        libraryCache.put(key, s);
+        return s;
     }
 
     static void openStackFile(String inpath, boolean isUsingOnly) {
@@ -402,7 +403,7 @@ public class OStack extends OObject {
             }
             if (STAKstr.toString().equals("STAK")) {
                 // This is probably a HyperCard stack file
-Debug.println(file + " is HyperCard stack file");
+logger.log(Level.DEBUG, file + " is HyperCard stack file");
                 if (HCConvert.openHCStack(path, this)) {
                     if (!PCARD.pc.stack.cdCacheList.isEmpty()) {
                         PCARD.successOpenFile();
@@ -411,7 +412,7 @@ Debug.println(file + " is HyperCard stack file");
                 }
             } else if (true /* path.substring(path.length()-4).equals(".bin") */) {
                 // MacBinary format?
-Debug.println(file + " is MacBinary type?");
+logger.log(Level.DEBUG, file + " is MacBinary type?");
                 if (HCConvert.openMacBinaryStack(path, this)) {
                     if (!this.cdCacheList.isEmpty()) {
                         PCARD.successOpenFile();
@@ -519,8 +520,8 @@ Debug.println(file + " is MacBinary type?");
                             // dummy
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -538,7 +539,6 @@ Debug.println(file + " is MacBinary type?");
         return reader;
     }
 
-
     public XMLStreamReader readFontXML(XMLStreamReader reader) throws Exception {
         String idStr = "0", nameStr = "";
         while (reader.hasNext()) {
@@ -551,8 +551,8 @@ Debug.println(file + " is MacBinary type?");
                     } else if (elm.equals("name")) {
                         nameStr = reader.getElementText();
                     } else {
-                        System.out.println("Local Name: " + reader.getLocalName());
-                        System.out.println("Element Text: " + reader.getElementText());
+                        logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                        logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                     }
                 }
                 if (eventType == XMLStreamReader.END_ELEMENT) {
@@ -587,7 +587,6 @@ Debug.println(file + " is MacBinary type?");
         }
     }
 
-
     public XMLStreamReader readStyleXML(XMLStreamReader reader) throws Exception {
         String idStr = "-1";
         String sizeStr = "-1";
@@ -605,8 +604,8 @@ Debug.println(file + " is MacBinary type?");
                         case "font" -> fontStr = reader.getElementText();
                         case "size" -> sizeStr = reader.getElementText();
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -630,9 +629,9 @@ Debug.println(file + " is MacBinary type?");
     static class styleClass {
 
         int id;
-        int style;// -1 means don't change
-        int font;// -1 means don't change
-        int size;// -1 means don't change
+        int style; // -1 means don't change
+        int font; // -1 means don't change
+        int size; // -1 means don't change
 
         public styleClass(String id, String style, String font, String size) {
             this.id = Integer.parseInt(id);
@@ -651,7 +650,6 @@ Debug.println(file + " is MacBinary type?");
             this.size = Integer.parseInt(size);
         }
     }
-
 
     public void writeXML(XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement("stack");
@@ -807,7 +805,6 @@ Debug.println(file + " is MacBinary type?");
         writer.writeCharacters("\n\t");
     }
 
-
     public void writeFontXML(XMLStreamWriter writer) throws XMLStreamException {
         for (OStack.fontClass fontClass : fontList) {
             writer.writeStartElement("font");
@@ -828,9 +825,8 @@ Debug.println(file + " is MacBinary type?");
         }
     }
 
-
     public void writeStyleXML(XMLStreamWriter writer) throws XMLStreamException {
-        // TODO: dummy
+        // TODO dummy
         writer.writeStartElement("nextStyleID");
         writer.writeCharacters(Integer.toString(nextStyleID));
         writer.writeEndElement();
@@ -885,11 +881,10 @@ Debug.println(file + " is MacBinary type?");
         }
     }
 
-
     // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readStackBlock(DataInputStream dis, int blockSize) {
-        // //System.out.println("readStackBlock");
+        // //logger.log(Level.DEBUG, "readStackBlock");
 
         if (blockSize > 200000 || blockSize < 50) {
             return false;
@@ -897,85 +892,71 @@ Debug.println(file + " is MacBinary type?");
 
         // Read block data sequentially
         id = HCData.readCode(dis, 4);
-        // System.out.println("blockId:"+id); // always -1
-        /*String tygersStr =*/
-        HCData.readStr(dis, 4);
-        // System.out.println("tygersStr:"+tygersStr);
-        /*int format =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("format:"+format);
+        //logger.log(Level.DEBUG, "blockId: " + id); // always -1
+        /* String tygersStr = */ HCData.readStr(dis, 4);
+        //logger.log(Level.DEBUG, "tygersStr: " + tygersStr);
+        /* int format = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "format: " + format);
         totalSize = HCData.readCode(dis, 4);
-        // System.out.println("totalSize:"+totalSize);
-        /*int stackSize =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("stackSize:"+stackSize);
-        /*int something =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("something:"+something); // 2 in wings, 0 in Minami, 0 in Tori, 0 in Uniyo
-        /*int tygers1Str =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("tygersStr:"+tygers1Str); // 0 in Tori, 0 in Uniyo
-        /*int numofBgs =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("numofBgs:"+numofBgs);
+        //logger.log(Level.DEBUG, "totalSize: " + totalSize);
+        /* int stackSize = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "stackSize: " + stackSize);
+        /* int something = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "something: " + something); // 2 in wings, 0 in Minami, 0 in Tori, 0 in Uniyo
+        /* int tygers1Str = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "tygersStr: " + tygers1Str); // 0 in Tori, 0 in Uniyo
+        /* int numofBgs = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "numofBgs: " + numofBgs);
         firstBg = HCData.readCode(dis, 4);
-        // System.out.println("firstBg:"+firstBg);
-        /*int numofCards =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("numofCards:"+numofCards);
+        //logger.log(Level.DEBUG, "firstBg: " + firstBg);
+        /* int numofCards = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "numofCards: " + numofCards);
         firstCard = HCData.readCode(dis, 4);
-        // System.out.println("firstCard:"+firstCard);
+        //logger.log(Level.DEBUG, "firstCard: " + firstCard);
         listId = HCData.readCode(dis, 4);
-        // System.out.println("listBlockId:"+listId);
-        /*int numofFree =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("numofFree:"+numofFree);
-        /*int freeSize =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("freeSize:"+freeSize);
-        /*int printId =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("printId:"+printId);
+        //logger.log(Level.DEBUG, "listBlockId: " + listId);
+        /* int numofFree = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "numofFree: "  +numofFree);
+        /* int freeSize = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "freeSize: " + freeSize);
+        /* int printId = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "printId: " + printId);
         passwordHash = HCData.readCode(dis, 4);
-        // System.out.println("passwordHash:"+passwordHash);
+        //logger.log(Level.DEBUG, "passwordHash: " + passwordHash);
         userLevel = HCData.readCode(dis, 2);
-        // System.out.println("userLevel:"+userLevel);
-        /*String tygers3Str =*/
-        HCData.readStr(dis, 2);
-        // System.out.println("tygers3Str:"+tygers3Str);
+        //logger.log(Level.DEBUG, "userLevel: " + userLevel);
+        /* String tygers3Str = */ HCData.readStr(dis, 2);
+        //logger.log(Level.DEBUG, "tygers3Str: " + tygers3Str);
         int flags = HCData.readCode(dis, 2);
-        // System.out.println("flags:"+flags);
+        //logger.log(Level.DEBUG, "flags: " + flags);
         cantPeek = ((flags >> 10) & 0x01) != 0;
         cantAbort = ((flags >> 11) & 0x01) != 0;
         privateAccess = ((flags >> 13) & 0x01) != 0;
         cantDelete = ((flags >> 14) & 0x01) != 0;
         cantModify = ((flags >> 15) & 0x01) != 0;
-        /*String tygers4Str =*/
-        HCData.readStr(dis, 18);
-        // System.out.println("tygers4Str:"+tygers4Str);
+        /* String tygers4Str = */ HCData.readStr(dis, 18);
+        //logger.log(Level.DEBUG, "tygers4Str: " + tygers4Str);
 
         int createdByV = HCData.readCode(dis, 4);
         createdByVersion = getVers(createdByV);
-        // System.out.println("createdVer:"+createdByVersion);
+        //logger.log(Level.DEBUG, "createdVer: " + createdByVersion);
 
         int compactedV = HCData.readCode(dis, 4);
         lastCompactedVersion = getVers(compactedV);
-        // System.out.println("compactedVer:"+lastCompactedVersion);
+        //logger.log(Level.DEBUG, "compactedVer: " + lastCompactedVersion);
 
         int lastEditedV = HCData.readCode(dis, 4);
         lastEditedVersion = getVers(lastEditedV);
-        // System.out.println("lastEditedVer:"+lastEditedVersion);
+        //logger.log(Level.DEBUG, "lastEditedVer: " + lastEditedVersion);
 
         int lastOpenedV = HCData.readCode(dis, 4);
         firstEditedVersion = getVers(lastOpenedV);
-        // System.out.println("lastOpenedVer:"+firstEditedVersion);
+        //logger.log(Level.DEBUG, "lastOpenedVer: " + firstEditedVersion);
 
-        /*int checksum =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("checksum:"+checksum);
-        /*String tygers41Str =*/
-        HCData.readStr(dis, 4);
-        // System.out.println("tygers41Str:"+tygers41Str);
+        /* int checksum = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "checksum: " + checksum);
+        /* String tygers41Str = */ HCData.readStr(dis, 4);
+        //logger.log(Level.DEBUG, "tygers41Str: " + tygers41Str);
         windowRect = new Rectangle();
         windowRect.x = HCData.readCode(dis, 2);
         windowRect.y = HCData.readCode(dis, 2);
@@ -989,25 +970,22 @@ Debug.println(file + " is MacBinary type?");
         scroll = new Point();
         scroll.x = HCData.readCode(dis, 2);
         scroll.y = HCData.readCode(dis, 2);
-        /*String tygers5Str =*/
-        HCData.readStr(dis, 292);
-        // System.out.println("tygers5Str:"+tygers5Str);
+        /* String tygers5Str = */ HCData.readStr(dis, 292);
+        //logger.log(Level.DEBUG, "tygers5Str: " + tygers5Str);
         fontTableID = HCData.readCode(dis, 4);
-        // System.out.println("fontTableId:"+fontTableID);
+        //logger.log(Level.DEBUG, "fontTableId: " + fontTableID);
         styleTableID = HCData.readCode(dis, 4);
-        // System.out.println("styleTableId:"+styleTableID);
+        //logger.log(Level.DEBUG, "styleTableId: " + styleTableID);
         height = HCData.readCode(dis, 2);
-        // System.out.println("height:"+height);
+        //logger.log(Level.DEBUG, "height: " + height);
         width = HCData.readCode(dis, 2);
-        // System.out.println("width:"+width);
-        /*String tygers6Str =*/
-        HCData.readStr(dis, 260);
-        // System.out.println("tygers6Str:"+tygers6Str);
+        //logger.log(Level.DEBUG, "width: " + width);
+        /* String tygers6Str = */ HCData.readStr(dis, 260);
+        //logger.log(Level.DEBUG, "tygers6Str: " + tygers6Str);
         Pattern = HCData.readPatterns(dis, new File(this.path).getParent());
-        // System.out.println("Patterns ok");
-        /*String tygers7Str =*/
-        HCData.readStr(dis, 512);
-        // System.out.println("tygers7Str:"+tygers7Str);
+        //logger.log(Level.DEBUG, "Patterns ok");
+        /* String tygers7Str = */ HCData.readStr(dis, 512);
+        //logger.log(Level.DEBUG, "tygers7Str: " + tygers7Str);
         int remainLength1 = blockSize - ((1538));
         resultStr result = HCData.readTextToZero(dis, remainLength1);
         if (result.length_in_src <= 1) {
@@ -1015,18 +993,17 @@ Debug.println(file + " is MacBinary type?");
         }
         String scriptStr = result.str;
         rawScriptBytes = result.rawBytes;
-        // //System.out.println("scriptStr:"+scriptStr);
+        //logger.log(Level.DEBUG, "scriptStr: "  +scriptStr);
         int remainLength = blockSize - ((1538) + (result.length_in_src));
-        // System.out.println("remainLength:"+remainLength);
+        //logger.log(Level.DEBUG, "remainLength: " + remainLength);
         if (remainLength > 0) {
-            /*String padding =*/
-            HCData.readStr(dis, remainLength);
-            // System.out.println("padding:"+padding);
+            /* String padding = */ HCData.readStr(dis, remainLength);
+            //logger.log(Level.DEBUG, "padding: " + padding);
         }
-        /*if((result.length_in_src+1)%2 != 0){
-            String padding = HCData.readStr(dis, 1);
-            // System.out.println("padding:"+padding);
-        }*/
+//        if ((result.length_in_src + 1) % 2 != 0) {
+//            String padding = HCData.readStr(dis, 1);
+//            //logger.log(Level.DEBUG, "padding: " + padding);
+//        }
 
         // Script
         String[] scriptAry = scriptStr.split("\n");
@@ -1036,7 +1013,6 @@ Debug.println(file + " is MacBinary type?");
 
         return true;
     }
-
 
     private static String getVers(int ver) {
         String str;
@@ -1057,9 +1033,8 @@ Debug.println(file + " is MacBinary type?");
         return str;
     }
 
-
     public boolean readStyleBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("readStyleBlock");
+        //logger.log(Level.DEBUG, "readStyleBlock");
 
         if (blockSize > 200000 || blockSize < 24) {
             return false;
@@ -1068,37 +1043,32 @@ Debug.println(file + " is MacBinary type?");
         int offset = 24;
 
         // Read block data sequentially
-        /*int blockId =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("blockId:"+blockId);
-        /*int filler =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("filler:"+filler);
+        /* int blockId = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "blockId: "  +blockId);
+        /* int filler = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "filler: " + filler);
         int styleCount = HCData.readCode(dis, 4);
-        // System.out.println("styleCount:"+styleCount);
+        //logger.log(Level.DEBUG, "styleCount: " + styleCount);
         nextStyleID = HCData.readCode(dis, 4);
-        // System.out.println("nextStyleID:"+nextStyleID);
+        //logger.log(Level.DEBUG, "nextStyleID: " + nextStyleID);
 
         for (int i = 0; i < styleCount; i++) {
             int styleId = HCData.readCode(dis, 4);
-            // System.out.println("styleId:"+styleId);
-            /*int something1 =*/
-            HCData.readCode(dis, 4);
-            // System.out.println("something1:"+something1);
-            /*int something2 =*/
-            HCData.readCode(dis, 4);
-            // System.out.println("something2:"+something2);
+            //logger.log(Level.DEBUG, "styleId: " + styleId);
+            /* int something1 = */ HCData.readCode(dis, 4);
+            //logger.log(Level.DEBUG, "something1: " + something1);
+            /* int something2 = */ HCData.readCode(dis, 4);
+            //logger.log(Level.DEBUG, "something2: " + something2);
             int textFontId = HCData.readCode(dis, 2);
-            // System.out.println("textFontId:"+textFontId);
+            //logger.log(Level.DEBUG, "textFontId: " + textFontId);
             int textStyle = HCData.readCode(dis, 1);
-            // System.out.println("textStyle:"+textStyle);
+            //logger.log(Level.DEBUG, "textStyle: " + textStyle);
             int textStyleChanged = HCData.readCode(dis, 1);
-            // System.out.println("textStyleChanged:"+textStyleChanged);
+            //logger.log(Level.DEBUG, "textStyleChanged: " + textStyleChanged);
             int textSize = HCData.readCode(dis, 2);
-            // System.out.println("textSize:"+textSize);
-            /*String filler2 =*/
-            HCData.readStr(dis, 6);
-            // System.out.println("filler2:"+filler2);
+            //logger.log(Level.DEBUG, "textSize: " + textSize);
+            /* String filler2 = */ HCData.readStr(dis, 6);
+            //logger.log(Level.DEBUG, "filler2: " + filler2);
             offset += 24;
 
             String idStr = Integer.toString(styleId);
@@ -1124,48 +1094,43 @@ Debug.println(file + " is MacBinary type?");
             styleList.add(new styleClass(idStr, styleStr, fontStr, sizeStr));
         }
         int remainLength = blockSize - offset;
-        /*String padding =*/
-        HCData.readStr(dis, remainLength);
-        // System.out.println("padding:"+padding);
+        /* String padding = */ HCData.readStr(dis, remainLength);
+        //logger.log(Level.DEBUG, "padding: " + padding);
 
         return true;
     }
 
-
     public boolean readFontBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("readFontBlock");
+        //logger.log(Level.DEBUG, "readFontBlock");
 
         if (blockSize > 200000 || blockSize < 24) {
             return false;
         }
         // Read block data sequentially
-        /*int blockId =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("blockId:"+blockId);
-        /*String tygersStr =*/
-        HCData.readStr(dis, 6);
-        // System.out.println("tygersStr:"+tygersStr);
+        /* int blockId = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "blockId: " + blockId);
+        /* String tygersStr = */ HCData.readStr(dis, 6);
+        //logger.log(Level.DEBUG, "tygersStr: " + tygersStr);
         int numOfFonts = HCData.readCode(dis, 2);
-        // System.out.println("numOfFonts:"+numOfFonts);
-        /*String tygers2Str =*/
-        HCData.readStr(dis, 4);
-        // System.out.println("tygers2Str:"+tygers2Str);
+        //logger.log(Level.DEBUG, "numOfFonts: " + numOfFonts);
+        /* String tygers2Str = */ HCData.readStr(dis, 4);
+        //logger.log(Level.DEBUG, "tygers2Str: " + tygers2Str);
         int offset = 24;
 
         for (int i = 0; i < numOfFonts; i++) {
             int fontId = HCData.readCode(dis, 2);
             offset += 2;
-            // System.out.println("fontId:"+fontId);
-            int nameLen;// = HCData.readCode(dis, 1);
-            // offset+=1;
-            // System.out.println("nameLen:"+nameLen);
-            // if(offset+nameLen>blockSize){
-            // break;
+            //logger.log(Level.DEBUG, "fontId: " + fontId);
+            int nameLen; // = HCData.readCode(dis, 1);
+            //offset += 1;
+            //logger.log(Level.DEBUG, "nameLen: " + nameLen);
+            //if(offset+nameLen>blockSize) {
+            //break;
             nameLen = blockSize - offset;
-            // if(nameLen<0)break;
-            // }
+            //if(nameLen < 0) break;
+            //}
             resultStr nameResult = HCData.readTextToZero(dis, nameLen);
-            // System.out.println("nameResult.str:"+nameResult.str);
+            //logger.log(Level.DEBUG, "nameResult.str: " + nameResult.str);
             offset += nameResult.length_in_src;
             if ((nameResult.length_in_src + 1) % 2 == 0) {
                 HCData.readCode(dis, 1);
@@ -1177,20 +1142,18 @@ Debug.println(file + " is MacBinary type?");
         }
 
         int remainLength = blockSize - offset;
-        /*String padding =*/
-        HCData.readStr(dis, remainLength);
-        // System.out.println("padding:"+padding);
+        /* String padding = */ HCData.readStr(dis, remainLength);
+        //logger.log(Level.DEBUG, "padding: " + padding);
 
         return true;
     }
-
 
     static int[] pageIdList;
     static int[] pageEntryCountList;
     static int pageEntrySize;
 
     public boolean readListBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("readListBlock");
+        //logger.log(Level.DEBUG, "readListBlock");
 
         if (blockSize > 200000 || blockSize < 12) {
             return false;
@@ -1198,52 +1161,44 @@ Debug.println(file + " is MacBinary type?");
 
         // Read block data sequentially
         listId = HCData.readCode(dis, 4);
-        // System.out.println("listId:"+listId);
-        /*int filler =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("filler:"+filler);
+        //logger.log(Level.DEBUG, "listId: " + listId);
+        /* int filler = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "filler: " + filler);
         int pageCount = HCData.readCode(dis, 4);
-        // System.out.println("pageCount:"+pageCount);
-        /*int pageSize =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("pageSize:"+pageSize);
-        /*int pageEntryTotal =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("pageEntryTotal:"+pageEntryTotal);
+        //logger.log(Level.DEBUG, "pageCount: " + pageCount);
+        /* int pageSize = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "pageSize: " + pageSize);
+        /* int pageEntryTotal = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "pageEntryTotal: " + pageEntryTotal);
         pageEntrySize = HCData.readCode(dis, 2);
-        // System.out.println("pageEntrySize:"+pageEntrySize);
-        /*int filler2 =*/
-        HCData.readCode(dis, 10);
-        // System.out.println("filler2:"+filler2);
-        /*int pageEntryTotal2 =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("pageEntryTotal2:"+pageEntryTotal2);
-        /*int filler3 =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("filler3:"+filler3);
+        //logger.log(Level.DEBUG, "pageEntrySize: " +pageEntrySize);
+        /* int filler2 = */ HCData.readCode(dis, 10);
+        //logger.log(Level.DEBUG, "filler2: " + filler2);
+        /* int pageEntryTotal2 = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "pageEntryTotal2: " + pageEntryTotal2);
+        /* int filler3 = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "filler3: " + filler3);
 
         pageIdList = new int[pageCount];
         pageEntryCountList = new int[pageCount];
         for (int i = 0; i < pageCount; i++) {
             pageIdList[i] = HCData.readCode(dis, 4);
-            // System.out.println("pageId:"+pageIdList[i]);
+            //logger.log(Level.DEBUG, "pageId: " + pageIdList[i]);
             pageEntryCountList[i] = HCData.readCode(dis, 2);
-            // System.out.println("pageEntryCount:"+pageEntryCountList[i]);
+            //logger.log(Level.DEBUG, "pageEntryCount: " + pageEntryCountList[i]);
         }
 
         int remainLength = blockSize - (48 + pageCount * 6);
         if (remainLength > 0) {
-            /*String padding =*/
-            HCData.readStr(dis, remainLength);
-            // System.out.println("padding:"+padding);
+            /* String padding = */ HCData.readStr(dis, remainLength);
+            //logger.log(Level.DEBUG, "padding: " + padding);
         }
 
         return true;
     }
 
-
     public boolean readPageBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("readPageBlock");
+        //logger.log(Level.DEBUG, "readPageBlock");
 
         if (blockSize > 200000 || blockSize < 12) {
             return false;
@@ -1257,16 +1212,13 @@ Debug.println(file + " is MacBinary type?");
 
         // Read block data sequentially
         int pageId = HCData.readCode(dis, 4);
-        // System.out.println("pageId:"+pageId);
-        /*int filler =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("filler:"+filler);
-        /*int listId =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("listId:"+listId);
-        /*int filler2 =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("filler2:"+filler2);
+        //logger.log(Level.DEBUG, "pageId: " + pageId);
+        /* int filler = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "filler: " + filler);
+        /* int listId = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "listId: " + listId);
+        /* int filler2 = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "filler2: " + filler2);
 
         int pageEntryCount = 0;
         for (int i = 0; i < pageIdList.length; i++) {
@@ -1279,52 +1231,46 @@ Debug.println(file + " is MacBinary type?");
         for (int i = 0; i < pageEntryCount; i++) {
             int cardId = HCData.readCode(dis, 4);
             offset += 4;
-            // System.out.println("cardId:"+cardId);
-            if (GetCardbyId(cardId) == null) {
+            //logger.log(Level.DEBUG, "cardId: " + cardId);
+            if (getCardbyId(cardId) == null) {
                 cardIdList.add(cardId); // Add card ID to card list
             }
             if (pageEntrySize > 4) {
-                /*String something =*/
-                HCData.readStr(dis, pageEntrySize - 4);
+                /* String something = */ HCData.readStr(dis, pageEntrySize - 4);
                 offset += pageEntrySize - 4;
-                // System.out.println("something:"+something);
+                //logger.log(Level.DEBUG, "something: " + something);
             }
         }
 
         int remainLength = blockSize - offset;
         if (remainLength > 0) {
-            /*String padding =*/
-            HCData.readStr(dis, remainLength);
-            // System.out.println("padding:"+padding);
+            /* String padding = */ HCData.readStr(dis, remainLength);
+            //logger.log(Level.DEBUG, "padding: " + padding);
         }
 
         return true;
     }
 
-
     public static boolean readNullBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("readNullBlock");
+        //logger.log(Level.DEBUG, "readNullBlock");
 
         if (blockSize > 200000 || blockSize < 12) {
             return false;
         }
         // Read block data sequentially
-        /*int blockId =*/
-        HCData.readCode(dis, 4);
-        // System.out.println("blockId:"+blockId);
+        /* int blockId = */ HCData.readCode(dis, 4);
+        //logger.log(Level.DEBUG, "blockId: " +b lockId);
         int remainLength = blockSize - 12;
-        /*String padding =*/
-        HCData.readStr(dis, remainLength);
-        // System.out.println("padding:"+padding);
+        /* String padding = */ HCData.readStr(dis, remainLength);
+        //logger.log(Level.DEBUG, "padding: " + padding);
 
         return true;
     }
 
-
-    // -------------------
-    // Utility function
-    // -------------------
-    public OCard GetCardbyId(int cardId) {
+    /**
+     * Utility function
+     */
+    public OCard getCardbyId(int cardId) {
         for (Integer integer : cardIdList) {
             if (integer == cardId) {
                 try {
@@ -1336,7 +1282,7 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OCard GetCardbyNum(int number) {
+    public OCard getCardbyNum(int number) {
         if (number - 1 >= 0 && number - 1 < cardIdList.size()) {
             try {
                 return OCard.getOCard(this, cardIdList.get(number - 1), true);
@@ -1346,7 +1292,7 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OCard GetCard(String name) {
+    public OCard getCard(String name) {
         for (Integer integer : cardIdList) {
             OCard cd = null;
             try {
@@ -1360,9 +1306,9 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OBackground GetBackgroundbyId(int bgId) {
+    public OBackground getBackgroundById(int bgId) {
         for (Integer integer : cardIdList) {
-            OCard cd = GetCardbyId(integer);
+            OCard cd = getCardbyId(integer);
             if (cd != null && cd.bgid == bgId) {
                 try {
                     return OBackground.getOBackground(this, cd, bgId, true);
@@ -1373,10 +1319,10 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OBackground GetBackgroundbyNum(int number) {
+    public OBackground getBackgroundByNum(int number) {
         ArrayList<Integer> list = new ArrayList<>();
         for (Integer integer : cardIdList) {
-            OCard cd = GetCardbyId(integer);
+            OCard cd = getCardbyId(integer);
             int j;
             for (j = 0; j < list.size(); j++) {
                 if (cd.bgid == list.get(j)) {
@@ -1395,10 +1341,10 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OBackground GetBackground(String name) {
+    public OBackground getBackground(String name) {
         ArrayList<Integer> list = new ArrayList<>();
         for (Integer integer : cardIdList) {
-            OCard cd = GetCardbyId(integer);
+            OCard cd = getCardbyId(integer);
             int j;
             for (j = 0; j < list.size(); j++) {
                 if (cd.bgid == list.get(j)) {
@@ -1419,7 +1365,7 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OCard GetCardofBg(OCardBase cdbase, String name) {
+    public OCard getCardOfBg(OCardBase cdbase, String name) {
         if (!cdbase.objectType.equals("background")) return null;
 
         for (Integer integer : cardIdList) {
@@ -1435,7 +1381,7 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OCard GetCardofBgbyNum(OCardBase cdbase, int number) {
+    public OCard getCardOfBgbyNum(OCardBase cdbase, int number) {
         if (!cdbase.objectType.equals("background")) return null;
 
         for (Integer integer : cardIdList) {
@@ -1454,14 +1400,14 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public OCard GetCardofBackgroundbyId(int bgId) {
+    public OCard getCardOfBackgroundbyId(int bgId) {
         for (Integer integer : cardIdList) {
-            OCard cd = GetCardbyId(integer);
+            OCard cd = getCardbyId(integer);
             if (cd.bgid == bgId) {
                 try {
                     cd.bg = OBackground.getOBackground(this, cd, cd.bgid, true);
                 } catch (XTalkException e) {
-                    System.out.println("Error at GetCardofBackgroundbyId(" + bgId + ")");
+                    logger.log(Level.DEBUG, "Error at GetCardofBackgroundbyId(" + bgId + ")");
                 }
                 return cd;
             }
@@ -1469,7 +1415,7 @@ Debug.println(file + " is MacBinary type?");
         return null;
     }
 
-    public int GetNumberof(OCard cd) {
+    public int getNumberOf(OCard cd) {
         for (int number = 0; number < cardIdList.size(); number++) {
             if (cardIdList.get(number) == cd.id) {
                 return number + 1;
@@ -1478,7 +1424,7 @@ Debug.println(file + " is MacBinary type?");
         return 0;
     }
 
-    public int GetNumberof(OBackground bg) {
+    public int getNumberOf(OBackground bg) {
         for (int number = 0; number < bgCacheList.size(); number++) {
             if (bgCacheList.get(number).id == bg.id) {
                 return number + 1;
@@ -1487,7 +1433,7 @@ Debug.println(file + " is MacBinary type?");
         return 0;
     }
 
-    public int GetMaxCardId() {
+    public int getMaxCardId() {
         int max = 0;
         for (Integer integer : cardIdList) {
             if (integer > max) {
@@ -1502,38 +1448,38 @@ Debug.println(file + " is MacBinary type?");
         return max;
     }
 
-    public int GetCardListSize() {
+    public int getCardListSize() {
         return cardIdList.size();
     }
 
-    public int GetBgListSize() {
+    public int getBgListSize() {
         return bgCacheList.size();
     }
 
-    public void AddNewCard(int idx, int id) {
+    public void addNewCard(int idx, int id) {
         for (Integer integer : cardIdList) {
             if (integer == id) {
-                System.out.println("!");
+                logger.log(Level.DEBUG, "!");
             }
         }
         cardIdList.add(idx, id);
     }
 
-    public void AddNewCard(int id) {
+    public void addNewCard(int id) {
 
         for (Integer integer : cardIdList) {
             if (integer == id) {
-                System.out.println("!");
+                logger.log(Level.DEBUG, "!");
             }
         }
         cardIdList.add(id);
     }
 
-    public void AddNewBg(OBackground bg) {
+    public void addNewBg(OBackground bg) {
 
         for (OBackground oBackground : bgCacheList) {
             if (oBackground.id == bg.id) {
-                System.out.println("!");
+                logger.log(Level.DEBUG, "!");
             }
         }
         bgCacheList.add(bg);
@@ -1575,12 +1521,11 @@ Debug.println(file + " is MacBinary type?");
         }
     }
 
-    /*public void PaintTo(Graphics g, JFrame frame) {
-        if(curCard != null) {
-            curCard.PaintTo(g,frame);
-        }
-    }*/
-
+//    public void paintTo(Graphics g, JFrame frame) {
+//        if (curCard != null) {
+//            curCard.PaintTo(g, frame);
+//        }
+//    }
 
 // About the original data file format:
 

@@ -37,6 +37,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.StringWriter;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -302,11 +305,11 @@ class ResTypeEditor extends JFrame {
 
 class IconTypeEditor extends ResTypeEditor {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(IconTypeEditor.class.getName());
+
     IconButton[] selectedButton;
 
     public IconTypeEditor(PCARDFrame pc, String type, OObject object) {
@@ -578,6 +581,10 @@ class IconTypeEditor extends ResTypeEditor {
 
     class IconButtonListener implements MouseListener {
 
+        private static final Logger logger = System.getLogger(IconButtonListener.class.getName());
+
+        private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() >= 2) {
@@ -587,7 +594,7 @@ class IconTypeEditor extends ResTypeEditor {
                     new IconEditor(editor, pcard.stack.rsrc, type, editor.selectedId[0]);
                 } else {
                     // If not a resource in this stack, ask to make a copy
-                    new GDialog(editor, PCARD.pc.intl.getDialogText("This resource is not in this stack. Make a copy?"), null, "Cancel", "OK", null);
+                    new GDialog(editor, rb.getString("dialog.This_resource_is_not_in_this_stack._Make_a_copy?"), null, "Cancel", "OK", null);
                     if (GDialog.clicked.equals("OK")) {
                         RsrcClass r = pcard.stack.rsrc.getResourceAll(editor.selectedId[0], type);
                         if (r != null) {
@@ -598,12 +605,12 @@ class IconTypeEditor extends ResTypeEditor {
                                  FileChannel destChannel = new FileOutputStream(newFilePath.toFile()).getChannel()) {
                                 srcChannel.transferTo(0, srcChannel.size(), destChannel);
                             } catch (Exception e1) {
-                                e1.printStackTrace();
+                                logger.log(Level.ERROR, e1.getMessage(), e1);
                             }
                             pcard.stack.rsrc.addResource(r);
                             new IconEditor(editor, pcard.stack.rsrc, type, editor.selectedId[0]);
                         } else {
-                            System.out.println("resource not found.");
+                            logger.log(Level.DEBUG, "resource not found.");
                         }
                     }
                 }
@@ -737,6 +744,8 @@ class IconTypeEditor extends ResTypeEditor {
 
     class IconDropListener extends DropTargetAdapter {
 
+        private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
         @Override
         public void drop(DropTargetDropEvent e) {
             try {
@@ -770,7 +779,7 @@ class IconTypeEditor extends ResTypeEditor {
                                 bi = javax.imageio.ImageIO.read(new File(path));
                             }
                         } catch (IOException e2) {
-                            e2.printStackTrace();
+                            logger.log(Level.ERROR, e2.getMessage(), e2);
                         }
                         if (bi != null) {
                             String name = new File(path).getName();
@@ -794,7 +803,7 @@ class IconTypeEditor extends ResTypeEditor {
                                     case "cicn" -> newFileName = "cicn_" + iconid + ext;
                                     case "picture" -> newFileName = "PICT_" + iconid + ext;
                                     case "cursor" -> newFileName = "CURS_" + iconid + ext;
-                                    default -> System.out.println("unknown resource type");
+                                    default -> logger.log(Level.DEBUG, "unknown resource type");
                                 }
                                 Path newFilePath = pcard.stack.file.getParent().resolve(newFileName);
                                 try (
@@ -811,7 +820,7 @@ class IconTypeEditor extends ResTypeEditor {
 
                             editor.selectedId[j] = iconid;
                         } else {
-                            String str = PCARD.pc.intl.getDialogText("Can't open the file '%1'.");
+                            String str = rb.getString("dialog.Can't_open_the_file_'%1'.");
                             str = str.replace("%1", path);
                             new GDialog(editor, str, null, "OK", null, null);
                         }
@@ -820,7 +829,7 @@ class IconTypeEditor extends ResTypeEditor {
                     editor.open(pcard, 0);
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.log(Level.ERROR, ex.getMessage(), ex);
             }
         }
     }
@@ -829,24 +838,24 @@ class IconTypeEditor extends ResTypeEditor {
 
 class OtherTypeEditor extends ResTypeEditor {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    // IconButton[] selectedButton;
+
+    private static final Logger logger = System.getLogger(OtherTypeEditor.class.getName());
+
+    //IconButton[] selectedButton;
 
     public OtherTypeEditor(PCARDFrame pc, String type, OObject object) {
         super(pc, type, object);
 
-        // contpane.setLayout(new FlowLayout(FlowLayout.LEFT));
-        // contpane.addMouseListener(new IconBackListener());
+        //contpane.setLayout(new FlowLayout(FlowLayout.LEFT));
+        //contpane.addMouseListener(new IconBackListener());
 
         scrollpane.getVerticalScrollBar().setUnitIncrement(133);
 
         open(pcard, 0);
 
-        // new DropTarget(this, new IconDropListener());
+        //new DropTarget(this, new IconDropListener());
 
         toFront();
         setVisible(true);
@@ -856,7 +865,7 @@ class OtherTypeEditor extends ResTypeEditor {
     void open(PCARDFrame pc, int in_scroll) {
         super.open(pc, in_scroll);
 
-        // selectedButton = new IconButton[selectedId.length];
+        //selectedButton = new IconButton[selectedId.length];
         scroll = in_scroll;
 
         int number = rsrcAry.length;
@@ -872,7 +881,7 @@ class OtherTypeEditor extends ResTypeEditor {
             try {
                 tabledata[i][2] = Long.toString(Files.size(pc.stack.file.getParent().resolve(rsrc.filename)));
             } catch (IOException e1) {
-                e1.printStackTrace();
+                logger.log(Level.ERROR, e1.getMessage(), e1);
             }
         }
 
@@ -882,8 +891,7 @@ class OtherTypeEditor extends ResTypeEditor {
         table.setEnabled(false);
         table.setDefaultRenderer(Object.class, new MultiLineCellRenderer());
 
-
-        // contpane.setPreferredSize(new Dimension(contpane.getPreferredSize().width, 133*((number+3)/4)));
+        //contpane.setPreferredSize(new Dimension(contpane.getPreferredSize().width, 133*((number+3)/4)));
         scrollpane.add(table);
         scrollpane.setViewportView(table);
 
@@ -899,9 +907,7 @@ class OtherTypeEditor extends ResTypeEditor {
 
 class REMenu {
 
-    /**
-     *
-     */
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     public REMenu(JFrame owner) {
         ActionListener listener = null;
@@ -920,16 +926,16 @@ class REMenu {
         }
 
         // File menu
-        m = new JMenu(PCARDFrame.pc.intl.getText("File"));
+        m = new JMenu(rb.getString("main.File"));
         mb.add(m);
 
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("New Item")));
+        m.add(mi = new JMenuItem(rb.getString("main.New_Item")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Open")));
+        m.add(mi = new JMenuItem(rb.getString("main.Open")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("View File")));
+        m.add(mi = new JMenuItem(rb.getString("main.View_File")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, s));
         mi.addActionListener(listener);
         String os = System.getProperty("os.name");
@@ -938,27 +944,27 @@ class REMenu {
         } else {
             mi.setEnabled(false);
         }
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Close")));
+        m.add(mi = new JMenuItem(rb.getString("main.Close")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, s));
         mi.addActionListener(listener);
 
         // Edit menu
-        m = new JMenu(PCARDFrame.pc.intl.getText("Edit"));
+        m = new JMenu(rb.getString("main.Edit"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Cut")));
+        m.add(mi = new JMenuItem(rb.getString("main.Cut")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Copy")));
+        m.add(mi = new JMenuItem(rb.getString("main.Copy")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Paste")));
+        m.add(mi = new JMenuItem(rb.getString("main.Paste")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
         mi.addActionListener(listener);
         m.addSeparator();
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Delete")));
+        m.add(mi = new JMenuItem(rb.getString("main.Delete")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Select All")));
+        m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
         mi.addActionListener(listener);
     }
@@ -966,6 +972,8 @@ class REMenu {
 
 // Resource editing menu actions
 class REMenuListener implements ActionListener {
+
+    private static final Logger logger = System.getLogger(REMenuListener.class.getName());
 
     ResTypeEditor editor;
 
@@ -977,7 +985,7 @@ class REMenuListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = e.getActionCommand();
-        String cmd = PCARDFrame.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
 
         if (cmd.equals("Close")) {
             editor.dispose();
@@ -1000,7 +1008,7 @@ class REMenuListener implements ActionListener {
                     case "picture" -> newFileName = "PICT_" + rsrcid + ".png";
                     case "cursor" -> newFileName = "CURS_" + rsrcid + ".png";
                     default -> {
-                        System.out.println("unknown resource type.");
+                        logger.log(Level.DEBUG, "unknown resource type.");
                         newFileName = "dummy";
                         name = "dummy";
                     }
@@ -1015,10 +1023,10 @@ class REMenuListener implements ActionListener {
                     try {
                         ImageIO.write(bi, "png", newFile);
                     } catch (IOException e1) {
-                        e1.printStackTrace();
+                        logger.log(Level.ERROR, e1.getMessage(), e1);
                     }
                 } else {
-                    System.out.println("unknown resource type..");
+                    logger.log(Level.DEBUG, "unknown resource type..");
                 }
 
                 // Add to resources
@@ -1064,51 +1072,51 @@ class REMenuListener implements ActionListener {
                         if (!filename.isEmpty()) filename.append(":");
                         filename.append(parentPath).append(File.separatorChar).append(editor.pcard.stack.rsrc.getFileName1(editor.selectedId[i], editor.type));
                     }
-                /*boolean isBundle = false;
-                String attrStr = "";
-                if(new File("/Developer/Tools/GetFileInfo").exists()){
-                    try {
-                // Whether it's a bundle
-                        ProcessBuilder pb = new ProcessBuilder("/Developer/Tools/GetFileInfo", getConvertPath(parentPath));
-                        Process p = pb.start();
-                        p.waitFor();
-                        InputStream is = p.getInputStream();
-                        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                        for (;;) {
-                            String line = br.readLine();
-                            if (line == null) break;
-                            if(line.startsWith("attributes: ")){
-                                if(line.substring("attributes: ".length()).contains("b")){
-                                    isBundle = true;
-                                    attrStr = line.substring("attributes: ".length());
-                                }
-                                break;
-                            }
-                        }
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                }*/
+//                    boolean isBundle = false;
+//                    String attrStr = "";
+//                    if (new File("/Developer/Tools/GetFileInfo").exists()) {
+//                        try {
+//                            // Whether it's a bundle
+//                            ProcessBuilder pb = new ProcessBuilder("/Developer/Tools/GetFileInfo", getConvertPath(parentPath));
+//                            Process p = pb.start();
+//                            p.waitFor();
+//                            InputStream is = p.getInputStream();
+//                            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+//                            for (; ; ) {
+//                                String line = br.readLine();
+//                                if (line == null) break;
+//                                if (line.startsWith("attributes: ")) {
+//                                    if (line.substring("attributes: ".length()).contains("b")) {
+//                                        isBundle = true;
+//                                        attrStr = line.substring("attributes: ".length());
+//                                    }
+//                                    break;
+//                                }
+//                            }
+//                        } catch (IOException e1) {
+//                            logger.log(Level.ERROR, e1.getMessage(), e1);
+//                        } catch (InterruptedException e1) {
+//                            logger.log(Level.ERROR, e1.getMessage(), e1);
+//                        }
+//                    }
 
                     try {
-                    /*if(isBundle){
-                        String notBundleAttr;
-                        int index = attrStr.indexOf("b");
-                        notBundleAttr = attrStr.substring(0,index) + attrStr.substring(index);
-                        ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", notBundleAttr, "\""+parentPath+"\"");
-                        pb1.start();
-                    }*/
+//                        if (isBundle) {
+//                            String notBundleAttr;
+//                            int index = attrStr.indexOf("b");
+//                            notBundleAttr = attrStr.substring(0, index) + attrStr.substring(index);
+//                            ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", notBundleAttr, "\"" + parentPath + "\"");
+//                            pb1.start();
+//                        }
                         // "-R" requires OSX 10.6 or later; bundles must be opened in advance to be displayed
                         ProcessBuilder pb = new ProcessBuilder("open", "-R", filename.toString());
                         pb.start();
-                    /*if(isBundle){
-                        ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", attrStr, "\""+parentPath+"\"");
-                        pb1.start();
-                    }*/
+//                        if (isBundle) {
+//                            ProcessBuilder pb1 = new ProcessBuilder("/Developer/Tools/SetFile", "-a", attrStr, "\"" + parentPath + "\"");
+//                            pb1.start();
+//                        }
                     } catch (IOException e1) {
-                        e1.printStackTrace();
+                        logger.log(Level.ERROR, e1.getMessage(), e1);
                     }
                 }
             }
@@ -1126,7 +1134,7 @@ class REMenuListener implements ActionListener {
                                 srcChannel.transferTo(0, srcChannel.size(), destChannel);
                             }
                         } catch (IOException e2) {
-                            e2.printStackTrace();
+                            logger.log(Level.ERROR, e2.getMessage(), e2);
                         }
                     }
 
@@ -1158,7 +1166,7 @@ class REMenuListener implements ActionListener {
                             clip.setContents(ss, ss);
                         }
                     } catch (Exception e2) {
-                        e2.printStackTrace();
+                        logger.log(Level.ERROR, e2.getMessage(), e2);
                     }
                 }
             }
@@ -1173,7 +1181,7 @@ class REMenuListener implements ActionListener {
                         StringSelection ss = new StringSelection(str);
                         clip.setContents(ss, ss);
                     } catch (UnsupportedFlavorException | IOException e2) {
-                        e2.printStackTrace();
+                        logger.log(Level.ERROR, e2.getMessage(), e2);
                     }
                     if (str != null && str.startsWith("<resourceclips>")) {
                         XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -1181,7 +1189,7 @@ class REMenuListener implements ActionListener {
                         try {
                             reader = factory.createXMLStreamReader(new ByteArrayInputStream(str.getBytes()));
                         } catch (Exception e2) {
-                            e2.printStackTrace();
+                            logger.log(Level.ERROR, e2.getMessage(), e2);
                         }
 
                         editor.selectedId = new int[] {0};
@@ -1214,8 +1222,8 @@ class REMenuListener implements ActionListener {
                                                 case "media" -> {
                                                 }
                                                 default -> {
-                                                    System.out.println("Local Name: " + reader.getLocalName());
-                                                    System.out.println("Element Text: " + reader.getElementText());
+                                                    logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                                    logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                                 }
                                             }
                                         }
@@ -1272,7 +1280,7 @@ class REMenuListener implements ActionListener {
                                     editor.selectedId[editor.selectedId.length - 1] = id;
                                 }
                             } catch (Exception e2) {
-                                e2.printStackTrace();
+                                logger.log(Level.ERROR, e2.getMessage(), e2);
                             }
                         } // end of for
 
@@ -1298,7 +1306,7 @@ class REMenuListener implements ActionListener {
                             try {
                                 ImageIO.write((RenderedImage) img, "png", newFile);
                             } catch (IOException e1) {
-                                e1.printStackTrace();
+                                logger.log(Level.ERROR, e1.getMessage(), e1);
                             }
                         }
 
@@ -1323,7 +1331,7 @@ class REMenuListener implements ActionListener {
                 try {
                     editor.pcard.stack.rsrc.deleteResource(editor.type, editor.selectedId[i]);
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    logger.log(Level.ERROR, e1.getMessage(), e1);
                 }
             }
             // Deselect
@@ -1337,5 +1345,4 @@ class REMenuListener implements ActionListener {
             OCard.reloadCurrentCard();
         }
     }
-
 }

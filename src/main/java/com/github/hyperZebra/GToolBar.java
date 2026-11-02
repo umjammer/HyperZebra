@@ -19,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.ResourceBundle;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -33,13 +34,15 @@ import javax.swing.JWindow;
 
 public class GToolBar {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     toolBarListener toolBarListener = new toolBarListener();
-    // JToolBar tb;
+    //JToolBar tb;
     JWindow tb;
-    // CPButton fore;
-    // CPButton back;
-    // GradButton grad;
-    // PatButton pat;
+    //CPButton fore;
+    //CPButton back;
+    //GradButton grad;
+    //PatButton pat;
     TBButton selectToolButton;
     private boolean gvisible;
 
@@ -82,83 +85,83 @@ public class GToolBar {
         jbtn.setBorderPainted(false);
         jbtn.addMouseMotionListener(toolBarListener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Browse"), 0, 0));
+        tb.add(btn = new TBButton(rb.getString("main.Browse"), 0, 0));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
         btn.setSelected(true);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Button"), 0, 1));
+        tb.add(btn = new TBButton(rb.getString("main.Button"), 0, 1));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Field"), 0, 2));
+        tb.add(btn = new TBButton(rb.getString("main.Field"), 0, 2));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Select"), 1, 0));
+        tb.add(btn = new TBButton(rb.getString("main.Select"), 1, 0));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
         selectToolButton = btn;
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Lasso"), 1, 1));
+        tb.add(btn = new TBButton(rb.getString("main.Lasso"), 1, 1));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("MagicWand"), 1, 2));
-        grp.add(btn);
-        btn.addActionListener(listener);
-        btn.addMouseListener(listener);
-
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Pencil"), 2, 0));
+        tb.add(btn = new TBButton(rb.getString("main.MagicWand"), 1, 2));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Brush"), 2, 1));
+        tb.add(btn = new TBButton(rb.getString("main.Pencil"), 2, 0));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Eraser"), 2, 2));
+        tb.add(btn = new TBButton(rb.getString("main.Brush"), 2, 1));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Line"), 3, 0));
+        tb.add(btn = new TBButton(rb.getString("main.Eraser"), 2, 2));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        // tb.add(new TBButton(PCARD.pc.intl.getToolText("SprayCan"),3,0));
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Rect"), 3, 1));
+        tb.add(btn = new TBButton(rb.getString("main.Line"), 3, 0));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        // tb.add(new TBButton(PCARD.pc.intl.getToolText("RoundRect"),3,2));
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Oval"), 3, 2));
+        // tb.add(new TBButton(rb.getString("main.SprayCan"),3,0));
+        tb.add(btn = new TBButton(rb.getString("main.Rect"), 3, 1));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("PaintBucket"), 4, 0));
+        // tb.add(new TBButton(rb.getString("main.RoundRect"),3,2));
+        tb.add(btn = new TBButton(rb.getString("main.Oval"), 3, 2));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        // tb.add(new TBButton(PCARD.pc.intl.getToolText("Curve"),4,2));
-        tb.add(btn = new TBButton(PCARD.pc.intl.getToolText("Type"), 4, 1));
+        tb.add(btn = new TBButton(rb.getString("main.PaintBucket"), 4, 0));
         grp.add(btn);
         btn.addActionListener(listener);
         btn.addMouseListener(listener);
 
-        // tb.add(new TBButton(PCARD.pc.intl.getToolText("Polygon"),5,1));
-        // tb.add(new TBButton(PCARD.pc.intl.getToolText("FreePolygon"),5,2));
-        // tb.add(new TBButton(PCARD.pc.intl.getToolText("Spoit"),6,0));
+        // tb.add(new TBButton(rb.getString("main.Curve"),4,2));
+        tb.add(btn = new TBButton(rb.getString("main.Type"), 4, 1));
+        grp.add(btn);
+        btn.addActionListener(listener);
+        btn.addMouseListener(listener);
+
+        // tb.add(new TBButton(rb.getString("main.Polygon"),5,1));
+        // tb.add(new TBButton(rb.getString("main.FreePolygon"),5,2));
+        // tb.add(new TBButton(rb.getString("main.Spoit"),6,0));
         // tb.addSeparator();
         owner.fore = new CPButton(Color.BLACK, 5, 0, false);
         tb.add(owner.fore);
@@ -168,7 +171,7 @@ public class GToolBar {
         tb.add(owner.pat);
         owner.grad = new GradButton(Color.BLACK, Color.WHITE, 6, 1);
         tb.add(owner.grad);
-        tb.add(owner.trans = new TransButton(PCARD.pc.intl.getToolText("Transparency"), 6, 2));
+        tb.add(owner.trans = new TransButton(rb.getString("main.Transparency"), 6, 2));
         owner.trans.addActionListener(listener);
         owner.trans.addMouseListener(listener);
 
@@ -261,9 +264,8 @@ class toolBarListener implements ComponentListener, MouseMotionListener {
 
 class TBButton extends JToggleButton {
 
-    /**
-     *
-     */
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -272,13 +274,13 @@ class TBButton extends JToggleButton {
 
     TBButton(String in_text, int y, int x) {
         super();
-        String text = PCARD.pc.intl.getToolEngText(in_text);
+        String text = PCARD.getEngText("main", in_text);
         setName(text);
         this.setBounds(x * 26, y * 28 + 16, 26, 26);
         setMargin(new Insets(0, 0, 0, 0));
         this.setFocusable(false);
 
-        if (PCARD.pc.intl.getToolText("Brush").equals(in_text)) {
+        if (rb.getString("main.Brush").equals(in_text)) {
             int[] size = {1, 2, 3, 4, 6, 8, 16, 32};
             for (int j : size) {
                 addPopupMenuItem("Brush " + j, e -> {
@@ -296,7 +298,7 @@ class TBButton extends JToggleButton {
             }
         }
 
-        if (PCARD.pc.intl.getToolText("Line").equals(in_text)) {
+        if (rb.getString("main.Line").equals(in_text)) {
             float[] size = {0, 0.5f, 1, 1.5f, 2, 3, 4, 5, 6, 8, 10, 12, 16};
             for (float v : size) {
                 addPopupMenuItem("Line " + v, e -> {
@@ -314,9 +316,9 @@ class TBButton extends JToggleButton {
             }
         }
 
-        if (PCARD.pc.intl.getToolText("Rect").equals(in_text) ||
-                PCARD.pc.intl.getToolText("Oval").equals(in_text)) {
-            addPopupMenuItem(PCARD.pc.intl.getToolText("Fill"), e -> {
+        if (rb.getString("main.Rect").equals(in_text) ||
+                rb.getString("main.Oval").equals(in_text)) {
+            addPopupMenuItem(rb.getString("main.Fill"), e -> {
                         PaintTool.owner.fill = true;
 
                         for (int i = 0; i < popup.getComponentCount(); i++) {
@@ -327,7 +329,7 @@ class TBButton extends JToggleButton {
                         ((JCheckBoxMenuItem) (e.getSource())).setSelected(true);
                     },
                     PaintTool.owner.fill);
-            addPopupMenuItem(PCARD.pc.intl.getToolText("Don't Fill"), e -> {
+            addPopupMenuItem(rb.getString("main.Don't_Fill"), e -> {
                         PaintTool.owner.fill = false;
 
                         for (int i = 0; i < popup.getComponentCount(); i++) {
@@ -340,7 +342,7 @@ class TBButton extends JToggleButton {
                     !PaintTool.owner.fill);
         }
 
-        if (PCARD.pc.intl.getToolText("MagicWand").equals(in_text)) {
+        if (rb.getString("main.MagicWand").equals(in_text)) {
             int[] size = {0, 1, 2, 3, 5, 7, 10, 15, 20, 25};
             for (int j : size) {
                 addPopupMenuItem("Color " + j + " %", e -> {
@@ -360,7 +362,7 @@ class TBButton extends JToggleButton {
 
         try {
             BufferedImage bi = javax.imageio.ImageIO.read(new File("./resource/tb_button1.png"));
-            BufferedImage bi2 = javax.imageio.ImageIO.read(new File("./resource/tb_" + PCARD.pc.intl.getToolEngText(text) + ".png"));
+            BufferedImage bi2 = javax.imageio.ImageIO.read(new File("./resource/tb_" + PCARD.getEngText("main", text) + ".png"));
             bi.createGraphics().drawImage(bi2, 0, 0, this);
             ImageIcon icon = new ImageIcon(bi);
             setIcon(icon);
@@ -373,7 +375,7 @@ class TBButton extends JToggleButton {
             setContentAreaFilled(false);
             setBorderPainted(false);
         } catch (IOException e) {
-            // e.printStackTrace();
+            //logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
@@ -391,33 +393,35 @@ class TBButton extends JToggleButton {
 
 class TBButtonListener implements ActionListener, MouseListener {
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static String lastcmd = "Browse";
 
     @Override
     public void mouseClicked(MouseEvent arg0) {
         String in_cmd = ((JComponent) arg0.getSource()).getName();
-        String cmd = PCARD.pc.intl.getToolText(in_cmd);
+        String cmd = PCARD.getText("main", in_cmd);
         if (javax.swing.SwingUtilities.isRightMouseButton(arg0) ||
                 arg0.getClickCount() == 2) {
-            if (PCARD.pc.intl.getToolText("Brush").equals(cmd)) {
+            if (rb.getString("main.Brush").equals(cmd)) {
                 ((TBButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
             }
-            if (PCARD.pc.intl.getToolText("Rect").equals(cmd)) {
+            if (rb.getString("main.Rect").equals(cmd)) {
                 ((TBButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
             }
-            if (PCARD.pc.intl.getToolText("Oval").equals(cmd)) {
+            if (rb.getString("main.Oval").equals(cmd)) {
                 ((TBButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
             }
-            if (PCARD.pc.intl.getToolText("Line").equals(cmd)) {
+            if (rb.getString("main.Line").equals(cmd)) {
                 ((TBButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
             }
-            if (PCARD.pc.intl.getToolText("MagicWand").equals(cmd)) {
+            if (rb.getString("main.MagicWand").equals(cmd)) {
                 ((TBButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
             }
-            if (PCARD.pc.intl.getToolText("Transparency").equals(cmd)) {
+            if (rb.getString("main.Transparency").equals(cmd)) {
                 ((TransButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
             }
-            if (PCARD.pc.intl.getToolText("Type").equals(cmd)) {
+            if (rb.getString("main.Type").equals(cmd)) {
                 new GFontDialog(PaintTool.owner, PCARD.pc.textFont, PCARD.pc.textSize, PCARD.pc.textStyle, -1);
                 PCARD.pc.textFont = GFontDialog.selectedFont;
                 PCARD.pc.textSize = GFontDialog.selectedSize * PaintTool.owner.bit;
@@ -428,14 +432,14 @@ class TBButtonListener implements ActionListener, MouseListener {
 
         if (arg0.getClickCount() == 2) {
             // Double click
-            if (PCARD.pc.intl.getToolText("Eraser").equals(cmd)) {
+            if (rb.getString("main.Eraser").equals(cmd)) {
                 GMenuPaint.doMenu("Select All");
                 GMenuPaint.doMenu("Clear Selection");
             }
-            if (PCARD.pc.intl.getToolText("Select").equals(cmd)) {
+            if (rb.getString("main.Select").equals(cmd)) {
                 GMenuPaint.doMenu("Select All");
             }
-            if (PCARD.pc.intl.getToolText("Lasso").equals(cmd)) {
+            if (rb.getString("main.Lasso").equals(cmd)) {
                 GMenuPaint.doMenu("choose lasso tool");
                 PaintTool.mouseDown(0, 0);
                 PaintTool.mouseStillDown(0, 1000);
@@ -448,51 +452,51 @@ class TBButtonListener implements ActionListener, MouseListener {
                 PaintTool.mouseStillDown(0, 0);
                 PaintTool.mouseUp(0, 0);
             }
-            if (PCARD.pc.intl.getToolText("Pencil").equals(cmd)) {
+            if (rb.getString("main.Pencil").equals(cmd)) {
                 GMenuPaint.doMenu("FatBits");
             }
-            /*if(PCARD.pc.intl.getToolText("Button").equals(cmd)){
-                try {
-                    GMenuBrowse.doMenu("New Button");
-                } catch (XTalkException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(PCARD.pc.intl.getToolText("Field").equals(cmd)){
-                try {
-                    GMenuBrowse.doMenu("New Field");
-                } catch (XTalkException e) {
-                    e.printStackTrace();
-                }
-            }*/
+//            if (rb.getString("main.Button").equals(cmd)) {
+//                try {
+//                    GMenuBrowse.doMenu("New Button");
+//                } catch (XTalkException e) {
+//                    logger.log(Level.ERROR, e.getMessage(), e);
+//                }
+//            }
+//            if (rb.getString("main.Field").equals(cmd)) {
+//                try {
+//                    GMenuBrowse.doMenu("New Field");
+//                } catch (XTalkException e) {
+//                    logger.log(Level.ERROR, e.getMessage(), e);
+//                }
+//            }
         }
     }
 
     @Override
-    public void mouseEntered(MouseEvent arg0) {
+    public void mouseEntered(MouseEvent e) {
     }
 
     @Override
-    public void mouseExited(MouseEvent arg0) {
+    public void mouseExited(MouseEvent e) {
     }
 
     @Override
-    public void mousePressed(MouseEvent arg0) {
+    public void mousePressed(MouseEvent e) {
     }
 
     @Override
-    public void mouseReleased(MouseEvent arg0) {
+    public void mouseReleased(MouseEvent e) {
     }
 
     @Override
     public void actionPerformed(ActionEvent ae) {
         String in_cmd = ((JComponent) ae.getSource()).getName();
-        String cmd = PCARD.pc.intl.getToolText(in_cmd);
+        String cmd = PCARD.getText("main", in_cmd);
         ChangeTool(cmd, ae);
-        // if(((TBButton)ae.getSource()).getParent()==PCARD.pc.stack.toolbar.tb){
-        // PCARD.pc.toFront();
-        // }
-        if (PCARD.pc.intl.getToolText("Close").equals(cmd)) {
+//        if (((TBButton) ae.getSource()).getParent() == PCARD.pc.stack.toolbar.tb) {
+//            PCARD.pc.toFront();
+//        }
+        if (rb.getString("main.Close").equals(cmd)) {
             PCARD.pc.toolbar.tb.setVisible(false);
         }
     }
@@ -526,12 +530,12 @@ class TBButtonListener implements ActionListener, MouseListener {
             }
         }
 
-        if (PCARD.pc.intl.getToolText("Browse").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Browse").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolText("Button").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Button").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolText("Field").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Field").equalsIgnoreCase(cmd)) {
+        if (rb.getString("main.Browse").equalsIgnoreCase(cmd) ||
+                "Browse".equalsIgnoreCase(cmd) ||
+                rb.getString("main.Button").equalsIgnoreCase(cmd) ||
+                "Button".equalsIgnoreCase(cmd) ||
+                rb.getString("main.Field").equalsIgnoreCase(cmd) ||
+                "Field".equalsIgnoreCase(cmd)) {
             if (PCARD.pc.tool != null) {
                 // Return from paint mode since browse tool was selected
                 PCARD.pc.tool = null;
@@ -540,13 +544,13 @@ class TBButtonListener implements ActionListener, MouseListener {
                 PCARD.pc.getRootPane().removeMouseMotionListener(paintGUI.gui);
                 paintGUI.gui.removeListenerFromParts();
 
-                // PCARD.pc.stack.curCard.pict.getGraphics().drawImage(PCARD.pc.mainImg, 0, 0, PCARD.pc);
-                // PCARD.pc.stack.curCard.bg.pict.getGraphics().drawImage(PCARD.pc.bgImg, 0, 0, PCARD.pc);
+                //PCARD.pc.stack.curCard.pict.getGraphics().drawImage(PCARD.pc.mainImg, 0, 0, PCARD.pc);
+                //PCARD.pc.stack.curCard.bg.pict.getGraphics().drawImage(PCARD.pc.bgImg, 0, 0, PCARD.pc);
                 PCARD.pc.mainPane.repaint();
 
-                // PCARD.pc.paidle.interrupt();
-                // PCARD.pc.pidle = new Pidle();
-                // PCARD.pc.pidle.start();
+                //PCARD.pc.paIdle.interrupt();
+                //PCARD.pc.pidle = new Pidle();
+                //PCARD.pc.pidle.start();
 
                 {
                     // Paint buffer
@@ -557,20 +561,20 @@ class TBButtonListener implements ActionListener, MouseListener {
                 }
 
                 // This doesn't switch
-                // PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
+                //PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
 
                 GMenu.menuUpdate(PCARD.pc.menu.mb);
             }
         }
 
         {
-            GMenu.changeSelected("Tool", PCARD.pc.intl.getToolText(lastcmd), true);
-            GMenu.changeSelected("Tool", PCARD.pc.intl.getToolText(cmd), true);
+            GMenu.changeSelected("Tool", PCARD.getText("main", lastcmd), true);
+            GMenu.changeSelected("Tool", PCARD.getText("main", cmd), true);
             lastcmd = cmd;
         }
 
-        if (PCARD.pc.intl.getToolText("Button").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Button").equalsIgnoreCase(cmd)) {
+        if (rb.getString("main.Button").equalsIgnoreCase(cmd) ||
+                "Button".equalsIgnoreCase(cmd)) {
             AuthTool.tool = new ButtonTool();
             TBCursor.changeCursor(PCARD.pc);
 
@@ -598,8 +602,8 @@ class TBButtonListener implements ActionListener, MouseListener {
             }
 
             return true;
-        } else if (PCARD.pc.intl.getToolText("Field").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Field").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Field").equalsIgnoreCase(cmd) ||
+                "Field".equalsIgnoreCase(cmd)) {
             AuthTool.tool = new FieldTool();
             TBCursor.changeCursor(PCARD.pc);
 
@@ -633,8 +637,8 @@ class TBButtonListener implements ActionListener, MouseListener {
             AuthDialog.authDialog = null;
         }
 
-        if (PCARD.pc.intl.getToolText("Browse").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Browse").equalsIgnoreCase(cmd)) {
+        if (rb.getString("main.Browse").equalsIgnoreCase(cmd) ||
+                "Browse".equalsIgnoreCase(cmd)) {
             AuthTool.tool = null;
             TBCursor.changeCursor(PCARD.pc);
 
@@ -667,56 +671,56 @@ class TBButtonListener implements ActionListener, MouseListener {
         // Below is paint tool
         //
 
-        if (PCARD.pc.intl.getToolText("Select").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Select").equalsIgnoreCase(cmd)) {
+        if (rb.getString("main.Select").equalsIgnoreCase(cmd) ||
+                "Select".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new SelectTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Lasso").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Lasso").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Lasso").equalsIgnoreCase(cmd) ||
+                "Lasso".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new LassoTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("MagicWand").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("MagicWand").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.MagicWand").equalsIgnoreCase(cmd) ||
+                "MagicWand".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new SmartSelectTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Brush").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Brush").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Brush").equalsIgnoreCase(cmd) ||
+                "Brush".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new BrushTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("PaintBucket").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("PaintBucket").equalsIgnoreCase(cmd) ||
+        } else if (rb.getString("main.PaintBucket").equalsIgnoreCase(cmd) ||
+                "PaintBucket".equalsIgnoreCase(cmd) ||
                 "bucket".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new PaintBucketTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Transparency").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Transparency").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Transparency").equalsIgnoreCase(cmd) ||
+                "Transparency".equalsIgnoreCase(cmd)) {
             if (ae != null) {
                 ((TransButton) ae.getSource()).popup.show(((TransButton) ae.getSource()), /*((TBButton)arg0.getSource()).getLocation().x*/0, 0/*((TBButton)arg0.getSource()).getLocation().y*/);
             }
-        } else if (PCARD.pc.intl.getToolText("Type").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Type").equalsIgnoreCase(cmd) ||
+        } else if (rb.getString("main.Type").equalsIgnoreCase(cmd) ||
+                "Type".equalsIgnoreCase(cmd) ||
                 "text".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new TypeTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Pencil").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Pencil").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Pencil").equalsIgnoreCase(cmd) ||
+                "Pencil".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new PencilTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Eraser").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Eraser").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Eraser").equalsIgnoreCase(cmd) ||
+                "Eraser".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new EraserTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Rect").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Rect").equalsIgnoreCase(cmd) ||
+        } else if (rb.getString("main.Rect").equalsIgnoreCase(cmd) ||
+                "Rect".equalsIgnoreCase(cmd) ||
                 "rectangle".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new RectTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Line").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Line").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Line").equalsIgnoreCase(cmd) ||
+                "Line".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new LineTool();
             TBCursor.changeCursor(PCARD.pc);
-        } else if (PCARD.pc.intl.getToolText("Oval").equalsIgnoreCase(cmd) ||
-                PCARD.pc.intl.getToolEngText("Oval").equalsIgnoreCase(cmd)) {
+        } else if (rb.getString("main.Oval").equalsIgnoreCase(cmd) ||
+                "Oval".equalsIgnoreCase(cmd)) {
             PCARD.pc.tool = new OvalTool();
             TBCursor.changeCursor(PCARD.pc);
         } else if (cmd.equals("DummyPaint")) {
@@ -761,8 +765,8 @@ class TBButtonListener implements ActionListener, MouseListener {
             GMenu.menuUpdate(PCARD.pc.paintMenu.mb);
 
             // PCARD.pc.pidle.interrupt();
-            /*PCARD.pc.paidle = new PaintIdle();
-            PCARD.pc.paidle.start();*/
+//            PCARD.pc.paIdle = new PaintIdle();
+//            PCARD.pc.paIdle.start();
 
             // Menu
             {
@@ -785,6 +789,7 @@ class TBButtonListener implements ActionListener, MouseListener {
         return true;
     }
 }
+
 
 class TBCursor {
 

@@ -24,6 +24,8 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -32,6 +34,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -50,8 +53,10 @@ import javax.xml.stream.XMLStreamWriter;
 
 public class OButton extends OObject {
 
+    private static final Logger logger = System.getLogger(OButton.class.getName());
+
     OCardBase card = null;
-    // OBackground bkgd = null;
+    //OBackground bkgd = null;
     MyButton btn = null;
     MyCheck chkbox = null;
     MyRadio radio = null;
@@ -59,17 +64,17 @@ public class OButton extends OObject {
     BufferedImage imageForScale; // Data for icon scaling;
 
     // Properties
-    // Boolean autoHilite=true;
+    //Boolean autoHighlight = true;
     Color color = Color.BLACK;
     Color bgColor = Color.WHITE;
     int group = 0;
-    Boolean check_hilite = false; // For reference from other cards
+    Boolean checkHilite = false; // For reference from other cards
     private boolean autoHilite = true; // Referenced only at creation
     private boolean hilite = false; // Referenced only at creation
     int icon = 0;
     URI iconURI;
     // number (calculated from card information)
-    Boolean sharedHilite = false;
+    Boolean sharedHighlight = false;
     Boolean showName = true;
     int style = 0; // 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
     int textAlign = 1; // 0 left 1 center 2 right
@@ -150,36 +155,36 @@ public class OButton extends OObject {
     }
 
     private void setIcon(int in, boolean noupdate) {
-        // if(icon==in) return;
+        //if (icon == in) return;
         icon = in;
         iconURI = null;
         if (btn != null) {
-            // RepaintManager rm = null;
+            //RepaintManager rm = null;
             if (!PCARD.lockedScreen) {
-                // rm = RepaintManager.currentManager(getComponent());
-                // RepaintManager.setCurrentManager(nullPaintManager);
+                //rm = RepaintManager.currentManager(getComponent());
+                //RepaintManager.setCurrentManager(nullPaintManager);
             }
 
-            // this.iconImage = null;
+            //this.iconImage = null;
             if (icon > 0) {
                 if (in == cache_id) {
-                    /*if((autoHilite || hilite==btn.getModel().isArmed())&&!showName&&style>=1&&style<=3){
-                        this.iconImage = cache_bi;
-                    }else*/
+//                    if ((autoHighlight || highlight == btn.getModel().isArmed()) && !showName && style >= 1 && style <= 3) {
+//                        this.iconImage = cache_bi;
+//                    } else
                     {
                         if (scaleIcon || blendMode != 0) imageForScale = cache_bi;
                         btn.setIcon(new ImageIcon(cache_bi));
                     }
-                    // btn.setIcon(cache_icon); // This doesn't seem to make it any faster
+                    //btn.setIcon(cache_icon); // This doesn't seem to make it any faster
                 } else {
                     // Load icon
                     Path path = Paths.get(((OCardBase) parent).stack.rsrc.getFilePathAll(icon, "icon"));
                     if (path != null) {
-                        // String path = (((OCardBase)parent).stack.file.getParent()+File.separatorChar+fileName);
+                        //String path = ((OCardBase) parent).stack.file.getParent() + File.separatorChar + fileName;
                         try {
                             BufferedImage bi = ImageIO.read(Files.newInputStream(path));
                             if (bi == null) {
-                                // bi = javax.imageio.ImageIO.read(new File(path));
+                                //bi = javax.imageio.ImageIO.read(new File(path));
                                 btn.setIcon(new ImageIcon(path.toString()));
                                 if (scaleIcon || blendMode != 0) {
                                     bi = javax.imageio.ImageIO.read(Files.newInputStream(path));
@@ -189,16 +194,16 @@ public class OButton extends OObject {
                             if (bi != null) {
                                 cache_bi = bi;
                                 cache_id = in;
-                                /*if((autoHilite || hilite==btn.getModel().isArmed())&&!showName&&style>=1&&style<=3){
-                                    this.iconImage = bi;
-                                }else*/
+//                                if ((autoHighlight || highlight == btn.getModel().isArmed()) && !showName && style >= 1 && style <= 3) {
+//                                    this.iconImage = bi;
+//                                } else
                                 {
                                     if (scaleIcon || blendMode != 0) imageForScale = bi;
                                     btn.setIcon(new ImageIcon(bi));
                                 }
                             }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     } else {
                         // Load icon(png,jpeg)
@@ -212,9 +217,9 @@ public class OButton extends OObject {
                                 if (scaleIcon || blendMode != 0) imageForScale = bi;
                                 btn.setIcon(cache_icon);
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                logger.log(Level.ERROR, e.getMessage(), e);
                             }
-                            // btn.setIcon(new ImageIcon(card.stack.file.getParent()+"/resource/icon"+icon+".png"));
+                            //btn.setIcon(new ImageIcon(card.stack.file.getParent() + "/resource/icon" + icon + ".png"));
                         } else {
                             try {
                                 file = new File(card.stack.file.getParent() + "/resource/icon" + icon + ".jpeg");
@@ -225,7 +230,7 @@ public class OButton extends OObject {
                                 if (scaleIcon || blendMode != 0) imageForScale = bi;
                                 btn.setIcon(cache_icon);
                             } catch (Exception e) {
-                                // e.printStackTrace();
+                                //logger.log(Level.ERROR, e.getMessage(), e);
                             }
                         }
                     }
@@ -234,12 +239,12 @@ public class OButton extends OObject {
                     btn.setHorizontalTextPosition(SwingConstants.CENTER);
                     btn.setVerticalTextPosition(SwingConstants.BOTTOM);
                 }
-                if (!PCARD.lockedScreen && noupdate == false) {
-                    /*if(cache_bi!=null){
-                        // Needs to be done more properly but for speedup
-                        Graphics paneg = PCARD.pc.mainPane.getGraphics();
-                        paneg.drawImage(cache_bi,left,top,left+width,top+height,0,0,width,height,PCARD.pc.mainPane);
-                    }else*/
+                if (!PCARD.lockedScreen && !noupdate) {
+//                    if (cache_bi != null) {
+//                        // Needs to be done more properly but for speedup
+//                        Graphics paneg = PCARD.pc.mainPane.getGraphics();
+//                        paneg.drawImage(cache_bi, left, top, left + width, top + height, 0, 0, width, height, PCARD.pc.mainPane);
+//                    } else
                     {
                         PCARD.pc.mainPane.paintImmediately(left, top, width, height);
                         if (TTalk.wait > 0 && PCARD.pc.stack.createdByVersion.charAt(0) == '2') {
@@ -255,7 +260,7 @@ public class OButton extends OObject {
                 int rsrcid = ((OCardBase) parent).stack.rsrc.getRsrcIdAll(name, "picture");
                 Path path = Paths.get(((OCardBase) parent).stack.rsrc.getFilePathAll(rsrcid, "picture"));
                 if (path != null) {
-                    // String path = (((OCardBase)parent).stack.file.getParent()+File.separatorChar+fileName);
+                    //String path = (((OCardBase) parent).stack.file.getParent() + File.separatorChar + fileName);
                     try {
                         BufferedImage bi = ImageIO.read(Files.newInputStream(path));
                         if (bi == null) {
@@ -286,7 +291,7 @@ public class OButton extends OObject {
                                 ImageIO.write(pict, "png", ofile);
                             }
                         } catch (Exception err) {
-                            // err.printStackTrace();
+                            //logger.log(Level.ERROR, err.getMessage(), err);
                         }
                     }
                     if (file.exists()) {
@@ -295,16 +300,16 @@ public class OButton extends OObject {
                             if (scaleIcon || blendMode != 0) imageForScale = bi;
                             btn.setIcon(new ImageIcon(bi));
                         } catch (IOException e) {
-                            // e.printStackTrace();
+                            //logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     } else {
                         btn.setIcon(null);
                         imageForScale = null;
                     }
                 }
-                // btn.setIcon(new ImageIcon(card.stack.file.getParent()+"/resource/pict"+name+".png"));
+                //btn.setIcon(new ImageIcon(card.stack.file.getParent() + "/resource/pict" + name + ".png"));
                 btn.setText("");
-                if (!PCARD.lockedScreen && noupdate == false) {
+                if (!PCARD.lockedScreen && !noupdate) {
                     PCARD.pc.mainPane.paintImmediately(left, top, width, height);
                     if (TTalk.wait > 0 && PCARD.pc.stack.createdByVersion.charAt(0) == '2') {
                         try {
@@ -316,14 +321,14 @@ public class OButton extends OObject {
             } else if (icon == 0) {
                 btn.setIcon(null);
                 imageForScale = null;
-                if (!PCARD.lockedScreen && noupdate == false) {
+                if (!PCARD.lockedScreen && !noupdate) {
                     PCARD.pc.mainPane.paintImmediately(left, top, width, height);
                 }
             }
 
-            // if(!PCARD.lockedScreen) {
-            // RepaintManager.setCurrentManager(rm);
-            // }
+//            if (!PCARD.lockedScreen) {
+//                RepaintManager.setCurrentManager(rm);
+//            }
         }
         ((OCardBase) parent).changed = true;
     }
@@ -333,7 +338,7 @@ public class OButton extends OObject {
     }
 
     private void setIconURI(URI in, boolean noupdate) {
-        // if(icon==in) return;
+        //if (icon == in) return;
         icon = 0;
         iconURI = in;
         if (btn != null) {
@@ -346,7 +351,7 @@ public class OButton extends OObject {
                     }
                     new setIconThread(img).start();
                 } catch (MalformedURLException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 } catch (IllegalArgumentException e) {
 
                 }
@@ -359,7 +364,7 @@ public class OButton extends OObject {
                 imageForScale = null;
             }
 
-            if (!PCARD.lockedScreen && noupdate == false) {
+            if (!PCARD.lockedScreen && !noupdate) {
                 PCARD.pc.mainPane.paintImmediately(left, top, width, height);
             }
         }
@@ -380,12 +385,14 @@ public class OButton extends OObject {
         }
     }
 
-    /*static NullPaintManager nullPaintManager = new NullPaintManager();
-    static class NullPaintManager extends RepaintManager{
-        @Override
-        public void addDirtyRegion(JComponent c, int x, int y, int w,int h) {
-        }
-    }*/
+//    static NullPaintManager nullPaintManager = new NullPaintManager();
+//
+//    static class NullPaintManager extends RepaintManager {
+//
+//        @Override
+//        public void addDirtyRegion(JComponent c, int x, int y, int w, int h) {
+//        }
+//    }
 
     public void setTopLeft(int h, int v) {
         int oldLeft = left;
@@ -393,15 +400,15 @@ public class OButton extends OObject {
         left = h;
         top = v;
         if (getComponent() != null) {
-            /*RepaintManager rm = null;
-            if(!PCARD.lockedScreen) {
-                rm = RepaintManager.currentManager(getComponent());
-                RepaintManager.setCurrentManager(nullPaintManager);
-            }*/
+//            RepaintManager rm = null;
+//            if (!PCARD.lockedScreen) {
+//                rm = RepaintManager.currentManager(getComponent());
+//                RepaintManager.setCurrentManager(nullPaintManager);
+//            }
             getComponent().setBounds(left, top, width, height);
-            /*if(!PCARD.lockedScreen) {
-                RepaintManager.setCurrentManager(rm);
-            }*/
+//            if (!PCARD.lockedScreen) {
+//                RepaintManager.setCurrentManager(rm);
+//            }
 
             if (!PCARD.lockedScreen) {
                 if (Math.abs(left - oldLeft) < width && Math.abs(top - oldTop) < height)
@@ -488,18 +495,18 @@ public class OButton extends OObject {
 
     public void setHilite(boolean in) {
         hilite = in;
-        check_hilite = in;
-        /*if(sharedHilite && card.getClass()==OCard.class){
-            ((OCard)card).bg.GetBgBtnbyId(id).hilite = in;
-        }*/
+        checkHilite = in;
+//        if (sharedHighlight && card.getClass() == OCard.class) {
+//            ((OCard) card).bg.GetBgBtnbyId(id).highlight = in;
+//        }
         if (group != 0) {
-            ArrayList<OButton> btnList = ((OCardBase) parent).btnList;
+            List<OButton> btnList = ((OCardBase) parent).btnList;
             for (OButton oButton : btnList) {
                 if (oButton != this && oButton.group == group) {
-                    oButton.check_hilite = false;
+                    oButton.checkHilite = false;
                     oButton.hilite = false;
                     if (oButton.btn != null) {
-                        oButton.btn.setHilite(false);
+                        oButton.btn.setHighlight(false);
                         if (!PCARD.lockedScreen) {
                             PCARD.pc.mainPane.paintImmediately(oButton.left, oButton.top, oButton.width, oButton.height);
                         }
@@ -509,7 +516,7 @@ public class OButton extends OObject {
         }
         if (getComponent() != null) {
             if (btn != null) {
-                btn.setHilite(in);
+                btn.setHighlight(in);
             } else if (radio != null) {
                 radio.setSelected(in);
             } else if (chkbox != null) {
@@ -526,7 +533,7 @@ public class OButton extends OObject {
     public boolean getHilite() {
         if (getComponent() != null) {
             if (btn != null) {
-                return btn.getHilite();
+                return btn.getHighlight();
             } else if (radio != null) {
                 return radio.isSelected();
             } else if (chkbox != null) {
@@ -595,7 +602,7 @@ public class OButton extends OObject {
 
     public boolean getAutoHilite() {
         /*if(btn != null){
-            return btn.autoHilite;
+            return btn.autoHighlight;
         }*/
         return autoHilite;
     }
@@ -603,7 +610,7 @@ public class OButton extends OObject {
     public void setAutoHilite(boolean in) {
         autoHilite = in;
         if (btn != null) {
-            btn.setAutoHilite(in);
+            btn.setAutoHighlight(in);
         }
         ((OCardBase) parent).changed = true;
     }
@@ -728,7 +735,7 @@ public class OButton extends OObject {
                                         }
                                         case "right" -> right = Integer.parseInt(reader.getElementText());
                                         case "bottom" -> bottom = Integer.parseInt(reader.getElementText());
-                                        default -> System.out.println("Part_Type: " + reader.getLocalName());
+                                        default -> logger.log(Level.DEBUG, "Part_Type: " + reader.getLocalName());
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
                                     String elm2 = reader.getLocalName();
@@ -750,7 +757,7 @@ public class OButton extends OObject {
                                         case "red" -> red = Integer.parseInt(reader.getElementText());
                                         case "green" -> green = Integer.parseInt(reader.getElementText());
                                         case "blue" -> blue = Integer.parseInt(reader.getElementText());
-                                        default -> System.out.println("Part_Type: " + reader.getLocalName());
+                                        default -> logger.log(Level.DEBUG, "Part_Type: " + reader.getLocalName());
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
                                     String elm2 = reader.getLocalName();
@@ -792,7 +799,7 @@ public class OButton extends OObject {
                             reader.next();
                         }
                         case "sharedHighlight" -> {
-                            this.sharedHilite = XMLRead.bool(reader);
+                            this.sharedHighlight = XMLRead.bool(reader);
                             reader.next();
                         }
                         case "family" -> this.group = Integer.parseInt(reader.getElementText());
@@ -865,21 +872,15 @@ public class OButton extends OObject {
                             stringList = new ArrayList[scriptList.size()];
                             typeList = new ArrayList[scriptList.size()];
                         }
-                        case "true" -> {
+                        case "true", "false" -> {
                             // dummy
                         }
-                        case "false" -> {
-                            // dummy
-                        }
-                        case "part" -> {
-                            // dummy for clipboard
-                        }
-                        case "type" -> {
+                        case "part", "type" -> {
                             // dummy for clipboard
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -896,7 +897,6 @@ public class OButton extends OObject {
         }
         return reader;
     }
-
 
     public void writeXML(XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement("part");
@@ -1015,7 +1015,7 @@ public class OButton extends OObject {
 
             writer.writeStartElement("sharedHighlight");
             writer.writeCharacters(" ");
-            writer.writeEmptyElement(sharedHilite + " ");
+            writer.writeEmptyElement(sharedHighlight + " ");
             writer.writeCharacters(" ");
             writer.writeEndElement();
             writer.writeCharacters("\n\t\t\t");
@@ -1025,10 +1025,10 @@ public class OButton extends OObject {
             writer.writeEndElement();
             writer.writeCharacters("\n\t\t\t");
         } else {
-            /*writer.writeStartElement("reserved25");
-            writer.writeCharacters(" 0 ");
-            writer.writeEndElement();
-            writer.writeCharacters("\n\t\t\t");*/
+//            writer.writeStartElement("reserved25");
+//            writer.writeCharacters(" 0 ");
+//            writer.writeEndElement();
+//            writer.writeCharacters("\n\t\t\t");
 
             writer.writeStartElement("family");
             writer.writeCharacters(Integer.toString(group));
@@ -1282,36 +1282,35 @@ public class OButton extends OObject {
         writer.writeCharacters("\n\t\t");
     }
 
-
     // Convert HC stack
     @SuppressWarnings("unchecked")
     public boolean readButtonBlock(DataInputStream dis, int partSize) {
-        // System.out.println("====readButtonBlock====");
+        //logger.log(Level.DEBUG, "====readButtonBlock====");
         // Read block data sequentially
         int flags = HCData.readCode(dis, 1);
-        // System.out.println("flags:"+flags);
+        //logger.log(Level.DEBUG, "flags: " + flags);
         setVisible(((flags >> 7) & 0x01) == 0);
-        // dontWrap = !( ((flags>>5)&0x01)!=0);
-        // dontSearch = ((flags>>4)&0x01)!=0;
-        // sharedText = ((flags>>3)&0x01)!=0;
-        // fixedLineHeight = ! (((flags>>2)&0x01)!=0);
-        // autoTab = ((flags>>1)&0x01)!=0;
+//        dontWrap = !(((flags >> 5) & 0x01) != 0);
+//        dontSearch = ((flags >> 4) & 0x01) != 0;
+//        sharedText = ((flags >> 3) & 0x01) != 0;
+//        fixedLineHeight = !(((flags >> 2) & 0x01) != 0);
+//        autoTab = ((flags >> 1) & 0x01) != 0;
         enabled = !(((flags >> 0) & 0x01) != 0);
         top = HCData.readCode(dis, 2);
-        // System.out.println("top:"+top);
+        //logger.log(Level.DEBUG, "top: " + top);
         left = HCData.readCode(dis, 2);
-        // System.out.println("left:"+left);
+        //logger.log(Level.DEBUG, "left: " + left);
         int bottom = HCData.readCode(dis, 2);
-        // System.out.println("bottom:"+bottom);
+        //logger.log(Level.DEBUG, "bottom: " + bottom);
         height = bottom - top;
         int right = HCData.readCode(dis, 2);
-        // System.out.println("right:"+right);
+        //logger.log(Level.DEBUG, "right: " + right);
         width = right - left;
         int flags2 = HCData.readCode(dis, 1);
         showName = ((flags2 >> 7) & 0x01) != 0;
         hilite = ((flags2 >> 6) & 0x01) != 0;
         autoHilite = ((flags2 >> 5) & 0x01) != 0;
-        sharedHilite = !(((flags2 >> 4) & 0x01) != 0);
+        sharedHighlight = !(((flags2 >> 4) & 0x01) != 0);
         group = (flags2) & 0x0F;
         int style = HCData.readCode(dis, 1);
         // 0 standard 1 transparent 2 opaque 3 rectangle 4 shadow 5 roundrect 6 default 7 oval 8 popup 9 checkbox 10 radio
@@ -1352,13 +1351,13 @@ public class OButton extends OObject {
                 break; // popup
         }
         titleWidth = HCData.readCode(dis, 2);
-        // System.out.println("titleWidth:"+titleWidth);
+        //logger.log(Level.DEBUG, "titleWidth: " + titleWidth);
         if (this.style == 8) {
             selectedLine = HCData.readCode(dis, 2);
-            // System.out.println("selectedLine:"+selectedLine);
+            //logger.log(Level.DEBUG, "selectedLine: " + selectedLine);
         } else {
             icon = HCData.readCode(dis, 2);
-            // System.out.println("icon:"+icon);
+            //logger.log(Level.DEBUG, "icon: " + icon);
         }
         int inTextAlign = HCData.readCode(dis, 2);
         switch (inTextAlign) {
@@ -1372,29 +1371,28 @@ public class OButton extends OObject {
                 textAlign = 2;
                 break;
         }
-        // System.out.println("inTextAlign:"+inTextAlign);
+        //logger.log(Level.DEBUG, "inTextAlign: " + inTextAlign);
         int textFontID = HCData.readCode(dis, 2);
-        // System.out.println("textFontID:"+textFontID);
+        //logger.log(Level.DEBUG, "textFontID: " + textFontID);
         textSize = HCData.readCode(dis, 2);
-        // System.out.println("textSize:"+textSize);
+        //logger.log(Level.DEBUG, "textSize: " + textSize);
         textStyle = HCData.readCode(dis, 1);
-        // System.out.println("textStyle:"+textStyle);
-        /*int filler =*/
-        HCData.readCode(dis, 1);
-        // System.out.println("filler:"+filler);
+        //logger.log(Level.DEBUG, "textStyle: " + textStyle);
+        /* int filler = */ HCData.readCode(dis, 1);
+        //logger.log(Level.DEBUG, "filler: " + filler);
         textHeight = HCData.readCode(dis, 2);
-        // System.out.println("textHeight:"+textHeight);
+        //logger.log(Level.DEBUG, "textHeight: " + textHeight);
         resultStr nameResult = HCData.readTextToZero(dis, partSize - 30);
         name = nameResult.str;
         rawNameBytes = nameResult.rawBytes;
-        // HCStackDebug.debuginfo("name:"+name);
-        // System.out.println("name:"+name);
-        /*int filler2 =*/ // HCData.readCode(dis, 1);
-        // System.out.println("filler2:"+filler2);
+        //HCStackDebug.debuginfo("name: " + name);
+        //logger.log(Level.DEBUG, "name: " + name);
+        /* int filler2 = */ // HCData.readCode(dis, 1);
+        //logger.log(Level.DEBUG, "filler2: " + filler2);
         resultStr scriptResult = HCData.readText(dis, partSize - 30 - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
         rawScriptBytes = scriptResult.rawBytes;
-        // System.out.println("scriptStr:"+scriptStr);
+        //logger.log(Level.DEBUG, "scriptStr: " + scriptStr);
 
         // Search for font name from table
         OStack stack = ((OCardBase) this.parent).stack;
@@ -1406,21 +1404,20 @@ public class OButton extends OObject {
         }
 
         int remainLength = partSize - (30 + (nameResult.length_in_src) + (scriptResult.length_in_src));
-        // System.out.println("remainLength:"+remainLength);
-        // HCStackDebug.debuginfo("remainLength:"+remainLength);
+        //logger.log(Level.DEBUG, "remainLength: " + remainLength);
+        //HCStackDebug.debuginfo("remainLength: " + remainLength);
         if (remainLength < 0 || remainLength > 1000) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (remainLength > 0) {
-            /*String padding =*/
-            HCData.readStr(dis, remainLength);
-            // System.out.println("padding:"+padding);
-            // HCStackDebug.debuginfo("padding:"+padding);
+            /* String padding = */ HCData.readStr(dis, remainLength);
+            //logger.log(Level.DEBUG, "padding: " + padding);
+            //HCStackDebug.debuginfo("padding: " + padding);
         }
-        /*if((nameResult.length_in_src+1+scriptResult.length_in_src+1)%2 != 0){
-            String padding = HCData.readStr(dis, 1);
-            System.out.println("padding:"+padding);
-        }*/
+//        if ((nameResult.length_in_src + 1 + scriptResult.length_in_src + 1) % 2 != 0) {
+//            String padding = HCData.readStr(dis, 1);
+//            logger.log(Level.DEBUG, "padding:" + padding);
+//        }
 
         // Script
         String[] scriptAry = scriptStr.split("\n");
@@ -1430,7 +1427,6 @@ public class OButton extends OObject {
 
         return true;
     }
-
 
     static void buildOButton(OButton obtn) {
         // Add Swing button
@@ -1452,8 +1448,8 @@ public class OButton extends OObject {
             obtn.btn.setBackground(obtn.bgColor);
             obtn.btn.setBounds(obtn.left, obtn.top, obtn.width, obtn.height);
             obtn.btn.setEnabled(obtn.enabled);
-            obtn.btn.setAutoHilite(obtn.autoHilite);
-            obtn.btn.setHilite(obtn.hilite);
+            obtn.btn.setAutoHighlight(obtn.autoHilite);
+            obtn.btn.setHighlight(obtn.hilite);
             obtn.btn.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle & 0x03, PCARDFrame.getFontSize(obtn.textSize)));
             if (!obtn.showName) obtn.btn.setText("");
             if ((obtn.textStyle & 8) > 0 || (obtn.textStyle & 16) > 0) { // outline,shadow
@@ -1464,56 +1460,54 @@ public class OButton extends OObject {
             } else {
                 obtn.setIcon(obtn.icon, true);
             }
-            /*if(obtn.icon > 0) {
-                File file=new File(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+".png");
-                if(file.exists()) {
-                    obtn.btn.setIcon(new ImageIcon(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+".png"));
-                }
-                else {
-                    file=new File(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+".jpeg");
-                    if(file.exists()) {
-                        obtn.btn.setIcon(new ImageIcon(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+".jpeg"));
-                    }
-                    else {
-                        try {
-                            BufferedImage pict = ImageIO.read(new File(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+"_img.png"));
-                            File file2=new File(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+"_mask.png");
-                            if(file2.exists()) {
-                                BufferedImage mask = ImageIO.read(file);
-                                pict = OCard.makeAlphaImage(pict, mask);
-                                File ofile=new File(obtn.card.stack.file.getParent()+"/resource/icon"+obtn.icon+".png");
-                                ImageIO.write(pict,"png",ofile);
-                            }
-                        }catch (Exception err) {
-                            // err.printStackTrace();
-                        }
-                    }
-                }
-                obtn.btn.setHorizontalTextPosition(JButton.CENTER);
-                obtn.btn.setVerticalTextPosition(JButton.BOTTOM);
-            }
-            if(obtn.icon == -1) {
-                File file=new File(obtn.card.stack.file.getParent()+"/resource/pict"+obtn.name+".png");
-                if(!file.exists()) {
-                    file=new File(obtn.card.stack.file.getParent()+"/resource/pict"+obtn.name+".jpeg");
-                }
-                if(!file.exists()) {
-                    try {
-                        BufferedImage pict = ImageIO.read(new File(obtn.card.stack.file.getParent()+"/resource/pict"+obtn.name+"_img.png"));
-                        File file2=new File(obtn.card.stack.file.getParent()+"/resource/pict"+obtn.name+"_mask.png");
-                        if(file2.exists()) {
-                            BufferedImage mask = ImageIO.read(file);
-                            pict = OCard.makeAlphaImage(pict, mask);
-                            File ofile=new File(obtn.card.stack.file.getParent()+"/resource/pict"+obtn.name+".png");
-                            ImageIO.write(pict,"png",ofile);
-                        }
-                    }catch (Exception err) {
-                        // err.printStackTrace();
-                    }
-                }
-                obtn.btn.setIcon(new ImageIcon(obtn.card.stack.file.getParent()+"/resource/pict"+obtn.name+".png"));
-                obtn.btn.setText("");
-            }*/
+//            if (obtn.icon > 0) {
+//                File file = new File(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + ".png");
+//                if (file.exists()) {
+//                    obtn.btn.setIcon(new ImageIcon(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + ".png"));
+//                } else {
+//                    file = new File(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + ".jpeg");
+//                    if (file.exists()) {
+//                        obtn.btn.setIcon(new ImageIcon(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + ".jpeg"));
+//                    } else {
+//                        try {
+//                            BufferedImage pict = ImageIO.read(new File(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + "_img.png"));
+//                            File file2 = new File(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + "_mask.png");
+//                            if (file2.exists()) {
+//                                BufferedImage mask = ImageIO.read(file);
+//                                pict = OCard.makeAlphaImage(pict, mask);
+//                                File ofile = new File(obtn.card.stack.file.getParent() + "/resource/icon" + obtn.icon + ".png");
+//                                ImageIO.write(pict, "png", ofile);
+//                            }
+//                        } catch (Exception err) {
+//                            //logger.log(Level.ERROR, err.getMessage(), err);
+//                        }
+//                    }
+//                }
+//                obtn.btn.setHorizontalTextPosition(JButton.CENTER);
+//                obtn.btn.setVerticalTextPosition(JButton.BOTTOM);
+//            }
+//            if (obtn.icon == -1) {
+//                File file = new File(obtn.card.stack.file.getParent() + "/resource/pict" + obtn.name + ".png");
+//                if (!file.exists()) {
+//                    file = new File(obtn.card.stack.file.getParent() + "/resource/pict" + obtn.name + ".jpeg");
+//                }
+//                if (!file.exists()) {
+//                    try {
+//                        BufferedImage pict = ImageIO.read(new File(obtn.card.stack.file.getParent() + "/resource/pict" + obtn.name + "_img.png"));
+//                        File file2 = new File(obtn.card.stack.file.getParent() + "/resource/pict" + obtn.name + "_mask.png");
+//                        if (file2.exists()) {
+//                            BufferedImage mask = ImageIO.read(file);
+//                            pict = OCard.makeAlphaImage(pict, mask);
+//                            File ofile = new File(obtn.card.stack.file.getParent() + "/resource/pict" + obtn.name + ".png");
+//                            ImageIO.write(pict, "png", ofile);
+//                        }
+//                    } catch (Exception err) {
+//                        //logger.log(Level.ERROR, err.getMessage(), err);
+//                    }
+//                }
+//                obtn.btn.setIcon(new ImageIcon(obtn.card.stack.file.getParent() + "/resource/pict" + obtn.name + ".png"));
+//                obtn.btn.setText("");
+//            }
             switch (obtn.textAlign) {
                 case 0:
                     obtn.btn.setHorizontalAlignment(JButton.LEFT);
@@ -1552,7 +1546,7 @@ public class OButton extends OObject {
             String[] value = obtn.getText().split("\n");
             obtn.popup = new MyPopup(obtn, value);
             obtn.popup.setName(obtn.name);
-            // popup.setFocusPainted(false);
+            //popup.setFocusPainted(false);
             obtn.popup.setForeground(obtn.color);
             obtn.popup.setBackground(obtn.bgColor);
             if (obtn.height >= 19 && obtn.height <= 20) {
@@ -1560,12 +1554,12 @@ public class OButton extends OObject {
             }
             obtn.popup.setBounds(obtn.left, obtn.top, obtn.width, obtn.height);
             obtn.popup.setEnabled(obtn.enabled);
-            // popup(autoHilite);
-            // popup.setSelected(hilite);
+            //popup(autoHighlight);
+            //popup.setSelected(highlight);
             try {
                 obtn.popup.setSelectedIndex(obtn.selectedLine - 1);
             } catch (Exception e) {
-                System.out.println("err: popup.setSelectedIndex(selectedLine-1)");
+                logger.log(Level.DEBUG, "err: popup.setSelectedIndex(selectedLine-1)");
             }
             obtn.popup.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle, PCARDFrame.getFontSize(obtn.textSize)));
             if (obtn.showName) obtn.popup.setToolTipText(obtn.name);
@@ -1582,7 +1576,7 @@ public class OButton extends OObject {
             obtn.chkbox.setBackground(obtn.bgColor);
             obtn.chkbox.setBounds(obtn.left, obtn.top, obtn.width, obtn.height);
             obtn.chkbox.setEnabled(obtn.enabled);
-            // chkbox.setAutoHilite(autoHilite);
+            // chkbox.setAutoHighlight(autoHighlight);
             obtn.chkbox.setSelected(obtn.hilite);
             obtn.chkbox.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle, PCARDFrame.getFontSize(obtn.textSize)));
             obtn.chkbox.setVisible(obtn.getVisible());
@@ -1597,7 +1591,7 @@ public class OButton extends OObject {
             obtn.radio.setBackground(obtn.bgColor);
             obtn.radio.setBounds(obtn.left, obtn.top, obtn.width, obtn.height);
             obtn.radio.setEnabled(obtn.enabled);
-            // chkbox.setAutoHilite(autoHilite);
+            // chkbox.setAutoHighlight(autoHighlight);
             obtn.radio.setSelected(obtn.hilite);
             obtn.radio.setFont(new Font(PCARDFrame.getFontName(obtn.textFont), obtn.textStyle, PCARDFrame.getFontSize(obtn.textSize)));
             obtn.radio.setVisible(obtn.getVisible());
@@ -1614,35 +1608,35 @@ public class OButton extends OObject {
     void addListener() {
         if (card == null) return;
         if (btn != null) {
-            btn.addMouseListener(card.stack.GUI_btn);
-            btn.addMouseMotionListener(card.stack.GUI_btn);
-            btn.addActionListener(card.stack.GUI_btn);
+            btn.addMouseListener(card.stack.guiButton);
+            btn.addMouseMotionListener(card.stack.guiButton);
+            btn.addActionListener(card.stack.guiButton);
         } else if (popup != null) {
-            popup.addPopupMenuListener(card.stack.GUI_popup);
-            popup.addActionListener(card.stack.GUI_popup);
+            popup.addPopupMenuListener(card.stack.guiPopup);
+            popup.addActionListener(card.stack.guiPopup);
         } else if (chkbox != null) {
-            chkbox.addMouseListener(card.stack.GUI_check);
-            chkbox.addActionListener(card.stack.GUI_check);
+            chkbox.addMouseListener(card.stack.guiCheck);
+            chkbox.addActionListener(card.stack.guiCheck);
         } else if (radio != null) {
-            radio.addMouseListener(card.stack.GUI_radio);
-            radio.addActionListener(card.stack.GUI_radio);
+            radio.addMouseListener(card.stack.guiRadio);
+            radio.addActionListener(card.stack.guiRadio);
         }
     }
 
     void removeListener() {
         if (btn != null) {
-            btn.removeMouseListener(card.stack.GUI_btn);
-            btn.removeMouseMotionListener(card.stack.GUI_btn);
-            btn.removeActionListener(card.stack.GUI_btn);
+            btn.removeMouseListener(card.stack.guiButton);
+            btn.removeMouseMotionListener(card.stack.guiButton);
+            btn.removeActionListener(card.stack.guiButton);
         } else if (popup != null) {
-            popup.removePopupMenuListener(card.stack.GUI_popup);
-            popup.removeActionListener(card.stack.GUI_popup);
+            popup.removePopupMenuListener(card.stack.guiPopup);
+            popup.removeActionListener(card.stack.guiPopup);
         } else if (chkbox != null) {
-            chkbox.removeMouseListener(card.stack.GUI_check);
-            chkbox.removeActionListener(card.stack.GUI_check);
+            chkbox.removeMouseListener(card.stack.guiCheck);
+            chkbox.removeActionListener(card.stack.guiCheck);
         } else if (radio != null) {
-            radio.removeMouseListener(card.stack.GUI_radio);
-            radio.removeActionListener(card.stack.GUI_radio);
+            radio.removeMouseListener(card.stack.guiRadio);
+            radio.removeActionListener(card.stack.guiRadio);
         }
     }
 
@@ -1672,6 +1666,7 @@ public class OButton extends OObject {
         }
     }
 }
+
 
 class btnOutlineListen implements MouseListener {
 
@@ -1706,15 +1701,14 @@ class btnOutlineListen implements MouseListener {
     }
 }
 
+
 class MyButton extends JButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    boolean autoHilite = true;
-    boolean hilite = false;
+
+    boolean autoHighlight = true;
+    boolean highlight = false;
     OButton btnData = null;
 
     public MyButton(OButton btn, String text) {
@@ -1723,19 +1717,19 @@ class MyButton extends JButton {
         this.setDoubleBuffered(PCARD.useDoubleBuffer);
     }
 
-    void setAutoHilite(boolean b) {
-        autoHilite = b;
+    void setAutoHighlight(boolean b) {
+        autoHighlight = b;
     }
 
-    void setHilite(boolean b) {
-        hilite = b;
-        btnData.check_hilite = b;
-        getModel().setArmed(hilite);
+    void setHighlight(boolean b) {
+        highlight = b;
+        btnData.checkHilite = b;
+        getModel().setArmed(highlight);
     }
 
-    boolean getHilite() {
-        if (autoHilite && PCARD.editMode == 0) return getModel().isArmed();
-        return hilite;
+    boolean getHighlight() {
+        if (autoHighlight && PCARD.editMode == 0) return getModel().isArmed();
+        return highlight;
     }
 
     @Override
@@ -1750,7 +1744,7 @@ class MyButton extends JButton {
             ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, btnData.blendLevel / 100.0f));
         }
 
-        if (autoHilite || hilite == getModel().isArmed()) {
+        if (autoHighlight || highlight == getModel().isArmed()) {
             if (!btnData.showName && btnData.style >= 1 && btnData.style <= 3) {
                 g.setPaintMode();
                 if (btnData.style >= 2) {
@@ -1779,19 +1773,19 @@ class MyButton extends JButton {
                     if (!isEnabled()) {
                         ((Graphics2D) g).setComposite(oldComp);
                     }
-                    if (getHilite()) {
+                    if (getHighlight()) {
                         g.setColor(Color.BLACK);
                         g.setXORMode(Color.WHITE);
                         g.fillRect(0, 0, getWidth(), getHeight());
                         g.setPaintMode();
                     }
-                }/*else{
-                    BufferedImage img = btnData.iconImage;
-                    if(img!=null){
-                        // g2.setColor(getBackground());
-                        g.drawImage(img, (btnData.width-img.getWidth())/2, (btnData.height-img.getHeight())/2, this);
-                    }
-                }*/
+//                } else {
+//                    BufferedImage img = btnData.iconImage;
+//                    if (img != null) {
+//                        // g2.setColor(getBackground());
+//                        g.drawImage(img, (btnData.width - img.getWidth()) / 2, (btnData.height - img.getHeight()) / 2, this);
+//                    }
+                }
             } else if (btnData.getScaleIcon() && btnData.imageForScale != null) {
                 g.drawImage(btnData.imageForScale, 0, 0, getWidth(), getHeight(),
                         0, 0, btnData.imageForScale.getWidth(), btnData.imageForScale.getHeight(), null);
@@ -1802,7 +1796,7 @@ class MyButton extends JButton {
             g.drawImage(btnData.imageForScale, 0, 0, getWidth(), getHeight(),
                     0, 0, btnData.imageForScale.getWidth(), btnData.imageForScale.getHeight(), null);
         } else {
-            getModel().setArmed(hilite);
+            getModel().setArmed(highlight);
             super.paintComponent(g);
         }
         if (AuthTool.tool != null && ButtonGUI.gui.target == this) {
@@ -1811,26 +1805,25 @@ class MyButton extends JButton {
     }
 }
 
+
 class RoundedCornerButton extends MyButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    private static final float arcwidth = 16.0f;
-    private static final float archeight = 16.0f;
-    protected static final int focusstroke = 2;
+
+    private static final float arcWidth = 16.0f;
+    private static final float arcHeight = 16.0f;
+    protected static final int focusStroke = 2;
     protected static final Color fc = new Color(100, 150, 255, 200);
-    // protected final Color ac = new Color(0,0,0);
-    // protected final Color rc = Color.ORANGE;
+    //protected final Color ac = new Color(0,0,0);
+    //protected final Color rc = Color.ORANGE;
     protected Shape shape;
     protected Shape border;
     protected Shape base;
 
     public RoundedCornerButton(OButton btn, String text) {
         super(btn, text);
-        // setRolloverEnabled(true);
+        //setRolloverEnabled(true);
         setContentAreaFilled(false);
         setBackground(new Color(255, 255, 255));
         initShape();
@@ -1841,19 +1834,20 @@ class RoundedCornerButton extends MyButton {
             base = getBounds();
             shape = new RoundRectangle2D.Float(0, 0,
                     getWidth() - 1, getHeight() - 1,
-                    arcwidth, archeight);
-            border = new RoundRectangle2D.Float(focusstroke, focusstroke,
-                    getWidth() - 1 - focusstroke * 2,
-                    getHeight() - 1 - focusstroke * 2,
-                    arcwidth, archeight);
+                    arcWidth, arcHeight);
+            border = new RoundRectangle2D.Float(focusStroke, focusStroke,
+                    getWidth() - 1 - focusStroke * 2,
+                    getHeight() - 1 - focusStroke * 2,
+                    arcWidth, arcHeight);
         }
     }
-    /*private void paintFocusAndRollover(Graphics2D g2, Color color) {
-        g2.setPaint(new GradientPaint(0, 0, color, getWidth()-1, getHeight()-1, color.brighter(), true));
-        g2.fill(shape);
-        g2.setColor(getBackground());
-        g2.fill(border);
-    }*/
+
+//    private void paintFocusAndRollover(Graphics2D g2, Color color) {
+//        g2.setPaint(new GradientPaint(0, 0, color, getWidth() - 1, getHeight() - 1, color.brighter(), true));
+//        g2.fill(shape);
+//        g2.setColor(getBackground());
+//        g2.fill(border);
+//    }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -1864,7 +1858,7 @@ class RoundedCornerButton extends MyButton {
         initShape();
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        if (getHilite()) {
+        if (getHighlight()) {
             setForeground(btnData.bgColor);
             setBackground(btnData.color);
             if (btnData.style != 1 && btnData.style != 7) { // Transparent and oval are XOR
@@ -1877,10 +1871,10 @@ class RoundedCornerButton extends MyButton {
                 g2.fill(shape);
                 g2.setPaintMode();
             }
-            // }else if(isRolloverEnabled() && getModel().isRollover()) {
-            // paintFocusAndRollover(g2, rc);
-            // }else if(hasFocus() && isFocusPainted()) {
-            // paintFocusAndRollover(g2, fc);
+//        } else if (isRolloverEnabled() && getModel().isRollover()) {
+//            paintFocusAndRollover(g2, rc);
+//        } else if (hasFocus() && isFocusPainted()) {
+//            paintFocusAndRollover(g2, fc);
         } else {
             setForeground(btnData.color);
             setBackground(btnData.bgColor);
@@ -1953,11 +1947,9 @@ class RoundedCornerButton extends MyButton {
     }
 }
 
+
 class RectButton extends RoundedCornerButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -1972,8 +1964,8 @@ class RectButton extends RoundedCornerButton {
         if (!getBounds().equals(base)) {
             base = getBounds();
             shape = new Rectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1);
-            border = new Rectangle2D.Float(focusstroke, focusstroke, getWidth()
-                    - 1 - focusstroke * 2, getHeight() - 1 - focusstroke * 2);
+            border = new Rectangle2D.Float(focusStroke, focusStroke, getWidth()
+                    - 1 - focusStroke * 2, getHeight() - 1 - focusStroke * 2);
         }
     }
 
@@ -1987,17 +1979,17 @@ class RectButton extends RoundedCornerButton {
         Graphics paneg = PCARD.pc.mainPane.getGraphics();
         if (PCARD.lockedScreen && paneg == g) return;
         Graphics2D g2 = (Graphics2D) g;
-        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         if (btnData.style == 1) { // Transparent
-            if (autoHilite && getHilite()) {
+            if (autoHighlight && getHighlight()) {
                 initShape();
             } else {
-                // g2.setXORMode(Color.WHITE);
+                //g2.setXORMode(Color.WHITE);
             }
         }
         if (btnData.style == 2) { // Opaque
             initShape();
-            if (autoHilite && getHilite()) {
+            if (autoHighlight && getHighlight()) {
                 g2.setColor(getBackground());
             } else {
                 g2.setColor(getBackground());
@@ -2006,17 +1998,17 @@ class RectButton extends RoundedCornerButton {
         }
         if (btnData.style == 3 || btnData.style == 4) { // Rectangle Shadow
             initShape();
-            if (getHilite()) {
-                // g2.setColor(Color.WHITE);
-                // g2.fill(shape);
-                // g2.setColor(getBackground());
+            if (getHighlight()) {
+                //g2.setColor(Color.WHITE);
+                //g2.fill(shape);
+                //g2.setColor(getBackground());
             } else {
-                // g2.setColor(getBackground());
-                // g2.fill(shape);
+                //g2.setColor(getBackground());
+                //g2.fill(shape);
             }
         }
-        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-        // //g2.setColor(getBackground());
+        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        //g2.setColor(getBackground());
         super.paintComponent(g2);
     }
 
@@ -2042,11 +2034,9 @@ class RectButton extends RoundedCornerButton {
     }
 }
 
+
 class RoundButton extends RoundedCornerButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -2061,8 +2051,8 @@ class RoundButton extends RoundedCornerButton {
         if (!getBounds().equals(base)) {
             base = getBounds();
             shape = new Ellipse2D.Float(0, 0, getWidth() - 1, getHeight() - 1);
-            border = new Ellipse2D.Float(focusstroke, focusstroke, getWidth()
-                    - 1 - focusstroke * 2, getHeight() - 1 - focusstroke * 2);
+            border = new Ellipse2D.Float(focusStroke, focusStroke, getWidth()
+                    - 1 - focusStroke * 2, getHeight() - 1 - focusStroke * 2);
         }
     }
 
@@ -2076,15 +2066,15 @@ class RoundButton extends RoundedCornerButton {
         if (PCARD.lockedScreen && paneg == g) return;
         initShape();
         Graphics2D g2 = (Graphics2D) g;
-        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-        if (getHilite()) {
+        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        if (getHighlight()) {
             g2.setColor(getBackground());
         } else {
         }
-        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         super.paintComponent(g2);
 
-        // super.paintComponent(g2);
+        //super.paintComponent(g2);
         if (AuthTool.tool != null && ButtonGUI.gui.target == this) {
             ButtonGUI.drawSelectBorder(this);
         }
@@ -2098,11 +2088,9 @@ class RoundButton extends RoundedCornerButton {
 
 class MyRadio extends JRadioButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     OButton btnData = null;
 
     public MyRadio(OButton btn, String text) {
@@ -2128,14 +2116,13 @@ class MyRadio extends JRadioButton {
     }
 }
 
+
 class MyCheck extends JCheckBox {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    OButton btnData = null;
+
+    OButton btnData;
 
     public MyCheck(OButton btn, String text) {
         super(text);
@@ -2159,14 +2146,13 @@ class MyCheck extends JCheckBox {
     }
 }
 
+
 class MyPopup extends JComboBox<Object> {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
-    OButton btnData = null;
+
+    OButton btnData;
 
     public MyPopup(OButton btn, String[] text) {
         super(text);
@@ -2179,11 +2165,11 @@ class MyPopup extends JComboBox<Object> {
     @Override
     protected void paintComponent(Graphics g) {
         if (!isVisible()) return;
-        // if(btnData.card!=PCARD.pc.stack.curCard && btnData.card!=PCARD.pc.stack.curCard.bg) return;
+        //if (btnData.card != PCARD.pc.stack.curCard && btnData.card != PCARD.pc.stack.curCard.bg) return;
         if (PCARD.pc.bit > 1) return;
         if (PaintTool.editBackground && btnData.parent.objectType.equals("card")) return;
-        // Graphics paneg = PCARD.pc.mainPane.getGraphics();
-        // if(PCARD.lockedScreen&&paneg==g) return;
+        //Graphics paneg = PCARD.pc.mainPane.getGraphics();
+        //if (PCARD.lockedScreen && paneg == g) return;
         this.validate();
         super.paintComponent(g);
         if (AuthTool.tool != null && ButtonGUI.gui.target == this) {
@@ -2191,4 +2177,3 @@ class MyPopup extends JComboBox<Object> {
         }
     }
 }
-

@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -46,6 +47,8 @@ class ColorConvertDialog extends JFrame implements ActionListener {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     private final PCARDFrame owner;
     private final Color[] srcColorBest = new Color[16];
     private final Color[] dstColorBest = new Color[16];
@@ -57,7 +60,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
         setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         this.owner = owner;
         getContentPane().setLayout(null);
-        setTitle(PCARD.pc.intl.getDialogText("Color Convert"));
+        setTitle(rb.getString("dialog.Color_Convert"));
 
         if (owner.tool instanceof ToolSelectInterface &&
                 ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
@@ -83,7 +86,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
         BufferedImage bi;
         if (owner.tool instanceof ToolSelectInterface tl &&
-                ((ToolSelectInterface) owner.tool).getSelectedSurface(owner) != null) {
+                tl.getSelectedSurface(owner) != null) {
             bi = tl.getSelectedSurface(owner);
             save_bi = tl.getSelectedSurface(owner);
         } else {
@@ -203,14 +206,14 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
         // Buttons to make similarity detection stricter or looser
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Unite"));
+            JButton button = new JButton(rb.getString("dialog.Unite"));
             button.setBounds(130, 100, 100, 25);
             button.setName("Unite");
             button.addActionListener(this);
             getContentPane().add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Divide"));
+            JButton button = new JButton(rb.getString("dialog.Divide"));
             button.setBounds(130, 150, 100, 25);
             button.setName("Divide");
             button.addActionListener(this);
@@ -219,14 +222,14 @@ class ColorConvertDialog extends JFrame implements ActionListener {
 
         // ok, cancel
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            JButton button = new JButton(rb.getString("dialog.OK"));
             button.setBounds(200, 270, 100, 25);
             button.setName("OK");
             button.addActionListener(this);
             getContentPane().add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setBounds(90, 270, 100, 25);
             button.setName("Cancel");
             button.addActionListener(this);
@@ -274,7 +277,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JButton) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
         if (cmd != null && cmd.equals("Cancel")) {
             owner.redoBuf = save_bi;
             this.dispose();
@@ -334,7 +337,7 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 }
             }
 
-            if (owner.owner.tool instanceof ToolSelectInterface &&
+            if (owner.owner.tool instanceof ToolSelectInterface tl &&
                     ((ToolSelectInterface) owner.owner.tool).getSelectedSurface(owner.owner) != null) {
                 // First create and clear a new buffer
                 BufferedImage bi2 = new BufferedImage(save_bi.getWidth(), save_bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -348,7 +351,6 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                 // Operation
                 DataBuffer surbuf = bi2.getRaster().getDataBuffer();
                 if (cmd.equals("OK")) {
-                    ToolSelectInterface tl = (ToolSelectInterface) owner.owner.tool;
                     surbuf = tl.getSelectedSurface(owner.owner).getRaster().getDataBuffer();
                 }
                 int width = bi2.getWidth();
@@ -438,31 +440,31 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                         }
                     }
                 }
-                /*for(int v=0; v<height; v++){ // Parallel shift in RGB
-                    for(int h=0; h<width; h++){
-                        int c = surbuf.getElem(h+v*width);
-                        int srcred = (c>>16)&0x00FF;
-                        int srcgreen = (c>>8)&0x00FF;
-                        int srcblue = (c>>0)&0x00FF;
-                        // If hue is close to srcColorBest, convert color
-                        for(int i=0; i<srcColorBest.length; i++){
-                            if(isNearHSV(c, srcColorBest[i], near+2) && !dstColorBest[i].equals(srcColorBest[i])){
-                                int dstred = srcred + dstColorBest[i].getRed() - srcColorBest[i].getRed();
-                                int dstgreen = srcgreen + dstColorBest[i].getGreen() - srcColorBest[i].getGreen();
-                                int dstblue = srcblue + dstColorBest[i].getBlue() - srcColorBest[i].getBlue();
-                                if(dstred>0xFF) dstred = 0xFF;
-                                else if(dstred<0) dstred = 0;
-                                if(dstgreen>0xFF) dstgreen = 0xFF;
-                                else if(dstgreen<0) dstgreen = 0;
-                                if(dstblue>0xFF) dstblue = 0xFF;
-                                else if(dstblue<0) dstblue = 0;
-                                int d = (c&0xFF000000) + ((0x00FF&dstred)<<16) + ((0x00FF&dstgreen)<<8) + (0x00FF&dstblue);
-                                surbuf.setElem(h+v*width, d);
-                                break;
-                            }
-                        }
-                    }
-                }*/
+//                for (int v = 0; v < height; v++) { // Parallel shift in RGB
+//                    for (int h = 0; h < width; h++) {
+//                        int c = surbuf.getElem(h + v * width);
+//                        int srcred = (c >> 16) & 0x00FF;
+//                        int srcgreen = (c >> 8) & 0x00FF;
+//                        int srcblue = (c >> 0) & 0x00FF;
+//                        // If hue is close to srcColorBest, convert color
+//                        for (int i = 0; i < srcColorBest.length; i++) {
+//                            if (isNearHSV(c, srcColorBest[i], near + 2) && !dstColorBest[i].equals(srcColorBest[i])) {
+//                                int dstred = srcred + dstColorBest[i].getRed() - srcColorBest[i].getRed();
+//                                int dstgreen = srcgreen + dstColorBest[i].getGreen() - srcColorBest[i].getGreen();
+//                                int dstblue = srcblue + dstColorBest[i].getBlue() - srcColorBest[i].getBlue();
+//                                if (dstred > 0xFF) dstred = 0xFF;
+//                                else if (dstred < 0) dstred = 0;
+//                                if (dstgreen > 0xFF) dstgreen = 0xFF;
+//                                else if (dstgreen < 0) dstgreen = 0;
+//                                if (dstblue > 0xFF) dstblue = 0xFF;
+//                                else if (dstblue < 0) dstblue = 0;
+//                                int d = (c & 0xFF000000) + ((0x00FF & dstred) << 16) + ((0x00FF & dstgreen) << 8) + (0x00FF & dstblue);
+//                                surbuf.setElem(h + v * width, d);
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
                 // Swap redoBuf and mainImg
                 BufferedImage savebi = owner.owner.getSurface();
 
@@ -484,7 +486,6 @@ class ColorConvertDialog extends JFrame implements ActionListener {
                     owner.owner.redoBuf = bi;
                 }
             }
-
         }
     }
 }
@@ -494,6 +495,8 @@ class EmbossDialog extends JFrame implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private final PCARDFrame owner;
 
     EmbossDialog(PCARDFrame owner) {
@@ -501,7 +504,7 @@ class EmbossDialog extends JFrame implements ActionListener {
         setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         this.owner = owner;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Emboss"));
+        setTitle(rb.getString("dialog.Emboss"));
 
         SetDialogContents();
 
@@ -538,11 +541,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Thickness")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Thickness")));
             mainpanel.add(panel);
 
             {
-                JCheckBox chkbox = new JCheckBox(PCARD.pc.intl.getDialogText("Use"));
+                JCheckBox chkbox = new JCheckBox(rb.getString("dialog.Use"));
                 chkbox.setName("Thick-Use");
                 chkbox.setPreferredSize(new Dimension(180, 24));
                 chkbox.setSelected(useThick);
@@ -551,7 +554,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Thick-Brightness");
@@ -563,7 +566,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Width ");
+                String name = rb.getString("dialog.Width_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8", name + "9", name + "10"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Thick-Width");
@@ -627,11 +630,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Gradation")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Gradation")));
             mainpanel.add(panel);
 
             {
-                JCheckBox chkbox = new JCheckBox(PCARD.pc.intl.getDialogText("Use"));
+                JCheckBox chkbox = new JCheckBox(rb.getString("dialog.Use"));
                 chkbox.setName("Gradation-Use");
                 chkbox.setPreferredSize(new Dimension(180, 24));
                 chkbox.setSelected(useGrad);
@@ -640,7 +643,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Gradation-Brightness");
@@ -686,11 +689,11 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Highlight")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Highlight")));
             mainpanel.add(panel);
 
             {
-                JCheckBox chkbox = new JCheckBox(PCARD.pc.intl.getDialogText("Use"));
+                JCheckBox chkbox = new JCheckBox(rb.getString("dialog.Use"));
                 chkbox.setName("Highlight-Use");
                 chkbox.setPreferredSize(new Dimension(180, 24));
                 chkbox.setSelected(useHighlight);
@@ -699,7 +702,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Highlight-Brightness");
@@ -710,7 +713,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Area ");
+                String name = rb.getString("dialog.Area_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Highlight-Area");
@@ -767,15 +770,15 @@ class EmbossDialog extends JFrame implements ActionListener {
             if (aquaBorder == null) {
                 aquaBorder = new EtchedBorder();
             }
-            panel.setBorder(new TitledBorder(aquaBorder, PCARD.pc.intl.getDialogText("Reflection")));
+            panel.setBorder(new TitledBorder(aquaBorder, rb.getString("dialog.Reflection")));
             mainpanel.add(panel);
 
             {
                 String[] value = new String[] {
-                        PCARD.pc.intl.getDialogText("None"),
-                        PCARD.pc.intl.getDialogText("Line"),
-                        PCARD.pc.intl.getDialogText("Curve"),
-                        PCARD.pc.intl.getDialogText("Fit")};
+                        rb.getString("dialog.None"),
+                        rb.getString("dialog.Line"),
+                        rb.getString("dialog.Curve"),
+                        rb.getString("dialog.Fit")};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Reflection-Style");
                 combo.setSelectedIndex(1);
@@ -784,7 +787,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Brightness ");
+                String name = rb.getString("dialog.Brightness_");
                 String[] value = new String[] {name + "0", name + "1", name + "2", name + "3", name + "4", name + "5", name + "6", name + "7", name + "8"};
                 JComboBox<?> combo = new JComboBox<Object>(value);
                 combo.setName("Reflection-Brightness");
@@ -795,7 +798,7 @@ class EmbossDialog extends JFrame implements ActionListener {
             }
 
             {
-                String name = PCARD.pc.intl.getDialogText("Angle ");
+                String name = rb.getString("dialog.Angle_");
                 String[] value = new String[36];
                 for (int i = 0; i < 36; i++) {
                     value[i] = name + i * 10;
@@ -850,14 +853,14 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         // ok, cancel
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setBounds(90, 270, 100, 25);
             button.setName("Cancel");
             button.addActionListener(this);
             okpanel.add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            JButton button = new JButton(rb.getString("dialog.OK"));
             button.setBounds(200, 270, 100, 25);
             button.setName("OK");
             button.addActionListener(this);
@@ -890,7 +893,7 @@ class EmbossDialog extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
 
         if (cmd == null) return;
 
@@ -953,7 +956,6 @@ class EmbossDialog extends JFrame implements ActionListener {
         previewImage(cmd);
     }
 
-
     private void previewImage(String cmd) {
         ToolSelectInterface tl = (ToolSelectInterface) owner.tool;
         BufferedImage srcimg = saveImage;
@@ -970,204 +972,208 @@ class EmbossDialog extends JFrame implements ActionListener {
 
         DataBuffer srcdb = srcimg.getRaster().getDataBuffer();
         int width = srcimg.getWidth();
-        // int height = srcimg.getHeight();
+        //int height = srcimg.getHeight();
 
-        /*if(useThick){
-            // Thickness
-            // Parts close to the outline are dark, parts far away are bright
-            int realThickWidth = new int[]{1,2,3,4,6,8,10,14,20,30,50}[thickWidth];
-            for(int i=0; i<realThickWidth; i++){
-                for(int y=srcRect.y; y<srcRect.y+srcRect.height; y++){
-                    for(int x=srcRect.x; x<srcRect.x+srcRect.width; x++){
-                        boolean src = (srcdb.getElem(x+y*width)&0xFF000000)!=0;
-                        if(src && i==0){
-                            // First time, paint the outline area
-                            boolean srcup = false;
-                            if((y-1)>=srcRect.y) srcup = (srcdb.getElem(x+(y-1)*width)&0xFF000000)!=0;
-                            boolean srcdown = false;
-                            if((y+1)<srcRect.y+srcRect.height) srcdown = (srcdb.getElem(x+(y+1)*width)&0xFF000000)!=0;
-                            boolean srcleft = false;
-                            if((x-1)>=srcRect.x) srcleft = (srcdb.getElem(x-1+y*width)&0xFF000000)!=0;
-                            boolean srcright = false;
-                            if((x+1)<srcRect.x+srcRect.width) srcright = (srcdb.getElem(x+1+y*width)&0xFF000000)!=0;
+//        if (useThick) {
+//            // Thickness
+//            // Parts close to the outline are dark, parts far away are bright
+//            int realThickWidth = new int[] {1, 2, 3, 4, 6, 8, 10, 14, 20, 30, 50}[thickWidth];
+//            for (int i = 0; i < realThickWidth; i++) {
+//                for (int y = srcRect.y; y < srcRect.y + srcRect.height; y++) {
+//                    for (int x = srcRect.x; x < srcRect.x + srcRect.width; x++) {
+//                        boolean src = (srcdb.getElem(x + y * width) & 0xFF000000) != 0;
+//                        if (src && i == 0) {
+//                            // First time, paint the outline area
+//                            boolean srcup = false;
+//                            if ((y - 1) >= srcRect.y) srcup = (srcdb.getElem(x + (y - 1) * width) & 0xFF000000) != 0;
+//                            boolean srcdown = false;
+//                            if ((y + 1) < srcRect.y + srcRect.height)
+//                                srcdown = (srcdb.getElem(x + (y + 1) * width) & 0xFF000000) != 0;
+//                            boolean srcleft = false;
+//                            if ((x - 1) >= srcRect.x) srcleft = (srcdb.getElem(x - 1 + y * width) & 0xFF000000) != 0;
+//                            boolean srcright = false;
+//                            if ((x + 1) < srcRect.x + srcRect.width)
+//                                srcright = (srcdb.getElem(x + 1 + y * width) & 0xFF000000) != 0;
+//
+//                            if (!srcup & thickDown || !srcdown & thickUp ||
+//                                    !srcleft & thickRight || !srcright & thickLeft) {
+//                                int v = srcdb.getElem(x + y * width);
+//                                int red = (v >> 16) & 0xFF;
+//                                int green = (v >> 8) & 0xFF;
+//                                int blue = (v >> 0) & 0xFF;
+//                                float[] hsb = Color.RGBtoHSB(red, green, blue, null);
+//                                hsb[2] -= (double) thickBright * (realThickWidth - i) / realThickWidth / 20.0f;
+//                                if (hsb[2] < 0.0f) hsb[2] = 0.0f;
+//                                Color col = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+//                                int c = (0xFF000000 & v) + (col.getRed() << 16) + (col.getGreen() << 8) + (col.getBlue());
+//                                newdb.setElem(x + y * width, c);
+//                            }
+//                        } else if (src) {
+//                            // Second time and after, sequentially paint next to already painted parts
+//                            if ((0xFF000000 & newdb.getElem(x + y * width)) == 0) {
+//                                boolean dstup = false;
+//                                if ((y - 1) >= srcRect.y)
+//                                    dstup = (newdb.getElem(x + (y - 1) * width) & 0xFF000000) != 0;
+//                                boolean dstdown = false;
+//                                if ((y + 1) < srcRect.y + srcRect.height)
+//                                    dstdown = (newdb.getElem(x + (y + 1) * width) & 0xFF000000) != 0;
+//                                boolean dstleft = false;
+//                                if ((x - 1) >= srcRect.x)
+//                                    dstleft = (newdb.getElem(x - 1 + y * width) & 0xFF000000) != 0;
+//                                boolean dstright = false;
+//                                if ((x + 1) < srcRect.x + srcRect.width)
+//                                    dstright = (newdb.getElem(x + 1 + y * width) & 0xFF000000) != 0;
+//
+//                                // Width : ←outside, inside→
+//                                // width1:-10*thickBright
+//                                // width3:-10*thickBright,-5*thickBright,-0
+//
+//                                if (dstup & thickDown || dstdown & thickUp ||
+//                                        dstleft & thickRight || dstright & thickLeft) {
+//                                    newdb.setElem(x + y * width, 0x00adbeef);
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                for (int y = srcRect.y; y < srcRect.y + srcRect.height; y++) {
+//                    for (int x = srcRect.x; x < srcRect.x + srcRect.width; x++) {
+//                        if (newdb.getElem(x + y * width) == 0x00adbeef) {
+//                            int v = srcdb.getElem(x + y * width);
+//                            int red = (v >> 16) & 0xFF;
+//                            int green = (v >> 8) & 0xFF;
+//                            int blue = (v >> 0) & 0xFF;
+//
+//                            float[] hsb = Color.RGBtoHSB(red, green, blue, null);
+//                            hsb[2] -= (double) thickBright * (realThickWidth - i) / realThickWidth / 20.0f;
+//                            if (hsb[2] < 0.0f) hsb[2] = 0.0f;
+//                            Color col = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+//                            int c = (0xFF000000 & v) + (col.getRed() << 16) + (col.getGreen() << 8) + (col.getBlue());
+//                            newdb.setElem(x + y * width, c);
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
-                            if(!srcup&thickDown || !srcdown&thickUp ||
-                                    !srcleft&thickRight || !srcright&thickLeft){
-                                int v = srcdb.getElem(x+y*width);
-                                int red = (v>>16)&0xFF;
-                                int green = (v>>8)&0xFF;
-                                int blue = (v>>0)&0xFF;
-                                float[] hsb = Color.RGBtoHSB(red, green, blue, null);
-                                hsb[2] -= (double)thickBright*(realThickWidth-i)/realThickWidth/20.0f;
-                                if(hsb[2]<0.0f) hsb[2] = 0.0f;
-                                Color col = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-                                int c = (0xFF000000&v)+(col.getRed()<<16)+(col.getGreen()<<8)+(col.getBlue());
-                                newdb.setElem(x+y*width, c);
-                            }
-                        }
-                        else if(src){
-                            // Second time and after, sequentially paint next to already painted parts
-                            if((0xFF000000&newdb.getElem(x+y*width))==0){
-                                boolean dstup = false;
-                                if((y-1)>=srcRect.y) dstup = (newdb.getElem(x+(y-1)*width)&0xFF000000)!=0;
-                                boolean dstdown = false;
-                                if((y+1)<srcRect.y+srcRect.height) dstdown = (newdb.getElem(x+(y+1)*width)&0xFF000000)!=0;
-                                boolean dstleft = false;
-                                if((x-1)>=srcRect.x) dstleft = (newdb.getElem(x-1+y*width)&0xFF000000)!=0;
-                                boolean dstright = false;
-                                if((x+1)<srcRect.x+srcRect.width) dstright = (newdb.getElem(x+1+y*width)&0xFF000000)!=0;
-
-                                // Width : ←outside, inside→
-                                // width1:-10*thickBright
-                                // width3:-10*thickBright,-5*thickBright,-0
-
-                                if(dstup&thickDown || dstdown&thickUp ||
-                                        dstleft&thickRight || dstright&thickLeft){
-                                    newdb.setElem(x+y*width, 0x00adbeef);
-                                }
-                            }
-                        }
-                    }
-                }
-                for(int y=srcRect.y; y<srcRect.y+srcRect.height; y++){
-                    for(int x=srcRect.x; x<srcRect.x+srcRect.width; x++){
-                        if(newdb.getElem(x+y*width)==0x00adbeef){
-                            int v = srcdb.getElem(x+y*width);
-                            int red = (v>>16)&0xFF;
-                            int green = (v>>8)&0xFF;
-                            int blue = (v>>0)&0xFF;
-
-                            float[] hsb = Color.RGBtoHSB(red, green, blue, null);
-                            hsb[2] -= (double)thickBright*(realThickWidth-i)/realThickWidth/20.0f;
-                            if(hsb[2]<0.0f) hsb[2] = 0.0f;
-                            Color col = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-                            int c = (0xFF000000&v)+(col.getRed()<<16)+(col.getGreen()<<8)+(col.getBlue());
-                            newdb.setElem(x+y*width, c);
-                        }
-                    }
-                }
-            }
-        }*/
-
-        /* Can I do something with blur?
-        if(useThick){
-            // Thickness
-            // Parts close to the outline are dark, parts far away are bright
-
-            // Get outline
-            DataBuffer newdb = newimg.getRaster().getDataBuffer();
-            for(int y=srcRect.y; y<srcRect.y+srcRect.height; y++){
-                for(int x=srcRect.x; x<srcRect.x+srcRect.width; x++){
-                    boolean src = (srcdb.getElem(x+y*width)&0xFF000000)!=0;
-                    if(src){
-                        // Paint outline area
-                        boolean srcup = false;
-                        if((y-1)>=srcRect.y) srcup = (srcdb.getElem(x+(y-1)*width)&0xFF000000)!=0;
-                        boolean srcdown = false;
-                        if((y+1)<srcRect.y+srcRect.height) srcdown = (srcdb.getElem(x+(y+1)*width)&0xFF000000)!=0;
-                        boolean srcleft = false;
-                        if((x-1)>=srcRect.x) srcleft = (srcdb.getElem(x-1+y*width)&0xFF000000)!=0;
-                        boolean srcright = false;
-                        if((x+1)<srcRect.x+srcRect.width) srcright = (srcdb.getElem(x+1+y*width)&0xFF000000)!=0;
-
-                        if(!srcup&thickDown || !srcdown&thickUp ||
-                                !srcleft&thickRight || !srcright&thickLeft){
-                            newdb.setElem(x+y*width, 0xFF000000);
-                        }
-                    }
-                }
-            }
-
-            // Blur effect
-            int realThickWidth = new int[]{1,2,3,4,5,7,10,15,20,30,50}[thickWidth];
-            for(int i=0; i<realThickWidth/5; i++){
-                // Smoothing (heavy)
-                final float[] operator={
-                        0.00f, 0.02f, 0.05f, 0.05f, 0.05f, 0.02f, 0.00f,
-                        0.02f, 0.05f, 0.05f, 0.07f, 0.05f, 0.05f, 0.02f,
-                        0.05f, 0.05f, 0.07f, 0.08f, 0.07f, 0.05f, 0.05f,
-                        0.05f, 0.07f, 0.08f, 0.10f, 0.08f, 0.07f, 0.05f,
-                        0.05f, 0.05f, 0.07f, 0.08f, 0.07f, 0.05f, 0.05f,
-                        0.02f, 0.05f, 0.05f, 0.07f, 0.05f, 0.05f, 0.02f,
-                        0.00f, 0.02f, 0.05f, 0.05f, 0.05f, 0.02f, 0.00f,
-                    };
-                if(!thickUp){
-                    for(int y=0; y<2; y++){
-                        for(int x=0; x<7; x++){
-                            operator[7*y+x] = 0.0f;
-                        }
-                    }
-                }
-                if(!thickDown){
-                    for(int y=5; y<7; y++){
-                        for(int x=0; x<7; x++){
-                            operator[7*y+x] = 0.0f;
-                        }
-                    }
-                }
-                if(!thickLeft){
-                    for(int y=0; y<7; y++){
-                        for(int x=0; x<2; x++){
-                            operator[7*y+x] = 0.0f;
-                        }
-                    }
-                }
-                if(!thickRight){
-                    for(int y=0; y<7; y++){
-                        for(int x=5; x<7; x++){
-                            operator[7*y+x] = 0.0f;
-                        }
-                    }
-                }
-                Kernel blur=new Kernel(7,7,operator);
-                ConvolveOp convop=new ConvolveOp(blur,ConvolveOp.EDGE_NO_OP,null);
-                newimg=convop.filter(newimg,null);
-            }
-            for(int i=0; i<realThickWidth%5; i++){
-                // Smoothing (heavy)
-                final float[] operator={
-                        0.04f, 0.06f, 0.04f,
-                        0.06f, 0.90f, 0.06f,
-                        0.04f, 0.06f, 0.04f
-                    };
-                Kernel blur=new Kernel(3,3,operator);
-                ConvolveOp convop=new ConvolveOp(blur,ConvolveOp.EDGE_NO_OP,null);
-                newimg=convop.filter(newimg,null);
-            }
-
-            // Paint inner shadow
-            newdb = newimg.getRaster().getDataBuffer();
-            for(int y=srcRect.y-realThickWidth; y<srcRect.y+srcRect.height+realThickWidth; y++){
-                for(int x=srcRect.x-realThickWidth; x<srcRect.x+srcRect.width+realThickWidth; x++){
-                    if(x<0 || y<0 ||x>=width||y>=height) continue;
-                    boolean src = (srcdb.getElem(x+y*width)&0xFF000000)!=0;
-                    if(src){
-                        int newc = newdb.getElem(x+y*width);
-                        if((0xFF000000&newc)==0){
-                            newdb.setElem(x+y*width, srcdb.getElem(x+y*width));
-                        }
-                        else{
-                            int v = srcdb.getElem(x+y*width);
-                            int red = (v>>16)&0xFF;
-                            int green = (v>>8)&0xFF;
-                            int blue = (v>>0)&0xFF;
-
-                            float[] hsb = Color.RGBtoHSB(red, green, blue, null);
-                            hsb[2] += (float)(thickBright-3.5f)*((newc>>24)&0xFF)/realThickWidth/300.0f;
-                            if(hsb[2]>1.0f) hsb[2] = 1.0f;
-                            else if(hsb[2]<0.0f) hsb[2] = 0.0f;
-                            Color col = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-                            int c = (0xFF000000&v)+(col.getRed()<<16)+(col.getGreen()<<8)+(col.getBlue());
-                            newdb.setElem(x+y*width, c);
-                        }
-                    }
-                    else{
-                        newdb.setElem(x+y*width, 0x00000000);
-                    }
-                }
-            }
-        }*/
-
+//        // Can I do something with blur?
+//        if (useThick) {
+//            // Thickness
+//            // Parts close to the outline are dark, parts far away are bright
+//
+//            // Get outline
+//            DataBuffer newdb = newimg.getRaster().getDataBuffer();
+//            for (int y = srcRect.y; y < srcRect.y + srcRect.height; y++) {
+//                for (int x = srcRect.x; x < srcRect.x + srcRect.width; x++) {
+//                    boolean src = (srcdb.getElem(x + y * width) & 0xFF000000) != 0;
+//                    if (src) {
+//                        // Paint outline area
+//                        boolean srcup = false;
+//                        if ((y - 1) >= srcRect.y) srcup = (srcdb.getElem(x + (y - 1) * width) & 0xFF000000) != 0;
+//                        boolean srcdown = false;
+//                        if ((y + 1) < srcRect.y + srcRect.height)
+//                            srcdown = (srcdb.getElem(x + (y + 1) * width) & 0xFF000000) != 0;
+//                        boolean srcleft = false;
+//                        if ((x - 1) >= srcRect.x) srcleft = (srcdb.getElem(x - 1 + y * width) & 0xFF000000) != 0;
+//                        boolean srcright = false;
+//                        if ((x + 1) < srcRect.x + srcRect.width)
+//                            srcright = (srcdb.getElem(x + 1 + y * width) & 0xFF000000) != 0;
+//
+//                        if (!srcup & thickDown || !srcdown & thickUp ||
+//                                !srcleft & thickRight || !srcright & thickLeft) {
+//                            newdb.setElem(x + y * width, 0xFF000000);
+//                        }
+//                    }
+//                }
+//            }
+//
+//            // Blur effect
+//            int realThickWidth = new int[] {1, 2, 3, 4, 5, 7, 10, 15, 20, 30, 50}[thickWidth];
+//            for (int i = 0; i < realThickWidth / 5; i++) {
+//                // Smoothing (heavy)
+//                final float[] operator = {
+//                        0.00f, 0.02f, 0.05f, 0.05f, 0.05f, 0.02f, 0.00f,
+//                        0.02f, 0.05f, 0.05f, 0.07f, 0.05f, 0.05f, 0.02f,
+//                        0.05f, 0.05f, 0.07f, 0.08f, 0.07f, 0.05f, 0.05f,
+//                        0.05f, 0.07f, 0.08f, 0.10f, 0.08f, 0.07f, 0.05f,
+//                        0.05f, 0.05f, 0.07f, 0.08f, 0.07f, 0.05f, 0.05f,
+//                        0.02f, 0.05f, 0.05f, 0.07f, 0.05f, 0.05f, 0.02f,
+//                        0.00f, 0.02f, 0.05f, 0.05f, 0.05f, 0.02f, 0.00f,
+//                };
+//                if (!thickUp) {
+//                    for (int y = 0; y < 2; y++) {
+//                        for (int x = 0; x < 7; x++) {
+//                            operator[7 * y + x] = 0.0f;
+//                        }
+//                    }
+//                }
+//                if (!thickDown) {
+//                    for (int y = 5; y < 7; y++) {
+//                        for (int x = 0; x < 7; x++) {
+//                            operator[7 * y + x] = 0.0f;
+//                        }
+//                    }
+//                }
+//                if (!thickLeft) {
+//                    for (int y = 0; y < 7; y++) {
+//                        for (int x = 0; x < 2; x++) {
+//                            operator[7 * y + x] = 0.0f;
+//                        }
+//                    }
+//                }
+//                if (!thickRight) {
+//                    for (int y = 0; y < 7; y++) {
+//                        for (int x = 5; x < 7; x++) {
+//                            operator[7 * y + x] = 0.0f;
+//                        }
+//                    }
+//                }
+//                Kernel blur = new Kernel(7, 7, operator);
+//                ConvolveOp convop = new ConvolveOp(blur, ConvolveOp.EDGE_NO_OP, null);
+//                newimg = convop.filter(newimg, null);
+//            }
+//            for (int i = 0; i < realThickWidth % 5; i++) {
+//                // Smoothing (heavy)
+//                final float[] operator = {
+//                        0.04f, 0.06f, 0.04f,
+//                        0.06f, 0.90f, 0.06f,
+//                        0.04f, 0.06f, 0.04f
+//                };
+//                Kernel blur = new Kernel(3, 3, operator);
+//                ConvolveOp convop = new ConvolveOp(blur, ConvolveOp.EDGE_NO_OP, null);
+//                newimg = convop.filter(newimg, null);
+//            }
+//
+//            // Paint inner shadow
+//            newdb = newimg.getRaster().getDataBuffer();
+//            for (int y = srcRect.y - realThickWidth; y < srcRect.y + srcRect.height + realThickWidth; y++) {
+//                for (int x = srcRect.x - realThickWidth; x < srcRect.x + srcRect.width + realThickWidth; x++) {
+//                    if (x < 0 || y < 0 || x >= width || y >= height) continue;
+//                    boolean src = (srcdb.getElem(x + y * width) & 0xFF000000) != 0;
+//                    if (src) {
+//                        int newc = newdb.getElem(x + y * width);
+//                        if ((0xFF000000 & newc) == 0) {
+//                            newdb.setElem(x + y * width, srcdb.getElem(x + y * width));
+//                        } else {
+//                            int v = srcdb.getElem(x + y * width);
+//                            int red = (v >> 16) & 0xFF;
+//                            int green = (v >> 8) & 0xFF;
+//                            int blue = (v >> 0) & 0xFF;
+//
+//                            float[] hsb = Color.RGBtoHSB(red, green, blue, null);
+//                            hsb[2] += (float) (thickBright - 3.5f) * ((newc >> 24) & 0xFF) / realThickWidth / 300.0f;
+//                            if (hsb[2] > 1.0f) hsb[2] = 1.0f;
+//                            else if (hsb[2] < 0.0f) hsb[2] = 0.0f;
+//                            Color col = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+//                            int c = (0xFF000000 & v) + (col.getRed() << 16) + (col.getGreen() << 8) + (col.getBlue());
+//                            newdb.setElem(x + y * width, c);
+//                        }
+//                    } else {
+//                        newdb.setElem(x + y * width, 0x00000000);
+//                    }
+//                }
+//            }
+//        }
 
         if (useThick) {
             // Thickness
@@ -1392,9 +1398,7 @@ class EmbossDialog extends JFrame implements ActionListener {
         }
 
         this.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
     }
-
 }
 
 
@@ -1402,6 +1406,8 @@ class PaintScaleDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private final PCARDFrame owner;
     private final AffineTransform save_af;
     private JTextField widthfield;
@@ -1414,7 +1420,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
         this.owner = owner;
         save_af = owner.selectaf;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Scale Selection"));
+        setTitle(rb.getString("dialog.Scale_Selection"));
 
         SetDialogContents();
 
@@ -1438,7 +1444,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             mainpanel.add(panel);
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Width:"));
+            JLabel label = new JLabel(rb.getString("dialog.Width:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
 
@@ -1452,7 +1458,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             JPanel panel = new JPanel();
             mainpanel.add(panel);
 
-            JLabel label = new JLabel(PCARD.pc.intl.getDialogText("Height:"));
+            JLabel label = new JLabel(rb.getString("dialog.Height:"));
             label.setPreferredSize(new Dimension(64, label.getPreferredSize().height));
             panel.add(label);
 
@@ -1463,7 +1469,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
             panel.add(heightfield);
         }
         {
-            keepRatio = new JCheckBox(PCARD.pc.intl.getDialogText("Keep aspect ratio"));
+            keepRatio = new JCheckBox(rb.getString("dialog.Keep_aspect_ratio"));
             keepRatio.setName("Keep aspect ratio");
             keepRatio.setSelected(true);
             mainpanel.add(keepRatio);
@@ -1474,13 +1480,13 @@ class PaintScaleDialog extends JDialog implements ActionListener {
 
         // ok, cancel
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("Cancel"));
+            JButton button = new JButton(rb.getString("dialog.Cancel"));
             button.setName("Cancel");
             button.addActionListener(this);
             okpanel.add(button);
         }
         {
-            JButton button = new JButton(PCARD.pc.intl.getDialogText("OK"));
+            JButton button = new JButton(rb.getString("dialog.OK"));
             button.setName("OK");
             button.addActionListener(this);
             okpanel.add(button);
@@ -1571,7 +1577,7 @@ class PaintScaleDialog extends JDialog implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
 
         if (cmd == null) return;
 
@@ -1673,8 +1679,6 @@ class PaintScaleDialog extends JDialog implements ActionListener {
                     ((SmartSelectTool) tl).movePoint.x += rect.x;
                     ((SmartSelectTool) tl).movePoint.y += rect.y;
                 }
-
-
             }
 
             owner.selectaf = save_af;
@@ -1689,6 +1693,8 @@ class PaintBlendDialog extends JDialog implements ActionListener {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
     private final PCARDFrame owner;
     static PaintBlendDialog dialog;
 
@@ -1711,7 +1717,7 @@ class PaintBlendDialog extends JDialog implements ActionListener {
         super(owner, false);
         this.owner = owner;
         getContentPane().setLayout(new BorderLayout());
-        setTitle(PCARD.pc.intl.getDialogText("Blending Mode"));
+        setTitle(rb.getString("dialog.Blending_Mode"));
 
         SetDialogContents();
 
@@ -1741,20 +1747,20 @@ class PaintBlendDialog extends JDialog implements ActionListener {
             aqpanel.add(panel);
 
             String[] value = new String[] {
-                    PCARD.pc.intl.getDialogText("Copy"),
-                    PCARD.pc.intl.getDialogText("Blend"), // Alpha blend with specified strength
-                    PCARD.pc.intl.getDialogText("Add"), // (Add with specified strength) Glow
-                    PCARD.pc.intl.getDialogText("Subtract"), // (Subtract with specified strength) Burn
-                    PCARD.pc.intl.getDialogText("Multiply"), // Multiply
-                    PCARD.pc.intl.getDialogText("Screen"), // Multiply with color subtracted from specified brightness
-                    PCARD.pc.intl.getDialogText("Darken"), // Keep darker color
-                    PCARD.pc.intl.getDialogText("Lighten"), // Keep lighter color
-                    PCARD.pc.intl.getDialogText("Difference"), // Absolute difference
-                    PCARD.pc.intl.getDialogText("Hue"), // Hue
-                    PCARD.pc.intl.getDialogText("Color"), // Hue and Saturation
-                    PCARD.pc.intl.getDialogText("Saturation"), // Saturation
-                    PCARD.pc.intl.getDialogText("Luminosity"), // Brightness
-                    PCARD.pc.intl.getDialogText("Alpha Channel") // Apply brightness to alpha channel
+                    rb.getString("dialog.Copy"),
+                    rb.getString("dialog.Blend"), // Alpha blend with specified strength
+                    rb.getString("dialog.Add"), // (Add with specified strength) Glow
+                    rb.getString("dialog.Subtract"), // (Subtract with specified strength) Burn
+                    rb.getString("dialog.Multiply"), // Multiply
+                    rb.getString("dialog.Screen"), // Multiply with color subtracted from specified brightness
+                    rb.getString("dialog.Darken"), // Keep darker color
+                    rb.getString("dialog.Lighten"), // Keep lighter color
+                    rb.getString("dialog.Difference"), // Absolute difference
+                    rb.getString("dialog.Hue"), // Hue
+                    rb.getString("dialog.Color"), // Hue and Saturation
+                    rb.getString("dialog.Saturation"), // Saturation
+                    rb.getString("dialog.Luminosity"), // Brightness
+                    rb.getString("dialog.Alpha_Channel") // Apply brightness to alpha channel
             };
             JComboBox<?> combo = new JComboBox<Object>(value);
             combo.setName("Mode");
@@ -1785,16 +1791,16 @@ class PaintBlendDialog extends JDialog implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = ((JComponent) e.getSource()).getName();
-        String cmd = PCARD.pc.intl.getDialogEngText(name);
+        String cmd = PCARD.getEngText("dialog", name);
 
         if (cmd == null) return;
 
-        if (cmd != null && cmd.equals("Mode")) {
+        if (cmd.equals("Mode")) {
             String str = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
-            String selectedMode = PCARD.pc.intl.getDialogEngText(str);
+            String selectedMode = PCARD.getEngText("dialog", str);
             owner.blendMode = MyPanel.getBlendMode(selectedMode);
         }
-        if (cmd != null && cmd.equals("Level")) {
+        if (cmd.equals("Level")) {
             int index = ((JComboBox<?>) e.getSource()).getSelectedIndex();
             owner.blendLevel = index * 5;
         }

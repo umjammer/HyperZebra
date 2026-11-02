@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JScrollPane;
@@ -16,11 +18,11 @@ import javax.swing.ScrollPaneConstants;
 
 public class GshowList extends JDialog implements ActionListener, MouseListener {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(GshowList.class.getName());
+
     static String clicked = "";
     static String selectList = "";
 
@@ -94,8 +96,8 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
         MyTextArea fld = (MyTextArea) e.getSource();
         {
             int line = (e.getY() + fld.pr_scrl.getVerticalScrollBar().getValue() + fld.getLineHeight() - 1) / fld.getLineHeight();
-            System.out.println("getValue=" + fld.pr_scrl.getVerticalScrollBar().getValue());
-            System.out.println("line=" + line);
+            logger.log(Level.DEBUG, "getValue=" + fld.pr_scrl.getVerticalScrollBar().getValue());
+            logger.log(Level.DEBUG, "line=" + line);
             int cnt = 0;
             int i;
             for (i = 0; i < fld.getText().length(); i++) {
@@ -123,10 +125,10 @@ public class GshowList extends JDialog implements ActionListener, MouseListener 
     }
 
     @Override
-    public void mouseEntered(MouseEvent arg0) {
+    public void mouseEntered(MouseEvent e) {
     }
 
     @Override
-    public void mouseExited(MouseEvent arg0) {
+    public void mouseExited(MouseEvent e) {
     }
 }

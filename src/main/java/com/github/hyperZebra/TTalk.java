@@ -22,13 +22,16 @@ import java.io.IOException;
 import java.io.Serial;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,8 +42,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
-import vavi.util.Debug;
-
 
 class Result {
 
@@ -48,11 +49,13 @@ class Result {
     String theResult;
 }
 
+
 class ObjResult {
 
     int cnt;
     OObject obj;
 }
+
 
 class Message {
 
@@ -63,6 +66,7 @@ class Message {
     boolean do_script;
 }
 
+
 class MemoryData {
 
     TreeSet<String> treeset;
@@ -72,9 +76,9 @@ class MemoryData {
     String[] params; // Hold arguments for now
 }
 
+
 interface TalkObject {
 
-    // ----getter-----
     String getStr();
 
     StringBuilder getStrBldr();
@@ -83,7 +87,6 @@ interface TalkObject {
 
     int getInt();
 
-    // ----setter-----
     void setStr(String str);
 
     void setStrBldr(StringBuilder bldr);
@@ -92,6 +95,7 @@ interface TalkObject {
 
     void setNum(int in);
 }
+
 
 //class BasicTalkObject implements TalkObject {
 //
@@ -125,6 +129,7 @@ interface TalkObject {
 //        this.str = Integer.toString(in);
 //    }
 //}
+
 
 final class VariableObj implements TalkObject {
 
@@ -182,7 +187,9 @@ final class VariableObj implements TalkObject {
     }
 }
 
+
 enum ChunkType {BYTE, CHAR, ITEM, WORD, LINE}
+
 
 //final class ChunkObj implements TalkObject {
 //
@@ -327,6 +334,7 @@ enum ChunkType {BYTE, CHAR, ITEM, WORD, LINE}
 //    At that time, whether to leave StringBuilder type as null or hold combination information depends on implementation.
 //  For word of, there are various split characters so recovery is complicated, so also hold an array of just split characters.
 
+
 class OpenFile {
 
     FileInputStream istream;
@@ -334,9 +342,12 @@ class OpenFile {
     String path;
 }
 
+
 public class TTalk extends Thread {
 
     private static final Logger logger = System.getLogger(TTalk.class.getName());
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static TTalk talk;
     static DecimalFormat numFormat = new DecimalFormat("0.######");
@@ -348,17 +359,46 @@ public class TTalk extends Thread {
     static int traceMode = 0;
     static boolean stepFlag;
     static MemoryData globalData = new MemoryData();
+
+    /** true while a stack is being opened (until its first openCard is handled), no idle is sent */
+    static volatile boolean stackOpening;
+
+    /** drops queued messages except the ones opening a stack */
+    static void clearMessages() {
+        synchronized (messageList) {
+            messageList.removeIf(m -> m.message == null ||
+                    !m.message.toLowerCase().matches("startup|openstack|openbackground|opencard|resumestack"));
+        }
+    }
+
+    /** "-DhyperZebra.traceMessages=true" logs messages sent by scripts */
+    static final boolean TRACE_MESSAGES = Boolean.getBoolean("hyperZebra.traceMessages");
+
+    /** @return the value of the global variable, null if not declared */
+    static String getGlobalValue(String name) {
+        MemoryData g = globalData;
+        if (g == null || g.nameList == null) return null;
+        synchronized (g) {
+            for (int i = 0; i < g.nameList.size(); i++) {
+                if (name.equalsIgnoreCase(g.nameList.get(i))) {
+                    return g.valueList.get(i);
+                }
+            }
+        }
+        return null;
+    }
     static ArrayList<String> pushCardList = new ArrayList<>();
     static Result lastResult;
     static int fastLockScreen = 0;
-    static boolean lockErrorDialogs = false;
+    /** "-DhyperZebra.lockErrorDialogs=true" suppresses script error dialogs (errors are logged only) */
+    static boolean lockErrorDialogs = Boolean.getBoolean("hyperZebra.lockErrorDialogs");
     static long lastErrorTime;
     static boolean lockMessages = false;
     static int dragSpeed = 0;
     static int wait = 1; // Wait to return to old speed in 2.x
     static ArrayList<OpenFile> openFileList = new ArrayList<>();
 
-    enum wordType {
+    enum WordType {
         X,
         VARIABLE,
         GLOBAL,
@@ -700,6 +740,13 @@ public class TTalk extends Thread {
 
         propertySet.add("audiolevel"); // xcmd set
         propertySet.add("currtime"); // xcmd set
+        // Movie XCMD window properties
+        for (String p : new String[] {"rate", "duration", "starttime", "endtime", "loop", "closeonfinish", "mute",
+                "callbacktime", "callbackmsg", "timeformat", "timescale", "movie", "windowname", "donterase", "fastidle",
+                "moviecursorid", "badge", "controllervisible", "seeallframes", "passmovieclick", "usecustomclut",
+                "windowrect", "windowloc", "dithering"}) {
+            propertySet.add(p);
+        }
         propertySet.add("scale"); // xcmd set
 
         globalData.treeset = new TreeSet<>();
@@ -724,12 +771,19 @@ public class TTalk extends Thread {
                 }
             }
             if (msg != null) {
+                if (msg.idle && stackOpening) {
+                    continue; // idle is sent after the stack is opened
+                }
                 try {
                     if (msg.do_script) {
                         doScriptforMenu(msg.message);
                     } else ReceiveMessage(msg.message, msg.param, msg.object, null, msg.idle);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
+                } finally {
+                    if (!msg.idle && "openCard".equalsIgnoreCase(msg.message) && stackOpening) {
+                        stackOpening = false;
+                    }
                 }
             } else {
                 /*if(idle==false)*/
@@ -746,7 +800,7 @@ public class TTalk extends Thread {
             long startTime = (int) new Date().getTime();
             while (true) {
                 // Execute animation during sleep
-                TXcmd.TerazzaAnime();
+                TXcmd.animeTerazza();
 
                 // Check remaining time
                 int left = time - (int) ((new Date().getTime()) - startTime);
@@ -793,7 +847,7 @@ public class TTalk extends Thread {
 
     // Send message to script thread
     public static void CallMessage(String message, OObject object) {
-        // System.out.println("CallMessage "+message+" "+object.getShortName());
+        //logger.log(Level.DEBUG, "CallMessage " + message + " " + object.getShortName());
         CallMessage(message, "", object, false, false);
     }
 
@@ -867,23 +921,22 @@ public class TTalk extends Thread {
                     openFile.istream.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
             try {
                 if (openFile.ostream != null) {
                     openFile.ostream.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         openFileList.clear();
     }
 
-
     private Result ReceiveMessage(String message, String[] params, OObject object, OObject target, MemoryData memData)
             throws XTalkException {
-        // System.out.println("ReceiveMessage "+message+" "+object.getShortName());
+        if (TRACE_MESSAGES) logger.log(Level.INFO, "message: " + message + " " + (params != null ? String.join(",", params) : "") + " -> " + (object != null ? object.getShortName() : null));
         Result result = new Result();
         return ReceiveMessage(message, params, object, target, memData, result, false, false, false, 0);
     }
@@ -895,8 +948,7 @@ public class TTalk extends Thread {
     // Receive message
     private Result ReceiveMessage(String message, String[] params, OObject object, OObject target, MemoryData memData, Result result, boolean isFunc, boolean isDynamic, boolean isBgroot, int usingCnt)
             throws XTalkException {
-        // long timestart = System.currentTimeMillis();
-
+        //long timeStart = System.currentTimeMillis();
 
         result.ret = 1;
 
@@ -912,10 +964,7 @@ public class TTalk extends Thread {
             object.handlerLineList = new ArrayList<>();
             for (int line = 0; line < object.scriptList.size(); line++) {
                 String str = object.scriptList.get(line);
-                while (str.substring(0, 0).equals(" ")) {
-                    str = str.substring(1);
-                }
-                String[] words = str.split(" ");
+                String[] words = str.strip().split("\\s+");
                 if (words.length <= 1) {
                     continue;
                 }
@@ -948,10 +997,7 @@ public class TTalk extends Thread {
             for (int i = 0; object.handlerLineList != null && i < object.handlerLineList.size(); i++) {
                 int line = object.handlerLineList.get(i);
                 String str = object.scriptList.get(line);
-                while (str.substring(0, 0).equals(" ")) {
-                    str = str.substring(1);
-                }
-                String[] words = str.split(" ");
+                String[] words = str.strip().split("\\s+");
                 if (words.length <= 1) {
                     line++;
                     continue;
@@ -975,7 +1021,7 @@ public class TTalk extends Thread {
                         memData2.valueList = new ArrayList<>();
 
                         // Arguments
-                        String[] handlerWords = object.scriptList.get(start - 1).split(" ");
+                        String[] handlerWords = object.scriptList.get(start - 1).strip().split("\\s+");
                         if (handlerWords.length >= 3) { // on handler param
                             StringBuilder paramStr = new StringBuilder();
                             for (int k = 2; k < handlerWords.length; k++) paramStr.append(handlerWords[k]);
@@ -999,10 +1045,10 @@ public class TTalk extends Thread {
                             result = doScript(object, target, message, object.scriptList, start, line - 1, memData2, params, 0);
                         } catch (Exception err) {
                             if (!object.name.isEmpty())
-                                System.out.println(object.objectType + " '" + object.name + "' " + err);
+                                logger.log(Level.DEBUG, object.objectType + " '" + object.name + "' " + err);
                             else
-                                System.out.println(object.objectType + " id " + object.id + " " + err);
-                            err.printStackTrace();
+                                logger.log(Level.DEBUG, object.objectType + " id " + object.id + " " + err);
+                            logger.log(Level.ERROR, err.getMessage(), err);
                             result.ret = -1;
                             break;
                         }
@@ -1012,16 +1058,15 @@ public class TTalk extends Thread {
             }
         }
 
-        // timeIsMoney("ReceiveMessage2-2:",timestart,15);
+        //timeIsMoney("ReceiveMessage2-2:",timestart,15);
         if (result.ret == 1) {
             if (object.parent != null) {
                 // Normal pass: send to parent
-                /*if(object.objectType.equals("background")&&isBgroot==false){
-                    // Background goes through the card once
-                    System.out.println("!1");
-                    result=ReceiveMessage(message, params, ((OBackground)object).viewCard, target, isFunc, isDynamic, true);
-                }
-                else*/
+//                if (object.objectType.equals("background") && isBgroot == false) {
+//                    // Background goes through the card once
+//                    logger.log(Level.DEBUG, "!1");
+//                    result = ReceiveMessage(message, params, ((OBackground) object).viewCard, target, isFunc, isDynamic, true);
+//                } else
                 if (object.parent.objectType.equals("background") && !object.objectType.equals("card")) {
                     // Background components go through the card once
                     result = ReceiveMessage(message, params, ((OBackground) object.parent).viewCard, target, memData, result, isFunc, isDynamic, isBgroot, usingCnt);
@@ -1042,7 +1087,12 @@ public class TTalk extends Thread {
                 OStack stack = null;
                 if (object.objectType.equals("stack")) stack = (OStack) object;
                 else if (object.parent.objectType.equals("stack")) stack = (OStack) object.parent;
-                else if (object.parent.parent.equals("stack")) stack = (OStack) object.parent.parent;
+                else if (object.parent.parent.objectType.equals("stack")) stack = (OStack) object.parent.parent;
+                if (stack != null && stack != PCARD.pc.stack && PCARD.pc.stack != null && PCARD.pc.stack.usingStacks != null &&
+                        PCARD.pc.stack.usingStacks.contains(stack)) {
+                    // a stack in use passes the message to the next stack in use of the current stack
+                    stack = PCARD.pc.stack;
+                }
                 if (stack != null && stack.usingStacks != null && usingCnt < stack.usingStacks.size() &&
                         stack.usingStacks.get(usingCnt) != null && stack.usingStacks.get(usingCnt).scriptList != null) {
                     usingCnt++;
@@ -1056,6 +1106,27 @@ public class TTalk extends Thread {
         return result; // 0 if found, 1 if not found so look for next object
     }
 
+    /** @return the line without the continuation character (and a comment after it), null if the line does not continue */
+    static String stripContinuation(String line) {
+        // remove a comment outside quotes
+        boolean quoted = false;
+        int end = line.length();
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') quoted = !quoted;
+            else if (!quoted && c == '-' && i + 1 < line.length() && line.charAt(i + 1) == '-') {
+                end = i;
+                break;
+            }
+        }
+        String s = line.substring(0, end).stripTrailing();
+        if (s.isEmpty()) return null;
+        char last = s.charAt(s.length() - 1);
+        if (last == '\u00ac' || last == '\uff82' || last == '~') {
+            return s.substring(0, s.length() - 1);
+        }
+        return null;
+    }
 
     // mode=0 normal    mode=1 internal call so no error
     private Result doScript(OObject object, OObject target, String message, String script, MemoryData memData, String[] parentparams, int mode)
@@ -1070,7 +1141,6 @@ public class TTalk extends Thread {
 
         return doScript(object, target, message, scriptList, 0, scriptList.size() - 1, memData, parentparams, mode);
     }
-
 
     // Execute handler body
     // object may be null
@@ -1094,12 +1164,12 @@ public class TTalk extends Thread {
                 VariableWatcher.watcherWindow.setTable(TTalk.globalData, memData);
             }
             if (TTalk.traceMode == 2) {
-                while (stepFlag == false) {
+                while (!stepFlag) {
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
                     }
-                    if (watcher == false && VariableWatcher.watcherWindow.isVisible()) {
+                    if (!watcher && VariableWatcher.watcherWindow.isVisible()) {
                         watcher = true;
                         VariableWatcher.watcherWindow.setTable(TTalk.globalData, memData);
                     }
@@ -1111,27 +1181,33 @@ public class TTalk extends Thread {
         int line = start;
         Result result = new Result();
 
-        /*StringBuilder scr = new StringBuilder(128);
-        scr.append("+ ");
-        for(int i=start; i<=end; i++){
-            scr.append(scriptList.get(i));
-            scr.append(" ");
-        }
-        System.out.println(scr.toString());*/
+//        StringBuilder scr = new StringBuilder(128);
+//        scr.append("+ ");
+//        for (int i = start; i <= end; i++) {
+//            scr.append(scriptList.get(i));
+//            scr.append(" ");
+//        }
+//        logger.log(Level.DEBUG, scr.toString());
 
         result.ret = 0;
 
-        if (object != null && object.wrapFlag == false && object.scriptList == scriptList) {
+        if (object != null && !object.wrapFlag && object.scriptList == scriptList) {
+            // Line continuation ("¬", "ﾂ" when decoded as Shift_JIS, or "~"), a comment may follow it.
+            // The joined line takes the place of the last line so that line numbers do not change.
             for (int i = 0; i < scriptList.size(); i++) {
-                String str = scriptList.get(i);
-                while (!str.isEmpty() &&
-                        (str.charAt(str.length() - 1) == 'ﾂ' ||
-                                str.charAt(str.length() - 1) == '~')) {
+                String str = stripContinuation(scriptList.get(i));
+                while (str != null && i + 1 < scriptList.size()) {
                     i++;
-                    if (i > scriptList.size()) break;
-                    str = str.substring(0, str.length() - 1) + " " + scriptList.get(i);
+                    String next = scriptList.get(i);
+                    String cont = stripContinuation(next);
                     scriptList.set(i - 1, "");
-                    scriptList.set(i, str);
+                    if (cont != null) {
+                        str = str + " " + cont;
+                        scriptList.set(i, "");
+                    } else {
+                        scriptList.set(i, str + " " + next);
+                        str = null;
+                    }
                 }
             }
             object.wrapFlag = true;
@@ -1140,31 +1216,30 @@ public class TTalk extends Thread {
         try { //
 label:
             while (line <= end) {
-                /*String str=scriptList.get(line);
-                while(str.length()>0 &&
-                        (str.charAt(str.length()-1)=='ﾂ' ||
-                        str.charAt(str.length()-1)=='~') )
-                {
-                    line++;
-                    if(line>end) break;
-                    str = str.substring(0,str.length()-1)+" "+scriptList.get(line);
-                }
-                int spacing1=0;
-                while(spacing1<str.length() && (str.charAt(spacing1)==' ' || str.charAt(spacing1)=='　')) spacing1++;
-                String[] words = str.substring(spacing1).split(" ");
-                if(words.length==0) continue;*/
+//                String str = scriptList.get(line);
+//                while (str.length() > 0 &&
+//                        (str.charAt(str.length() - 1) == 'ﾂ' ||
+//                                str.charAt(str.length() - 1) == '~')) {
+//                    line++;
+//                    if (line > end) break;
+//                    str = str.substring(0, str.length() - 1) + " " + scriptList.get(line);
+//                }
+//                int spacing1 = 0;
+//                while (spacing1 < str.length() && (str.charAt(spacing1) == ' ' || str.charAt(spacing1) == '　'))
+//                    spacing1++;
+//                String[] words = str.substring(spacing1).split(" ");
+//                if (words.length == 0) continue;
                 ArrayList<String> sList;
-                ArrayList<wordType> tList;
+                ArrayList<WordType> tList;
                 if (object == null || scriptList != object.scriptList || object.stringList == null || object.stringList[line] == null) {
                     String str = scriptList.get(line);
-                    /*while(str.length()>0 &&
-                            (str.charAt(str.length()-1)=='ﾂ' ||
-                            str.charAt(str.length()-1)=='~') )
-                    {
-                        line++;
-                        if(line>end) break;
-                        str = str.substring(0,str.length()-1)+" "+scriptList.get(line);
-                    }*/
+//                    while (str.length() > 0 &&
+//                            (str.charAt(str.length() - 1) == 'ﾂ' ||
+//                                    str.charAt(str.length() - 1) == '~')) {
+//                        line++;
+//                        if (line > end) break;
+//                        str = str.substring(0, str.length() - 1) + " " + scriptList.get(line);
+//                    }
                     // Parse
                     sList = new ArrayList<>();
                     tList = new ArrayList<>();
@@ -1265,13 +1340,13 @@ label:
                             String startStr = evaluation(rstart.toString(), memData, object, target);
                             setVariable(memData, mem, startStr);
                             int cnt = 0;
-                            if (down == false) {
+                            if (!down) {
                                 while (0 == evaluation(mem + "<=" + rend, memData, object, target).compareTo("true")) {
                                     result = doScript(object, target, message, scriptList, start + 1, line - 1, memData, parentparams, 0);
                                     if (result.ret != 0)
                                         break;
                                     cnt++;
-                                    // System.out.println("cnt="+cnt);
+                                    //logger.log(Level.DEBUG, "cnt="+cnt);
                                     setVariable(memData, mem, Integer.toString(Integer.parseInt(startStr) + cnt));
                                 }
                             } else {
@@ -1340,12 +1415,12 @@ label:
                     }
                     case "if" -> {
                         // if syntax
-                        // ArrayList<String> stringList = new ArrayList<String>();
-                        // ArrayList<wordType> typeList = new ArrayList<wordType>();
+                        //List<String> stringList = new ArrayList<String>();
+                        //List<WordType> typeList = new ArrayList<WordType>();
                         String nstr = "";
 
                         // Parse
-                        // resolution(str, stringList, typeList,false);
+                        //resolution(str, stringList, typeList,false);
 
                         int next = -1;
                         String prm = ""; // String of if condition
@@ -1369,7 +1444,7 @@ label:
                         }
                         prm = combine(1, endi, sList, tList);
                         ArrayList<String> nstringList = new ArrayList<>();
-                        ArrayList<wordType> ntypeList = new ArrayList<>();
+                        ArrayList<WordType> ntypeList = new ArrayList<>();
                         if (iftype == 0) {
                             iftype2 = 1;
                             // Find then on second line
@@ -1396,11 +1471,11 @@ label:
                             sList = nstringList;
                             tList = ntypeList;
                         }
-                    /*if(iftype2==2){
-                        stringList = nstringList;
-                        typeList = ntypeList;
-                        line++;
-                    }*/
+//                        if (iftype2 == 2) {
+//                            stringList = nstringList;
+//                            typeList = ntypeList;
+//                            line++;
+//                        }
                         // Whether if condition is met
                         boolean doif = false;
                         if (0 == evaluation(prm, memData, object, target).compareTo("true")) {
@@ -1423,7 +1498,7 @@ label:
                                     if (next >= sList.size()) { // Reached end of line
                                         String n2str = "";
                                         ArrayList<String> n2stringList = new ArrayList<>();
-                                        ArrayList<wordType> n2typeList = new ArrayList<>();
+                                        ArrayList<WordType> n2typeList = new ArrayList<>();
                                         int n2next = 0;
                                         if (line + 1 <= end) {
                                             n2str = scriptList.get(line + 1);
@@ -1484,7 +1559,7 @@ label:
                                 if (nstart != -1) {
                                     doStr += combine(nstart, next, sList, tList);
                                 }
-                                if (doif && doifever == false) {
+                                if (doif && !doifever) {
                                     result = doScript(object, target, message, doStr, memData, parentparams, 1);
                                     if (result.ret != 0) {
                                         return result;
@@ -1500,7 +1575,7 @@ label:
                                 line++;
                                 int nest = 0;
                                 int ifdostart = line;
-                                // System.out.println("===="+elseiftype);
+                                //logger.log(Level.DEBUG, "====" + elseiftype);
                                 while (line <= end) {
                                     String str2 = scriptList.get(line);
                                     int spacing = 0;
@@ -1536,38 +1611,38 @@ label:
                                         if (words3.length > 0 && 0 != words3[words3.length - 1].compareToIgnoreCase("then") &&
                                                 scriptList.get(line - 1).contains(" then ")) {
                                             //
-                                            // System.out.println(nest+"*"+str2);
+                                            //logger.log(Level.DEBUG, nest+"*"+str2);
                                             if (0 == words2[words2.length - 1].compareToIgnoreCase("else") ||
                                                     0 == words2[words2.length - 1].compareToIgnoreCase("then")) {
-                                                // System.out.println(nest+">"+str2);
+                                                //logger.log(Level.DEBUG, nest+">"+str2);
                                                 nest++;
                                             }
                                         } else if (nest == 0) {
-                                            // System.out.println("continues with else:"+str2);
+                                            //logger.log(Level.DEBUG, "continues with else: " + str2);
                                             // Continues with else
                                             // next = 0;
-                                        /*String n2str = "";
-                                        ArrayList<String> n2stringList = new ArrayList<String>();
-                                        ArrayList<wordType> n2typeList = new ArrayList<wordType>();
-                                        if(ifdostart+1<=end){
-                                            n2str=scriptList.get(ifdostart);
-                                        }
-                                        resolution(n2str, n2stringList, n2typeList,false);
-                                        {
-                                            if(n2stringList.size()>0 && n2stringList.get(0).equalsIgnoreCase("if")){
-                                                int next2 = 1;
-                                                for(;next2<n2stringList.size();next2++){
-                                                    if(n2stringList.get(next2).equalsIgnoreCase("then"))
-                                                        break;
-                                                }
-                                                prm = combine(1, next2, n2stringList, n2typeList);
-                                                if(0==Evalution(prm,memData, object, target).compareTo("true")){
-                                                    doif=true;
-                                                }else doif = false;
-                                            }
-                                        }*/
-                                        /*sList.clear();
-                                        tList.clear();*/
+//                                            String n2str = "";
+//                                            ArrayList<String> n2stringList = new ArrayList<String>();
+//                                            ArrayList<WordType> n2typeList = new ArrayList<WordType>();
+//                                            if (ifdostart + 1 <= end) {
+//                                                n2str = scriptList.get(ifdostart);
+//                                            }
+//                                            resolution(n2str, n2stringList, n2typeList, false);
+//                                            {
+//                                                if (n2stringList.size() > 0 && n2stringList.get(0).equalsIgnoreCase("if")) {
+//                                                    int next2 = 1;
+//                                                    for (; next2 < n2stringList.size(); next2++) {
+//                                                        if (n2stringList.get(next2).equalsIgnoreCase("then"))
+//                                                            break;
+//                                                    }
+//                                                    prm = combine(1, next2, n2stringList, n2typeList);
+//                                                    if (0 == Evalution(prm, memData, object, target).compareTo("true")) {
+//                                                        doif = true;
+//                                                    } else doif = false;
+//                                                }
+//                                            }
+//                                            sList.clear();
+//                                            tList.clear();
                                             sList = new ArrayList<>();
                                             tList = new ArrayList<>();
                                             resolution(str2, sList, tList, false);
@@ -1579,22 +1654,22 @@ label:
                                             (0 != words2.length - 1) && 0 == words2[words2.length - 1].compareToIgnoreCase("else")) {
                                         if (0 == words2[0].compareToIgnoreCase("else") &&
                                                 0 == words2[words2.length - 1].compareToIgnoreCase("then")) {
-                                            // System.out.println(nest+" "+str2);
+                                            //logger.log(Level.DEBUG, nest + " " + str2);
                                         } else {
-                                            // System.out.println(nest+">"+str2);
+                                            //logger.log(Level.DEBUG, nest + ">" + str2);
                                             nest++;
                                         }
                                     } else if (0 == words2[0].compareToIgnoreCase("else") &&
                                             (0 != words2.length - 1) && 0 != words2[words2.length - 1].compareToIgnoreCase("then")) {
                                         if (scriptList.get(line - 1).contains(" then ")) {
                                             //
-                                            // System.out.println(nest+"#"+str2);
+                                            //logger.log(Level.DEBUG, nest+"#"+str2);
                                         } else {
                                             if (nest == 0) {
-                                                // System.out.println("ends with else"+str2);
+                                                //logger.log(Level.DEBUG, "ends with else"+str2);
                                                 // Ends with else
-                                            /*sList.clear();
-                                            tList.clear();*/
+//                                                sList.clear();
+//                                                tList.clear();
                                                 sList = new ArrayList<>();
                                                 tList = new ArrayList<>();
                                                 resolution(str2, sList, tList, false);
@@ -1602,25 +1677,25 @@ label:
                                                 break;
                                             }
                                             nest--;
-                                            // System.out.println(nest+"<"+str2);
+                                            //logger.log(Level.DEBUG, nest + "<" + str2);
                                         }
                                     } else if (0 == words2[0].compareToIgnoreCase("end") && 0 == words2[1].compareToIgnoreCase("if")) {
                                         if (nest == 0) {
                                             // End with end if
-                                            // System.out.println("ends with end if"+str2);
+                                            //logger.log(Level.DEBUG, "ends with end if" + str2);
                                             break;
                                         }
                                         nest--;
-                                        // System.out.println(nest+"<"+str2);
+                                        //logger.log(Level.DEBUG, nest + "<" + str2);
                                     }
-                                    // else System.out.println(nest+" "+str2);
+                                    //else logger.log(Level.DEBUG, nest + " " + str2);
 
-                                    // //doStr += "\n"+str2;
+                                    // //doStr += "\n" + str2;
 
                                     line++;
                                     elseiftype = 0;
                                 }
-                                if (doif && doifever == false) {
+                                if (doif && !doifever) {
                                     if (!doStr.isEmpty()) {
                                         result = doScript(object, target, message, doStr, memData, parentparams, 1);
                                         if (result.ret != 0) {
@@ -1634,7 +1709,7 @@ label:
                                     doifever = true;
                                 }
                             }
-                            if (else_works == false || line > end) {
+                            if (!else_works || line > end) {
                                 break;
                             } else {
                                 doStr = "";
@@ -1642,7 +1717,7 @@ label:
                                 if (next + 1 == sList.size()) { // else at end of line
                                     iftype = 1;
                                     next = 0;
-//                                    System.out.println("iftype=1;next=0;");
+//                                    logger.log(Level.DEBUG, "iftype=1;next=0;");
                                     if (line + 1 <= end) {
                                         // line++;
                                         // str=scriptList.get(line);
@@ -1656,7 +1731,7 @@ label:
                                 } else if (sList.get(next + 1).equalsIgnoreCase("if") &&
                                         sList.get(sList.size() - 1).equalsIgnoreCase("then")) { // else if ... to ... then
                                     iftype = 1;
-//                                    System.out.println("iftype=1;");
+//                                    logger.log(Level.DEBUG, "iftype=1;");
                                     elseiftype = 1;
                                     prm = combine(next + 2, sList.size() - 1, sList, tList);
                                     doif = false;
@@ -1665,7 +1740,7 @@ label:
                                     }
                                 } else {
                                     iftype = 2;
-//                                    System.out.println("iftype=2;");
+//                                    logger.log(Level.DEBUG, "iftype=2;");
                                     doif = true;
                                     // ####next++;
                                 }
@@ -1726,20 +1801,20 @@ label:
                             ScriptEditor.openScriptEditor(PCARD.pc, object, line);
                         }
 //                        if (object == null || scriptList != object.scriptList) {
-//                            // System.out.println(">> "+str);
+//                            //logger.log(Level.DEBUG, ">> "+str);
 //                            result = doScriptLine(str, object, target, memData);
 //                        } else {
 //                            if (object.stringList == null || object.stringList[line] == null) {
 //                                // Parse
 //                                // object.stringList[line] = new ArrayList<String>();
-//                                // object.typeList[line]  = new ArrayList<wordType>();
+//                                // object.typeList[line]  = new ArrayList<WordType>();
 //                                // fullresolution(str, object.stringList[line], object.typeList[line], true);
 //                            }
-//                            // System.out.println(">> "+str);
+//                            //logger.log(Level.DEBUG, ">> "+str);
 //
 //                            ArrayList<String> stringList = new ArrayList<String>(object.stringList[line]);
 //
-//                            wordType[] typeAry = new wordType[object.typeList[line].size()];
+//                            WordType[] typeAry = new WordType[object.typeList[line].size()];
 //                            for (int i = 0; i < object.typeList[line].size(); i++) { // Move from list to array
 //                                typeAry[i] = object.typeList[line].get(i);
 //                            }
@@ -1751,36 +1826,36 @@ label:
 
                         ArrayList<String> stringList = new ArrayList<>(sList);
 
-                        wordType[] typeAry = new wordType[tList.size()];
+                        WordType[] typeAry = new WordType[tList.size()];
                         tList.toArray(typeAry);
-//                        wordType[] typeAry = new wordType[tList.size()];
+//                        WordType[] typeAry = new WordType[tList.size()];
 //                        for (int i = 0; i < tList.size(); i++) { // Move from list to array
 //                            typeAry[i] = tList.get(i);
 //                        }
 
                         // Execute
-                        result = CommandExec(stringList, typeAry, object, target, memData, line);
+                        result = execCommand(stringList, typeAry, object, target, memData, line);
                         lastResult = result;
                     }
                 }
                 line++;
             }
         } catch (XTalkException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
 
             // Processing when script error occurs
             String str = "";
             if (line < scriptList.size()) str = scriptList.get(line);
             while (str.length() > 1 && str.charAt(0) == ' ') str = str.substring(1);
-            System.out.println("Error occurred at:" + str);
+            logger.log(Level.WARNING, "Error occurred at: " + str + (object != null ? " (line " + line + " of " + object.getShortName() + ")" : ""));
 
             if (mode == 1) { // Internal call so do not show dialog here, throw to upper caller
                 throw new XTalkException(e.getMessage());
             }
 
-            if (object != null && mode == 0) System.out.println("line " + line + " of " + object.getShortName());
+            if (object != null && mode == 0) logger.log(Level.DEBUG, "line " + line + " of " + object.getShortName());
 
-            messageList.clear();
+            clearMessages();
 
             lastErrorTime = System.currentTimeMillis();
 
@@ -1824,11 +1899,11 @@ label:
         return result;
     }
 
-    private static String combine(int start, int end, ArrayList<String> stringList, ArrayList<wordType> typeList) {
+    private static String combine(int start, int end, ArrayList<String> stringList, ArrayList<WordType> typeList) {
         StringBuilder str = new StringBuilder(32);
 
         for (int i = start; i < end; i++) {
-            if (typeList.get(i) == wordType.STRING) {
+            if (typeList.get(i) == WordType.STRING) {
                 str.append("\"");
                 str.append(stringList.get(i));
                 str.append("\" ");
@@ -1841,10 +1916,10 @@ label:
         return str.toString();
     }
 
-    private static void resolution(String script, ArrayList<String> stringList, ArrayList<wordType> typeList, boolean isCmd) {
+    private static void resolution(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, boolean isCmd) {
         ScriptArea.checkWordsLine(script, stringList, typeList, isCmd, false);
         for (int j = 0; j < typeList.size(); j++) {
-            if (typeList.get(j) == TTalk.wordType.COMMENT) {
+            if (typeList.get(j) == WordType.COMMENT) {
                 typeList.remove(j);
                 stringList.remove(j);
                 break;
@@ -1852,8 +1927,26 @@ label:
         }
     }
 
-    private static void fullresolution(String script, ArrayList<String> stringList, ArrayList<wordType> typeList, TreeSet<String> treeSet, boolean isCmd) {
+    private static void fullresolution(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, TreeSet<String> treeSet, boolean isCmd) {
         resolution(script, stringList, typeList, isCmd);
+        // "the last line of x" is "last line of x" (an ordinal chunk or object)
+        for (int i = stringList.size() - 3; i >= 0; i--) {
+            if (stringList.get(i).equalsIgnoreCase("the") &&
+                    stringList.get(i + 1).toLowerCase().matches("first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|middle|mid|any") &&
+                    stringList.get(i + 2).toLowerCase().matches("char|character|chars|characters|item|items|word|words|line|lines|cd|card|bg|bkgnd|background|btn|button|fld|field")) {
+                stringList.remove(i);
+                typeList.remove(i);
+            }
+        }
+        // "the abbreviated name" is the same as "the name"
+        for (int i = stringList.size() - 2; i >= 0; i--) {
+            String w = stringList.get(i);
+            if ((w.equalsIgnoreCase("abbreviated") || w.equalsIgnoreCase("abbrev") || w.equalsIgnoreCase("abbr")) &&
+                    stringList.get(i + 1).equalsIgnoreCase("name")) {
+                stringList.remove(i);
+                typeList.remove(i);
+            }
+        }
 
         StringBuilder handler = new StringBuilder();
         TreeSet<String> varSet;
@@ -1863,134 +1956,123 @@ label:
     }
 
     // Parse script into word units
-    /*private static void resolution(String script, ArrayList<String> stringList, ArrayList<wordType> typeList, boolean isCmd)
-    {
-        // long timestart = System.currentTimeMillis();
-        StringBuilder str=new StringBuilder(16);
+//    private static void resolution(String script, ArrayList<String> stringList, ArrayList<WordType> typeList, boolean isCmd) {
+//        // long timestart = System.currentTimeMillis();
+//        StringBuilder str = new StringBuilder(16);
+//
+//        for (int i = 0; i < script.length(); i++) {
+//            char code = script.charAt(i);
+//            if (code == '+' || code == '-' || code == '*' || code == '/' || code == '^' || code == '&'
+//                    || code == '=' || code == '<' || code == '>' || code == '≠' || code == '≤' || code == '≥') {
+//                if (code == '-' && i > 0 && script.codePointAt(i - 1) == '-') {
+//                    typeList.remove(typeList.size() - 1);
+//                    stringList.remove(stringList.size() - 1);
+//                    break;
+//                }
+//                if (str.length() > 0) {
+//                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+//                    else typeList.add(WordType.X);
+//                    stringList.add(str.toString().toLowerCase().intern());
+//                    str.setLength(0);
+//                }
+//                typeList.add(WordType.OPERATOR);
+//                stringList.add(String.valueOf((char) code).intern());
+//            } else if (code == '(') {
+//                if (str.length() > 0 || typeList.size() > 0 && typeList.get(typeList.size() - 1) == WordType.X) {
+//                    if (str.length() > 0) {
+//                        if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+//                        else typeList.add(WordType.X);
+//                        stringList.add(str.toString().toLowerCase().intern());
+//                        str.setLength(0);
+//                    }
+//                    String funcstr = stringList.get(stringList.size() - 1);
+//                    if (funcstr == "cd" || funcstr == "card" ||
+//                            funcstr == "bg" || funcstr == "bkgnd" || funcstr == "background" ||
+//                            funcstr == "btn" || funcstr == "button" ||
+//                            funcstr == "fld" || funcstr == "field" ||
+//                            funcstr == "stack" ||
+//                            funcstr == "char" || funcstr == "character" ||
+//                            funcstr == "item" || funcstr == "word" ||
+//                            funcstr == "line" ||
+//                            funcstr == "window" ||
+//                            funcstr == "id") {
+//                        typeList.add(WordType.LBRACKET);
+//                    } else if (funcstr == "of" && stringList.size() >= 2 && (
+//                            stringList.get(stringList.size() - 2).matches("^[0-9]*$") ||
+//                                    stringList.get(stringList.size() - 2) == "char" ||
+//                                    stringList.get(stringList.size() - 2) == "character" ||
+//                                    stringList.get(stringList.size() - 2) == "item" ||
+//                                    stringList.get(stringList.size() - 2) == "word" ||
+//                                    stringList.get(stringList.size() - 2) == "line")) {
+//                        typeList.add(WordType.LBRACKET);
+//                    } else if (isCmd && typeList.size() == 1) {
+//                        // When left side is recognized as command
+//                        typeList.add(WordType.LBRACKET);
+//                    } else {
+//                        typeList.add(WordType.LFUNC);
+//                    }
+//                    stringList.add("(");
+//                } else {
+//                    typeList.add(WordType.LBRACKET);
+//                    stringList.add("(");
+//                }
+//            } else if (code == ')') {
+//                if (str.length() > 0) {
+//                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+//                    else typeList.add(WordType.X);
+//                    stringList.add(str.toString().toLowerCase().intern());
+//                    str.setLength(0);
+//                }
+//                typeList.add(WordType.RBRACKET);
+//                stringList.add(")");
+//            } else if (code == ',') {
+//                if (str.length() > 0) {
+//                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+//                    else typeList.add(WordType.X);
+//                    stringList.add(str.toString().toLowerCase().intern());
+//                    str.setLength(0);
+//                }
+//                typeList.add(WordType.COMMA);
+//                stringList.add(",");
+//            } else if (code == '"') {
+//                if (str.length() > 0) {
+//                    typeList.add(WordType.X);
+//                    stringList.add(str.toString().toLowerCase().intern());
+//                    str.setLength(0);
+//                }
+//                i++;
+//                while (i < script.length()) {
+//                    code = script.charAt(i);
+//                    if (code == '"') break;
+//                    str.append(code);
+//                    i++;
+//                }
+//                typeList.add(WordType.STRING);
+//                stringList.add(str.toString());
+//                str.setLength(0);
+//            } else if (code == ' ' || code == '\t') {
+//                if (str.length() > 0) {
+//                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+//                    else typeList.add(WordType.X);
+//                    stringList.add(str.toString().toLowerCase().intern());
+//                    str.setLength(0);
+//                }
+//            } else if (i == script.length() - 1) {
+//                str.append(code);
+//                if (str.length() > 0) {
+//                    if (Character.isDigit(str.charAt(0))) typeList.add(WordType.STRING);
+//                    else typeList.add(WordType.X);
+//                    stringList.add(str.toString().toLowerCase().intern());
+//                    str.setLength(0);
+//                }
+//            } else {
+//                str.append(code);
+//            }
+//        }
+//        //timeIsMoney("resolution:", timestart, 18);
+//    }
 
-        for(int i=0; i<script.length(); i++) {
-            char code = script.charAt(i);
-            if(code=='+' || code=='-' || code=='*' || code=='/' || code=='^' || code=='&'
-                || code=='=' || code=='<' || code=='>' || code=='≠' || code=='≤' || code=='≥') {
-                if(code=='-' && i>0 && script.codePointAt(i-1)=='-')
-                {
-                    typeList.remove(typeList.size()-1);
-                    stringList.remove(stringList.size()-1);
-                    break;
-                }
-                if(str.length()>0) {
-                    if(Character.isDigit(str.charAt(0))) typeList.add(wordType.STRING);
-                    else typeList.add(wordType.X);
-                    stringList.add(str.toString().toLowerCase().intern());
-                    str.setLength(0);
-                }
-                typeList.add(wordType.OPERATOR);
-                stringList.add(String.valueOf((char)code).intern());
-            } else if(code=='(') {
-                if(str.length()>0 || typeList.size()>0 && typeList.get(typeList.size()-1) == wordType.X) {
-                    if(str.length()>0){
-                        if(Character.isDigit(str.charAt(0))) typeList.add(wordType.STRING);
-                        else typeList.add(wordType.X);
-                        stringList.add(str.toString().toLowerCase().intern());
-                        str.setLength(0);
-                    }
-                    String funcstr = stringList.get(stringList.size()-1);
-                    if(funcstr=="cd" || funcstr=="card" ||
-                            funcstr=="bg" || funcstr=="bkgnd" ||funcstr=="background" ||
-                            funcstr=="btn" || funcstr=="button" ||
-                            funcstr=="fld" || funcstr=="field" ||
-                            funcstr=="stack"||
-                            funcstr=="char" || funcstr=="character"||
-                            funcstr=="item" || funcstr=="word" ||
-                            funcstr=="line" ||
-                            funcstr=="window" ||
-                            funcstr=="id")
-                    {
-                        typeList.add(wordType.LBRACKET);
-                    }
-                    else if(funcstr=="of" && stringList.size() >= 2 && (
-                            stringList.get(stringList.size()-2).matches("^[0-9]*$") ||
-                            stringList.get(stringList.size()-2)=="char" ||
-                            stringList.get(stringList.size()-2)=="character" ||
-                            stringList.get(stringList.size()-2)=="item" ||
-                            stringList.get(stringList.size()-2)=="word" ||
-                            stringList.get(stringList.size()-2)=="line") )
-                    {
-                        typeList.add(wordType.LBRACKET);
-                    }
-                    else if(isCmd && typeList.size()==1)
-                    {
-                        // When left side is recognized as command
-                        typeList.add(wordType.LBRACKET);
-                    }
-                    else {
-                        typeList.add(wordType.LFUNC);
-                    }
-                    stringList.add("(");
-                }
-                else {
-                    typeList.add(wordType.LBRACKET);
-                    stringList.add("(");
-                }
-            } else if(code==')') {
-                if(str.length()>0) {
-                    if(Character.isDigit(str.charAt(0))) typeList.add(wordType.STRING);
-                    else typeList.add(wordType.X);
-                    stringList.add(str.toString().toLowerCase().intern());
-                    str.setLength(0);
-                }
-                typeList.add(wordType.RBRACKET);
-                stringList.add(")");
-            } else if(code==',') {
-                if(str.length()>0) {
-                    if(Character.isDigit(str.charAt(0))) typeList.add(wordType.STRING);
-                    else typeList.add(wordType.X);
-                    stringList.add(str.toString().toLowerCase().intern());
-                    str.setLength(0);
-                }
-                typeList.add(wordType.COMMA);
-                stringList.add(",");
-            } else if(code=='"') {
-                if(str.length()>0) {
-                    typeList.add(wordType.X);
-                    stringList.add(str.toString().toLowerCase().intern());
-                    str.setLength(0);
-                }
-                i++;
-                while(i<script.length()) {
-                    code = script.charAt(i);
-                    if(code=='"') break;
-                    str.append(code);
-                    i++;
-                }
-                typeList.add(wordType.STRING);
-                stringList.add(str.toString());
-                str.setLength(0);
-            } else if (code==' ' || code=='\t') {
-                if(str.length()>0) {
-                    if(Character.isDigit(str.charAt(0))) typeList.add(wordType.STRING);
-                    else typeList.add(wordType.X);
-                    stringList.add(str.toString().toLowerCase().intern());
-                    str.setLength(0);
-                }
-            }
-            else if(i==script.length()-1) {
-                str.append(code);
-                if(str.length()>0) {
-                    if(Character.isDigit(str.charAt(0))) typeList.add(wordType.STRING);
-                    else typeList.add(wordType.X);
-                    stringList.add(str.toString().toLowerCase().intern());
-                    str.setLength(0);
-                }
-            } else {
-                str.append(code);
-            }
-        }
-        // timeIsMoney("resolution:",timestart,18);
-    }*/
-
-    private Result doScriptLines(String script, OObject object, OObject target,
-                                 MemoryData memData)
+    private Result doScriptLines(String script, OObject object, OObject target, MemoryData memData)
             throws XTalkException {
         Result ret = null;
         String[] scripts = script.split("\n");
@@ -2002,40 +2084,38 @@ label:
         return ret;
     }
 
-    private Result doScriptLine(String script, OObject object, OObject target,
-                                MemoryData memData, int startline)
+    private Result doScriptLine(String script, OObject object, OObject target, MemoryData memData, int startline)
             throws XTalkException {
         // long timestart = System.currentTimeMillis();
         ArrayList<String> stringList = new ArrayList<>();
-        ArrayList<wordType> typeList = new ArrayList<>();
+        ArrayList<WordType> typeList = new ArrayList<>();
 
         // 1. Parse
         fullresolution(script, stringList, typeList, memData.treeset, true);
 
-        wordType[] typeAry = new wordType[typeList.size()];
+        WordType[] typeAry = new WordType[typeList.size()];
         for (int i = 0; i < typeList.size(); i++) {
             typeAry[i] = typeList.get(i);
         }
 
         // timeIsMoney("CommandExec:",timestart,19);
         // 2. Execute
-        return CommandExec(stringList, typeAry, object, target, memData, startline);
+        return execCommand(stringList, typeAry, object, target, memData, startline);
     }
 
     @SuppressWarnings("unchecked")
-    private Result CommandExec(
-            ArrayList<String> stringList, wordType[] typeAry, OObject object, OObject target,
-            MemoryData memData, int startline)
+    private Result execCommand(ArrayList<String> stringList, WordType[] typeAry, OObject object, OObject target,
+                               MemoryData memData, int startline)
             throws XTalkException {
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         Result result = new Result();
 
         if (stringList.isEmpty()) return result;
-        String str = stringList.get(0)/*.toLowerCase().intern()*/;
+        String str = stringList.get(0) /* .toLowerCase().intern() */;
         if (stringList.size() == 1) {
-            // System.out.println("do-"+str);
+            //logger.log(Level.DEBUG, "do-" + str);
         } else {
-            // System.out.println("do-"+str+stringList.get(1));
+            //logger.log(Level.DEBUG, "do-" + str + stringList.get(1));
         }
 
         if (TTalk.stop) {
@@ -2049,7 +2129,7 @@ label:
                 VariableWatcher.watcherWindow.setTable(TTalk.globalData, memData);
             }
             if (TTalk.traceMode == 2) {
-                while (stepFlag == false) {
+                while (!stepFlag) {
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
@@ -2084,7 +2164,7 @@ label:
             // Handlers included in script
             int o = 0;
             for (int i = 1; i < stringList.size(); i++) {
-                if (typeAry[i] == wordType.COMMA || i == stringList.size() - 1) {
+                if (typeAry[i] == WordType.COMMA || i == stringList.size() - 1) {
                     o++;
                 }
             }
@@ -2096,24 +2176,36 @@ label:
             else {
                 int nest = 0;
                 for (int i = 1; i <= stringList.size(); i++) {
-                    if (i < stringList.size() && (typeAry[i] == wordType.LFUNC || typeAry[i] == wordType.LBRACKET)) {
+                    if (i < stringList.size() && (typeAry[i] == WordType.LFUNC || typeAry[i] == WordType.LBRACKET)) {
                         nest++;
                     }
-                    if (i < stringList.size() && (typeAry[i] == wordType.RBRACKET || typeAry[i] == wordType.RFUNC)) {
+                    if (i < stringList.size() && (typeAry[i] == WordType.RBRACKET || typeAry[i] == WordType.RFUNC)) {
                         nest--;
                     }
-                    if (i == stringList.size() || (typeAry[i] == wordType.COMMA && nest == 0)) {
-                        if (j < typeAry.length && typeAry[j] == wordType.OPERATOR && 0 != stringList.get(j).compareTo("-")) {
+                    if (i == stringList.size() || (typeAry[i] == WordType.COMMA && nest == 0)) {
+                        if (j < typeAry.length && typeAry[j] == WordType.OPERATOR && 0 != stringList.get(j).compareTo("-")) {
                             // If an expression is entered in the msg box, do not execute it as a command
                             flag = true;
                             result.ret = 1;
                             break;
                         }
-                        /*if(stringList.get(0).equals("Movie")){
-                            System.out.println("param "+stringList.get(j)+" :"+j+" "+i);
-                        }*/
+//                        if (stringList.get(0).equals("Movie")) {
+//                            logger.log(Level.DEBUG, "param " + stringList.get(j) + " :" + j + " " + i);
+//                        }
 
-                        paramAry[o] = evaluation(stringList, typeAry, j, i - 1, memData, object, target);
+                        StringBuilder literal = new StringBuilder();
+                        for (int k = j; k <= i - 1 && k < stringList.size(); k++) {
+                            if (literal.length() > 0) literal.append(' ');
+                            literal.append(stringList.get(k));
+                        }
+                        try {
+                            // evaluate copies, the built-in command parses the line again
+                            paramAry[o] = evaluation(new ArrayList<>(stringList), typeAry.clone(), j, i - 1, memData, object, target);
+                        } catch (XTalkException e) {
+                            // a HyperCard command ("go card foo") gets its text as the parameter
+                            if (!commandSet.contains(stringList.get(0).toLowerCase())) throw e;
+                            paramAry[o] = literal.toString();
+                        }
                         j = i + 1;
                         o++;
                     }
@@ -2132,7 +2224,7 @@ label:
             }
             if (sendObject == null) sendObject = object;
             if (!flag) result = ReceiveMessage(stringList.get(0), paramAry, sendObject, target, memData);
-            if (result.ret == 1) {
+            if (result.ret == 1 && !commandSet.contains(str)) {
                 // Evaluate value (for msg box)
                 result.theResult = evaluation(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
                 result.ret = 0;
@@ -2162,20 +2254,23 @@ label:
                         }
                         next++;
                     }
-                    if (next + 1 >= stringList.size()) {
+                    if (next + 1 < stringList.size() && (stringList.get(next + 1).equalsIgnoreCase("menu") ||
+                            stringList.get(next + 1).equalsIgnoreCase("menuitem"))) {
+                        putIntoMenu(stringList, typeAry, next, dirStr, memData, object, target);
+                    } else if (next + 1 >= stringList.size()) {
                         // put xx
                         String value = evaluation(stringList, typeAry, 1, stringList.size() - 1, memData, object, target);
                         GMsg.setText(value);
                     } else if (0 == dirStr.compareToIgnoreCase("after")) {
                         StringBuilder doStr = new StringBuilder();
                         for (int k = 1; k < next; k++) {
-                            if (typeAry[k] == wordType.STRING)
+                            if (typeAry[k] == WordType.STRING)
                                 doStr.append(" \"").append(stringList.get(k)).append("\"");
                             else doStr.append(" ").append(stringList.get(k));
                         }
                         StringBuilder toStr = new StringBuilder();
                         for (int k = next + 1; k < stringList.size(); k++) {
-                            if (typeAry[k] == wordType.STRING)
+                            if (typeAry[k] == WordType.STRING)
                                 toStr.append(" \"").append(stringList.get(k)).append("\"");
                             else toStr.append(" ").append(stringList.get(k));
                         }
@@ -2184,13 +2279,13 @@ label:
                     } else if (0 == dirStr.compareToIgnoreCase("before")) {
                         StringBuilder doStr = new StringBuilder();
                         for (int k = 1; k < next; k++) {
-                            if (typeAry[k] == wordType.STRING)
+                            if (typeAry[k] == WordType.STRING)
                                 doStr.append(" \"").append(stringList.get(k)).append("\"");
                             else doStr.append(" ").append(stringList.get(k));
                         }
                         StringBuilder toStr = new StringBuilder();
                         for (int k = next + 1; k < stringList.size(); k++) {
-                            if (typeAry[k] == wordType.STRING)
+                            if (typeAry[k] == WordType.STRING)
                                 toStr.append(" \"").append(stringList.get(k)).append("\"");
                             else toStr.append(" ").append(stringList.get(k));
                         }
@@ -2204,12 +2299,27 @@ label:
                                         || 0 == stringList.get(next + 1).compareToIgnoreCase("first"))) {
                             String value = evaluation(stringList, typeAry, 1, next - 1, memData, object, target);
                             if (0 == stringList.get(next + 1).compareToIgnoreCase("last") || 0 == stringList.get(next + 1).compareToIgnoreCase("first")) {
+                                boolean last = 0 == stringList.get(next + 1).compareToIgnoreCase("last");
                                 stringList.set(next + 1, stringList.get(next + 2));
-                                // Will be overwritten so make a copy
-                                ArrayList<String> cpstringList = (ArrayList<String>) stringList.clone();
-                                wordType[] cptypeAry = typeAry.clone();
-                                String value1 = evaluation(cpstringList, cptypeAry, next + 4, cpstringList.size() - 1, memData, object, target);
-                                stringList.set(next + 2, Integer.toString(getNumberOfChunk(cpstringList.get(next + 2) + "s", value1)));
+                                if (last) {
+                                    // the container: a field or a button, otherwise an expression (a variable)
+                                    String value1 = null;
+                                    try {
+                                        OObject container = getObject(new ArrayList<>(stringList), typeAry.clone(), next + 4, stringList.size() - 1, memData, object, target);
+                                        if (container != null && (container.objectType.equals("field") || container.objectType.equals("button"))) {
+                                            value1 = container.getText();
+                                        }
+                                    } catch (Exception e) {
+                                        logger.log(Level.TRACE, e.toString());
+                                    }
+                                    if (value1 == null) {
+                                        value1 = evaluation(new ArrayList<>(stringList), typeAry.clone(), next + 4, stringList.size() - 1, memData, object, target);
+                                    }
+                                    stringList.set(next + 2, Integer.toString(Math.max(1, getNumberOfChunk(stringList.get(next + 2) + "s", value1))));
+                                } else {
+                                    stringList.set(next + 2, "1");
+                                }
+                                typeAry[next + 2] = WordType.STRING;
                             }
                             int next2 = next + 1;
                             int nest = 0;
@@ -2217,10 +2327,10 @@ label:
                                 if (nest == 0 && 0 == stringList.get(next2).compareToIgnoreCase("of")) {
                                     break;
                                 }
-                                if (typeAry[next2] == wordType.LBRACKET || typeAry[next2] == wordType.LFUNC) {
+                                if (typeAry[next2] == WordType.LBRACKET || typeAry[next2] == WordType.LFUNC) {
                                     nest++;
                                 }
-                                if (typeAry[next2] == wordType.RBRACKET || typeAry[next2] == wordType.RFUNC) {
+                                if (typeAry[next2] == WordType.RBRACKET || typeAry[next2] == WordType.RFUNC) {
                                     nest--;
                                 }
 
@@ -2281,8 +2391,8 @@ label:
                                 }
                             }
                         } else {
-                            ArrayList<String> stL = new ArrayList<>(stringList);
-                            wordType[] tyA = new wordType[typeAry.length];
+                            List<String> stL = new ArrayList<>(stringList);
+                            WordType[] tyA = new WordType[typeAry.length];
                             System.arraycopy(typeAry, 0, tyA, 0, typeAry.length);
 
                             OObject obj;
@@ -2290,13 +2400,13 @@ label:
                                 String str1 = "the " + stringList.get(next + 2);
                                 String res = evaluation(str1, memData, object, target);
 
-                            /*ArrayList<String> tmpStrList = new ArrayList<String>();
-                            ArrayList<wordType> newTypeList = new ArrayList<wordType>();
-                            resolution(res, tmpStrList, newTypeList, false);
-                            wordType[] tmpTypeAry = new wordType[newTypeList.size()];
-                            for(int i=0; i<tmpTypeAry.length; i++){
-                                tmpTypeAry[i] = newTypeList.get(i);
-                            }*/
+//                                List<String> tmpStrList = new ArrayList<>();
+//                                List<WordType> newTypeList = new ArrayList<>();
+//                                resolution(res, tmpStrList, newTypeList, false);
+//                                WordType[] tmpTypeAry = new WordType[newTypeList.size()];
+//                                for (int i = 0; i < tmpTypeAry.length; i++) {
+//                                    tmpTypeAry[i] = newTypeList.get(i);
+//                                }
 
                                 String newStr = "put empty into " + res;
                                 return doScriptLine(newStr, object, target, memData, 0);
@@ -2349,7 +2459,7 @@ label:
                     StringBuilder param = new StringBuilder();
                     next++;
                     while (next < stringList.size()) {
-                        if (stringList.get(next).equals(",") && typeAry[next] == wordType.COMMA) {
+                        if (stringList.get(next).equals(",") && typeAry[next] == WordType.COMMA) {
                             if (property.equalsIgnoreCase("topleft") || property.equalsIgnoreCase("scroll") ||
                                     property.equalsIgnoreCase("loc") || property.equalsIgnoreCase("location") ||
                                     property.equalsIgnoreCase("rect") || property.equalsIgnoreCase("rectangle")) {
@@ -2360,7 +2470,7 @@ label:
                                 continue;
                             }
                         }
-                        if (typeAry[next] == wordType.STRING) {
+                        if (typeAry[next] == WordType.STRING) {
                             value.append("\"").append(stringList.get(next)).append("\" ");
                         } else {
                             value.append(stringList.get(next)).append(" ");
@@ -2376,6 +2486,21 @@ label:
                 if (next >= stringList.size()) throw new XTalkException("go is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("to"))
                     next++;
+                // go [to] [card ... of|in] stack <name>
+                int stackAt = -1;
+                for (int k = next; k < stringList.size() - 1; k++) {
+                    if (stringList.get(k).equalsIgnoreCase("stack") &&
+                            (k == next || stringList.get(k - 1).equalsIgnoreCase("of") || stringList.get(k - 1).equalsIgnoreCase("in"))) {
+                        stackAt = k;
+                        break;
+                    }
+                }
+                if (stackAt > 0) {
+                    String stackName = evaluation(new ArrayList<>(stringList), typeAry.clone(), stackAt + 1, stringList.size() - 1, memData, object, target);
+                    int cardEnd = stackAt == next ? -1 : stackAt - 2;
+                    goToStack(stackName, stringList, typeAry, next, cardEnd, memData, object, target, result);
+                    return result;
+                }
                 int id = 0;
                 if (0 == stringList.get(next).compareToIgnoreCase("next")) {
                     int i;
@@ -2484,6 +2609,7 @@ label:
                 for (int i = PCARD.pc.mainPane.getComponentCount() - 1; i >= 0; i--) {
                     // PCARD.pc.mainPane.remove(PCARD.pc.mainPane.getComponent(i));
                 }
+                TMovie.closePictures();
                 cd = OCard.getOCard(PCARD.pc.stack, id, false); // Read both components and pictures
 
                 cd.bg = OBackground.getOBackground(PCARD.pc.stack, cd, cd.bgid, false); // new OBackground(PCARD.pc.stack, cd, cd.bgid, false);
@@ -2521,7 +2647,7 @@ label:
                         TBButtonListener.ChangeTool("field", null);
                     }
                 }
-                // System.out.println("curCard:"+PCARD.pc.stack.curCard.getShortName());
+                //logger.log(Level.DEBUG, "curCard: " + PCARD.pc.stack.curCard.getShortName());
             }
             case "visual" -> {
                 int next = 1;
@@ -2693,7 +2819,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2701,7 +2827,7 @@ label:
                 }
                 newStr.append(" +");
                 for (int i = 1; i < next; i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2709,7 +2835,7 @@ label:
                 }
                 newStr.append(" into");
                 for (int i = next + 1; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2729,7 +2855,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2737,7 +2863,7 @@ label:
                 }
                 newStr.append(" -");
                 for (int i = 1; i < next; i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2745,7 +2871,7 @@ label:
                 }
                 newStr.append(" into");
                 for (int i = next + 1; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2765,7 +2891,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2773,7 +2899,7 @@ label:
                 }
                 newStr.append(" *");
                 for (int i = 1; i < next; i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2781,7 +2907,7 @@ label:
                 }
                 newStr.append(" into");
                 for (int i = 1; i < next; i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2801,7 +2927,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("put");
                 for (int i = next + 1; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2809,7 +2935,7 @@ label:
                 }
                 newStr.append(" /");
                 for (int i = 1; i < next; i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2817,7 +2943,7 @@ label:
                 }
                 newStr.append(" into");
                 for (int i = 1; i < next; i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2875,7 +3001,7 @@ label:
                             }
                             newStr.append(objStr).append(" to ");
                             for (int i = next + 1; i < stringList.size(); i++) {
-                                if (typeAry[i] == wordType.STRING) {
+                                if (typeAry[i] == WordType.STRING) {
                                     newStr.append(" \"").append(stringList.get(i)).append("\"");
                                 } else {
                                     newStr.append(" ").append(stringList.get(i));
@@ -2894,7 +3020,7 @@ label:
                     } else {
                         next = 1;
                         for (int i = next; i < stringList.size(); i++) {
-                            if (typeAry[i] == wordType.STRING) {
+                            if (typeAry[i] == WordType.STRING) {
                                 newStr.append(" \"").append(stringList.get(i)).append("\"");
                             } else {
                                 newStr.append(" ").append(stringList.get(i));
@@ -2912,7 +3038,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set visible of");
                 for (int i = next; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2928,7 +3054,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set enabled of");
                 for (int i = next; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2944,7 +3070,7 @@ label:
                 StringBuilder newStr = new StringBuilder();
                 newStr.append("set enabled of");
                 for (int i = next; i < stringList.size(); i++) {
-                    if (typeAry[i] == wordType.STRING) {
+                    if (typeAry[i] == WordType.STRING) {
                         newStr.append(" \"").append(stringList.get(i)).append("\"");
                     } else {
                         newStr.append(" ").append(stringList.get(i));
@@ -2960,7 +3086,7 @@ label:
                 if (0 == stringList.get(next).compareToIgnoreCase("until")) {
                     while (true) {
                         ArrayList<String> stL = new ArrayList<>(stringList);
-                        wordType[] tyA = new wordType[typeAry.length];
+                        WordType[] tyA = new WordType[typeAry.length];
                         System.arraycopy(typeAry, 0, tyA, 0, typeAry.length);
                         String cond = evaluation(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
                         if (0 == cond.compareToIgnoreCase("true"))
@@ -2974,7 +3100,7 @@ label:
                 } else if (0 == stringList.get(next).compareToIgnoreCase("while")) {
                     while (true) {
                         ArrayList<String> stL = new ArrayList<>(stringList);
-                        wordType[] tyA = new wordType[typeAry.length];
+                        WordType[] tyA = new WordType[typeAry.length];
                         System.arraycopy(typeAry, 0, tyA, 0, typeAry.length);
                         String cond = evaluation(stL, tyA, next + 1, stringList.size() - 1, memData, object, target);
                         if (0 == cond.compareToIgnoreCase("false"))
@@ -3031,9 +3157,9 @@ label:
                         // Parse and send variable value
                         String v = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                         ArrayList<String> vList = new ArrayList<>();
-                        ArrayList<wordType> tList = new ArrayList<>();
+                        ArrayList<WordType> tList = new ArrayList<>();
                         resolution(v, vList, tList, false);
-                        wordType[] typeAry2 = new wordType[tList.size()];
+                        WordType[] typeAry2 = new WordType[tList.size()];
                         for (int i = 0; i < tList.size(); i++) {
                             typeAry2[i] = tList.get(i);
                         }
@@ -3117,7 +3243,7 @@ label:
                             if (tempoStr == null) tempoStr = stringList.get(next + 1);
                             tempo = Integer.parseInt(tempoStr);
                             next++;
-                            // System.out.println("soundRsrc"+soundRsrc);
+                            //logger.log(Level.DEBUG, "soundRsrc"+soundRsrc);
                         } else if (next > 1) {
                             String noteStr = getVariable(memData, stringList.get(next));
                             if (noteStr == null) noteStr = stringList.get(next);
@@ -3159,9 +3285,21 @@ label:
             case "push" -> {
                 int next = 1;
                 if (next >= stringList.size()) throw new XTalkException("push is unknown");
-                if (stringList.get(next).equalsIgnoreCase("cd") ||
+                if ((stringList.get(next).equalsIgnoreCase("cd") || stringList.get(next).equalsIgnoreCase("card")) &&
+                        next + 1 < stringList.size()) {
+                    // push card id N [of stack S]: the given card
+                    StringBuilder spec = new StringBuilder();
+                    boolean hasStack = false;
+                    for (int k = next; k < stringList.size(); k++) {
+                        if (stringList.get(k).equalsIgnoreCase("stack")) hasStack = true;
+                        spec.append(' ').append(typeAry[k] == WordType.STRING ? "\"" + stringList.get(k) + "\"" : stringList.get(k));
+                    }
+                    if (!hasStack) spec.append(" of stack \"").append(PCARD.pc.stack.name).append('"');
+                    pushCardList.add(spec.toString().trim());
+                } else if (stringList.get(next).equalsIgnoreCase("cd") ||
                         stringList.get(next).equalsIgnoreCase("card")) {
-                    pushCardList.add(PCARD.pc.stack.curCard.getShortName());
+                    // push card: the current card of the current stack
+                    pushCardList.add("card id " + PCARD.pc.stack.curCard.id + " of stack \"" + PCARD.pc.stack.name + "\"");
                 } else {
                     if (next >= stringList.size())
                         throw new XTalkException("push " + stringList.get(next) + " is unknown");
@@ -3267,7 +3405,7 @@ label:
                         try {
                             rb = new Robot();
                         } catch (AWTException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                         x = x * PCARD.pc.zoom + PCARD.pc.getX();
                         y = y * PCARD.pc.zoom + PCARD.pc.getY() + PCARD.pc.getInsets().top;
@@ -3379,7 +3517,7 @@ label:
                     try {
                         rb = new Robot();
                     } catch (AWTException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                     sx = sx * PCARD.pc.zoom + PCARD.pc.getX();
                     sy = sy * PCARD.pc.zoom + PCARD.pc.getY() + PCARD.pc.getInsets().top;
@@ -3449,19 +3587,7 @@ label:
                 if (next >= stringList.size()) throw new XTalkException("delete is unknown");
                 if (stringList.get(next).equalsIgnoreCase("menu")) {
                     // Delete menu
-                    for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
-                        Component c = PCARDFrame.pc.menu.mb.getComponent(i);
-                        if (c.getClass() == JMenu.class) {
-                            JMenu menu = (JMenu) c;
-                            String v = evaluation(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target);
-                            if (menu.getText().equalsIgnoreCase(v)) {
-                                PCARDFrame.pc.menu.mb.remove(menu);
-                                // Reflect menu
-                                GMenu.menuUpdate(PCARD.pc.menu.mb);
-                                break;
-                            }
-                        }
-                    }
+                    HCMenus.delete(evaluation(stringList, typeAry, next + 1, stringList.size() - 1, memData, object, target));
                 } else if (stringList.get(next).equalsIgnoreCase("menuItem")) {
                     // Delete menu item
                     for (int i = 0; i < PCARDFrame.pc.menu.mb.getComponentCount(); i++) {
@@ -3618,16 +3744,16 @@ label:
                 String chunkEnd = null;
                 int next = 1;
                 if (next >= stringList.size()) throw new XTalkException("select is unknown");
-                if (typeAry[next] == wordType.FUNC) {
+                if (typeAry[next] == WordType.FUNC) {
                     String newStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
                     if (!newStr.isEmpty()) {
                         for (int j = stringList.size() - 1; j >= next; j--) {
                             stringList.remove(1);
                         }
-                        ArrayList<wordType> typeList = new ArrayList<>();
-                        typeList.add(wordType.X);
+                        ArrayList<WordType> typeList = new ArrayList<>();
+                        typeList.add(WordType.X);
                         resolution(newStr, stringList, typeList, true);
-                        typeAry = new wordType[typeList.size()];
+                        typeAry = new WordType[typeList.size()];
                         typeList.toArray(typeAry);
                     } else {
                         result.theResult = "";
@@ -3646,10 +3772,10 @@ label:
                             0 != stringList.get(next).compareToIgnoreCase("of"))) {
                         next++;
                         if (next >= stringList.size()) break;
-                        if (typeAry[next] == wordType.LFUNC || typeAry[next] == wordType.LBRACKET) {
+                        if (typeAry[next] == WordType.LFUNC || typeAry[next] == WordType.LBRACKET) {
                             nest++;
                         }
-                        if (typeAry[next] == wordType.RFUNC || typeAry[next] == wordType.RBRACKET) {
+                        if (typeAry[next] == WordType.RFUNC || typeAry[next] == WordType.RBRACKET) {
                             nest--;
                         }
                     }
@@ -3738,9 +3864,13 @@ label:
                     next++;
                     if (next >= stringList.size()) throw new XTalkException("create menu is unknown");
 
-                    JMenu m = new JMenu(stringList.get(next));
-                    PCARD.pc.menu.mb.add(m);
-                    PCARD.pc.getJMenuBar().add(m);
+                    String menuName = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
+                    if (next == stringList.size() - 1 && typeAry[next] != WordType.STRING && !menuName.isEmpty() &&
+                            menuName.equals(menuName.toLowerCase())) {
+                        // an unquoted name is lower cased by the parser ("create menu File")
+                        menuName = Character.toUpperCase(menuName.charAt(0)) + menuName.substring(1);
+                    }
+                    HCMenus.create(menuName);
                 } else if (stringList.get(next).equalsIgnoreCase("button") ||
                         stringList.get(next).equalsIgnoreCase("btn")) {
                     OCardBase cdbase = PCARD.pc.stack.curCard;
@@ -3764,7 +3894,7 @@ label:
                         int top = PCARD.pc.stack.height / 2 - 32 / 2;
                         obtn.setRect(left, top, left + 128, top + 32);
                         obtn.style = 0;
-                        obtn.setName(PCARD.pc.intl.getDialogText("New Button"));
+                        obtn.setName(rb.getString("dialog.New_Button"));
 
                         OCard.reloadCurrentCard();
                         if (AuthTool.tool != null && AuthTool.tool.getClass() == ButtonTool.class) {
@@ -3846,7 +3976,7 @@ label:
                                 throw new XTalkException("Could not create file");
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     } else if (new File(stringList.get(next)).isDirectory()) {
                         // Directory
@@ -3872,9 +4002,10 @@ label:
                     next++;
                     if (next >= stringList.size()) throw new XTalkException("close window is unknown");
 
-                    OObject obj = getObject(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
-                    if (obj != null) {
-                        ((OWindow) obj).Close();
+                    // the object is "window <name>"
+                    OObject obj = getObject(stringList, typeAry, next - 1, stringList.size() - 1, memData, object, target);
+                    if (obj instanceof OWindow w) {
+                        w.Close();
                     }
                 } else if (stringList.get(next).equals("file")) {
                     next++;
@@ -4356,7 +4487,7 @@ label:
                 try {
                     rb = new Robot();
                 } catch (AWTException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
                 if (rb != null) {
                     if (withKey.contains("control")) rb.keyPress(KeyEvent.VK_CONTROL);
@@ -4388,20 +4519,25 @@ label:
 
                 String pathStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
-                // Double using not allowed
-                if (PCARD.pc.stack.usingStacks != null) {
-                    for (int i = 0; i < PCARD.pc.stack.usingStacks.size(); i++) {
-                        if (pathStr.equals(PCARD.pc.stack.usingStacks.get(i).path)) {
-                            PCARD.pc.stack.usingStacks.remove(i);
-                            break;
-                        }
-                    }
+                Path source = MacFiles.find(pathStr, MacFiles.stacksSearchPath());
+                if (source == null) {
+                    result.theResult = "Can't find stack " + pathStr;
+                    result.ret = 0;
+                    break;
                 }
-
-                OStack ostack = new OStack(PCARD.pc);
-                OStack.openStackFile(pathStr, true);
-                if (PCARD.pc.stack.usingStacks != null && PCARD.pc.stack.usingStacks.size() <= 8) {
-                    PCARD.pc.stack.usingStacks.add(ostack);
+                OStack library = OStack.loadLibraryStack(source);
+                if (library == null) {
+                    result.theResult = "Can't open stack " + pathStr;
+                    result.ret = 0;
+                    break;
+                }
+                logger.log(Level.INFO, "start using stack " + pathStr + ": " + source + ", script lines: " + (library.scriptList != null ? library.scriptList.size() : -1));
+                if (library != PCARD.pc.stack && PCARD.pc.stack.usingStacks != null) {
+                    // Double using not allowed, the last one is searched first
+                    PCARD.pc.stack.usingStacks.remove(library);
+                    if (PCARD.pc.stack.usingStacks.size() < 16) {
+                        PCARD.pc.stack.usingStacks.add(library);
+                    }
                 }
             }
             case "stop" -> {
@@ -4417,9 +4553,10 @@ label:
 
                 String pathStr = evaluation(stringList, typeAry, next, stringList.size() - 1, memData, object, target);
 
-
+                String leaf = MacFiles.normalize(MacFiles.leafName(pathStr));
                 for (int i = 0; i < PCARD.pc.stack.usingStacks.size(); i++) {
-                    if (pathStr.equals(PCARD.pc.stack.usingStacks.get(i).path)) {
+                    OStack s = PCARD.pc.stack.usingStacks.get(i);
+                    if (pathStr.equals(s.path) || (s.name != null && MacFiles.normalize(s.name).equals(leaf))) {
                         PCARD.pc.stack.usingStacks.remove(i);
                         break;
                     }
@@ -4439,7 +4576,7 @@ label:
                         }
                     } else if (stringList.get(next).equalsIgnoreCase("checkpoint")) {
                         TTalk.traceMode = 2;
-                        ScriptEditor.setTracemode();
+                        ScriptEditor.setTraceMode();
                     } else if (stringList.get(next).equalsIgnoreCase("wait")) {
                         next++;
                         if (next < stringList.size()) {
@@ -4602,53 +4739,77 @@ label:
         }
 
         ArrayList<String> stringList = new ArrayList<>();
-        ArrayList<wordType> typeList = new ArrayList<>();
+        ArrayList<WordType> typeList = new ArrayList<>();
 
         fullresolution(string, stringList, typeList, memData.treeset, false);
 
-        wordType[] typeAry = new wordType[typeList.size()];
+        WordType[] typeAry = new WordType[typeList.size()];
         for (int i = 0; i < typeList.size(); i++) {
             typeAry[i] = typeList.get(i);
         }
 
-        // timeIsMoney("Evaluation1: ", timeStart, 21);
+        //timeIsMoney("Evaluation1: ", timeStart, 21);
 
         return evaluation(stringList, typeAry, 0, stringList.size() - 1, memData, object, target);
     }
 
-    private static String evaluation(
-            ArrayList<String> stringList, wordType[] typeAry, int start, int end,
-            MemoryData memData, OObject object, OObject target)
+    private static String evaluation(List<String> stringList, WordType[] typeAry, int start, int end,
+                                     MemoryData memData, OObject object, OObject target)
             throws XTalkException {
+        // "window <variable>": the variable holds the window name
+        for (int i = start; i < end; i++) {
+            if (typeAry[i] == WordType.OBJECT && stringList.get(i).equalsIgnoreCase("window") && typeAry[i + 1] == WordType.X) {
+                List<String> resolved = windowNameResolved(stringList, typeAry, i, memData);
+                if (resolved != stringList) {
+                    stringList.set(i + 1, resolved.get(i + 1));
+                    typeAry[i + 1] = WordType.STRING;
+                }
+            } else if (typeAry[i] == WordType.OBJECT && stringList.get(i).equalsIgnoreCase("window") && typeAry[i + 1] == WordType.CHUNK) {
+                // "window line 1 of soundList": the name is a chunk expression, up to an operator
+                int j = i + 1;
+                while (j + 1 <= end && typeAry[j + 1] != WordType.OPERATOR && typeAry[j + 1] != WordType.OPERATOR_SUB &&
+                        typeAry[j + 1] != WordType.COMMA && typeAry[j + 1] != WordType.RBRACKET && typeAry[j + 1] != WordType.RFUNC) {
+                    j++;
+                }
+                try {
+                    String name = evaluation(new ArrayList<>(stringList), typeAry.clone(), i + 1, j, memData, object, target);
+                    stringList.set(i + 1, name);
+                    typeAry[i + 1] = WordType.STRING;
+                    for (int k = i + 2; k <= j; k++) typeAry[k] = WordType.NOP;
+                } catch (XTalkException e) {
+                    logger.log(Level.DEBUG, "window name: " + e.getMessage());
+                }
+            }
+        }
         // Interpret/operate on words entered in the list
-        // When the number of words decreases, keep the left side and set the right side to wordType.NOP
+        // When the number of words decreases, keep the left side and set the right side to WordType.NOP
 
 //        String hintstr = "";
 //        for (int i = start; i <= end; i++) {
 //            hintstr += stringList.get(i) + " ";
 //        }
-//        System.out.println("  " + hintstr);
+//        logger.log(Level.DEBUG, "  " + hintstr);
 //        String hintstr2 = "";
 //        for (int i = start; i <= end; i++) {
-//            if (typeList.get(i) == wordType.X) hintstr2 += "value ";
-//            if (typeList.get(i) == wordType.STRING) hintstr2 += "STRING ";
-//            if (typeList.get(i) == wordType.LFUNC) hintstr2 += "LFUNC ";
-//            if (typeList.get(i) == wordType.LBRACKET) hintstr2 += "LBRACKET ";
-//            if (typeList.get(i) == wordType.RBRACKET) hintstr2 += "RBRACKET ";
-//            if (typeList.get(i) == wordType.OPERATOR) hintstr2 += "OP ";
+//            if (typeList.get(i) == WordType.X) hintstr2 += "value ";
+//            if (typeList.get(i) == WordType.STRING) hintstr2 += "STRING ";
+//            if (typeList.get(i) == WordType.LFUNC) hintstr2 += "LFUNC ";
+//            if (typeList.get(i) == WordType.LBRACKET) hintstr2 += "LBRACKET ";
+//            if (typeList.get(i) == WordType.RBRACKET) hintstr2 += "RBRACKET ";
+//            if (typeList.get(i) == WordType.OPERATOR) hintstr2 += "OP ";
 //        }
-//        System.out.println(hintstr2);
+//        logger.log(Level.DEBUG, hintstr2);
 
-//        long timestart = System.currentTimeMillis();
+//        long timeStart = System.currentTimeMillis();
 
         for (int i = end; i >= start; i--) {
-            if (typeAry[i] == wordType.NOP) {
+            if (typeAry[i] == WordType.NOP) {
                 end--;
             } else break;
         }
         if (start == end) {
-            if (typeAry[start] == wordType.STRING
-//                    || stringList.get(start).length()>=1 && Character.isDigit(stringList.get(start).charAt(0))
+            if (typeAry[start] == WordType.STRING
+//                    || stringList.get(start).length() >= 1 && Character.isDigit(stringList.get(start).charAt(0))
             ) {
                 return stringList.get(start);
             }
@@ -4658,21 +4819,21 @@ label:
 
         // 1. Parentheses
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.LBRACKET) {
+            if (typeAry[i] == WordType.LBRACKET) {
                 // Find the corresponding closing parenthesis
                 int depth = 0;
                 int j = i + 1;
                 for (; j <= end; j++) {
-                    if (typeAry[j] == wordType.LBRACKET) depth++;
-                    else if (typeAry[j] == wordType.LFUNC) depth++;
-                    else if (typeAry[j] == wordType.RBRACKET || typeAry[j] == wordType.RFUNC) {
+                    if (typeAry[j] == WordType.LBRACKET) depth++;
+                    else if (typeAry[j] == WordType.LFUNC) depth++;
+                    else if (typeAry[j] == WordType.RBRACKET || typeAry[j] == WordType.RFUNC) {
                         if (depth > 0) depth--;
                         else {
                             String value = evaluation(stringList, typeAry, i + 1, j - 1, memData, object, target);
                             stringList.set(i, value);
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                             for (int k = i + 1; k <= j; k++) {
-                                typeAry[k] = wordType.NOP;
+                                typeAry[k] = WordType.NOP;
                             }
                             i = j;
                             break;
@@ -4681,11 +4842,11 @@ label:
                 }
                 if (j > end)
                     throw new XTalkException("No matching parenthesis");
-//            } else if (typeAry[i] == wordType.RBRACKET) {
+//            } else if (typeAry[i] == WordType.RBRACKET) {
 //                // Enters here for functions, so temporary workaround
 //                int j;
 //                for (j = start; j <= end; j++) {
-//                    if (typeAry[j] == wordType.LFUNC) break;
+//                    if (typeAry[j] == WordType.LFUNC) break;
 //                }
 //                if (j > end)
 //                    throw new XTalkException("No matching parenthesis");
@@ -4694,21 +4855,21 @@ label:
 
         // Function call with parentheses
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.LFUNC) {
-                if (i > start /* && typeAry[i-1] == wordType.X */) {
+            if (typeAry[i] == WordType.LFUNC) {
+                if (i > start /* && typeAry[i-1] == WordType.X */) {
                     int j = i + 1;
                     int nest = 1;
                     for (; j <= end; j++) {
-                        if (typeAry[j] == wordType.LBRACKET)
+                        if (typeAry[j] == WordType.LBRACKET)
                             nest++;
-                        if (typeAry[j] == wordType.LFUNC)
+                        if (typeAry[j] == WordType.LFUNC)
                             nest++;
-                        if (typeAry[j] == wordType.RBRACKET || typeAry[j] == wordType.RFUNC) {
+                        if (typeAry[j] == WordType.RBRACKET || typeAry[j] == WordType.RFUNC) {
                             nest--;
                             if (nest == 0) {
                                 int o = 0;
                                 for (int m = i + 1; m <= j; m++) {
-                                    if ((typeAry[m] == wordType.COMMA_FUNC || typeAry[m] == wordType.COMMA) || m == j) {
+                                    if ((typeAry[m] == WordType.COMMA_FUNC || typeAry[m] == WordType.COMMA) || m == j) {
                                         o++;
                                     }
                                 }
@@ -4716,7 +4877,7 @@ label:
                                 int n = i + 1;
                                 o = 0;
                                 for (int m = i + 1; m <= j; m++) {
-                                    if ((typeAry[m] == wordType.COMMA_FUNC || typeAry[m] == wordType.COMMA) || m == j) {
+                                    if ((typeAry[m] == WordType.COMMA_FUNC || typeAry[m] == WordType.COMMA) || m == j) {
                                         paramAry[o] = evaluation(stringList, typeAry, n, m - 1, memData, object, target);
                                         o++;
                                         n = m + 1;
@@ -4734,13 +4895,13 @@ label:
                                 Result funcres = talk.ReceiveMessage(funcName, paramAry, object, target, memData, new Result(), true, false, false, 0);
                                 if (funcres != null && funcres.theResult != null) {
                                     stringList.set(i - 1 + offset, funcres.theResult);
-                                    typeAry[i - 1 + offset] = wordType.STRING;
+                                    typeAry[i - 1 + offset] = WordType.STRING;
                                 } else {
                                     stringList.set(i - 1 + offset, "");
-                                    typeAry[i - 1 + offset] = wordType.STRING;
+                                    typeAry[i - 1 + offset] = WordType.STRING;
                                 }
                                 for (int k = i + offset; k <= j; k++) {
-                                    typeAry[k] = wordType.NOP;
+                                    typeAry[k] = WordType.NOP;
                                 }
                                 break;
                             }
@@ -4753,107 +4914,107 @@ label:
 
         // HyperTalk constants
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.CONST) {
+            if (typeAry[i] == WordType.CONST) {
                 String str = stringList.get(i) /* .toLowerCase() */;
                 /* if(constantSet.contains(str)) */
                 {
                     switch (str) {
                         case "down" -> {
                             stringList.set(i, "down");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "empty" -> {
                             stringList.set(i, "");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "false" -> {
                             stringList.set(i, "false");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "formfeed" -> {
                             stringList.set(i, "\f");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "carriagereturn" -> {
                             stringList.set(i, "\r");
-                            typeAry[i] = wordType.STRING;  // Add
+                            typeAry[i] = WordType.STRING;  // Add
                         }
                         case "linefeed" -> {
                             stringList.set(i, "\n");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "pi" -> {
                             stringList.set(i, "3.14159265358979323846");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "quote" -> {
                             stringList.set(i, "\"");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "return" -> {
                             // stringList.set(i,"\r");
                             stringList.set(i, "\n");
-                            typeAry[i] = wordType.STRING;  // Change newline code
+                            typeAry[i] = WordType.STRING;  // Change newline code
                         }
                         case "space" -> {
                             stringList.set(i, " ");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "tab" -> {
                             stringList.set(i, "\t");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "comma" -> {
                             stringList.set(i, ",");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "true" -> {
                             stringList.set(i, "true");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "up" -> {
                             stringList.set(i, "up");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "zero" -> {
                             stringList.set(i, "0");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "one" -> {
                             stringList.set(i, "1");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "two" -> {
                             stringList.set(i, "2");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "three" -> {
                             stringList.set(i, "3");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "four" -> {
                             stringList.set(i, "4");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "five" -> {
                             stringList.set(i, "5");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "six" -> {
                             stringList.set(i, "6");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "seven" -> {
                             stringList.set(i, "7");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "eight" -> {
                             stringList.set(i, "8");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                         case "nine" -> {
                             stringList.set(i, "9");
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         }
                     }
                 }
@@ -4862,12 +5023,12 @@ label:
 
         // Variable
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.VARIABLE ||
-                    typeAry[i] == wordType.X && ((i - 1 < start) || (!stringList.get(i - 1).equals("the")))) {
+            if (typeAry[i] == WordType.VARIABLE ||
+                    typeAry[i] == WordType.X && ((i - 1 < start) || (!stringList.get(i - 1).equals("the")))) {
                 String str = getVariable(memData, stringList.get(i));
                 if (str != null) {
                     stringList.set(i, str);
-                    typeAry[i] = wordType.STRING;
+                    typeAry[i] = WordType.STRING;
                 }
             }
         }
@@ -4875,7 +5036,7 @@ label:
         // Property
         for (int i = end; i >= start; i--) {
             // for(int i=start; i<=end; i++) {   // There is a of the x etc. so look from the back
-            if (typeAry[i] == wordType.PROPERTY) {
+            if (typeAry[i] == WordType.PROPERTY) {
                 if (stringList.get(i).equals("the") &&
                         ((i + 1 <= end && 0 != stringList.get(i + 1).compareToIgnoreCase("target")) &&
                                 (i + 2 > end || 0 != stringList.get(i + 2).compareToIgnoreCase("of")) &&
@@ -4892,12 +5053,12 @@ label:
                     String str = stringList.get(i + 1);
                     if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
                         str += " " + stringList.get(i + 2);
-                        typeAry[i + 2] = wordType.NOP;
+                        typeAry[i + 2] = WordType.NOP;
                     }
                     stringList.set(i, TUtil.CallSystemFunction(str, null, target, memData, true).theResult);
-                    typeAry[i] = wordType.STRING;
-                    typeAry[i + 1] = wordType.NOP;
-                } else if (i <= end - 1 && stringList.get(i + 1).equals("of") && (typeAry[i + 1] == wordType.X || typeAry[i + 1] == wordType.CHUNK || typeAry[i + 1] == wordType.OBJECT || typeAry[i + 1] == wordType.OF_PROP) &&
+                    typeAry[i] = WordType.STRING;
+                    typeAry[i + 1] = WordType.NOP;
+                } else if (i <= end - 1 && stringList.get(i + 1).equals("of") && (typeAry[i + 1] == WordType.X || typeAry[i + 1] == WordType.CHUNK || typeAry[i + 1] == WordType.OBJECT || typeAry[i + 1] == WordType.OF_PROP) &&
                         /*stringList.get(i)!="number" &&*/ !stringList.get(i).equals("chars") &&
                         !stringList.get(i).equals("characters") && !stringList.get(i).equals("items") &&
                         !stringList.get(i).equals("words") && !stringList.get(i).equals("lines") &&
@@ -4912,7 +5073,7 @@ label:
                     String str = stringList.get(i);
                     ObjResult objres = null;
                     try {
-                        objres = getObjectfromList(stringList, typeAry, i + 2, object, target);
+                        objres = getObjectfromList(windowNameResolved(stringList, typeAry, i + 2, memData), typeAry, i + 2, object, target);
                     } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
@@ -4931,10 +5092,10 @@ label:
                             offset++;
                         }
                         stringList.set(i, TUtil.getProperty(str, objres.obj, target, memData));
-                        typeAry[i] = wordType.STRING;
+                        typeAry[i] = WordType.STRING;
 //                        for (int j = i + 1; j < i + 2 + objres.cnt && j <= end; j++) {
                         for (int j = i + 1; j <= i + 1 + offset + objres.cnt && j <= end; j++) {
-                            typeAry[j] = wordType.NOP;
+                            typeAry[j] = WordType.NOP;
                         }
                     }
                 }
@@ -4943,18 +5104,18 @@ label:
 
         // Function called with the
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.THE_FUNC) {
+            if (typeAry[i] == WordType.THE_FUNC) {
                 if (i > end - 1) throw new XTalkException("No function name after the");
                 String str = stringList.get(i + 1);
                 stringList.set(i, TUtil.CallSystemFunction(str, new String[0], target, memData, true).theResult);
-                typeAry[i] = wordType.STRING;
-                typeAry[i + 1] = wordType.NOP;
+                typeAry[i] = WordType.STRING;
+                typeAry[i + 1] = WordType.NOP;
             }
         }
 
         // Chunk expression
         for (int i = end; i >= start; i--) {
-            if (typeAry[i] == wordType.CHUNK) {
+            if (typeAry[i] == WordType.CHUNK) {
                 String str = stringList.get(i)/*.toLowerCase()*/;
                 if (str.equals("char") || str.equals("character") ||
                         str.equals("item") || str.equals("word") ||
@@ -4967,13 +5128,13 @@ label:
                     String chunkEnd = null;
                     int j;
                     for (j = i + 2; j < end; j++) {
-                        if (typeAry[j] == wordType.NOP) continue;
+                        if (typeAry[j] == WordType.NOP) continue;
                         String str2 = stringList.get(j);
                         if (0 == str2.compareToIgnoreCase("to")) {
                             chunkStart = evaluation(stringList, typeAry, i + 1, j - 1, memData, object, target);
                             for (int k = j + 1; k < end; k++) {
                                 str2 = stringList.get(k);
-                                if (0 == str2.compareToIgnoreCase("of") && typeAry[k] != wordType.NOP) {
+                                if (0 == str2.compareToIgnoreCase("of") && typeAry[k] != WordType.NOP) {
                                     chunkEnd = evaluation(stringList, typeAry, j + 1, k - 1, memData, object, target);
                                     j = k;
                                     break;
@@ -4987,7 +5148,7 @@ label:
                     }
                     int k;
                     for (k = j + 2; k <= end; k++) {
-                        if (typeAry[k] != wordType.NOP && typeAry[k] != wordType.STRING && typeAry[k] != wordType.X && typeAry[k] != wordType.OBJECT && typeAry[k] != wordType.OF_OBJ) {
+                        if (typeAry[k] != WordType.NOP && typeAry[k] != WordType.STRING && typeAry[k] != WordType.X && typeAry[k] != WordType.OBJECT && typeAry[k] != WordType.OF_OBJ) {
                             break;
                         }
                     }
@@ -4996,10 +5157,10 @@ label:
                     if (j <= i) break; // ####
                     String value = evaluation(stringList, typeAry, j + 1, k - 1, memData, object, target);
                     stringList.set(i, getChunk(str, chunkStart, chunkEnd, value));
-                    typeAry[i] = wordType.STRING;
+                    typeAry[i] = WordType.STRING;
                     for (int m = i + 1; m <= k - 1; m++) {
 //                        stringList.set(m, "");
-                        typeAry[m] = wordType.NOP;
+                        typeAry[m] = WordType.NOP;
                     }
                 }
             }
@@ -5007,7 +5168,7 @@ label:
 
         // Chunk expression 2 (any, last)
         for (int i = end; i >= start + 1; i--) {
-            if (typeAry[i] == wordType.CHUNK) {
+            if (typeAry[i] == WordType.CHUNK) {
                 String str = stringList.get(i)/*.toLowerCase() */;
                 if (str.equals("char") || str.equals("character") ||
                         str.equals("item") || str.equals("word") ||
@@ -5017,7 +5178,7 @@ label:
                             0 == stringList.get(i - 1).compareToIgnoreCase("first")) {
                         int k;
                         for (k = i + 2; k <= end; k++) {
-                            if (typeAry[k] != wordType.NOP && typeAry[k] != wordType.STRING && typeAry[k] != wordType.OBJECT && typeAry[k] != wordType.X) {
+                            if (typeAry[k] != WordType.NOP && typeAry[k] != WordType.STRING && typeAry[k] != WordType.OBJECT && typeAry[k] != WordType.X) {
                                 k--;
                                 break;
                             }
@@ -5036,9 +5197,9 @@ label:
                             else
                                 stringList.set(i - 1, getChunk(str, Integer.toString((int) (number * Math.random()) + 1), "", value));
                         }
-                        typeAry[i - 1] = wordType.STRING;
+                        typeAry[i - 1] = WordType.STRING;
                         for (int m = i; m <= k; m++) {
-                            typeAry[m] = wordType.NOP;
+                            typeAry[m] = WordType.NOP;
                         }
                     }
                 }
@@ -5047,7 +5208,7 @@ label:
 
         // Chunk expression 3 (number of xxxs)
         for (int i = end; i >= start + 2; i--) {
-            if (typeAry[i] == wordType.X) {
+            if (typeAry[i] == WordType.X) {
                 String str = stringList.get(i)/*.toLowerCase()*/;
                 if (str.equals("chars") || str.equals("characters") ||
                         str.equals("items") || str.equals("words") ||
@@ -5059,7 +5220,7 @@ label:
                                     0 == stringList.get(i + 1).compareToIgnoreCase("in"))) {
                         int k;
                         for (k = i + 2; k <= end; k++) {
-                            if (typeAry[k] != wordType.NOP && typeAry[k] != wordType.STRING && typeAry[k] != wordType.X && typeAry[k] != wordType.OBJECT) {
+                            if (typeAry[k] != WordType.NOP && typeAry[k] != WordType.STRING && typeAry[k] != WordType.X && typeAry[k] != WordType.OBJECT) {
                                 k--;
                                 break;
                             }
@@ -5070,9 +5231,9 @@ label:
                             i--;
                         }
                         stringList.set(i - 2, Integer.toString(getNumberOfChunk(str, value)));
-                        typeAry[i - 2] = wordType.STRING;
+                        typeAry[i - 2] = WordType.STRING;
                         for (int m = i - 1; m <= k; m++) {
-                            typeAry[m] = wordType.NOP;
+                            typeAry[m] = WordType.NOP;
                         }
                     }
                 } else if (str.equals("btns") || str.equals("buttons") ||
@@ -5126,13 +5287,13 @@ label:
                                         OStack st = (parent instanceof OBackground) ? ((OBackground) parent).stack : (OStack) parent;
                                         number = 0;
                                         for (int k = 0; k < st.cardIdList.size(); k++) {
-                                            OCard cd = st.GetCardbyId(st.cardIdList.get(k));
+                                            OCard cd = st.getCardbyId(st.cardIdList.get(k));
                                             if (cd.bgid == parent.id) {
                                                 number++;
                                             }
                                         }
                                     } else {
-                                        Debug.println("parent: " + parent.getClass());
+                                        logger.log(Level.DEBUG, "parent: " + parent.getClass());
                                         if (parent instanceof OCard) {
                                             number = ((OCard) parent).stack.cardIdList.size();
                                         } else {
@@ -5144,7 +5305,7 @@ label:
                                     OStack st = (parent instanceof OCard) ? ((OCard) parent).stack : (OStack) parent;
                                     ArrayList<Integer> list = new ArrayList<>();
                                     for (int k = 0; k < st.cardIdList.size(); k++) {
-                                        OCard cd = st.GetCardbyId(st.cardIdList.get(k));
+                                        OCard cd = st.getCardbyId(st.cardIdList.get(k));
                                         int j;
                                         for (j = 0; j < list.size(); j++) {
                                             if (cd.bgid == list.get(j)) {
@@ -5163,9 +5324,9 @@ label:
                                 offset++;
                             }
                             stringList.set(i - 2 - offset, Integer.toString(number));
-                            typeAry[i - 2 - offset] = wordType.STRING;
+                            typeAry[i - 2 - offset] = WordType.STRING;
                             for (int m = i - 2 - offset + 1; m <= i + endoff; m++) {
-                                typeAry[m] = wordType.NOP;
+                                typeAry[m] = WordType.NOP;
                             }
                         }
                     }
@@ -5175,7 +5336,16 @@ label:
 
         // Function called with of
         for (int i = end; i >= start; i--) {
-            if (typeAry[i] == wordType.FUNC) {
+            if (typeAry[i] == WordType.FUNC &&
+                    (i + 1 > end || !stringList.get(i + 1).equals("of") && typeAry[i + 1] != WordType.LFUNC && typeAry[i + 1] != WordType.LBRACKET) &&
+                    (i - 1 < start || typeAry[i - 1] != WordType.THE_FUNC && !stringList.get(i - 1).equalsIgnoreCase("the"))) {
+                // a function name without "the", "of" or "()" is a variable or a literal ("arrow Time,0,1439")
+                String v = getVariable(memData, stringList.get(i));
+                stringList.set(i, v != null ? v : stringList.get(i));
+                typeAry[i] = WordType.STRING;
+                continue;
+            }
+            if (typeAry[i] == WordType.FUNC) {
                 // number of/function call using of
                 char c = ' ';
                 if (i + 2 <= end) {
@@ -5206,7 +5376,7 @@ label:
                         if (objres2 != null && objres2.obj.objectType.equals("stack")) {
                             OStack st = (OStack) objres2.obj;
                             stringList.set(i, Integer.toString(st.cardIdList.size()));
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         } else if (objres2 != null && objres2.obj.objectType.equals("background")) {
                             OBackground bg = (OBackground) objres2.obj;
                             int cnt = 0;
@@ -5216,7 +5386,7 @@ label:
                                 }
                             }
                             stringList.set(i, Integer.toString(cnt));
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         } else throw new XTalkException("Please specify a background or stack here");
                     } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
                             0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
@@ -5225,7 +5395,7 @@ label:
                             if (objres2 == null) cdbs = PCARD.pc.stack.curCard;
                             else cdbs = (OCardBase) objres2.obj;
                             stringList.set(i, Integer.toString(cdbs.btnList.size()));
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                             if (0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
                                 next++;
                             }
@@ -5237,7 +5407,7 @@ label:
                             if (objres2 == null) cdbs = PCARD.pc.stack.curCard;
                             else cdbs = (OCardBase) objres2.obj;
                             stringList.set(i, Integer.toString(cdbs.fldList.size()));
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                             if (0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
                                 next++;
                             }
@@ -5249,13 +5419,13 @@ label:
                             if (objres2 == null) cdbs = PCARD.pc.stack.curCard;
                             else cdbs = (OCardBase) objres2.obj;
                             stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                         } else throw new XTalkException("Please specify a card or background here");
                     }
                     int cnt = 0;
                     if (objres2 != null) cnt += objres2.cnt;
                     for (int j = i + 1; j <= next + cnt && j <= end; j++) {
-                        typeAry[j] = wordType.NOP;
+                        typeAry[j] = WordType.NOP;
                     }
                 } else if (!stringList.get(i).equals("number") &&
                         !stringList.get(i).equals("char") && !stringList.get(i).equals("character") &&
@@ -5274,10 +5444,10 @@ label:
                             offset++;
                         }
                         stringList.set(i, funcres.theResult);
-                        typeAry[i] = wordType.STRING;
+                        typeAry[i] = WordType.STRING;
                     } else throw new XTalkException("This function is unknown");
                     for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
-                        typeAry[j] = wordType.NOP;
+                        typeAry[j] = WordType.NOP;
                     }
                 }
             }
@@ -5286,7 +5456,7 @@ label:
 //        // Tried moving to the front to allow item random of 2 of x
 //        // Property (or function)
 //        for (int i = start; i <= end; i++) {
-//            if (typeAry[i] == wordType.X) {
+//            if (typeAry[i] == WordType.X) {
 //                if (0 == stringList.get(i).compareToIgnoreCase("the") &&
 //                        (
 //                                (0 != stringList.get(i + 1).compareToIgnoreCase("target")) &&
@@ -5301,12 +5471,12 @@ label:
 //                    String str = stringList.get(i + 1);
 //                    if (str.equalsIgnoreCase("short") || str.equalsIgnoreCase("long")) {
 //                        str += " " + stringList.get(i + 2);
-//                        typeAry[i + 2] = wordType.NOP;
+//                        typeAry[i + 2] = WordType.NOP;
 //                    }
 //                    stringList.set(i, TUtil.getProperty(str, null));
-//                    typeAry[i] = wordType.STRING;
-//                    typeAry[i + 1] = wordType.NOP;
-//                } else if (i <= end - 1 && 0 == stringList.get(i + 1).compareToIgnoreCase("of") && typeAry[i + 1] == wordType.X) {
+//                    typeAry[i] = WordType.STRING;
+//                    typeAry[i + 1] = WordType.NOP;
+//                } else if (i <= end - 1 && 0 == stringList.get(i + 1).compareToIgnoreCase("of") && typeAry[i + 1] == WordType.X) {
 //                    if (i + 1 > end - 1) throw new XTalkException("No object name after of");
 //                    String str = stringList.get(i);
 //                    ObjResult objres = null;
@@ -5327,10 +5497,10 @@ label:
 //                            offset++;
 //                        }
 //                        stringList.set(i, TUtil.getProperty(str, objres.obj));
-//                        typeAry[i] = wordType.STRING;
+//                        typeAry[i] = WordType.STRING;
 //                        // for(int j=i+1; j<i+2+objres.cnt && j<=end; j++){
 //                        for (int j = i + 1; j <= i + 1 + offset + objres.cnt && j <= end; j++) {
-//                            typeAry[j] = wordType.NOP;
+//                            typeAry[j] = WordType.NOP;
 //                        }
 //                    } else {
 //                        // number of/function call using of
@@ -5354,7 +5524,7 @@ label:
 //                                if (objres2 != null && objres2.obj.objectType == "stack") {
 //                                    OStack st = (OStack) objres2.obj;
 //                                    stringList.set(i, Integer.toString(st.cardIdList.size()));
-//                                    typeAry[i] = wordType.STRING;
+//                                    typeAry[i] = WordType.STRING;
 //                                } else if (objres2 != null && objres2.obj.objectType == "background") {
 //                                    OBackground bg = (OBackground) objres2.obj;
 //                                    int cnt = 0;
@@ -5364,7 +5534,7 @@ label:
 //                                        }
 //                                    }
 //                                    stringList.set(i, Integer.toString(cnt));
-//                                    typeAry[i] = wordType.STRING;
+//                                    typeAry[i] = WordType.STRING;
 //                                } else throw new XTalkException("Please specify a background or stack here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("btns") || 0 == stringList.get(i + 2).compareToIgnoreCase("buttons") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("btns") || 0 == stringList.get(i + 3).compareToIgnoreCase("buttons")) {
@@ -5373,7 +5543,7 @@ label:
 //                                    if (objres2 == null) cdbs = (OCardBase) PCARD.pc.stack.curCard;
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.btnList.size()));
-//                                    typeAry[i] = wordType.STRING;
+//                                    typeAry[i] = WordType.STRING;
 //                                } else throw new XTalkException("Please specify a card or background here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("flds") || 0 == stringList.get(i + 2).compareToIgnoreCase("fields") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("flds") || 0 == stringList.get(i + 3).compareToIgnoreCase("fields")) {
@@ -5382,7 +5552,7 @@ label:
 //                                    if (objres2 == null) cdbs = (OCardBase) PCARD.pc.stack.curCard;
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.fldList.size()));
-//                                    typeAry[i] = wordType.STRING;
+//                                    typeAry[i] = WordType.STRING;
 //                                } else throw new XTalkException("Please specify a card or background here");
 //                            } else if (0 == stringList.get(i + 2).compareToIgnoreCase("parts") ||
 //                                    0 == stringList.get(i + 3).compareToIgnoreCase("parts")) {
@@ -5391,13 +5561,13 @@ label:
 //                                    if (objres2 == null) cdbs = (OCardBase) PCARD.pc.stack.curCard;
 //                                    else cdbs = (OCardBase) objres2.obj;
 //                                    stringList.set(i, Integer.toString(cdbs.btnList.size() + cdbs.fldList.size()));
-//                                    typeAry[i] = wordType.STRING;
+//                                    typeAry[i] = WordType.STRING;
 //                                } else throw new XTalkException("Please specify a card or background here");
 //                            }
 //                            int cnt = 0;
 //                            if (objres2 != null) cnt += objres2.cnt;
 //                            for (int j = i + 1; j <= next + cnt && j <= end; j++) {
-//                                typeAry[j] = wordType.NOP;
+//                                typeAry[j] = WordType.NOP;
 //                            }
 //                        } else {
 //                            // Function call
@@ -5411,10 +5581,10 @@ label:
 //                                    offset++;
 //                                }
 //                                stringList.set(i, funcres.theResult);
-//                                typeAry[i] = wordType.STRING;
+//                                typeAry[i] = WordType.STRING;
 //                            } else throw new XTalkException("This function is unknown");
 //                            for (int j = i + 1; j <= i + 2 + offset && j <= end; j++) {
-//                                typeAry[j] = wordType.NOP;
+//                                typeAry[j] = WordType.NOP;
 //                            }
 //                        }
 //                    }
@@ -5424,57 +5594,59 @@ label:
 
         // 2a.there is a
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("there") &&
-                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR_SUB &&
+                        i + 1 <= end && typeAry[i + 1] == WordType.OPERATOR_SUB &&
                         0 == stringList.get(i + 1).compareToIgnoreCase("is") &&
-                        i + 2 <= end && typeAry[i + 2] == wordType.OPERATOR_SUB &&
+                        i + 2 <= end && typeAry[i + 2] == WordType.OPERATOR_SUB &&
                         0 == stringList.get(i + 2).compareToIgnoreCase("a")) {
                     int j = i;
                     ObjResult objres = null;
                     try {
-                        objres = getObjectfromList(stringList, typeAry, i + 3, object, target);
+                        objres = stackExistence(stringList, typeAry, i + 3, end, memData, object, target);
+                        if (objres == null) objres = getObjectfromList(windowNameResolved(stringList, typeAry, i + 3, memData), typeAry, i + 3, object, target);
                     } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
                         stringList.set(j, "true");
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         for (int k = j + 1; k < j + 3 + objres.cnt; k++) {
-                            typeAry[k] = wordType.NOP;
+                            typeAry[k] = WordType.NOP;
                         }
                     } else {
                         stringList.set(j, "false");
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         for (int k = j + 1; k <= end; k++) {
-                            if (typeAry[k] == wordType.OPERATOR) break;
-                            typeAry[k] = wordType.NOP;
+                            if (typeAry[k] == WordType.OPERATOR) break;
+                            typeAry[k] = WordType.NOP;
                         }
                     }
                 } else if (stringList.get(i).equals("there") &&
-                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR_SUB &&
+                        i + 1 <= end && typeAry[i + 1] == WordType.OPERATOR_SUB &&
                         0 == stringList.get(i + 1).compareToIgnoreCase("is") &&
-                        i + 2 <= end && typeAry[i + 2] == wordType.OPERATOR_SUB &&
+                        i + 2 <= end && typeAry[i + 2] == WordType.OPERATOR_SUB &&
                         0 == stringList.get(i + 2).compareToIgnoreCase("not") &&
-                        i + 3 <= end && typeAry[i + 3] == wordType.OPERATOR_SUB &&
+                        i + 3 <= end && typeAry[i + 3] == WordType.OPERATOR_SUB &&
                         0 == stringList.get(i + 3).compareToIgnoreCase("a")) {
                     int j = i;
                     ObjResult objres = null;
                     try {
-                        objres = getObjectfromList(stringList, typeAry, i + 4, object, target);
+                        objres = stackExistence(stringList, typeAry, i + 4, end, memData, object, target);
+                        if (objres == null) objres = getObjectfromList(windowNameResolved(stringList, typeAry, i + 4, memData), typeAry, i + 4, object, target);
                     } catch (XTalkException e) {
                     }
                     if (objres != null && objres.obj != null) {
                         stringList.set(j, "false");
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         for (int k = j + 1; k < j + 4 + objres.cnt; k++) {
-                            typeAry[k] = wordType.NOP;
+                            typeAry[k] = WordType.NOP;
                         }
                     } else {
                         stringList.set(j, "true");
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         for (int k = j + 1; k <= end; k++) {
-                            if (typeAry[k] == wordType.OPERATOR) break;
-                            typeAry[k] = wordType.NOP;
+                            if (typeAry[k] == WordType.OPERATOR) break;
+                            typeAry[k] = WordType.NOP;
                         }
                     }
                 }
@@ -5483,7 +5655,7 @@ label:
 
         // Container
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OBJECT && (i <= end - 1 && (typeAry[i + 1] == wordType.X || typeAry[i + 1] == wordType.STRING || typeAry[i + 1] == wordType.OBJECT || typeAry[i + 1] == wordType.OF_OBJ) ||
+            if (typeAry[i] == WordType.OBJECT && (i <= end - 1 && (typeAry[i + 1] == WordType.X || typeAry[i + 1] == WordType.STRING || typeAry[i + 1] == WordType.OBJECT || typeAry[i + 1] == WordType.OF_OBJ) ||
                     stringList.get(i).equals("me") ||
                     stringList.get(i).equals("target") ||
                     stringList.get(i).equals("msg") ||
@@ -5494,15 +5666,16 @@ label:
                     if (i + 1 <= end && stringList.get(i).equalsIgnoreCase("the") && stringList.get(i + 1).equalsIgnoreCase("target")) {
                         // Object name for target
                         stringList.set(i, objres.obj.getShortName());
-                        typeAry[i] = wordType.STRING;
+                        typeAry[i] = WordType.STRING;
                         for (int j = i + 1; j < i + objres.cnt && j <= end; j++) {
-                            typeAry[j] = wordType.NOP;
+                            typeAry[j] = WordType.NOP;
                         }
-                    } else if (0 == objres.obj.objectType.compareTo("button") || 0 == objres.obj.objectType.compareTo("field")) {
+                    } else if (0 == objres.obj.objectType.compareTo("button") || 0 == objres.obj.objectType.compareTo("field") ||
+                            0 == objres.obj.objectType.compareTo("menuitem")) {
                         stringList.set(i, objres.obj.getText());
-                        typeAry[i] = wordType.STRING;
+                        typeAry[i] = WordType.STRING;
                         for (int j = i + 1; j < i + objres.cnt && j <= end; j++) {
-                            typeAry[j] = wordType.NOP;
+                            typeAry[j] = WordType.NOP;
                         }
                     } else if (0 == objres.obj.objectType.compareTo("card"))
                         throw new XTalkException("Cards cannot be used as containers");
@@ -5516,22 +5689,22 @@ label:
 
         // 2b. Negative sign (is within not here?)
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("-")) {
-                    if (i == start || typeAry[i - 1] == wordType.OPERATOR || typeAry[i - 1] == wordType.OPERATOR_SUB) {
+                    if (i == start || typeAry[i - 1] == WordType.OPERATOR || typeAry[i - 1] == WordType.OPERATOR_SUB) {
                         if (i > end - 1) throw new XTalkException("No value after -");
                         String str = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         try {
                             double value = -1.0 * (Double.parseDouble(str));
-                            typeAry[i] = wordType.STRING;
+                            typeAry[i] = WordType.STRING;
                             stringList.set(i, numFormat.format(value));
-                            typeAry[i + 1] = wordType.NOP;
+                            typeAry[i + 1] = WordType.NOP;
                         } catch (Exception err) {
                             throw new XTalkException("Value after - is invalid. " + err);
                         }
                     }
                 } else if (stringList.get(i).equals("not")) {
-                    if (i == start || (typeAry[i - 1] != wordType.OPERATOR && typeAry[i - 1] != wordType.OPERATOR_SUB) ||
+                    if (i == start || (typeAry[i - 1] != WordType.OPERATOR && typeAry[i - 1] != WordType.OPERATOR_SUB) ||
                             (0 == stringList.get(i - 1).compareToIgnoreCase("and") || 0 == stringList.get(i - 1).compareToIgnoreCase("or") || 0 == stringList.get(i - 1).compareToIgnoreCase("&"))) {
                         if (i > end - 1) {
                             throw new XTalkException("No value after not");
@@ -5540,18 +5713,18 @@ label:
                         if (value.compareToIgnoreCase("true") == 0) value = "false";
                         else if (value.compareToIgnoreCase("false") == 0) value = "true";
                         else throw new XTalkException("No boolean value (true/false) after not");
-                        typeAry[i] = wordType.STRING;
+                        typeAry[i] = WordType.STRING;
                         stringList.set(i, value);
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     }
                 }
 //                else if (stringList.get(i) == "is" &&
-//                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR &&
+//                        i + 1 <= end && typeAry[i + 1] == WordType.OPERATOR &&
 //                        stringList.get(i + 1) == "within") {
 //                    String str1 = "";
 //                    int j = i - 1;
 //                    for (; j >= start; j--) {
-//                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+//                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
 //                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
 //                            break;
 //                        }
@@ -5576,25 +5749,25 @@ label:
 //                        throw new XTalkException("within operator rectangle area specification is invalid. " + err);
 //                    }
 //
-//                    typeAry[j] = wordType.STRING;
+//                    typeAry[j] = WordType.STRING;
 //                    if (r.contains(p)) {
 //                        stringList.set(j, "true");
 //                    } else {
 //                        stringList.set(j, "false");
 //                    }
 //
-//                    typeAry[i] = wordType.NOP;
-//                    typeAry[i + 1] = wordType.NOP;
-//                    typeAry[i + 2] = wordType.NOP;
+//                    typeAry[i] = WordType.NOP;
+//                    typeAry[i + 1] = WordType.NOP;
+//                    typeAry[i + 2] = WordType.NOP;
 //                } else if (stringList.get(i) == "is" &&
-//                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR_SUB &&
+//                        i + 1 <= end && typeAry[i + 1] == WordType.OPERATOR_SUB &&
 //                        0 == stringList.get(i + 1).compareToIgnoreCase("not") &&
-//                        i + 2 <= end && typeAry[i + 2] == wordType.OPERATOR &&
+//                        i + 2 <= end && typeAry[i + 2] == WordType.OPERATOR &&
 //                        0 == stringList.get(i + 2).compareToIgnoreCase("within")) {
 //                    String str1 = "";
 //                    int j = i - 1;
 //                    for (; j >= start; j--) {
-//                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+//                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
 //                            str1 = Evalution(stringList, typeAry, j, j, memData, object, target);
 //                            break;
 //                        }
@@ -5619,31 +5792,31 @@ label:
 //                        throw new XTalkException("within operator rectangle area specification is invalid. " + err);
 //                    }
 //
-//                    typeAry[j] = wordType.STRING;
+//                    typeAry[j] = WordType.STRING;
 //                    if (!r.contains(p)) {
 //                        stringList.set(j, "true");
 //                    } else {
 //                        stringList.set(j, "false");
 //                    }
 //
-//                    typeAry[i] = wordType.NOP;
-//                    typeAry[i + 1] = wordType.NOP;
-//                    typeAry[i + 2] = wordType.NOP;
-//                    typeAry[i + 3] = wordType.NOP;
+//                    typeAry[i] = WordType.NOP;
+//                    typeAry[i + 1] = WordType.NOP;
+//                    typeAry[i + 2] = WordType.NOP;
+//                    typeAry[i + 3] = WordType.NOP;
 //                }
             }
         }
 
         // 3. Exponentiation
         for (int i = end; i >= start; i--) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("^")) {
                     if (i > end - 1) throw new XTalkException("^ operator is invalid");
                     try {
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
-                            if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                            if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                 str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
@@ -5654,10 +5827,10 @@ label:
                         if (str2.equals("∞")) str1 = "Infinity";
                         if (str2.equals("∞")) str2 = "Infinity";
                         double value = Math.pow(Double.parseDouble(str1), Double.parseDouble(str2));
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, numFormat.format(value));
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     } catch (Exception err) {
                         throw new XTalkException("^ operator is invalid. " + err);
                     }
@@ -5667,7 +5840,7 @@ label:
 
         // 4. Number multiplication/division
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("*") ||
                         stringList.get(i).equals("/") ||
                         stringList.get(i).equals("div") ||
@@ -5678,7 +5851,7 @@ label:
                     try {
                         int j = i - 1;
                         for (; j >= start; j--) {
-                            if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                            if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                 str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
@@ -5704,9 +5877,9 @@ label:
                             if (numFormat.format(value).equals("-∞")) stringList.set(j, "-Infinity");
                             stringList.set(j, numFormat.format(value));
                         }
-                        typeAry[j] = wordType.STRING;
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[j] = WordType.STRING;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     } catch (Exception err) {
                         throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                     }
@@ -5716,7 +5889,7 @@ label:
 
         // 5. Number addition/subtraction
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("+") ||
                         stringList.get(i).equals("-")) {
                     if (i > end - 1) throw new XTalkException(stringList.get(i) + " operator is invalid");
@@ -5724,7 +5897,7 @@ label:
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
-                            if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                            if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                 str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
@@ -5744,9 +5917,9 @@ label:
                                 value = Double.parseDouble(str1) - Double.parseDouble(str2);
                             stringList.set(j, numFormat.format(value));
                         }
-                        typeAry[j] = wordType.STRING;
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[j] = WordType.STRING;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     } catch (Exception err) {
                         throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                     }
@@ -5756,7 +5929,7 @@ label:
 
         // 6. Text concatenation
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("&")) {
                     if (i > end - 1) {
                         throw new XTalkException(stringList.get(i) + " operator is invalid");
@@ -5764,7 +5937,7 @@ label:
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -5776,8 +5949,8 @@ label:
                         } catch (Exception err) {
                             throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                         }
-                        typeAry[i + 2] = wordType.NOP;
-                        typeAry[j] = wordType.STRING;
+                        typeAry[i + 2] = WordType.NOP;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, str1 + " " + str2);
                     } else {
                         try {
@@ -5785,25 +5958,25 @@ label:
                         } catch (Exception err) {
                             throw new XTalkException(stringList.get(i) + " operator is invalid. " + err);
                         }
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, str1 + str2);
                     }
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i + 1] = wordType.NOP;
+                    typeAry[i] = WordType.NOP;
+                    typeAry[i + 1] = WordType.NOP;
                 }
             }
         }
 
         // within
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("is") &&
-                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR &&
+                        i + 1 <= end && typeAry[i + 1] == WordType.OPERATOR &&
                         stringList.get(i + 1).equals("within")) {
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -5828,25 +6001,25 @@ label:
                         throw new XTalkException("within operator rectangle area specification is invalid. " + err);
                     }
 
-                    typeAry[j] = wordType.STRING;
+                    typeAry[j] = WordType.STRING;
                     if (r.contains(p)) {
                         stringList.set(j, "true");
                     } else {
                         stringList.set(j, "false");
                     }
 
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i + 1] = wordType.NOP;
-                    typeAry[i + 2] = wordType.NOP;
+                    typeAry[i] = WordType.NOP;
+                    typeAry[i + 1] = WordType.NOP;
+                    typeAry[i + 2] = WordType.NOP;
                 } else if (stringList.get(i).equals("is") &&
-                        i + 1 <= end && typeAry[i + 1] == wordType.OPERATOR_SUB &&
+                        i + 1 <= end && typeAry[i + 1] == WordType.OPERATOR_SUB &&
                         0 == stringList.get(i + 1).compareToIgnoreCase("not") &&
-                        i + 2 <= end && typeAry[i + 2] == wordType.OPERATOR &&
+                        i + 2 <= end && typeAry[i + 2] == WordType.OPERATOR &&
                         0 == stringList.get(i + 2).compareToIgnoreCase("within")) {
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -5871,24 +6044,24 @@ label:
                         throw new XTalkException("within operator rectangle area specification is invalid. " + err);
                     }
 
-                    typeAry[j] = wordType.STRING;
+                    typeAry[j] = WordType.STRING;
                     if (!r.contains(p)) {
                         stringList.set(j, "true");
                     } else {
                         stringList.set(j, "false");
                     }
 
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i + 1] = wordType.NOP;
-                    typeAry[i + 2] = wordType.NOP;
-                    typeAry[i + 3] = wordType.NOP;
+                    typeAry[i] = WordType.NOP;
+                    typeAry[i + 1] = WordType.NOP;
+                    typeAry[i + 2] = WordType.NOP;
+                    typeAry[i + 3] = WordType.NOP;
                 }
             }
         }
 
         // 7. Number or text comparison
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 String opr = stringList.get(i);
                 switch (opr) {
                     case "<", ">", "≤", "≥" -> {
@@ -5898,16 +6071,16 @@ label:
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
-                            if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                            if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                 str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
                         }
-                        if (typeAry[i + 1] == wordType.OPERATOR_SUB) {
+                        if (typeAry[i + 1] == WordType.OPERATOR_SUB) {
                             if (i + 1 > end - 1) throw new XTalkException("Comparison operator is invalid");
                             if (opr.equals("<") && stringList.get(i + 1).equals(">")) continue;
                             opr = opr + stringList.get(i + 1);
-                            typeAry[i] = wordType.NOP;
+                            typeAry[i] = WordType.NOP;
                             i++;
                         }
                         String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
@@ -5925,28 +6098,29 @@ label:
                                 value = Double.parseDouble(str1) > Double.parseDouble(str2);
                             else if (0 == opr.compareTo(">=") || 0 == opr.compareTo("≥"))
                                 value = Double.parseDouble(str1) >= Double.parseDouble(str2);
-                            typeAry[j] = wordType.STRING;
+                            typeAry[j] = WordType.STRING;
                             stringList.set(j, value ? "true" : "false");
-                            typeAry[i] = wordType.NOP;
-                            typeAry[i + 1] = wordType.NOP;
+                            typeAry[i] = WordType.NOP;
+                            typeAry[i + 1] = WordType.NOP;
                         } catch (Exception err) {
-                            boolean value = false;
-//                            if (0 == opr.compareTo("<"))
-//                                value = str1.compareTo(str2) < 0;
-//                            else if (0 == opr.compareTo("<=") || 0 == opr.compareTo("≤"))
-//                                value = str1.compareTo(str2) <= 0;
-//                            else
-                            if (0 == opr.compareTo("<>") || 0 == opr.compareTo("≠"))
-                                value = str1.compareTo(str2) != 0;
-//                            else if (0 == opr.compareTo(">"))
-//                                value = str1.compareTo(str2) > 0;
-//                            else if (0 == opr.compareTo(">=") || 0 == opr.compareTo("≥"))
-//                                value = str1.compareTo(str2) >= 0;
+                            // HyperCard compares non-numbers as text (case insensitive)
+                            int c = str1.compareToIgnoreCase(str2);
+                            boolean value;
+                            if (0 == opr.compareTo("<"))
+                                value = c < 0;
+                            else if (0 == opr.compareTo("<=") || 0 == opr.compareTo("≤"))
+                                value = c <= 0;
+                            else if (0 == opr.compareTo("<>") || 0 == opr.compareTo("≠"))
+                                value = c != 0;
+                            else if (0 == opr.compareTo(">"))
+                                value = c > 0;
+                            else if (0 == opr.compareTo(">=") || 0 == opr.compareTo("≥"))
+                                value = c >= 0;
                             else throw new XTalkException("Cannot compare non-numbers: " + str1 + " and " + str2);
-                            typeAry[j] = wordType.STRING;
+                            typeAry[j] = WordType.STRING;
                             stringList.set(j, value ? "true" : "false");
-                            typeAry[i] = wordType.NOP;
-                            typeAry[i + 1] = wordType.NOP;
+                            typeAry[i] = WordType.NOP;
+                            typeAry[i + 1] = WordType.NOP;
                         }
                     }
                     case "is" -> {
@@ -5956,7 +6130,7 @@ label:
                             String str1 = "";
                             int j = i - 1;
                             for (; j >= start; j--) {
-                                if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                                if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                     str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                     break;
                                 }
@@ -5964,12 +6138,12 @@ label:
                             String str2 = evaluation(stringList, typeAry, i + 2, i + 2, memData, object, target);
                             boolean value = false;
                             value = str2.toLowerCase().contains(str1.toLowerCase());
-                            typeAry[j] = wordType.STRING;
+                            typeAry[j] = WordType.STRING;
                             stringList.set(j, value ? "true" : "false");
-                            typeAry[i] = wordType.NOP;
-                            typeAry[i + 1] = wordType.NOP;
-                            typeAry[i + 2] = wordType.NOP;
-                        } else if (typeAry[i + 1] != wordType.STRING &&
+                            typeAry[i] = WordType.NOP;
+                            typeAry[i + 1] = WordType.NOP;
+                            typeAry[i + 2] = WordType.NOP;
+                        } else if (typeAry[i + 1] != WordType.STRING &&
                                 (0 == stringList.get(i + 1).compareToIgnoreCase("a") ||
                                         0 == stringList.get(i + 1).compareToIgnoreCase("an"))) {
                             // is a
@@ -5977,7 +6151,7 @@ label:
                             String str1 = "";
                             int j = i - 1;
                             for (; j >= start; j--) {
-                                if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                                if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                     str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                     break;
                                 }
@@ -5996,11 +6170,11 @@ label:
                             } else if (stringList.get(i + 2).equalsIgnoreCase("logical")) {
                                 value = (str1.equalsIgnoreCase("true") || str1.equalsIgnoreCase("false"));
                             } else throw new XTalkException(stringList.get(i + 2) + " cannot be used with is a operator");
-                            typeAry[j] = wordType.STRING;
+                            typeAry[j] = WordType.STRING;
                             stringList.set(j, value ? "true" : "false");
-                            typeAry[i] = wordType.NOP;
-                            typeAry[i + 1] = wordType.NOP;
-                            typeAry[i + 2] = wordType.NOP;
+                            typeAry[i] = WordType.NOP;
+                            typeAry[i + 1] = WordType.NOP;
+                            typeAry[i + 2] = WordType.NOP;
                         } else if (0 == stringList.get(i + 1).compareToIgnoreCase("not")) {
                             if (i > end - 2) continue;
                             if (0 == stringList.get(i + 2).compareToIgnoreCase("in")) {
@@ -6008,7 +6182,7 @@ label:
                                 String str1 = "";
                                 int j = i - 1;
                                 for (; j >= start; j--) {
-                                    if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                                    if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                         str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                         break;
                                     }
@@ -6016,12 +6190,12 @@ label:
                                 String str2 = evaluation(stringList, typeAry, i + 3, i + 3, memData, object, target);
                                 boolean value = false;
                                 value = !str2.toLowerCase().contains(str1.toLowerCase());
-                                typeAry[j] = wordType.STRING;
+                                typeAry[j] = WordType.STRING;
                                 stringList.set(j, value ? "true" : "false");
-                                typeAry[i] = wordType.NOP;
-                                typeAry[i + 1] = wordType.NOP;
-                                typeAry[i + 2] = wordType.NOP;
-                                typeAry[i + 3] = wordType.NOP;
+                                typeAry[i] = WordType.NOP;
+                                typeAry[i + 1] = WordType.NOP;
+                                typeAry[i + 2] = WordType.NOP;
+                                typeAry[i + 3] = WordType.NOP;
                             } else {
                                 if (i > end - 2) continue;
                                 if (0 == stringList.get(i + 2).compareToIgnoreCase("a") ||
@@ -6031,7 +6205,7 @@ label:
                                     String str1 = "";
                                     int j = i - 1;
                                     for (; j >= start; j--) {
-                                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                             break;
                                         }
@@ -6051,12 +6225,12 @@ label:
                                         value = (str1.equalsIgnoreCase("true") || str1.equalsIgnoreCase("false"));
                                     } else
                                         throw new XTalkException(stringList.get(i + 3) + " cannot be used with is not a operator");
-                                    typeAry[j] = wordType.STRING;
+                                    typeAry[j] = WordType.STRING;
                                     stringList.set(j, !value ? "true" : "false");
-                                    typeAry[i] = wordType.NOP;
-                                    typeAry[i + 1] = wordType.NOP;
-                                    typeAry[i + 2] = wordType.NOP;
-                                    typeAry[i + 3] = wordType.NOP;
+                                    typeAry[i] = WordType.NOP;
+                                    typeAry[i + 1] = WordType.NOP;
+                                    typeAry[i + 2] = WordType.NOP;
+                                    typeAry[i + 3] = WordType.NOP;
                                 }
                             }
                         }
@@ -6066,7 +6240,7 @@ label:
                         String str1 = "";
                         int j = i - 1;
                         for (; j >= start; j--) {
-                            if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                            if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                                 str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                                 break;
                             }
@@ -6074,10 +6248,10 @@ label:
                         String str2 = evaluation(stringList, typeAry, i + 1, i + 1, memData, object, target);
                         boolean value = false;
                         value = str1.toLowerCase().contains(str2.toLowerCase());
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, value ? "true" : "false");
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     }
                 }
             }
@@ -6085,14 +6259,25 @@ label:
 
         // 8. Number or text comparison
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR && stringList.get(i).matches("≠|=|<|>|<=|>=|≤|≥|is|<>")) {
+                boolean hasLeft = false;
+                for (int j = i - 1; j >= start && !hasLeft; j--) {
+                    hasLeft = typeAry[j] == WordType.STRING || typeAry[j] == WordType.X;
+                }
+                if (!hasLeft) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int k = start; k <= end; k++) sb.append(stringList.get(k)).append('[').append(typeAry[k]).append("] ");
+                    throw new XTalkException("No value before " + stringList.get(i) + ": " + sb.toString().trim());
+                }
+            }
+            if (typeAry[i] == WordType.OPERATOR) {
                 String opr = stringList.get(i);
                 if (opr.equals("≠")) {
                     if (i > end - 1) throw new XTalkException("Comparison operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -6104,11 +6289,10 @@ label:
                     } catch (Exception err) {
                         value = (0 != str1.compareToIgnoreCase(str2));
                     }
-                    value = (0 != str1.compareToIgnoreCase(str2));
-                    typeAry[j] = wordType.STRING;
+                    typeAry[j] = WordType.STRING;
                     stringList.set(j, value ? "true" : "false");
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i + 1] = wordType.NOP;
+                    typeAry[i] = WordType.NOP;
+                    typeAry[i + 1] = WordType.NOP;
                 } else if (opr.equals("is") &&
                         stringList.get(i + 1).equals("not") ||
                         opr.equals("<") &&
@@ -6117,7 +6301,7 @@ label:
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -6129,11 +6313,11 @@ label:
                     } catch (Exception err) {
                         value = (0 != str1.compareToIgnoreCase(str2));
                     }
-                    typeAry[j] = wordType.STRING;
+                    typeAry[j] = WordType.STRING;
                     stringList.set(j, value ? "true" : "false");
-                    typeAry[i] = wordType.NOP;
-                    typeAry[i + 1] = wordType.NOP;
-                    typeAry[i + 2] = wordType.NOP;
+                    typeAry[i] = WordType.NOP;
+                    typeAry[i + 1] = WordType.NOP;
+                    typeAry[i + 2] = WordType.NOP;
                 } else if (opr.equals("=") ||
                         opr.equals("is")) {
                     if (i > end - 1)
@@ -6141,7 +6325,7 @@ label:
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X || typeAry[j] == wordType.VARIABLE) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X || typeAry[j] == WordType.VARIABLE) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -6154,10 +6338,10 @@ label:
                         } catch (Exception err) {
                             value = (0 == str1.compareToIgnoreCase(str2));
                         }
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, value ? "true" : "false");
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     }
                 }
             }
@@ -6165,13 +6349,13 @@ label:
 
         // 9. and operator
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("and")) {
                     if (i > end - 1) throw new XTalkException("and operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -6186,10 +6370,10 @@ label:
                         if (0 == str2.compareToIgnoreCase("true")) value2 = true;
                         else if (0 == str2.compareToIgnoreCase("false")) value2 = false;
                         else throw new XTalkException("and operation requires boolean value (true/false)");
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, (value1 && value2) ? "true" : "false");
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     }
                 }
             }
@@ -6197,13 +6381,13 @@ label:
 
         // 10. or operator
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.OPERATOR) {
+            if (typeAry[i] == WordType.OPERATOR) {
                 if (stringList.get(i).equals("or")) {
                     if (i > end - 1) throw new XTalkException("or operator is invalid");
                     String str1 = "";
                     int j = i - 1;
                     for (; j >= start; j--) {
-                        if (typeAry[j] == wordType.STRING || typeAry[j] == wordType.X) {
+                        if (typeAry[j] == WordType.STRING || typeAry[j] == WordType.X) {
                             str1 = evaluation(stringList, typeAry, j, j, memData, object, target);
                             break;
                         }
@@ -6218,10 +6402,10 @@ label:
                         if (0 == str2.compareToIgnoreCase("true")) value2 = true;
                         else if (0 == str2.compareToIgnoreCase("false")) value2 = false;
                         else throw new XTalkException("or operation requires boolean value (true/false)");
-                        typeAry[j] = wordType.STRING;
+                        typeAry[j] = WordType.STRING;
                         stringList.set(j, (value1 || value2) ? "true" : "false");
-                        typeAry[i] = wordType.NOP;
-                        typeAry[i + 1] = wordType.NOP;
+                        typeAry[i] = WordType.NOP;
+                        typeAry[i + 1] = WordType.NOP;
                     }
                 }
             }
@@ -6229,17 +6413,17 @@ label:
 
         // Are values being concatenated without an operator?
         for (int i = start + 1; i <= end; i++) {
-            /*if(typeAry[i-1]==wordType.X && typeAry[i]==wordType.X) {
+            /*if(typeAry[i-1]==WordType.X && typeAry[i]==WordType.X) {
                 throw new XTalkException(stringList.get(i-1)+" "+stringList.get(i)+" is unknown");
             }*/
-            if (typeAry[i] != wordType.NOP) {
+            if (typeAry[i] != WordType.NOP) {
                 throw new XTalkException(stringList.get(i) + " is unknown");
             }
         }
 
         // timeIsMoney("Evalution2:",timestart,22);
 
-        if (start < typeAry.length && (typeAry[start] == wordType.STRING || typeAry[start] == wordType.X)) {
+        if (start < typeAry.length && (typeAry[start] == WordType.STRING || typeAry[start] == WordType.X)) {
             return stringList.get(start);
         } else return "";
     }
@@ -6251,9 +6435,9 @@ label:
         // long timestart = System.currentTimeMillis();
 
         /*if(name.equalsIgnoreCase("TIMEX")){
-            System.out.println("setVariable:"+name+"="+value);
+            logger.log(Level.DEBUG, "setVariable: " + name+"="+value);
         }*/
-        // System.out.println("setVariable:"+name+"="+value);
+        //logger.log(Level.DEBUG, "setVariable: " + name+"="+value);
 
         String str = name.toLowerCase();
 
@@ -6339,8 +6523,8 @@ label:
         }
 
         // Declare and assign global variable
-        if (true == Character.isLetter(name.charAt(0))) {
-            if (true == name.matches("^[A-Za-z0-9_]*$")) {
+        if (Character.isLetter(name.charAt(0))) {
+            if (name.matches("^[A-Za-z0-9_]*$")) {
                 globalData.nameList.add(str);
                 globalData.valueList.add(Objects.requireNonNullElse(value, ""));
                 globalData.treeset.add(str);
@@ -6348,10 +6532,187 @@ label:
         } else throw new XTalkException("Variable name does not start with alphabetic character: " + name);
     }
 
-    private static ObjResult getObjectfromList(ArrayList<String> stringList, wordType[] typeAry, int start,
+    /** put value before|after|into menu m [with menuMsg msg], put value into menuItem n of menu m [with menuMsg msg] */
+    private static void putIntoMenu(List<String> stringList, WordType[] typeAry, int dir, String dirStr,
+                                    MemoryData memData, OObject object, OObject target) throws XTalkException {
+        String value = evaluation(new ArrayList<>(stringList), typeAry.clone(), 1, dir - 1, memData, object, target);
+        int end = stringList.size() - 1;
+        int with = -1;
+        for (int k = dir + 1; k < stringList.size(); k++) {
+            if (stringList.get(k).equalsIgnoreCase("with") && k + 1 < stringList.size() &&
+                    (stringList.get(k + 1).equalsIgnoreCase("menumsg") || stringList.get(k + 1).equalsIgnoreCase("menumessage"))) {
+                with = k;
+                break;
+            }
+        }
+        String msg = null;
+        if (with >= 0) {
+            StringBuilder literal = new StringBuilder();
+            for (int k = with + 2; k <= end; k++) {
+                if (literal.length() > 0) literal.append(' ');
+                literal.append(stringList.get(k));
+            }
+            // a message like "transition 1" is not an expression
+            msg = literal.toString();
+            if (with + 2 == end) {
+                try {
+                    msg = evaluation(new ArrayList<>(stringList), typeAry.clone(), with + 2, end, memData, object, target);
+                } catch (XTalkException e) {
+                    // literal
+                }
+            }
+            end = with - 1;
+        }
+        OObject obj = getObject(new ArrayList<>(stringList), typeAry.clone(), dir + 1, end, memData, object, target);
+        if (obj instanceof OMenuItem mi) {
+            HCMenus.putIntoItem(mi.item, value, msg);
+        } else if (obj instanceof OMenu m) {
+            HCMenus.put(m.menu, dirStr, value, msg);
+        } else {
+            throw new XTalkException("No such menu");
+        }
+    }
+
+    /**
+     * go [to] [card ... of|in] stack <name>: opens the stack (the stacks in use stay in use) and goes to the card.
+     * @param cardStart the first word of the card specification
+     * @param cardEnd the last word of the card specification, -1 for the first card
+     */
+    private void goToStack(String stackName, ArrayList<String> stringList, WordType[] typeAry, int cardStart, int cardEnd,
+                           MemoryData memData, OObject object, OObject target, Result result) throws XTalkException {
+        OStack old = PCARD.pc.stack;
+        java.nio.file.Path source = MacFiles.find(stackName, MacFiles.stacksSearchPath());
+        boolean same = old.name != null && MacFiles.normalize(old.name).equals(MacFiles.normalize(MacFiles.leafName(stackName))) ||
+                source != null && old.sourceFile != null && source.toAbsolutePath().normalize().equals(old.sourceFile.toAbsolutePath().normalize());
+        if (same) {
+            // a card of this stack
+            if (cardEnd < cardStart) return;
+            ArrayList<String> sl = new ArrayList<>();
+            sl.add("go");
+            for (int k = cardStart; k <= cardEnd; k++) sl.add(stringList.get(k));
+            WordType[] ta = new WordType[sl.size()];
+            ta[0] = typeAry[0];
+            for (int k = cardStart; k <= cardEnd; k++) ta[k - cardStart + 1] = typeAry[k];
+            Result r = execCommand(sl, ta, object, target, memData, 0);
+            result.theResult = r.theResult;
+            return;
+        }
+        if (source == null) {
+            result.theResult = "No such stack";
+            return;
+        }
+        OStack stack = OStack.loadLibraryStack(source);
+        if (stack == null || stack.cardIdList.isEmpty()) {
+            result.theResult = "Can't open stack " + stackName;
+            return;
+        }
+        logger.log(Level.INFO, "go to stack " + stackName + ": " + source);
+
+        // close the current stack
+        if (!lockMessages) {
+            talk.ReceiveMessage("closeCard", new String[0], old.curCard, old.curCard, null);
+            if (old.curCard != null && old.curCard.bg != null) {
+                talk.ReceiveMessage("closeBackground", new String[0], old.curCard, old.curCard, null);
+            }
+            talk.ReceiveMessage("closeStack", new String[0], old.curCard, old.curCard, null);
+        }
+        clearMessages();
+        TMovie.closePictures();
+        boolean saveLockedScreen = PCARD.lockedScreen;
+        PCARD.lockedScreen = true;
+        if (old.curCard != null) {
+            old.curCard.removeData();
+            if (old.curCard.bg != null) old.curCard.bg.removeData();
+            if (old.curCard.label != null) {
+                PCARD.pc.mainPane.remove(old.curCard.label);
+                old.curCard.label = null;
+                old.curCard.pict = null;
+            }
+            old.curCard.bg = null;
+        }
+
+        // the stacks in use stay in use
+        List<OStack> using = old.usingStacks != null ? old.usingStacks : new ArrayList<>();
+        using.remove(stack);
+        stack.usingStacks = using;
+        PCARD.pc.stack = stack;
+        stack.setName(stack.name);
+
+        // the card
+        int id = stack.cardIdList.get(0);
+        if (cardEnd >= cardStart) {
+            ArrayList<String> sl = new ArrayList<>(stringList.subList(cardStart, cardEnd + 1));
+            WordType[] ta = java.util.Arrays.copyOfRange(typeAry, cardStart, cardEnd + 1);
+            OObject obj = null;
+            try {
+                obj = getObject(sl, ta, 0, sl.size() - 1, memData, object, target);
+            } catch (XTalkException e) {
+                logger.log(Level.DEBUG, "card: " + e.getMessage());
+            }
+            if (obj != null && obj.objectType.equals("card")) {
+                id = obj.id;
+            } else {
+                result.theResult = "No such card";
+            }
+        }
+        OCard cd = OCard.getOCard(stack, id, false);
+        cd.bg = OBackground.getOBackground(stack, cd, cd.bgid, false);
+        cd.parent = cd.bg;
+        stack.curCard = cd;
+        PCARD.lockedScreen = saveLockedScreen;
+        PCARD.pc.mainPane.repaint();
+
+        if (!lockMessages) {
+            talk.ReceiveMessage("openStack", new String[0], cd, cd, null);
+            talk.ReceiveMessage("openBackground", new String[0], cd, cd, null);
+            talk.ReceiveMessage("openCard", new String[0], cd, cd, null);
+        }
+    }
+
+    /** @return the list, a copy whose window name is the value of the variable for "window &lt;variable&gt;" */
+    private static List<String> windowNameResolved(List<String> stringList, WordType[] typeAry, int i, MemoryData memData) {
+        if (i + 1 < stringList.size() && stringList.get(i).equalsIgnoreCase("window")) {
+            String raw = stringList.get(i + 1);
+            for (OWindow w : OWindow.list) {
+                if (raw.equalsIgnoreCase(w.name)) return stringList;
+            }
+            try {
+                String v = getVariable(memData, raw);
+                if (v == null) v = getVariable(memData, raw.toLowerCase());
+                if (v != null) {
+                    List<String> copy = new ArrayList<>(stringList);
+                    copy.set(i + 1, v);
+                    return copy;
+                }
+            } catch (Exception e) {
+                logger.log(Level.TRACE, e.toString());
+            }
+        }
+        return stringList;
+    }
+
+    /**
+     * "there is a stack X": finds the stack file.
+     * @return null if the expression at start is not "stack ..."
+     */
+    private static ObjResult stackExistence(List<String> stringList, WordType[] typeAry, int start, int end,
+                                            MemoryData memData, OObject object, OObject target) throws XTalkException {
+        if (start + 1 > end || !stringList.get(start).equalsIgnoreCase("stack")) return null;
+        int last = start + 1;
+        while (last + 1 <= end && typeAry[last + 1] != WordType.OPERATOR && typeAry[last + 1] != WordType.OPERATOR_SUB) last++;
+        String name = evaluation(new ArrayList<>(stringList), typeAry.clone(), start + 1, last, memData, object, target);
+        ObjResult objres = new ObjResult();
+        objres.cnt = last - start + 1;
+        boolean exists = (PCARD.pc.stack != null && PCARD.pc.stack.name != null && MacFiles.normalize(PCARD.pc.stack.name).equals(MacFiles.normalize(MacFiles.leafName(name))))
+                || MacFiles.find(name, MacFiles.stacksSearchPath()) != null;
+        objres.obj = exists ? PCARD.pc.stack : null;
+        return objres;
+    }
+
+    private static ObjResult getObjectfromList(List<String> stringList, WordType[] typeAry, int start,
                                                OObject object, OObject target)
             throws XTalkException {
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         ObjResult objres = new ObjResult();
         objres.cnt = 0;
         objres.obj = null;
@@ -6393,6 +6754,12 @@ label:
             objres.obj = target;
             return objres;
         }
+        if (0 == str.compareToIgnoreCase("the") && (0 == str2.compareToIgnoreCase("cd") || 0 == str2.compareToIgnoreCase("card")) &&
+                next + 1 < stringList.size() && 0 == stringList.get(next + 1).compareToIgnoreCase("window")) {
+            objres.cnt = 3;
+            objres.obj = OWindow.cdwindow;
+            return objres;
+        }
         if (0 == str.compareToIgnoreCase("this")) {
             if (0 == str2.compareToIgnoreCase("cd") || 0 == str2.compareToIgnoreCase("card")) {
                 objres.cnt = 2;
@@ -6425,7 +6792,7 @@ label:
                     if (i >= PCARD.pc.stack.cardIdList.size()) i = 0;
                 }
                 id = PCARD.pc.stack.cardIdList.get(i);
-                objres.obj = PCARD.pc.stack.GetCardbyId(id);
+                objres.obj = PCARD.pc.stack.getCardbyId(id);
                 return objres;
             }
         }
@@ -6443,7 +6810,7 @@ label:
                     i--;
                 }
                 id = PCARD.pc.stack.cardIdList.get(i);
-                objres.obj = PCARD.pc.stack.GetCardbyId(id);
+                objres.obj = PCARD.pc.stack.getCardbyId(id);
                 return objres;
             }
         }
@@ -6460,6 +6827,10 @@ label:
                 objres.cnt = 2;
                 objres.obj = OMsg.msg;
             }
+            if (objres.obj == null && str2.toLowerCase().matches("scroll|pattern|patterns|tool|tools|fatbits|navigator|message watcher|variable watcher")) {
+                objres.cnt = 2;
+                objres.obj = new OWindow(str2);
+            }
             return objres;
         } else if (0 == str2.compareToIgnoreCase("window")) {
             if (0 == str.compareToIgnoreCase("cd") || 0 == str.compareToIgnoreCase("card")) {
@@ -6471,23 +6842,24 @@ label:
             }
             return objres;
         } else if (0 == str.compareToIgnoreCase("menu")) {
-            if (str2.matches("[0-9]*")) {
-                int i = Integer.parseInt(str2);
-                if (i <= PCARD.pc.getJMenuBar().getComponentCount()) {
-                    objres.cnt = 2;
-                    objres.obj = new OMenu((JMenu) PCARD.pc.getJMenuBar().getComponent(i));
-                }
-                return objres;
-            } else {
-                for (int i = 0; i < PCARD.pc.getJMenuBar().getComponentCount(); i++) {
-                    JMenu menu = (JMenu) PCARD.pc.getJMenuBar().getComponent(i);
-                    if (menu.getText().equalsIgnoreCase(str2)) {
-                        objres.cnt = 2;
-                        objres.obj = new OMenu(menu);
-                    }
-                }
-                return objres;
+            JMenu menu = HCMenus.find(str2);
+            if (menu != null) {
+                objres.cnt = 2;
+                objres.obj = new OMenu(menu);
             }
+            return objres;
+        } else if (0 == str.compareToIgnoreCase("menuitem")) {
+            // menuItem <n|name> of menu <name>
+            if (next + 3 < stringList.size() && stringList.get(next + 1).equalsIgnoreCase("of") &&
+                    stringList.get(next + 2).equalsIgnoreCase("menu")) {
+                JMenu menu = HCMenus.find(stringList.get(next + 3));
+                JMenuItem item = HCMenus.item(menu, str2);
+                if (item != null) {
+                    objres.cnt = 5;
+                    objres.obj = new OMenuItem(menu, item);
+                }
+            }
+            return objres;
         } else if (0 == str.compareToIgnoreCase("folder")) {
             String path = "";
             path = str2.replace(':', File.separatorChar);
@@ -6518,19 +6890,19 @@ label:
             boolean bg = false;
             // Sometimes need the card where the object exists rather than the current card, but no standard is known part1
             OCardBase cdbase;
-            /*if(object.objectType.equals("card")) cdbase=(OCardBase)object;
-            else if(object.objectType.equals("background")) cdbase=((OBackground)object).viewCard;
-            else if(object.objectType.equals("button")) cdbase=((OButton)object).card;
-            else if(object.objectType.equals("field")) cdbase=((OField)object).card;
-            else*/
+//            if (object.objectType.equals("card")) cdbase = (OCardBase) object;
+//            else if (object.objectType.equals("background")) cdbase = ((OBackground) object).viewCard;
+//            else if (object.objectType.equals("button")) cdbase = ((OButton) object).card;
+//            else if (object.objectType.equals("field")) cdbase = ((OField) object).card;
+//            else
             cdbase = PCARD.pc.stack.curCard;
             if (0 == str.compareToIgnoreCase("cd") || 0 == str.compareToIgnoreCase("card")) {
-                // cdbase=PCARD.pc.stack.curCard;
+                //cdbase = PCARD.pc.stack.curCard;
                 next++;
             } else if (0 == str.compareToIgnoreCase("bg") || 0 == str.compareToIgnoreCase("bkgnd") || 0 == str.compareToIgnoreCase("background")) {
                 bg = true;
                 cdbase = PCARD.pc.stack.curCard.bg;
-                // cdbase=PCARD.pc.stack.curCard;
+                //cdbase = PCARD.pc.stack.curCard;
                 next++;
             }
             if (next >= stringList.size()) throw new XTalkException("button is unknown");
@@ -6551,7 +6923,7 @@ label:
             }
             // Object specification on other card
             next++;
-            while (next < stringList.size() && typeAry[next] == wordType.NOP) {
+            while (next < stringList.size() && typeAry[next] == WordType.NOP) {
                 next++;
             }
             if (next < stringList.size()) {
@@ -6561,12 +6933,12 @@ label:
                     if (next >= stringList.size()) throw new XTalkException("object is unknown");
                     ObjResult objres2;
                     objres2 = getObjectfromList(stringList, typeAry, next, object, target);
-                    next += objres2.cnt/*-1*/;
+                    next += objres2.cnt /* - 1 */;
                     if (objres2.obj == null) throw new XTalkException("object is unknown");
                     if (0 != objres2.obj.objectType.compareTo("card") && 0 != objres2.obj.objectType.compareTo("background"))
                         throw new XTalkException("Please specify a card or background here");
                     cdbase = (OCardBase) objres2.obj;
-                    if (bg == true && 0 == cdbase.objectType.compareTo("card")) {
+                    if (bg && 0 == cdbase.objectType.compareTo("card")) {
                         if (((OCard) cdbase).bg != null) {
                             cdbase = ((OCard) cdbase).bg;
                         } else {
@@ -6582,7 +6954,7 @@ label:
                     if (id == cdbase.btnList.get(i).id) {
                         objres.cnt = next - start/*+1*/;
                         objres.obj = cdbase.btnList.get(i);
-                        // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                        //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                         return objres;
                     }
                 }
@@ -6592,14 +6964,14 @@ label:
                 if (number > cdbase.btnList.size()) throw new XTalkException("No button at number " + number);
                 objres.cnt = next - start/*+1*/;
                 objres.obj = cdbase.btnList.get(number - 1);
-                // /System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                 return objres;
             } else {
                 for (int i = 0; i < cdbase.btnList.size(); i++) {
                     if (id == cdbase.btnList.get(i).name.compareToIgnoreCase(name)) {
                         objres.cnt = next - start/*+1*/;
                         objres.obj = cdbase.btnList.get(i);
-                        // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                        //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                         return objres;
                     }
                 }
@@ -6610,7 +6982,7 @@ label:
                         if (object.name.equalsIgnoreCase(name)) {
                             objres.cnt = next - start/*+1*/;
                             objres.obj = object;
-                            // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                            //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                             return objres;
                         }
                     }
@@ -6621,7 +6993,7 @@ label:
                         if (target.name.equalsIgnoreCase(name)) {
                             objres.cnt = next - start/*+1*/;
                             objres.obj = target;
-                            // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                            //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                             return objres;
                         }
                     }
@@ -6632,14 +7004,16 @@ label:
         // field
         if (0 == str.compareToIgnoreCase("fld") || 0 == str.compareToIgnoreCase("field") ||
                 0 == str2.compareToIgnoreCase("fld") || 0 == str2.compareToIgnoreCase("field")) {
-            boolean bg = false;
-            OCardBase cdbase = PCARD.pc.stack.curCard.bg;
+            // "field" without "card" is a background field (with the text of the current card) as HyperCard
+            boolean bg = true;
+            OCardBase cdbase = PCARD.pc.stack.curCard;
             if (0 == str.compareToIgnoreCase("cd") || 0 == str.compareToIgnoreCase("card")) {
+                bg = false;
                 cdbase = PCARD.pc.stack.curCard;
                 next++;
             } else if (0 == str.compareToIgnoreCase("bg") || 0 == str.compareToIgnoreCase("bkgnd") || 0 == str.compareToIgnoreCase("background")) {
                 bg = true;
-                // cdbase=PCARD.pc.stack.curCard.bg;
+                //cdbase = PCARD.pc.stack.curCard.bg;
                 cdbase = PCARD.pc.stack.curCard;
                 next++;
             }
@@ -6661,7 +7035,7 @@ label:
             }
             // Object specification on other card
             next++;
-            while (next < stringList.size() && typeAry[next] == wordType.NOP) {
+            while (next < stringList.size() && typeAry[next] == WordType.NOP) {
                 next++;
             }
             if (next < stringList.size()) {
@@ -6671,7 +7045,7 @@ label:
                     if (next >= stringList.size()) throw new XTalkException("object is unknown");
                     ObjResult objres2;
                     objres2 = getObjectfromList(stringList, typeAry, next, object, target);
-                    next += objres2.cnt/*-1*/;
+                    next += objres2.cnt /* -1 */;
                     if (objres2.obj == null) throw new XTalkException("object is unknown");
                     if (0 != objres2.obj.objectType.compareTo("card") && 0 != objres2.obj.objectType.compareTo("background"))
                         throw new XTalkException("Please specify a card or background here");
@@ -6681,17 +7055,17 @@ label:
 
             // Get bg from cd (otherwise cannot get field content that differs per card)
             // Method from the era when bg was not expanded in memory
-            /*if(bg == true && 0==cdbase.objectType.compareTo("card")) {
-                if(((OCard)cdbase).bg != null) {
-                    cdbase = (OCardBase) ((OCard)cdbase).bg;
-                } else {
-                    cdbase = (OCardBase) new OBackground(cdbase.stack, (OCard)cdbase, ((OCard)cdbase).bgid, true);
-                }
-                if(cdbase == null) throw new XTalkException("No background");
-            }*/
+//            if (bg == true && 0 == cdbase.objectType.compareTo("card")) {
+//                if (((OCard) cdbase).bg != null) {
+//                    cdbase = (OCardBase) ((OCard) cdbase).bg;
+//                } else {
+//                    cdbase = (OCardBase) new OBackground(cdbase.stack, (OCard) cdbase, ((OCard) cdbase).bgid, true);
+//                }
+//                if (cdbase == null) throw new XTalkException("No background");
+//            }
 
             // Get bg from cd (otherwise cannot get field content that differs per card)
-            if (bg == true && 0 == cdbase.objectType.compareTo("card")) {
+            if (bg && 0 == cdbase.objectType.compareTo("card")) {
                 OCard ocd = (OCard) cdbase;
                 cdbase = ocd.getBg();
             }
@@ -6700,9 +7074,9 @@ label:
             if (id != 0) {
                 for (int i = 0; i < cdbase.fldList.size(); i++) {
                     if (id == cdbase.fldList.get(i).id) {
-                        objres.cnt = next - start/*+1*/;
+                        objres.cnt = next - start /* + 1 */;
                         objres.obj = cdbase.fldList.get(i);
-                        // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                        //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timestart));
                         return objres;
                     }
                 }
@@ -6710,16 +7084,16 @@ label:
             } else if (number != 0) {
                 if (number < 0) throw new XTalkException("No field at number " + number);
                 if (number > cdbase.fldList.size()) throw new XTalkException("No field at number " + number);
-                objres.cnt = next - start/*+1*/;
+                objres.cnt = next - start /* + 1 */;
                 objres.obj = cdbase.fldList.get(number - 1);
-                // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                 return objres;
             } else {
                 for (int i = 0; i < cdbase.fldList.size(); i++) {
                     if (0 == cdbase.fldList.get(i).name.compareToIgnoreCase(name)) {
-                        objres.cnt = next - start/*+1*/;
+                        objres.cnt = next - start /* + 1 */;
                         objres.obj = cdbase.fldList.get(i);
-                        // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                        //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                         return objres;
                     }
                 }
@@ -6728,9 +7102,9 @@ label:
                     if (bg && object.parent.objectType.equals("background") ||
                             !bg && object.parent.objectType.equals("card")) {
                         if (object.name.equalsIgnoreCase(name)) {
-                            objres.cnt = next - start/*+1*/;
+                            objres.cnt = next - start /* + 1 */;
                             objres.obj = object;
-                            // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                            //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                             return objres;
                         }
                     }
@@ -6758,31 +7132,31 @@ label:
             // Search by id/number/name
             if (id != 0) {
                 objres.cnt = next - start + 1;
-                objres.obj = PCARD.pc.stack.GetCardbyId(id);
+                objres.obj = PCARD.pc.stack.getCardbyId(id);
                 if (objres.obj == null) throw new XTalkException("No card with id " + id);
-                // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                 return objres;
             } else if (number != 0) {
                 objres.cnt = next - start + 1;
-                objres.obj = PCARD.pc.stack.GetCardbyNum(number);
+                objres.obj = PCARD.pc.stack.getCardbyNum(number);
                 if (objres.obj == null) throw new XTalkException("No card at number " + number);
-                // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                 return objres;
             } else {
                 objres.cnt = next - start + 1;
-                objres.obj = PCARD.pc.stack.GetCard(name);
+                objres.obj = PCARD.pc.stack.getCard(name);
                 if (objres.obj == null) throw new XTalkException("No card with name " + name);
-                // System.out.println("getObjectFromList:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getObjectFromList: " + (System.currentTimeMillis() - timeStart));
                 return objres;
             }
         }
 
-        // String errstr="";
-        // for(int i=start; i<start+objres.cnt; i++){
-        //    errstr+=stringList.get(i);
-        // }
-        // timeIsMoney("getObjectFromList:",timestart,25);
-        // System.out.println("objstr;"+errstr+" cnt="+objres.cnt);
+//        String errstr = "";
+//        for (int i = start; i < start + objres.cnt; i++) {
+//            errstr += stringList.get(i);
+//        }
+//        timeIsMoney("getObjectFromList:", timestart, 25);
+//        logger.log(Level.DEBUG, "objstr;" + errstr + " cnt=" + objres.cnt);
         return objres;
     }
 
@@ -6791,7 +7165,7 @@ label:
             return source.length();
         }
         if (0 == mode.compareTo("items")) {
-            String[] strAry = source.split(itemDelimiter);
+            String[] strAry = source.split(Pattern.quote(itemDelimiter));
             return strAry.length;
         }
         if (0 == mode.compareTo("words")) { // Need to handle newlines and "" grouping
@@ -6812,7 +7186,7 @@ label:
     }
 
     private static String getChunk(String mode, String chunkStart, String chunkEnd, String source) {
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         int start = 0;
         try {
             start = Integer.parseInt(chunkStart);
@@ -6832,19 +7206,19 @@ label:
                 if (i < 0) continue;
                 value.append(source.charAt(i));
             }
-            // System.out.println("getChunk:"+(System.currentTimeMillis()-timestart));
+            //logger.log(Level.DEBUG, "getChunk: " + (System.currentTimeMillis() - timeStart));
             return value.toString();
         }
         if (0 == mode.compareTo("item")) {
             StringBuilder value = new StringBuilder();
-            String[] strAry = source.split(itemDelimiter);
+            String[] strAry = source.split(Pattern.quote(itemDelimiter));
             if (start - 1 < strAry.length && start >= 1) value = new StringBuilder(strAry[start - 1]);
             else return "";
             for (int i = start; i <= end - 1; i++) {
                 if (i >= strAry.length) break;
                 value.append(itemDelimiter).append(strAry[i]);
             }
-            // System.out.println("getChunk:"+(System.currentTimeMillis()-timestart));
+            //logger.log(Level.DEBUG, "getChunk: " + (System.currentTimeMillis() - timeStart));
             return value.toString();
         }
         if (0 == mode.compareTo("word")) { // Need to handle newlines and "" grouping
@@ -6856,7 +7230,7 @@ label:
                 if (i >= strAry.length) break;
                 value.append(" ").append(strAry[i]);
             }
-            // System.out.println("getChunk:"+(System.currentTimeMillis()-timestart));
+            //logger.log(Level.DEBUG, "getChunk: " + (System.currentTimeMillis() - timeStart));
             return value.toString();
         }
         if (0 == mode.compareTo("line")) {
@@ -6878,21 +7252,48 @@ label:
             if (indexof >= 0) {
                 String value2 = value.substring(0, indexof);
                 if (value.length() > indexof) value2 += value.substring(indexof + 1, value.length());
-                // System.out.println("getChunk:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getChunk: " + (System.currentTimeMillis() - timeStart));
                 return value2;
             } else {
-                // System.out.println("getChunk:"+(System.currentTimeMillis()-timestart));
+                //logger.log(Level.DEBUG, "getChunk: " + (System.currentTimeMillis() - timeStart));
                 return value.toString();
             }
         }
-        // timeIsMoney("getChunk:",timestart,26);
+        //timeIsMoney("getChunk: ", timeStart, 26);
         return "";
+    }
+
+    /** @return the index of an ordinal chunk ("first", "last", "middle", "second", ...) of the value, 0 if unknown */
+    static int chunkOrdinal(String mode, String ordinal, String value) {
+        if (ordinal == null) return 0;
+        String o = ordinal.toLowerCase(Locale.ROOT);
+        String[] words = {"first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"};
+        for (int i = 0; i < words.length; i++) {
+            if (o.equals(words[i])) return i + 1;
+        }
+        int count;
+        if (mode.startsWith("char")) {
+            count = value.length();
+        } else if (mode.equals("item")) {
+            count = value.isEmpty() ? 0 : value.split(Pattern.quote(itemDelimiter)).length;
+            if (value.endsWith(itemDelimiter)) count--;
+        } else if (mode.equals("line")) {
+            count = value.isEmpty() ? 0 : value.split("\\r\\n|\\r|\\n", -1).length;
+            if (value.endsWith("\n") || value.endsWith("\r")) count--;
+        } else {
+            count = value.trim().isEmpty() ? 0 : value.trim().split("\\s+").length;
+        }
+        return switch (o) {
+            case "last" -> count;
+            case "middle", "mid" -> (count + 1) / 2;
+            default -> 0;
+        };
     }
 
     private static void setChunkVariable(String mode, String chunkStart, String chunkEnd, String setstr, String name,
                                          MemoryData memData)
             throws XTalkException {
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         int start = 0;
         try {
             start = Integer.parseInt(chunkStart);
@@ -6907,8 +7308,14 @@ label:
         String oldvalue = getVariable(memData, name);
         if (oldvalue == null) oldvalue = "";
 
+        // ordinals ("last char", "first word", ...)
+        if (start <= 0) start = chunkOrdinal(mode, chunkStart, oldvalue);
+        if (chunkEnd == null) end = start;
+        else if (end <= 0) end = chunkOrdinal(mode, chunkEnd, oldvalue);
+        if (start <= 0) start = 1;
+
         if (end <= 0) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
             end = 1;
         }
 
@@ -6936,7 +7343,7 @@ label:
                 }
                 delimiter = "\n";
             }
-            String[] strAry = oldvalue.split(delimiter);
+            String[] strAry = oldvalue.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -6949,13 +7356,13 @@ label:
         }
 
         setVariable(memData, name, value.toString());
-        // timeIsMoney("setChunkVariable:",timestart,27);
+        //timeIsMoney("setChunkVariable: ", timeStart, 27);
     }
 
     private static void setChunkVariable2(String mode, String chunkStart, String chunkEnd, String mode2, String chunkStart2, String chunkEnd2,
                                           String setstr, String name, MemoryData memData)
             throws XTalkException {
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         int start = 0;
         try {
             start = Integer.parseInt(chunkStart);
@@ -6996,7 +7403,7 @@ label:
             }
             delimiter2 = "\n";
         }
-        String[] strAry2 = oldvalue.split(delimiter2);
+        String[] strAry2 = oldvalue.split(Pattern.quote(delimiter2));
 
         StringBuilder value = new StringBuilder();
         for (int i = 0; i < start2 - 1; i++) {
@@ -7021,7 +7428,7 @@ label:
             if (0 == mode.compareTo("line")) {
                 delimiter = "\n";
             }
-            String[] strAry = text2.split(delimiter);
+            String[] strAry = text2.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -7038,12 +7445,12 @@ label:
         }
 
         setVariable(memData, name, value.toString());
-        // timeIsMoney("setChunkVariable2:",timestart,28);
+        //timeIsMoney("setChunkVariable2: ", timeStart, 28);
     }
 
     private static void setChunkObject(String mode, String chunkStart, String chunkEnd, String setstr, OObject obj) {
         int start = 0;
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         try {
             start = Integer.parseInt(chunkStart);
         } catch (Exception e) {
@@ -7085,7 +7492,7 @@ label:
                 }
                 delimiter = "\n";
             }
-            String[] strAry = text.split(delimiter);
+            String[] strAry = text.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -7102,12 +7509,12 @@ label:
         } else if (fld != null) {
             fld.setText(value.toString());
         }
-        // timeIsMoney("setChunkVariable2:",timestart,29);
+        //timeIsMoney("setChunkVariable2: ", timeStart, 29);
     }
 
     private static void setChunkObject2(String mode, String chunkStart, String chunkEnd, String mode2, String chunkStart2, String chunkEnd2, String setstr, OObject obj) {
         int start = 0;
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         try {
             start = Integer.parseInt(chunkStart);
         } catch (Exception e) {
@@ -7154,7 +7561,7 @@ label:
             }
             delimiter2 = "\n";
         }
-        String[] strAry2 = text.split(delimiter2);
+        String[] strAry2 = text.split(Pattern.quote(delimiter2));
 
         StringBuilder value = new StringBuilder();
         for (int i = 0; i < start2 - 1; i++) {
@@ -7177,7 +7584,7 @@ label:
             if (0 == mode.compareTo("line")) {
                 delimiter = "\n";
             }
-            String[] strAry = text2.split(delimiter);
+            String[] strAry = text2.split(Pattern.quote(delimiter));
 
             for (int i = 0; i < start - 1; i++) {
                 if (i < strAry.length) value.append(strAry[i]).append(delimiter);
@@ -7198,48 +7605,53 @@ label:
         } else if (fld != null) {
             fld.setText(value.toString());
         }
-        // timeIsMoney("setChunkObject2:",timestart,30);
+        //timeIsMoney("setChunkObject2: ", timeStart, 30);
     }
 
-    private static OObject getObject(ArrayList<String> stringList, wordType[] typeAry, int start, int end, MemoryData memData, OObject object, OObject target)
+    private static OObject getObject(List<String> stringList, WordType[] typeAry, int start, int end, MemoryData memData, OObject object, OObject target)
             throws XTalkException {
-        // long timestart = System.currentTimeMillis();
+        //long timeStart = System.currentTimeMillis();
         OObject obj = null;
         StringBuilder errStr = new StringBuilder(48);
         for (int i = start; i <= end; i++) {
-            if (typeAry[i] == wordType.STRING) errStr.append("\"");
+            if (typeAry[i] == WordType.STRING) errStr.append("\"");
             errStr.append(stringList.get(i));
-            if (typeAry[i] == wordType.STRING) errStr.append("\"");
+            if (typeAry[i] == WordType.STRING) errStr.append("\"");
             errStr.append(" ");
         }
-        // System.out.println("getObject"+errStr);
+        //logger.log(Level.DEBUG, "getObject " + errStr);
         int next = start;
 
         if (next >= stringList.size()) return null;
 
         if (0 == stringList.get(next).compareToIgnoreCase("me")) {
             obj = object;
-            // next++;
+            //next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("target")) {
             obj = target;
-            // next++;
+            //next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("titlebar")) {
             obj = OTitlebar.titlebar;
-            // next++;
+            //next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("menubar")) {
             obj = OMenubar.menubar;
-            // next++;
+            //next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("tool") &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("window")) {
             obj = OToolWindow.toolwindow;
-            // next++;
+            //next++;
         } else if ((0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card")) &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("window")) {
             obj = OWindow.cdwindow;
-            // next++;
+            //next++;
+        } else if (0 == stringList.get(next).compareToIgnoreCase("the") && next + 2 <= end &&
+                (0 == stringList.get(next + 1).compareToIgnoreCase("cd") || 0 == stringList.get(next + 1).compareToIgnoreCase("card")) &&
+                0 == stringList.get(next + 2).compareToIgnoreCase("window")) {
+            obj = OWindow.cdwindow;
+            next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("msg") || 0 == stringList.get(next).compareToIgnoreCase("message")) {
             obj = OMsg.msg;
-            // next++;
+            //next++;
         } else if (0 == stringList.get(next).compareToIgnoreCase("the") &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("target")) {
             obj = target;
@@ -7255,6 +7667,9 @@ label:
             if (obj == null && str.equalsIgnoreCase("message")) {
                 obj = OMsg.msg;
             }
+            if (obj == null && str.toLowerCase().matches("scroll|pattern|patterns|tool|tools|fatbits|navigator|message watcher|variable watcher")) {
+                obj = new OWindow(str);
+            }
         } else if (0 == stringList.get(next).compareToIgnoreCase("menu")) {
             int j;
             for (j = next + 1; j <= end; j++) {
@@ -7264,26 +7679,34 @@ label:
             }
             j--;
             String str = evaluation(stringList, typeAry, next + 1, j, memData, object, target);
-
-            for (int i = 0; i < PCARD.pc.menu.mb.getComponentCount(); i++) {
-                Component c = PCARD.pc.menu.mb.getComponent(i);
-                if (c.getClass() == JMenu.class) {
-                    JMenu menu = (JMenu) c;
-                    if (str.equalsIgnoreCase(menu.getText()) ||
-                            str.equalsIgnoreCase(PCARD.pc.intl.getEngText(menu.getText()))) {
-                        obj = new OMenu(menu);
-                        break;
-                    }
-                }
+            JMenu menu = HCMenus.find(str);
+            if (menu != null) obj = new OMenu(menu);
+        } else if (0 == stringList.get(next).compareToIgnoreCase("menuitem")) {
+            // menuItem <n|name> of menu <name>
+            int of = next + 1;
+            int depth = 0;
+            for (; of <= end; of++) {
+                if (typeAry[of] == WordType.LBRACKET || typeAry[of] == WordType.LFUNC) depth++;
+                else if (typeAry[of] == WordType.RBRACKET || typeAry[of] == WordType.RFUNC) depth--;
+                else if (depth == 0 && stringList.get(of).equalsIgnoreCase("of")) break;
+            }
+            if (of + 2 <= end && stringList.get(of + 1).equalsIgnoreCase("menu")) {
+                String spec = evaluation(new ArrayList<>(stringList), typeAry.clone(), next + 1, of - 1, memData, object, target);
+                int j = of + 2;
+                while (j + 1 <= end && !stringList.get(j + 1).equalsIgnoreCase("with")) j++;
+                String menuName = evaluation(new ArrayList<>(stringList), typeAry.clone(), of + 2, j, memData, object, target);
+                JMenu menu = HCMenus.find(menuName);
+                JMenuItem item = HCMenus.item(menu, spec);
+                if (item != null) obj = new OMenuItem(menu, item);
             }
         } else if ((0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card")) &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("picture")) {
             obj = PCARD.pc.stack.curCard.picture;
-            next++; // next+=2;
+            next++; //next += 2;
         } else if ((0 == stringList.get(next).compareToIgnoreCase("bg") || 0 == stringList.get(next).compareToIgnoreCase("bkgnd") || 0 == stringList.get(next).compareToIgnoreCase("background")) &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("picture")) {
             obj = PCARD.pc.stack.curCard.bg.picture;
-            next++; // next+=2;
+            next++; //next += 2;
         } else if (0 == stringList.get(next).compareToIgnoreCase("picture") &&
                 next + 1 <= end && 0 == stringList.get(next + 1).compareToIgnoreCase("of") &&
                 next + 2 <= end) {
@@ -7291,7 +7714,7 @@ label:
             if (result != null) {
                 if (result.obj.objectType.equals("card") || result.obj.objectType.equals("background")) {
                     obj = ((OCardBase) result.obj).picture;
-                    next++; // next+=2;
+                    next++; //next += 2;
                     next += result.cnt;
                 }
             }
@@ -7324,24 +7747,24 @@ label:
                     if (i >= PCARD.pc.stack.cardIdList.size()) i = 0;
                 }
                 id = PCARD.pc.stack.cardIdList.get(i);
-                obj = PCARD.pc.stack.GetCardbyId(id);
+                obj = PCARD.pc.stack.getCardbyId(id);
                 next++;
             }
         } else if (0 == stringList.get(next).compareToIgnoreCase("last")) {
             next++;
             if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
             if (0 == stringList.get(next).compareToIgnoreCase("card") || 0 == stringList.get(next).compareToIgnoreCase("cd")) {
-                obj = PCARD.pc.stack.GetCardbyNum(PCARD.pc.stack.cardIdList.size());
+                obj = PCARD.pc.stack.getCardbyNum(PCARD.pc.stack.cardIdList.size());
                 next++;
             }
         } else if (stringList.size() - start >= 2) {
             // Sometimes need the card where the object exists rather than the current card, but what is the standard? When not found?
             OCardBase cdbase;
-            /*if(object.objectType.equals("card")) cdbase=(OCardBase)object;
-            else if(object.objectType.equals("background")) cdbase=((OBackground)object).viewCard;
-            else if(object.objectType.equals("button")) cdbase=((OButton)object).card;
-            else if(object.objectType.equals("field")) cdbase=((OField)object).card;
-            else*/
+//            if (object.objectType.equals("card")) cdbase = (OCardBase) object;
+//            else if (object.objectType.equals("background")) cdbase = ((OBackground) object).viewCard;
+//            else if (object.objectType.equals("button")) cdbase = ((OButton) object).card;
+//            else if (object.objectType.equals("field")) cdbase = ((OField) object).card;
+//            else
             cdbase = PCARD.pc.stack.curCard;
 
             boolean bg_flag = false;
@@ -7349,20 +7772,20 @@ label:
             int flag = 0; // 1 is button, 2 is field
             for (int i = next; i <= end; i++) {
                 // Parentheses
-                if (typeAry[i] == wordType.LBRACKET) {
+                if (typeAry[i] == WordType.LBRACKET) {
                     int nest = 0;
                     for (int j = i + 1; j <= end; j++) {
-                        if (typeAry[j] == wordType.RBRACKET || typeAry[j] == wordType.RFUNC) {
+                        if (typeAry[j] == WordType.RBRACKET || typeAry[j] == WordType.RFUNC) {
                             if (nest == 0) {
                                 evaluation(stringList, typeAry, i, j, memData, object, target);
                                 for (int k = i; k <= j; k++) {
-                                    if (typeAry[k] == wordType.NOP) stringList.set(k, "");
+                                    if (typeAry[k] == WordType.NOP) stringList.set(k, "");
                                 }
                                 break;
                             }
                             nest--;
                         }
-                        if (typeAry[j] == wordType.LBRACKET || typeAry[j] == wordType.LFUNC) {
+                        if (typeAry[j] == WordType.LBRACKET || typeAry[j] == WordType.LFUNC) {
                             nest++;
                         }
                     }
@@ -7379,8 +7802,8 @@ label:
                     if (i + 1 > end) {
                         throw new XTalkException("Object" + errStr + " is unknown");
                     }
-                    // if(0==stringList.get(i+1).compareToIgnoreCase("this")){
-                    // if(i+2>end) throw new XTalkException("Object"+errStr+" is unknown");
+//                    if (0 == stringList.get(i + 1).compareToIgnoreCase("this")) {
+//                        if (i + 2 > end) throw new XTalkException("Object" + errStr + " is unknown");
                     if (0 == stringList.get(i + 1).compareToIgnoreCase("card") || 0 == stringList.get(i + 1).compareToIgnoreCase("cd")) {
                         if (i + 2 <= end && 0 == stringList.get(i + 2).compareToIgnoreCase("id")) {
                             if (i + 3 > end) throw new XTalkException("Object" + errStr + " is unknown");
@@ -7393,7 +7816,7 @@ label:
                             }
                             String str = evaluation(stringList, typeAry, i + 3, j, memData, object, target);
                             try {
-                                cdbase = PCARD.pc.stack.GetCardbyId(Integer.parseInt(str));
+                                cdbase = PCARD.pc.stack.getCardbyId(Integer.parseInt(str));
                             } catch (Exception err) {
                                 throw new XTalkException("Object" + errStr + " is unknown");
                             }
@@ -7407,9 +7830,9 @@ label:
                             }
                             String str = evaluation(stringList, typeAry, i + 2, j, memData, object, target);
                             try {
-                                cdbase = PCARD.pc.stack.GetCardbyNum(Integer.parseInt(str));
+                                cdbase = PCARD.pc.stack.getCardbyNum(Integer.parseInt(str));
                             } catch (Exception err) {
-                                cdbase = PCARD.pc.stack.GetCard(str);
+                                cdbase = PCARD.pc.stack.getCard(str);
                             }
                         }
                         if (cdbase != null) {
@@ -7428,7 +7851,7 @@ label:
                             }
                             String str = evaluation(stringList, typeAry, i + 3, j, memData, object, target);
                             try {
-                                cdbase = PCARD.pc.stack.GetBackgroundbyId(Integer.parseInt(str));
+                                cdbase = PCARD.pc.stack.getBackgroundById(Integer.parseInt(str));
                             } catch (Exception err) {
                                 throw new XTalkException("Object" + errStr + " is unknown");
                             }
@@ -7442,9 +7865,9 @@ label:
                             }
                             String str = evaluation(stringList, typeAry, i + 2, j, memData, object, target);
                             try {
-                                cdbase = PCARD.pc.stack.GetBackgroundbyNum(Integer.parseInt(str));
+                                cdbase = PCARD.pc.stack.getBackgroundByNum(Integer.parseInt(str));
                             } catch (Exception err) {
-                                cdbase = PCARD.pc.stack.GetBackground(str);
+                                cdbase = PCARD.pc.stack.getBackground(str);
                             }
                         }
                         if (cdbase != null) {
@@ -7462,18 +7885,18 @@ label:
                 if (0 == stringList.get(next).compareToIgnoreCase("cd") || 0 == stringList.get(next).compareToIgnoreCase("card")) {
                     next++;
                 } else if (0 == stringList.get(next).compareToIgnoreCase("btn") || 0 == stringList.get(next).compareToIgnoreCase("button")) {
-                    // cdbg_flag = true;
+                    //cdbg_flag = true;
                 } else if (0 == stringList.get(next).compareToIgnoreCase("fld") || 0 == stringList.get(next).compareToIgnoreCase("field")) {
-                    // cdbg_flag = true;
+                    //cdbg_flag = true;
                     bg_flag = true;
                 } else {
                     return null; // Not an object
                 }
                 if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
-                if (typeAry[next] != wordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn"))) {
+                if (typeAry[next] != WordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn"))) {
                     flag = 1;
                     next++;
-                } else if (typeAry[next] != wordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("field") || 0 == stringList.get(next).compareToIgnoreCase("fld"))) {
+                } else if (typeAry[next] != WordType.STRING && (0 == stringList.get(next).compareToIgnoreCase("field") || 0 == stringList.get(next).compareToIgnoreCase("fld"))) {
                     flag = 2;
                     next++;
                 } else {
@@ -7488,7 +7911,7 @@ label:
                         }
                         String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                         try {
-                            obj = PCARD.pc.stack.GetCardbyId(Integer.parseInt(str));
+                            obj = PCARD.pc.stack.getCardbyId(Integer.parseInt(str));
                         } catch (Exception err) {
                             throw new XTalkException("Object" + errStr + " is unknown");
                         }
@@ -7504,13 +7927,13 @@ label:
                         String str = evaluation(stringList, typeAry, next, j, memData, object, target);
 
                         if (cdbase != null && cdbase.objectType.equals("background"))
-                            obj = PCARD.pc.stack.GetCardofBg(cdbase, str);
-                        else obj = PCARD.pc.stack.GetCard(str);
+                            obj = PCARD.pc.stack.getCardOfBg(cdbase, str);
+                        else obj = PCARD.pc.stack.getCard(str);
                         if (obj == null) {
                             try {
                                 if (cdbase != null && cdbase.objectType.equals("background"))
-                                    obj = PCARD.pc.stack.GetCardofBgbyNum(cdbase, Integer.parseInt(str));
-                                else obj = PCARD.pc.stack.GetCardbyNum(Integer.parseInt(str));
+                                    obj = PCARD.pc.stack.getCardOfBgbyNum(cdbase, Integer.parseInt(str));
+                                else obj = PCARD.pc.stack.getCardbyNum(Integer.parseInt(str));
                             } catch (Exception err) {
                             }
                         }
@@ -7524,11 +7947,11 @@ label:
                 if (next > end) throw new XTalkException("Object " + errStr + " is unknown");
                 if (0 == stringList.get(next).compareToIgnoreCase("button") || 0 == stringList.get(next).compareToIgnoreCase("btn")) {
                     flag = 1;
-                    // cdbase = PCARD.pc.stack.curCard.bg;
+                    //cdbase = PCARD.pc.stack.curCard.bg;
                     next++;
                 } else if (0 == stringList.get(next).compareToIgnoreCase("field") || 0 == stringList.get(next).compareToIgnoreCase("fld")) {
                     flag = 2;
-                    // cdbase = PCARD.pc.stack.curCard.bg;
+                    //cdbase = PCARD.pc.stack.curCard.bg;
                     next++;
                 } else {
                     // The Bg itself
@@ -7542,7 +7965,7 @@ label:
                         }
                         String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                         try {
-                            obj = PCARD.pc.stack.GetBackgroundbyId(Integer.parseInt(str));
+                            obj = PCARD.pc.stack.getBackgroundById(Integer.parseInt(str));
                         } catch (Exception err) {
                             throw new XTalkException("Object" + errStr + " is unknown");
                         }
@@ -7554,9 +7977,9 @@ label:
                         }
                         String str = evaluation(stringList, typeAry, next, j, memData, object, target);
                         try {
-                            obj = PCARD.pc.stack.GetBackgroundbyNum(Integer.parseInt(str));
+                            obj = PCARD.pc.stack.getBackgroundByNum(Integer.parseInt(str));
                         } catch (Exception err) {
-                            obj = PCARD.pc.stack.GetBackground(str);
+                            obj = PCARD.pc.stack.getBackground(str);
                         }
                     }
                 }
@@ -7576,7 +7999,7 @@ label:
                         }
                     }
                     String str = evaluation(stringList, typeAry, next, j, memData, object, target);
-                    // System.out.println("* "+str);
+                    //logger.log(Level.DEBUG, "* " + str);
                     try {
                         if (!bg_flag) obj = cdbase.GetBtnbyId(Integer.parseInt(str));
                         else obj = cdbase.GetBgBtnbyId(Integer.parseInt(str));
@@ -7599,10 +8022,10 @@ label:
                     } catch (Exception err) {
                         if (!bg_flag) {
                             obj = cdbase.GetBtn(str);
-                            /*if(obj==null && cdbg_flag){
-                                cdbase=PCARD.pc.stack.GetBackgroundbyId(((OCard)cdbase).bgid);
-                                obj=cdbase.GetBtn(str);
-                            }*/
+//                            if (obj == null && cdbg_flag) {
+//                                cdbase = PCARD.pc.stack.GetBackgroundbyId(((OCard) cdbase).bgid);
+//                                obj = cdbase.GetBtn(str);
+//                            }
                         } else obj = cdbase.GetBgBtn(str);
                     }
                     if (obj == null) {
@@ -7668,7 +8091,7 @@ label:
             }
         }
 
-        // timeIsMoney("getObject:",timestart,31);
+        //timeIsMoney("getObject: ", timeStart, 31);
         if (next != end && obj == null) {
             throw new XTalkException("Object" + errStr + " is unknown");
         }
@@ -7690,11 +8113,13 @@ label:
     }
 }
 
+
 class TimeClass {
 
     long time;
     String name;
 }
+
 
 class XTalkException extends Exception {
 

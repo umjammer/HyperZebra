@@ -8,6 +8,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 
+import com.github.hyperZebra.TTalk.WordType;
+
 
 public class OObject {
 
@@ -23,7 +25,7 @@ public class OObject {
     ArrayList<String> scriptList;
     TreeSet<String> handlerList;
     ArrayList<String>[] stringList;
-    ArrayList<TTalk.wordType>[] typeList;
+    ArrayList<WordType>[] typeList;
     ArrayList<Integer> handlerLineList;
     private boolean visible = true;
     boolean enabled = true;
@@ -191,6 +193,7 @@ class OWindow extends OObject {
     JDialog dlog;
     TMP3 mp3;
     GPictWindow gpw;
+    TMovie movie;
 
     // Main
     public OWindow(JFrame inframe, boolean isCdWindow) {
@@ -222,6 +225,21 @@ class OWindow extends OObject {
         list.add(this);
     }
 
+    // Movie Window (QuickTime)
+    public OWindow(TMovie in_movie) {
+        objectType = "window";
+        movie = in_movie;
+        this.name = movie.name;
+
+        list.add(this);
+    }
+
+    /** a window HyperZebra does not have (e.g. "scroll", "fatbits"), properties are ignored */
+    public OWindow(String name) {
+        objectType = "window";
+        this.name = name;
+    }
+
     public OWindow(GPictWindow in_gpw) {
         objectType = "window";
         gpw = in_gpw;
@@ -231,6 +249,9 @@ class OWindow extends OObject {
     }
 
     public void Command(String cmdStr) {
+        if (movie != null) {
+            movie.command(cmdStr);
+        }
         if (mp3 != null) {
             if (cmdStr.equalsIgnoreCase("Play")) {
                 mp3.mp3play();
@@ -239,6 +260,9 @@ class OWindow extends OObject {
     }
 
     public void Close() {
+        if (movie != null) {
+            movie.close();
+        }
         if (mp3 != null) {
             mp3.mp3stop();
             list.remove(this);
@@ -298,6 +322,26 @@ class OMenu extends OObject {
     public OMenu(JMenu menu) {
         objectType = "menu";
         this.menu = menu;
+    }
+}
+
+
+/** a menu item of HyperCard 2 menu scripting */
+class OMenuItem extends OObject {
+
+    javax.swing.JMenu menu;
+    javax.swing.JMenuItem item;
+
+    public OMenuItem(javax.swing.JMenu menu, javax.swing.JMenuItem item) {
+        objectType = "menuitem";
+        this.menu = menu;
+        this.item = item;
+        this.name = item.getText();
+    }
+
+    @Override
+    public String getText() {
+        return item.getText();
     }
 }
 

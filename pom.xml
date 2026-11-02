@@ -3,7 +3,7 @@
 
   <groupId>com.guthub.pgostation</groupId>
   <artifactId>HyperZebra</artifactId>
-  <version>3.0.5</version>
+  <version>3.0.6</version>
 
   <build>
     <plugins>
@@ -12,7 +12,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.16.0</version>
         <configuration>
-          <release>17</release>
+          <release>25</release>
         </configuration>
       </plugin>
       <plugin>
@@ -21,6 +21,8 @@
         <configuration>
           <argLine>
             -Djava.util.logging.config.file=${project.build.testOutputDirectory}/logging.properties
+            -Dapple.laf.useScreenMenuBar=true
+            -Dapple.awt.application.name=HyperZebra
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
@@ -57,13 +59,19 @@
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>vavi-commons</artifactId>
-      <version>1.1.24</version>
+      <version>1.1.25</version>
     </dependency>
 
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>jlayer</artifactId>
       <version>1.0.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.umjammer</groupId>
+      <artifactId>vavi-media-quicktime</artifactId>
+      <version>6.1.1</version>
     </dependency>
 
     <dependency>

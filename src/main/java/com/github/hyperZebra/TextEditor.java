@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.util.ResourceBundle;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -25,11 +26,9 @@ import javax.swing.undo.UndoManager;
 
 public class TextEditor extends JFrame {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     static TextEditor TextEditor;
     TextArea area;
 
@@ -64,7 +63,7 @@ public class TextEditor extends JFrame {
         // scrollpane.add(area);
         scrollpane.setViewportView(area);
 
-        area.setFont(new Font(PCARD.scriptFont, 0, PCARD.scriptFontSize));
+        area.setFont(new Font(PCARD.scriptFont, Font.PLAIN, PCARD.scriptFontSize));
 
         toFront();
         setVisible(true);
@@ -74,32 +73,33 @@ public class TextEditor extends JFrame {
         TextEditor = this;
     }
 
-    /*static boolean saveAlert(TextArea area){
-        if(area == null || area.saved) {
-            return true;
-        }
-        saveScript(area);
-        return true;
-    }
-
-    static void saveScript(TextArea area){
-        String allStr = "";
-        try {
-            allStr = area.getDocument().getText(0, area.getDocument().getLength());
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
-
-        OObject obj = area.object;
-
-        if(obj != null){
-            obj.text = allStr;
-            area.savedScript();
-        } else {
-            System.out.println("Failed to save text");
-        }
-    }*/
+//    static boolean saveAlert(TextArea area) {
+//        if (area == null || area.saved) {
+//            return true;
+//        }
+//        saveScript(area);
+//        return true;
+//    }
+//
+//    static void saveScript(TextArea area) {
+//        String allStr = "";
+//        try {
+//            allStr = area.getDocument().getText(0, area.getDocument().getLength());
+//        } catch (BadLocationException e) {
+//            logger.log(Level.ERROR, e.getMessage(), e);
+//        }
+//
+//        OObject obj = area.object;
+//
+//        if (obj != null) {
+//            obj.text = allStr;
+//            area.savedScript();
+//        } else {
+//            logger.log(Level.DEBUG, "Failed to save text");
+//        }
+//    }
 }
+
 
 class teListener implements DocumentListener {
 
@@ -130,18 +130,17 @@ class teListener implements DocumentListener {
     }
 }
 
+
 class TextArea extends JTextArea {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
     OObject object;
     //
     boolean saved = true;
-    UndoManager undo = null;
-    teListener teListener = null;
+    UndoManager undo;
+    teListener teListener;
 
     public TextArea(String text) {
         super(text);
@@ -161,13 +160,13 @@ class TextArea extends JTextArea {
 
     void changedScript() {
         saved = false;
-        // TextEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.TRUE);
+        //TextEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.TRUE);
         setCanUndo();
     }
 
     void savedScript() {
         saved = true;
-        // TextEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.FALSE);
+        // extEditor.TextEditor.getRootPane().putClientProperty("windowModified", Boolean.FALSE);
     }
 
     static void setCanUndo() {
@@ -183,9 +182,8 @@ class TextArea extends JTextArea {
 
 class TEMenu {
 
-    /**
-     *
-     */
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     static JMenuItem undoMenu = null;
     static JMenuItem redoMenu = null;
 
@@ -209,31 +207,32 @@ class TEMenu {
         // File menu
 
         // Edit menu
-        m = new JMenu(PCARDFrame.pc.intl.getText("Edit"));
+        m = new JMenu(rb.getString("main.Edit"));
         mb.add(m);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Undo")));
+        m.add(mi = new JMenuItem(rb.getString("main.Undo")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s));
         mi.addActionListener(listener);
         undoMenu = mi;
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Redo")));
+        m.add(mi = new JMenuItem(rb.getString("main.Redo")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, s_shift));
         mi.addActionListener(listener);
         redoMenu = mi;
         m.add(mi = new JMenuItem("-"));
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Cut")));
+        m.add(mi = new JMenuItem(rb.getString("main.Cut")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Copy")));
+        m.add(mi = new JMenuItem(rb.getString("main.Copy")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Paste")));
+        m.add(mi = new JMenuItem(rb.getString("main.Paste")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, s));
         mi.addActionListener(listener);
-        m.add(mi = new JMenuItem(PCARDFrame.pc.intl.getText("Select All")));
+        m.add(mi = new JMenuItem(rb.getString("main.Select_All")));
         mi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, s));
         mi.addActionListener(listener);
     }
 }
+
 
 // Menu actions
 class TEMenuListener implements ActionListener {
@@ -241,7 +240,7 @@ class TEMenuListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String in_cmd = e.getActionCommand();
-        String cmd = PCARDFrame.pc.intl.getEngText(in_cmd);
+        String cmd = PCARD.getEngText("main", in_cmd);
         TextArea area = TextEditor.TextEditor.area;
         if (cmd.equals("Cut")) {
             area.cut();

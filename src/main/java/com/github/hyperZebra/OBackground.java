@@ -3,6 +3,8 @@ package com.github.hyperZebra;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 
 public class OBackground extends OCardBase {
+
+    private static final Logger logger = System.getLogger(OBackground.class.getName());
 
     // Properties
     Boolean cantDelete = false;
@@ -51,11 +55,11 @@ public class OBackground extends OCardBase {
 
     // Main
     public static OBackground getOBackground(OStack st, OCard cd, int bgId, boolean dataonly) throws XTalkException {
-        // System.out.println("bgid="+bgId);
+        //logger.log(Level.DEBUG, "bgid="+bgId);
 
         for (int i = 0; i < st.bgCacheList.size(); i++) {
             OBackground bg = st.bgCacheList.get(i);
-            // System.out.println("bg="+bg.id);
+            //logger.log(Level.DEBUG, "bg="+bg.id);
             if (st == cd.stack && bgId == bg.id) {
                 if (dataonly) return bg;
                 else {
@@ -172,7 +176,7 @@ public class OBackground extends OCardBase {
                                             reader = fld.readXML(reader);
                                             fldList.add(fld);
                                             partsList.add(fld);
-                                        } else System.out.println("Part_Type: " + type);
+                                        } else logger.log(Level.DEBUG, "Part_Type: " + type);
                                         break;
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
@@ -199,11 +203,11 @@ public class OBackground extends OCardBase {
                                                 if (part != null) {
                                                     part.setTextInternal(reader.getElementText());
                                                 } else {
-                                                    System.out.println("No Part: " + layer + " part id " + partid);
+                                                    logger.log(Level.DEBUG, "No Part: " + layer + " part id " + partid);
                                                 }
                                             } else {
                                                 //
-                                                System.out.println("Local Name: " + reader.getLocalName());
+                                                logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
                                             }
                                         }
                                         case "stylerun" -> {
@@ -236,8 +240,8 @@ public class OBackground extends OCardBase {
                                                             }
                                                         }
                                                     } else {
-                                                        System.out.println("Local Name: " + reader.getLocalName());
-                                                        System.out.println("Element Text: " + reader.getElementText());
+                                                        logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                                        logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                                     }
                                                 } else if (eventType3 == XMLStreamReader.END_ELEMENT) {
                                                     String elm3 = reader.getLocalName();
@@ -248,8 +252,8 @@ public class OBackground extends OCardBase {
                                             }
                                         }
                                         default -> {
-                                            System.out.println("Local Name: " + reader.getLocalName());
-                                            System.out.println("Element Text: " + reader.getElementText());
+                                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                                         }
                                     }
                                 } else if (eventType2 == XMLStreamReader.END_ELEMENT) {
@@ -260,15 +264,12 @@ public class OBackground extends OCardBase {
                                 }
                             }
                         }
-                        case "true" -> {
-                            // dummy
-                        }
-                        case "false" -> {
+                        case "true", "false" -> {
                             // dummy
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -398,7 +399,7 @@ public class OBackground extends OCardBase {
 
     @SuppressWarnings("unchecked")
     public boolean readBackgroundBlock(DataInputStream dis, int blockSize) {
-        // System.out.println("====readBackgroundBlock====");
+        //logger.log(Level.DEBUG, "====readBackgroundBlock====");
 
         if (blockSize > 2000000 || blockSize < 50) {
             return false;
@@ -408,61 +409,61 @@ public class OBackground extends OCardBase {
 
         // Read block data sequentially
         id = HCData.readCode(dis, 4);
-        // System.out.println("id:"+id);
+        //logger.log(Level.DEBUG, "id: " + id);
         if (id < 0 || id >= 2265535) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         /*String tygersStr =*/
         HCData.readStr(dis, 4);
-        // System.out.println("tygersStr:"+tygersStr);
+        //logger.log(Level.DEBUG, "tygersStr: " + tygersStr);
         int bitmapId = HCData.readCode(dis, 4);
-        // System.out.println("bitmapId:"+bitmapId);
+        //logger.log(Level.DEBUG, "bitmapId: " + bitmapId);
         if (bitmapId > 0) {
             bitmapName = "BMAP_" + bitmapId + ".png";
         }
         int flags = HCData.readCode(dis, 2);
-        // System.out.println("flags:"+flags);
+        //logger.log(Level.DEBUG, "flags: " + flags);
         dontSearch = ((flags >> 11) & 0x01) != 0;
         showPict = !(((flags >> 13) & 0x01) != 0);
         cantDelete = ((flags >> 14) & 0x01) != 0;
         /*String tygers2Str =*/
         HCData.readStr(dis, 6);
-        // System.out.println("tygers2Str:"+tygers2Str);
+        //logger.log(Level.DEBUG, "tygers2Str: " + tygers2Str);
         /*int nextBkgndId =*/
         HCData.readCode(dis, 4);
-        // System.out.println("nextBkgndId:"+nextBkgndId);
+        //logger.log(Level.DEBUG, "nextBkgndId: " + nextBkgndId);
         /*int prevBkgndId =*/
         HCData.readCode(dis, 4);
-        // System.out.println("prevBkgndId:"+prevBkgndId);
+        //logger.log(Level.DEBUG, "prevBkgndId: " + prevBkgndId);
         int numofParts = HCData.readCode(dis, 2);
-        // System.out.println("numofParts:"+numofParts);
+        //logger.log(Level.DEBUG, "numofParts: " + numofParts);
         /*String tygers3Str =*/
         HCData.readStr(dis, 6);
-        // System.out.println("tygers3Str:"+tygers3Str);
+        //logger.log(Level.DEBUG, "tygers3Str: " + tygers3Str);
         int numofContents = HCData.readCode(dis, 2);
-        // System.out.println("numofContents:"+numofContents);
+        //logger.log(Level.DEBUG, "numofContents: " + numofContents);
         /*int scriptType =*/
         HCData.readCode(dis, 4);
-        // System.out.println("scriptType:"+scriptType);
+        //logger.log(Level.DEBUG, "scriptType: " + scriptType);
 
         for (int i = 0; i < numofParts; i++) {
-            // System.out.println("==part "+i+"==");
+            //logger.log(Level.DEBUG, "==part "+i+"==");
             int dataLen = HCData.readCode(dis, 2);
-            // System.out.println("dataLen:"+dataLen);
+            //logger.log(Level.DEBUG, "dataLen: " + dataLen);
             if (dataLen < 30) {
-                System.out.println("!");
+                logger.log(Level.DEBUG, "!");
                 /*if(dataLen>=0){
                     dataLen = (dataLen<<8) + HCData.readCode(dis, 1);
                 }*/
             }
             offset += dataLen;
             int pid = HCData.readCode(dis, 2);
-            // System.out.println("part id:"+pid);
+            //logger.log(Level.DEBUG, "part id: " + pid);
             if ((pid < 0 || pid >= 32768) && pid < 6500) {
-                System.out.println("!");
+                logger.log(Level.DEBUG, "!");
             }
             int partType = HCData.readCode(dis, 1);
-            // System.out.println("partType:"+partType);
+            //logger.log(Level.DEBUG, "partType: " + partType);
             if (partType == 1) {
                 OButton btn = new OButton(this, pid);
                 btn.readButtonBlock(dis, dataLen);
@@ -475,11 +476,11 @@ public class OBackground extends OCardBase {
                 partsList.add(fld);
             } else return false;
 
-            // System.out.println("==end of part==");
+            //logger.log(Level.DEBUG, "==end of part==");
         }
 
         for (int i = 0; i < numofContents; i++) {
-            // System.out.println("==content "+i+"==");
+            //logger.log(Level.DEBUG, "==content "+i+"==");
 
             int pid;
             { // Alignment adjustment
@@ -491,10 +492,10 @@ public class OBackground extends OCardBase {
             // {
             //    pid = HCData.readCode(dis, 2);
             // }
-            // System.out.println("pid:"+pid);
+            //logger.log(Level.DEBUG, "pid: " + pid);
             int contLen = HCData.readCode(dis, 2);
             int orgcontLen = contLen;
-            // System.out.println("contLen:"+contLen);
+            //logger.log(Level.DEBUG, "contLen: " + contLen);
             // offset += contLen+4;
             if (pid >= 32768) {
                 /*String padding =*/
@@ -508,9 +509,9 @@ public class OBackground extends OCardBase {
             } else if (isStyledText >= 128) {
                 int formattingLength = ((0x007F & isStyledText) << 8) + HCData.readCode(dis, 1);
                 // offset += 2;
-                // System.out.println("formattingLength:"+formattingLength);
+                //logger.log(Level.DEBUG, "formattingLength: " + formattingLength);
                 if (formattingLength > 100) {
-                    // System.out.println("!");
+                    //logger.log(Level.DEBUG, "!");
                 }
                 for (int j = 0; j < formattingLength / 4; j++) {
                     styleClass styleC = new styleClass();
@@ -534,18 +535,18 @@ public class OBackground extends OCardBase {
             // Text
             resultStr contentResult;
             if (orgcontLen % 2 == 1) {
-                // System.out.println("readText(contLen+1="+(contLen+1)+")");
+                //logger.log(Level.DEBUG, "readText(contLen+1=" + (contLen + 1) + ")");
                 contentResult = HCData.readText(dis, contLen + 1);
             } else if (contLen > 0) {
-                // System.out.println("readText(contLen="+(contLen)+")");
+                //logger.log(Level.DEBUG, "readText(contLen=" + (contLen) + ")");
                 contentResult = HCData.readText(dis, contLen);
             } else {
                 contentResult = new resultStr();
                 contentResult.str = "";
                 contentResult.length_in_src = 0;
             }
-            // System.out.println("contentResult:"+contentResult.str);
-            // HCStackDebug.debuginfo("contentResult:"+contentResult.str);
+            //logger.log(Level.DEBUG, "contentResult:" + contentResult.str);
+            //HCStackDebug.debuginfo("contentResult:" + contentResult.str);
             for (OObject oObject : partsList) {
                 if (oObject.id == pid) {
                     oObject.setText(contentResult.str);
@@ -555,34 +556,33 @@ public class OBackground extends OCardBase {
             }
 
             int remainLength = contLen - ((contentResult.length_in_src));
-            // System.out.println("content-remainLength:"+remainLength);
+            //logger.log(Level.DEBUG, "content-remainLength:" + remainLength);
             if (remainLength < 0 || remainLength > 16) {
-                // System.out.println("!");
+                //logger.log(Level.DEBUG, "!");
             }
             if (remainLength - 1 > 0) {
-                /*String padding =*/
-                HCData.readStr(dis, remainLength - 1);
-                // System.out.println("padding:"+padding);
+                /* String padding = */ HCData.readStr(dis, remainLength - 1);
+                //logger.log(Level.DEBUG, "padding:" + padding);
             }
         }
 
         resultStr nameResult = HCData.readTextToZero(dis, blockSize - offset);
         name = nameResult.str;
         rawNameBytes = nameResult.rawBytes;
-        // System.out.println("name:"+name);
+        //logger.log(Level.DEBUG, "name:" + name);
 
         resultStr scriptResult = HCData.readTextToZero(dis, blockSize - offset - nameResult.length_in_src);
         String scriptStr = scriptResult.str;
         rawScriptBytes = scriptResult.rawBytes;
-        // System.out.println("scriptStr:"+scriptStr);
+        //logger.log(Level.DEBUG, "scriptStr:" + scriptStr);
 
         int remainLength = blockSize - (offset + (nameResult.length_in_src) + (scriptResult.length_in_src));
-        // System.out.println("remainLength:"+remainLength);
+        //logger.log(Level.DEBUG, "remainLength: " + remainLength);
         if (remainLength > 100) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (remainLength < 0) {
-            // System.out.println("!");
+            //logger.log(Level.DEBUG, "!");
         }
         if (remainLength - 1 > 0) {
             if (remainLength - 1 > 30 && nameResult.length_in_src == 0) {
@@ -590,19 +590,18 @@ public class OBackground extends OCardBase {
                 scriptStr = scriptResult2.str;
                 rawScriptBytes = scriptResult2.rawBytes;
             } else {
-                /*String padding =*/
-                HCData.readStr(dis, remainLength - 1);
-                // System.out.println("padding:"+padding);
+                /* String padding = */ HCData.readStr(dis, remainLength - 1);
+                //logger.log(Level.DEBUG, "padding:" + padding);
             }
             if (nameResult.length_in_src == 0 && scriptResult.length_in_src < 200) {
                 name = scriptResult.str;
                 rawNameBytes = scriptResult.rawBytes;
             }
         }
-        /*if((nameResult.length_in_src+1+scriptResult.length_in_src+1)%2 != 0){
-            String padding = HCData.readStr(dis, 1);
-            System.out.println("padding:"+padding);
-        }*/
+//        if ((nameResult.length_in_src + 1 + scriptResult.length_in_src + 1) % 2 != 0) {
+//            String padding = HCData.readStr(dis, 1);
+//            logger.log(Level.DEBUG, "padding:" + padding);
+//        }
 
         // Script
         String[] scriptAry = scriptStr.split("\n");
@@ -612,7 +611,6 @@ public class OBackground extends OCardBase {
 
         return true;
     }
-
 
     private static OBackground buildOBackground(OBackground bg) {
         bg.picture = new OPicture(bg);
@@ -643,7 +641,7 @@ public class OBackground extends OCardBase {
                             try {
                                 Thread.sleep(50);
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                logger.log(Level.ERROR, e.getMessage(), e);
                             }
                         }
                     }
@@ -652,31 +650,31 @@ public class OBackground extends OCardBase {
                     bg.pict = ImageIO.read(Files.newInputStream(path));
                 }
                 if (bg.pict != null) {
-                    // bg.showPict = true;
+                    //bg.showPict = true;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
             return bg;
         }
 
         // Load picture
         File file = new File(bg.stack.file.getParent() + "/resource/bgp" + bg.id + ".png");
-        // bg.showPict = false;
+        //bg.showPict = false;
         bg.label = MyLabel.getMyBgLabel(bg); // Background has nothing behind it, so label is required
         bg.label.setBounds(0, 0, bg.stack.width, bg.stack.height);
         PCARD.pc.mainPane.add(bg.label);
         try {
             if (file.exists()) {
                 bg.pict = ImageIO.read(file);
-                // bg.showPict = true;
+                //bg.showPict = true;
             } else {
                 file = new File(bg.stack.file.getParent() + "/resource/bgp" + bg.id + ".jpeg");
                 bg.pict = ImageIO.read(file);
-                // bg.showPict = true;
+                //bg.showPict = true;
             }
         } catch (Exception err1) {
-            // err1.printStackTrace();
+            //logger.log(Level.ERROR, err1.getMessage(), err1);
         }
 
         return bg;
@@ -688,9 +686,8 @@ class OBgButtonData {
 
     OCardBase card;
     OButton btn;
-    boolean check_hilite = false; // Holds highlight information per card
+    boolean checkHighlight = false; // Holds highlight information per card
     int id;
-
 
     public OBgButtonData(OCardBase cd, int btnId) {
         card = cd;
@@ -717,7 +714,7 @@ class OBgButtonData {
                 if (str.startsWith(istr)) {
                     String tmpstr = str.substring(istr.length());
                     hilite = (tmpstr.compareTo("true") == 0);
-                    check_hilite = hilite;
+                    checkHighlight = hilite;
                 }
             }
         }

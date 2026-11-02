@@ -74,7 +74,6 @@ class MyPanel extends JPanel {
         paintImmediately(r.x, r.y, r.width, r.height);
     }
 
-
     interface blendMode {
 
         int Null = -1;
@@ -113,7 +112,6 @@ class MyPanel extends JPanel {
             default -> blendMode.Null;
         };
     }
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -206,21 +204,20 @@ class MyPanel extends JPanel {
             }
         }
 
-        /*if(PCARD.pc.stack!=null&&PCARD.pc.stack.curCard!=null
-                &&PCARD.pc.stack.curCard.bg!=null&&PCARD.pc.stack.curCard.bg.label!=null
-                &&PCARD.pc.tool==null){
-            return;
-        }*/
+//        if (PCARD.pc.stack != null && PCARD.pc.stack.curCard != null
+//                && PCARD.pc.stack.curCard.bg != null && PCARD.pc.stack.curCard.bg.label != null
+//                && PCARD.pc.tool == null) {
+//            return;
+//        }
     }
-
 
     static void bordersDraw(Graphics g, int bit, int width, int height) {
         if (!PCARDFrame.useGrid) return;
-        for (int h = 0/*bit-1*/; h < width * bit; h += bit * PCARDFrame.gridSize) {
+        for (int h = 0 /* bit - 1 */; h < width * bit; h += bit * PCARDFrame.gridSize) {
             g.setColor(Color.GRAY);
             g.drawLine(h, 0, h, height * bit);
         }
-        for (int v = 0/*bit-1*/; v < height * bit; v += bit * PCARDFrame.gridSize) {
+        for (int v = 0 /* bit - 1 */; v < height * bit; v += bit * PCARDFrame.gridSize) {
             g.setColor(Color.GRAY);
             g.drawLine(0, v, width * bit, v);
         }
@@ -252,7 +249,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     public static BufferedImage makeBlendImage(BufferedImage flowImage) {
         if (PaintTool.owner.blendMode == blendMode.Copy && PaintTool.owner.blendLevel == 100) {
             return flowImage;
@@ -283,7 +279,6 @@ class MyPanel extends JPanel {
 
         return newImage;
     }
-
 
     private static void makeBlendImage(BufferedImage newImage,
                                        BufferedImage flowImage, BufferedImage surfaceImage, Point offset, int mode, int level) {
@@ -343,7 +338,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void copyImage(BufferedImage newImage, BufferedImage flowImage,
                                   BufferedImage surfaceImage, Point offset, int level) {
         // Copy mode only changes colors
@@ -376,7 +370,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void blendImage(BufferedImage newImage, BufferedImage flowImage,
                                    BufferedImage surfaceImage, Point offset, int level) {
         // Blend mode only changes alpha values
@@ -406,7 +399,6 @@ class MyPanel extends JPanel {
             }
         }
     }
-
 
     private static void addImage(BufferedImage newImage, BufferedImage flowImage,
                                  BufferedImage surfaceImage, Point offset, int level) {
@@ -465,7 +457,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void subtractImage(BufferedImage newImage, BufferedImage flowImage,
                                       BufferedImage surfaceImage, Point offset, int level) {
         // Subtract mode is subtraction starting from white
@@ -523,7 +514,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void multiplyImage(BufferedImage newImage, BufferedImage flowImage,
                                       BufferedImage surfaceImage, Point offset, int level) {
         // Multiply mode is multiplication starting from black
@@ -577,7 +567,6 @@ class MyPanel extends JPanel {
             }
         }
     }
-
 
     private static void screenImage(BufferedImage newImage, BufferedImage flowImage,
                                     BufferedImage surfaceImage, Point offset, int level) {
@@ -639,7 +628,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void darkenImage(BufferedImage newImage, BufferedImage flowImage,
                                     BufferedImage surfaceImage, Point offset, int level) {
         // Darken mode keeps the darker one
@@ -694,7 +682,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void lightenImage(BufferedImage newImage, BufferedImage flowImage,
                                      BufferedImage surfaceImage, Point offset, int level) {
         // Lighten mode keeps the lighter one
@@ -747,7 +734,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void differenceImage(BufferedImage newImage, BufferedImage flowImage,
                                         BufferedImage surfaceImage, Point offset, int level) {
         // Difference mode is absolute difference
@@ -799,7 +785,6 @@ class MyPanel extends JPanel {
             }
         }
     }
-
 
     private static void hueImage(BufferedImage newImage, BufferedImage flowImage,
                                  BufferedImage surfaceImage, Point offset, int level) {
@@ -855,7 +840,6 @@ class MyPanel extends JPanel {
             }
         }
     }
-
 
     private static void colorImage(BufferedImage newImage, BufferedImage flowImage,
                                    BufferedImage surfaceImage, Point offset, int level) {
@@ -913,7 +897,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void saturationImage(BufferedImage newImage, BufferedImage flowImage,
                                         BufferedImage surfaceImage, Point offset, int level) {
         // Saturation mode is saturation
@@ -968,7 +951,6 @@ class MyPanel extends JPanel {
             }
         }
     }
-
 
     private static void luminosityImage(BufferedImage newImage, BufferedImage flowImage,
                                         BufferedImage surfaceImage, Point offset, int level) {
@@ -1025,7 +1007,6 @@ class MyPanel extends JPanel {
         }
     }
 
-
     private static void alphaImage(BufferedImage newImage, BufferedImage flowImage,
                                    BufferedImage surfaceImage, Point offset, int level) {
         // Alpha channel mode applies density to surface alpha channel
@@ -1033,7 +1014,7 @@ class MyPanel extends JPanel {
 
         DataBuffer surfacebuf = surfaceImage.getRaster().getDataBuffer();
         DataBuffer srcbuf = flowImage.getRaster().getDataBuffer();
-        // DataBuffer newbuf = newImage.getRaster().getDataBuffer();
+        //DataBuffer newbuf = newImage.getRaster().getDataBuffer();
         int sfcwidth = surfaceImage.getWidth();
         int sfcheight = surfaceImage.getHeight();
         int width = newImage.getWidth();

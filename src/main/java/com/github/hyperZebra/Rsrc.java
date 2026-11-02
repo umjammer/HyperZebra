@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,16 +23,17 @@ import javax.xml.stream.XMLStreamWriter;
 
 public class Rsrc {
 
+    private static final Logger logger = System.getLogger(Rsrc.class.getName());
+
     Map<String, RsrcClass> rsrcIdMap = new HashMap<>();
     private final Map<String, RsrcClass> rsrcNameMap = new HashMap<>();
-    private final Map<String, xcmdClass> xcmdNameMap = new HashMap<>();
-    List<addcolorClass> addcolorList = new ArrayList<>();
+    private final Map<String, XcmdClass> xcmdNameMap = new HashMap<>();
+    List<AddColorClass> addcolorList = new ArrayList<>();
     List<PlteClass> plteList = new ArrayList<>();
-    OStack ownerstack;
-
+    OStack ownerStack;
 
     public Rsrc(OStack owner) {
-        this.ownerstack = owner;
+        this.ownerStack = owner;
     }
 
     // Search for resources in this stack
@@ -67,8 +70,8 @@ public class Rsrc {
     public int getRsrcIdAll(String name, String type) {
         RsrcClass r = rsrcNameMap.get(type + name.toLowerCase());
         if (r != null) return r.id;
-        for (int i = ownerstack.usingStacks.size() - 1; i >= 0; i--) {
-            r = ownerstack.usingStacks.get(i).rsrc.rsrcNameMap.get(type + name.toLowerCase());
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            r = ownerStack.usingStacks.get(i).rsrc.rsrcNameMap.get(type + name.toLowerCase());
             if (r != null) return r.id;
         }
         return 0;
@@ -77,16 +80,16 @@ public class Rsrc {
     public String getFilePathAll(int id, String type) {
         RsrcClass r = rsrcIdMap.get(type + id);
         if (r != null) {
-            if (this.ownerstack.file != null) {
-                return ownerstack.file.getParent().resolve(r.filename).toString();
+            if (this.ownerStack.file != null) {
+                return ownerStack.file.getParent().resolve(r.filename).toString();
             } else {
                 return r.filename;
             }
         }
-        for (int i = ownerstack.usingStacks.size() - 1; i >= 0; i--) {
-            r = ownerstack.usingStacks.get(i).rsrc.rsrcIdMap.get(type + id);
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            r = ownerStack.usingStacks.get(i).rsrc.rsrcIdMap.get(type + id);
             if (r != null) {
-                Path parentpath = ownerstack.usingStacks.get(i).file.getParent();
+                Path parentpath = ownerStack.usingStacks.get(i).file.getParent();
                 return parentpath.resolve(r.filename).toString();
             }
         }
@@ -96,8 +99,8 @@ public class Rsrc {
     public String getNameAll(int id, String type) {
         RsrcClass r = rsrcIdMap.get(type + id);
         if (r != null) return r.name;
-        for (int i = ownerstack.usingStacks.size() - 1; i >= 0; i--) {
-            r = ownerstack.usingStacks.get(i).rsrc.rsrcNameMap.get(type + id);
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            r = ownerStack.usingStacks.get(i).rsrc.rsrcNameMap.get(type + id);
             if (r != null) return r.name;
         }
         return null;
@@ -109,8 +112,8 @@ public class Rsrc {
             Point p = new Point(r.hotsporleft, r.hotsportop);
             return p;
         }
-        for (int i = ownerstack.usingStacks.size() - 1; i >= 0; i--) {
-            r = ownerstack.usingStacks.get(i).rsrc.rsrcNameMap.get("cursor" + id);
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            r = ownerStack.usingStacks.get(i).rsrc.rsrcNameMap.get("cursor" + id);
             if (r != null) return new Point(r.hotsporleft, r.hotsportop);
         }
         return null;
@@ -119,8 +122,8 @@ public class Rsrc {
     public RsrcClass getResourceAll(int id, String type) {
         RsrcClass r = rsrcIdMap.get(type + id);
         if (r != null) return r;
-        for (int i = ownerstack.usingStacks.size() - 1; i >= 0; i--) {
-            r = ownerstack.usingStacks.get(i).rsrc.rsrcIdMap.get(type + id);
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            r = ownerStack.usingStacks.get(i).rsrc.rsrcIdMap.get(type + id);
             if (r != null) return r;
         }
         return null;
@@ -148,8 +151,8 @@ public class Rsrc {
                             reader = readFontInfoXML(reader, info);
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -212,8 +215,8 @@ public class Rsrc {
                             locCount++;
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -260,7 +263,6 @@ public class Rsrc {
             this.hotsportop = Integer.parseInt(top);
             this.optionInfo = optionInfo;
         }
-
 
         public void writeXMLOneRsrc(XMLStreamWriter writer) throws XMLStreamException {
             writer.writeStartElement("media");
@@ -400,13 +402,11 @@ public class Rsrc {
             writer.writeEndElement();
             writer.writeCharacters("\n");
         }
-
     }
 
     static class OptionInfo {
 
     }
-
 
     public int getNewResourceId(String type) {
         return getNewResourceId(type, 1000);
@@ -428,45 +428,44 @@ public class Rsrc {
         RsrcClass rsrc = new RsrcClass(id, type, name, path, "0", "0", null);
         rsrcIdMap.put(type + id, rsrc);
         rsrcNameMap.put(type + name.toLowerCase(), rsrc);
-        ownerstack.changed = true;
+        ownerStack.changed = true;
     }
 
     public void addResource(int id, String type, String name, String filename, String leftStr, String topStr) {
         RsrcClass rsrc = new RsrcClass(id, type, name, filename, leftStr, topStr, null);
         rsrcIdMap.put(type + id, rsrc);
         rsrcNameMap.put(type + name.toLowerCase(), rsrc);
-        ownerstack.changed = true;
+        ownerStack.changed = true;
     }
 
     public void addResource(int id, String type, String name, String filename, String leftStr, String topStr, OptionInfo info) {
         RsrcClass rsrc = new RsrcClass(id, type, name, filename, leftStr, topStr, info);
         rsrcIdMap.put(type + id, rsrc);
         rsrcNameMap.put(type + name.toLowerCase(), rsrc);
-        ownerstack.changed = true;
+        ownerStack.changed = true;
     }
 
     public void addResource(RsrcClass r) {
         rsrcIdMap.put(r.type + r.id, r);
         rsrcNameMap.put(r.type + r.name.toLowerCase(), r);
-        ownerstack.changed = true;
+        ownerStack.changed = true;
     }
 
     public boolean deleteResource(String type, int id) throws IOException {
         RsrcClass r = rsrcIdMap.get(type + id);
         if (r == null) return false;
-        Path FilePath = this.ownerstack.file.getParent().resolve(r.filename);
+        Path FilePath = this.ownerStack.file.getParent().resolve(r.filename);
         // (new File(FilePath)).delete();
         Files.move(FilePath, Path.of("resource_trash", r.filename));
         if (null == rsrcIdMap.remove(type + r.id)) {
-            System.out.println("delete resource error");
+            logger.log(Level.DEBUG, "delete resource error");
         }
         if (null == rsrcNameMap.remove(type + r.name.toLowerCase())) {
-            System.out.println("delete resource error");
+            logger.log(Level.DEBUG, "delete resource error");
         }
-        ownerstack.changed = true;
+        ownerStack.changed = true;
         return true;
     }
-
 
     public int getRsrcCount(String type) {
         Iterator<RsrcClass> it = rsrcIdMap.values().iterator();
@@ -491,8 +490,8 @@ public class Rsrc {
                 i++;
             }
         }
-        for (int j = ownerstack.usingStacks.size() - 1; j >= 0; j--) {
-            OStack rsrcstack = ownerstack.usingStacks.get(j);
+        for (int j = ownerStack.usingStacks.size() - 1; j >= 0; j--) {
+            OStack rsrcstack = ownerStack.usingStacks.get(j);
             it = rsrcstack.rsrc.rsrcIdMap.values().iterator();
             while (it.hasNext()) {
                 rsrc = it.next();
@@ -523,50 +522,48 @@ public class Rsrc {
         return null;
     }
 
-
-    // ----------------
-    // For icons
-    // ----------------
+    /**
+     * For icons
+     */
     public BufferedImage getImage(int id) {
         BufferedImage bi = null;
         String path = this.getFilePathAll(id, "icon");
-        /*String path = "";
-        if(this.ownerstack.file!=null){
-            path = this.ownerstack.file.getParent()+File.separatorChar+filename;
-        }else{
-            path = filename;
-        }*/
+//        String path = "";
+//        if (this.ownerStack.file != null) {
+//            path = this.ownerStack.file.getParent() + File.separatorChar + filename;
+//        } else {
+//            path = filename;
+//        }
         try {
             bi = javax.imageio.ImageIO.read(new File(path));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return bi;
     }
 
-
-    // ----------------
-    // For PICT and similar resources
-    // ----------------
+    /**
+     * For PICT and similar resources
+     */
     public BufferedImage getImage(int id, String type) {
         BufferedImage bi = null;
         String path = this.getFilePathAll(id, type);
-        /*String path = "";
-        path = this.ownerstack.file.getParent()+File.separatorChar+filename;*/
+//        String path = "";
+//        path = this.ownerStack.file.getParent() + File.separatorChar + filename;
         try {
             bi = javax.imageio.ImageIO.read(new File(path));
         } catch (IOException e) {
-            // e.printStackTrace();
+            //logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return bi;
     }
 
-    // ----------------
-    // For fonts
-    // ----------------
-    static class FontInfo extends OptionInfo {
+    /**
+     * For fonts
+     */
+    static class FontInfo extends Rsrc.OptionInfo {
 
         int fontType;
         char firstChar;
@@ -586,21 +583,35 @@ public class Rsrc {
     }
 
     public void addFontResource(int id, String type, String name, String path, FontInfo info) {
-        RsrcClass rsrc = new RsrcClass(id, type, name, path, "0", "0", info);
+        Rsrc.RsrcClass rsrc = new RsrcClass(id, type, name, path, "0", "0", info);
         rsrcIdMap.put(type + id, rsrc);
         rsrcNameMap.put(type + name.toLowerCase(), rsrc);
     }
 
-    // ----------------
-    // External commands and functions
-    // ----------------
+    /**
+     * External commands and functions
+     */
     public int getxcmdId(String name, String type) {
-        xcmdClass r = xcmdNameMap.get(type + name.toLowerCase());
+        XcmdClass r = xcmdNameMap.get(type + name.toLowerCase());
         if (r != null) return r.id;
         return 0;
     }
 
-    public void addXcmd(xcmdClass xcmd) {
+    /** @return the id of the XCMD/XFCN in this stack or the stacks in use, 0 if none */
+    public int getxcmdIdAll(String name, String type) {
+        int id = getxcmdId(name, type);
+        if (id > 0) return id;
+        for (int i = ownerStack.usingStacks.size() - 1; i >= 0; i--) {
+            OStack s = ownerStack.usingStacks.get(i);
+            if (s != null && s.rsrc != null && s.rsrc != this) {
+                id = s.rsrc.getxcmdId(name, type);
+                if (id > 0) return id;
+            }
+        }
+        return 0;
+    }
+
+    public void addXcmd(XcmdClass xcmd) {
         xcmdNameMap.put(xcmd.type + xcmd.name.toLowerCase(), xcmd);
     }
 
@@ -618,16 +629,15 @@ public class Rsrc {
                 case "file" -> pathStr = reader.getAttributeValue(i);
             }
         }
-        // xcmdList.add(new xcmdClass(idStr, typeStr, nameStr, pathStr, platformStr, sizeStr));
-        xcmdClass xcmd = new xcmdClass(idStr, typeStr, nameStr, pathStr, platformStr, sizeStr);
+        //xcmdList.add(new XcmdClass(idStr, typeStr, nameStr, pathStr, platformStr, sizeStr));
+        XcmdClass xcmd = new XcmdClass(idStr, typeStr, nameStr, pathStr, platformStr, sizeStr);
         xcmdNameMap.put(typeStr + nameStr.toLowerCase(), xcmd);
         return reader;
     }
 
-
-    public void writeXcmdXML(XMLStreamWriter writer) throws XMLStreamException {
-        Iterator<xcmdClass> it = xcmdNameMap.values().iterator();
-        xcmdClass xcmd;
+    public void writeXCmdXML(XMLStreamWriter writer) throws XMLStreamException {
+        Iterator<XcmdClass> it = xcmdNameMap.values().iterator();
+        XcmdClass xcmd;
         while (it.hasNext()) {
             writer.writeCharacters("\t");
             xcmd = it.next();
@@ -642,8 +652,7 @@ public class Rsrc {
         }
     }
 
-
-    static class xcmdClass {
+    static class XcmdClass {
 
         int id;
         String type; // command or function
@@ -652,7 +661,7 @@ public class Rsrc {
         String platform;
         int size;
 
-        public xcmdClass(String id, String type, String name, String filename, String platform, String size) {
+        public XcmdClass(String id, String type, String name, String filename, String platform, String size) {
             this.id = Integer.parseInt(id);
             this.type = type;
             this.name = name;
@@ -662,13 +671,12 @@ public class Rsrc {
         }
     }
 
-
-    // -------------
-    // AddColor-related functionality
-    // -------------
+    /**
+     * AddColor-related functionality
+     */
     public XMLStreamReader readAddColorXML(XMLStreamReader reader, boolean isBg) throws Exception {
         String idStr = "0";
-        addcolorClass addColorOwner = null;
+        AddColorClass addColorOwner = null;
         while (reader.hasNext()) {
             try {
                 int eventType = reader.next();
@@ -676,12 +684,12 @@ public class Rsrc {
                     String elm = reader.getLocalName();
                     if (elm.equals("id")) {
                         idStr = reader.getElementText();
-                        addColorOwner = new addcolorClass(idStr, isBg);
+                        addColorOwner = new AddColorClass(idStr, isBg);
                     } else if (elm.equals("addcolorobject")) {
                         reader = readAddColorObjXML(reader, addColorOwner);
                     } else {
-                        System.out.println("Local Name: " + reader.getLocalName());
-                        System.out.println("Element Text: " + reader.getElementText());
+                        logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                        logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                     }
                 }
                 if (eventType == XMLStreamConstants.END_ELEMENT) {
@@ -701,8 +709,7 @@ public class Rsrc {
         return reader;
     }
 
-
-    public XMLStreamReader readAddColorObjXML(XMLStreamReader reader, addcolorClass parent) throws Exception {
+    public XMLStreamReader readAddColorObjXML(XMLStreamReader reader, AddColorClass parent) throws Exception {
         String typeStr = "", nameStr = "";
         boolean transparent = false;
         boolean visible = true;
@@ -729,17 +736,15 @@ public class Rsrc {
                             visible = XMLRead.bool(reader);
                             reader.next();
                         }
-                        case "rect" -> {
+                        case "rect", "color" -> {
                         }
                         case "bevel" -> bevel = Integer.parseInt(reader.getElementText());
-                        case "color" -> {
-                        }
                         case "red" -> red = Integer.parseInt(reader.getElementText()) / 256;
                         case "green" -> green = Integer.parseInt(reader.getElementText()) / 256;
                         case "blue" -> blue = Integer.parseInt(reader.getElementText()) / 256;
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -768,12 +773,11 @@ public class Rsrc {
         return reader;
     }
 
-
     public static void setEnabledACObj(int number, boolean enabled) {
-        // Find the addcolorClass
-        List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
-        addcolorClass accd = null;
-        for (Rsrc.addcolorClass addcolorClass : cdList) {
+        // Find the AddColorClass
+        List<AddColorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
+        AddColorClass accd = null;
+        for (AddColorClass addcolorClass : cdList) {
             if (PCARD.pc.stack.curCard.id == addcolorClass.id) {
                 accd = addcolorClass;
                 break;
@@ -786,13 +790,13 @@ public class Rsrc {
         }
     }
 
-    static class addcolorClass {
+    static class AddColorClass {
 
         int id;
         boolean isBg;
-        ArrayList<addcolorObjClass> objList = new ArrayList<>();
+        ArrayList<AddColorObjClass> objList = new ArrayList<>();
 
-        public addcolorClass(String id, boolean isBg) {
+        public AddColorClass(String id, boolean isBg) {
             this.id = Integer.parseInt(id);
             this.isBg = isBg;
         }
@@ -826,10 +830,10 @@ public class Rsrc {
                 writer.writeEndElement();
                 writer.writeCharacters("\n\t\t");
 
-                for (Rsrc.addcolorObjClass addcolorObjClass : objList) {
+                for (AddColorObjClass addcolorObjClass : objList) {
                     writer.writeStartElement("addcolorobject");
 
-                    addcolorObjClass obj = addcolorObjClass;
+                    AddColorObjClass obj = addcolorObjClass;
                     PictObject picto = null;
                     RectObject recto = null;
                     BtnObject btno = null;
@@ -900,7 +904,7 @@ public class Rsrc {
                         writer.writeCharacters("\n\t\t\t");
 
                         writer.writeStartElement("transparent");
-                        writer.writeCharacters(picto.transparent ? "true" : "false");
+                        writer.writeCharacters(Boolean.toString(picto.transparent));
                         writer.writeEndElement();
                         writer.writeCharacters("\n\t\t\t");
                     }
@@ -951,20 +955,20 @@ public class Rsrc {
         }
     }
 
-    static class addcolorObjClass {
+    static class AddColorObjClass {
 
         int bevel;
         Color color;
         boolean visible;
 
-        public addcolorObjClass(int bevel, Color color, boolean visible) {
+        public AddColorObjClass(int bevel, Color color, boolean visible) {
             this.bevel = bevel;
             this.color = color;
             this.visible = visible;
         }
     }
 
-    static class PictObject extends addcolorObjClass {
+    static class PictObject extends AddColorObjClass {
 
         String name;
         boolean transparent;
@@ -978,7 +982,7 @@ public class Rsrc {
         }
     }
 
-    static class RectObject extends addcolorObjClass {
+    static class RectObject extends AddColorObjClass {
 
         Rectangle rect;
 
@@ -988,7 +992,7 @@ public class Rsrc {
         }
     }
 
-    static class BtnObject extends addcolorObjClass {
+    static class BtnObject extends AddColorObjClass {
 
         int id;
 
@@ -998,7 +1002,7 @@ public class Rsrc {
         }
     }
 
-    static class FldObject extends addcolorObjClass {
+    static class FldObject extends AddColorObjClass {
 
         int id;
 
@@ -1008,19 +1012,17 @@ public class Rsrc {
         }
     }
 
-
     // Save as XML
     public void writeAddColorXML(XMLStreamWriter writer) throws XMLStreamException {
-        List<addcolorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
-        for (Rsrc.addcolorClass addcolorClass : cdList) {
+        List<AddColorClass> cdList = PCARD.pc.stack.rsrc.addcolorList;
+        for (AddColorClass addcolorClass : cdList) {
             addcolorClass.writeAddColorXMLOne(writer);
         }
     }
 
-
-    // -------------
-    // PLTE-related functionality
-    // -------------
+    /**
+     * PLTE-related functionality
+     */
     public XMLStreamReader readPlteXML(XMLStreamReader reader) throws Exception {
         int id = 0;
         String name = "";
@@ -1062,8 +1064,8 @@ public class Rsrc {
                             reader = readPlteObjXML(reader, plteOwner);
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -1080,7 +1082,6 @@ public class Rsrc {
         plteList.add(plteOwner);
         return reader;
     }
-
 
     public XMLStreamReader readPlteObjXML(XMLStreamReader reader, PlteClass parent) throws Exception {
         String message = "";
@@ -1102,8 +1103,8 @@ public class Rsrc {
                         case "rect" -> {
                         }
                         default -> {
-                            System.out.println("Local Name: " + reader.getLocalName());
-                            System.out.println("Element Text: " + reader.getElementText());
+                            logger.log(Level.DEBUG, "Local Name: " + reader.getLocalName());
+                            logger.log(Level.DEBUG, "Element Text: " + reader.getElementText());
                         }
                     }
                 }
@@ -1122,7 +1123,6 @@ public class Rsrc {
 
         return reader;
     }
-
 
     static class PlteClass {
 

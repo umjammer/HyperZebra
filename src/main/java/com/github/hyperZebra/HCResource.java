@@ -13,38 +13,41 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.nio.charset.Charset;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Path;
-import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 
+import com.github.hyperZebra.Rsrc.AddColorClass;
 import com.github.hyperZebra.Rsrc.FontInfo;
 import com.github.hyperZebra.Rsrc.PlteClass;
-import com.github.hyperZebra.Rsrc.addcolorClass;
 import com.github.hyperZebra.Rsrc.PlteBtnObject;
+import com.github.hyperZebra.Rsrc.XcmdClass;
 
 
 public class HCResource {
 
+    private static final Logger logger = System.getLogger(HCResource.class.getName());
+
     // Resource fork data is inside AppleDoubleHeaderFile
     public static boolean readAppleDoubleHeader(DataInputStream dis, OStack stack) {
-        // System.out.println("readAppleDoubleHeader");
+        //logger.log(Level.DEBUG, "readAppleDoubleHeader");
 
         int magic = readCode(dis, 4);
         if (magic != 0x51607) {
-            System.out.println("magic!= 0x51607");
+            logger.log(Level.DEBUG, "magic!= 0x51607");
         }
         @SuppressWarnings("unused")
         int version = readCode(dis, 4);
         @SuppressWarnings("unused")
-        String homefilesystem = readStr(dis, 16);
-        int numberOfEntryies = readCode(dis, 2);
+        String homeFileSystem = readStr(dis, 16);
+        int numberOfEntries = readCode(dis, 2);
         int theOffset = 26;
-        for (int i = 0; i < numberOfEntryies; i++) {
+        for (int i = 0; i < numberOfEntries; i++) {
             int entryId = readCode(dis, 4);
             int entryOffset = readCode(dis, 4);
             int entryLength = readCode(dis, 4);
@@ -59,7 +62,7 @@ public class HCResource {
                     try {
                         dis.read();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
 
@@ -69,7 +72,7 @@ public class HCResource {
                     try {
                         b[j] = (byte) dis.read();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
 
@@ -92,7 +95,7 @@ public class HCResource {
             try {
                 opcode[i] = (byte) dis.read();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         int iop = 0;
@@ -109,16 +112,15 @@ public class HCResource {
             try {
                 str.append((char) dis.read());
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         return str.toString();
     }
 
-
     // Each resource's data is contained within the resource fork
     static boolean readResourceFork(byte[] b, OStack stack) {
-        // System.out.println("readResourceFork");
+        //logger.log(Level.DEBUG, "readResourceFork");
 
         if (b.length == 0) return true;
 
@@ -128,10 +130,10 @@ public class HCResource {
         int dataLength = u4(b, 8);
         @SuppressWarnings("unused")
         int mapLength = u4(b, 12);
-        // System.out.println("dataOffset:"+dataOffset);
-        // System.out.println("mapOffset:"+mapOffset);
-        // System.out.println("dataLength:"+dataLength);
-        // System.out.println("mapLength:"+mapLength);
+        //logger.log(Level.DEBUG, "dataOffset: " + dataOffset);
+        //logger.log(Level.DEBUG, "mapOffset: " + mapOffset);
+        //logger.log(Level.DEBUG, "dataLength: " + dataLength);
+        //logger.log(Level.DEBUG, "mapLength: " + mapLength);
 
         int offset = mapOffset + 16 + 4 + 2;
         @SuppressWarnings("unused")
@@ -146,14 +148,14 @@ public class HCResource {
         offset += 2;
 
         for (int i = 0; i < typesCount && offset + 8 <= b.length; i++) {
-            // System.out.println("========");
+            //logger.log(Level.DEBUG, "========");
             // Each type, count, and position
             offset = typeListOffset + 8 * i;
             String type = str4(b, offset);
-            // System.out.println("type:"+type);
+            //logger.log(Level.DEBUG, "type: " + type);
             offset += 4;
             int count = u2(b, offset) + 1;
-            // System.out.println("count:"+count);
+            //logger.log(Level.DEBUG, "count: " + count);
             offset += 2;
             int rsrcoffset = u2(b, offset) + typeListOffset - 2;
             offset += 2;
@@ -164,20 +166,20 @@ public class HCResource {
                 stack.bar.setValue(stack.barOffset + (25 * i) / typesCount + (25 * 1) * j / count / typesCount);
                 stack.bar.setString("Converting " + type + " resource " + j + "/" + count);
                 stack.bar.paintImmediately(stack.bar.getBounds());
-                // System.out.println("====");
+                //logger.log(Level.DEBUG, "====");
                 // Header portion
                 int id = s2(b, offset);
                 offset += 2;
                 int nameoffset = s2(b, offset);
                 offset += 2;
-                // System.out.println("nameoffset:"+nameoffset);
+                //logger.log(Level.DEBUG, "nameoffset: " + nameoffset);
                 if (nameoffset >= 0) nameoffset += nameListOffset;
-                // System.out.println("nameoffset:"+nameoffset);
+                //logger.log(Level.DEBUG, "nameoffset: " + nameoffset);
                 @SuppressWarnings("unused")
                 int rsrcAttr = u1(b, offset);
                 offset += 1;
                 int dataoffset = u3(b, offset) + dataOffset;
-                // System.out.println("dataOffset:"+dataOffset);
+                //logger.log(Level.DEBUG, "dataOffset: " + dataOffset);
                 offset += 3;
                 offset += 4; // reserved
 
@@ -185,10 +187,10 @@ public class HCResource {
                 String name = "";
                 if (nameoffset >= 0) {
                     int namelen = u1(b, nameoffset);
-                    // System.out.println("namelen:"+namelen);
+                    //logger.log(Level.DEBUG, "namelen: " + namelen);
                     name = new String(b, nameoffset + 1, namelen);
                 }
-                // System.out.println("name:"+name);
+                //logger.log(Level.DEBUG, "name: " + name);
 
                 // Data
                 int datalen = u4(b, dataoffset);
@@ -200,11 +202,11 @@ public class HCResource {
     }
 
     private static String strn(byte[] b, int offset, int length) {
-        /*StringBuilder str = new StringBuilder(length);
-        for(int i=0; i<length; i++){
-            str.append((char)b[offset+i]);
-        }
-        return str.toString();*/
+//        StringBuilder str = new StringBuilder(length);
+//        for (int i = 0; i < length; i++) {
+//            str.append((char) b[offset + i]);
+//        }
+//        return str.toString();
         return HCData.decodeBytes(b, offset, length);
     }
 
@@ -273,8 +275,8 @@ public class HCResource {
             }
             case "FONT", "NFNT" -> convertFONT2PNG(b, parentPath, id, name, stack.rsrc);
             case "HCcd", "HCbg" -> {
-                Rsrc.addcolorClass addColorOwner;
-                addColorOwner = new addcolorClass(Integer.toString(id), type.equals("HCbg"));
+                AddColorClass addColorOwner;
+                addColorOwner = new AddColorClass(Integer.toString(id), type.equals("HCbg"));
                 convertAddColorResource(addColorOwner, b);
                 stack.rsrc.addcolorList.add(addColorOwner);
             }
@@ -290,7 +292,7 @@ public class HCResource {
             default -> {
                 filename = convertRsrc2file(b, type, parentPath, id, name);
                 mytype = type;
-                // System.out.println("Error: Unknown resource type \""+type+"\"");
+                //logger.log(Level.DEBUG, "Error: Unknown resource type \""+type+"\"");
             }
         }
 
@@ -300,9 +302,9 @@ public class HCResource {
         }
     }
 
-    // -----------
-    // ICON
-    // -----------
+    /**
+     * ICON
+     */
     private static String convertICON2PNG(byte[] b, String parentPath, int id) {
         // Load icon data
         // Simply fixed 32*32-bit data
@@ -343,7 +345,7 @@ public class HCResource {
         try {
             ImageIO.write(bi, "png", ofile);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (ofile.exists()) {
@@ -378,10 +380,9 @@ public class HCResource {
         }
     }
 
-
-    // -----------
-    // cicn
-    // -----------
+    /**
+     * cicn
+     */
     private static String convertcicn2PNG(byte[] b, String parentPath, int id) {
         BufferedImage bi;
         int offset = 0;
@@ -389,103 +390,81 @@ public class HCResource {
         // Load color icon data
         {
             // iconPMap
-            /*int baseAddr =*/
-            u4(b, offset);
+            /* int baseAddr = */ u4(b, offset);
             offset += 4;
             int rowBytes = 0x7FFF & u2(b, offset);
             offset += 2;
 
-            /*int top =*/
-            u2(b, offset);
+            /* int top = */ u2(b, offset);
             offset += 2;
-            /*int left =*/
-            u2(b, offset);
+            /* int left = */ u2(b, offset);
             offset += 2;
             int bottom = u2(b, offset);
             offset += 2;
             int right = u2(b, offset);
             offset += 2;
-            /*int pmVersion =*/
-            u2(b, offset);
+            /* int pmVersion = */ u2(b, offset);
             offset += 2;
             int packType = u2(b, offset);
             offset += 2;
             int packSize = u4(b, offset);
             offset += 4;
-            /*int hRes =*/
-            u4(b, offset);
+            /* int hRes = */ u4(b, offset);
             offset += 4;
-            /*int vRes =*/
-            u4(b, offset);
+            /* int vRes = */ u4(b, offset);
             offset += 4;
-            /*int pixelType =*/
-            u2(b, offset);
+            /* int pixelType = */ u2(b, offset);
             offset += 2;
             int pixelSize = u2(b, offset);
             offset += 2;
-            /*int cmpCount =*/
-            u2(b, offset);
+            /* int cmpCount = */ u2(b, offset);
             offset += 2;
-            /*int cmpSize =*/
-            u2(b, offset);
+            /* int cmpSize = */ u2(b, offset);
             offset += 2;
-            /*int planeBytes =*/
-            u4(b, offset);
+            /* int planeBytes = */ u4(b, offset);
             offset += 4;
 
-            /*int ctabhandle =*/
-            u4(b, offset);
+            /* int ctabhandle = */ u4(b, offset);
             offset += 4;
-            /*int pmreserved =*/
-            u4(b, offset);
+            /* int pmreserved = */ u4(b, offset);
             offset += 4;
 
             // maskBMap
-            /*int mbaseAddr =*/
-            u4(b, offset);
+            /* int mbaseAddr = */ u4(b, offset);
             offset += 4;
             int mrowBytes = 0x7FFF & u2(b, offset);
             offset += 2;
 
-            /*int mtop =*/
-            u2(b, offset);
+            /* int mtop = */ u2(b, offset);
             offset += 2;
-            /*int mleft =*/
-            u2(b, offset);
+            /* int mleft = */ u2(b, offset);
             offset += 2;
-            /*int mbottom =*/
-            u2(b, offset);
+            /* int mbottom = */ u2(b, offset);
             offset += 2;
-            /*int mright =*/
-            u2(b, offset);
+            /* int mright = */ u2(b, offset);
             offset += 2;
 
             // int mrowBytes = (mright+7)/8;
 
             // iconBMap
-            /*int ibaseAddr =*/
-            u4(b, offset);
+            /* int ibaseAddr = */ u4(b, offset);
             offset += 4;
             int irowBytes = 0x7FFF & u2(b, offset);
             offset += 2;
 
-            /*int itop =*/
-            u2(b, offset);
+            /* int itop = */ u2(b, offset);
             offset += 2;
-            /*int ileft =*/
-            u2(b, offset);
+            /* int ileft = */ u2(b, offset);
             offset += 2;
-            /*int ibottom =*/
-            u2(b, offset);
+            /* int ibottom = */ u2(b, offset);
             offset += 2;
-            /*int iright =*/
-            u2(b, offset);
+            /* int iright = */ u2(b, offset);
             offset += 2;
 
-            // int irowBytes = (iright+7)/8;
+            //int irowBytes = (iright + 7) / 8;
 
-            // int iconData = u4(b,offset);
-            // offset+=4;
+            //int iconData = u4(b, offset);
+            //offset+=4;
 
             // Image data
             BufferedImage maskbi = new BufferedImage(right, bottom, BufferedImage.TYPE_INT_ARGB);
@@ -525,15 +504,12 @@ public class HCResource {
             }
 
             if (offset + 1 < b.length) {
-                /*int iconData =*/
-                u4(b, offset);
+                /* int iconData = */ u4(b, offset);
                 offset += 4;
                 // cTable header
-                /*int ctSeed =*/
-                u4(b, offset);
+                /* int ctSeed = */ u4(b, offset);
                 offset += 4;
-                /*int ctFlag =*/
-                u2(b, offset);
+                /* int ctFlag = */ u2(b, offset);
                 offset += 2;
                 int ctSize = u2(b, offset);
                 offset += 2;
@@ -588,7 +564,7 @@ public class HCResource {
                                 dsize++;
                                 for (int j = 0; j < dsize; j++) {
                                     if (rowBytes <= j + doffset) {
-                                        // System.out.println("!");
+                                        //logger.log(Level.DEBUG, "!");
                                         continue;
                                     }
                                     data[j + doffset] = b[offset];
@@ -615,13 +591,12 @@ public class HCResource {
             }
         }
 
-
         // Convert to PNG format and save to file
         File ofile = new File(parentPath + File.separatorChar + "cicn_" + id + ".png");
         try {
             ImageIO.write(bi, "png", ofile);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (ofile.exists()) {
@@ -632,10 +607,9 @@ public class HCResource {
         return null;
     }
 
-
-    // -----------
-    // PICT
-    // -----------
+    /**
+     * PICT
+     */
     private static String convertPICT2PICTfile(byte[] b, String parentPath, int id) {
         byte[] header = new byte[512];
 
@@ -645,7 +619,7 @@ public class HCResource {
         try {
             stream = new FileOutputStream(ofile);
         } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
+            logger.log(Level.ERROR, e1.getMessage(), e1);
         }
         if (stream == null) {
             return null;
@@ -656,13 +630,13 @@ public class HCResource {
             stream.write(header);
             stream.write(b);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         try {
             stream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (ofile.exists()) {
@@ -673,45 +647,42 @@ public class HCResource {
         return null;
     }
 
-
-    // -----------
+    //
     // SND
-    // -----------
-    // private static final long nullCmd = 0;
-    // private static final long quietCmd = 3;
-    // private static final long flushCmd = 4;
-    // private static final long reInitCmd = 5;
-    // private static final long waitCmd = 10;
-    // private static final long pauseCmd = 11;
-    // private static final long resumeCmd = 12;
-    // private static final long callBackCmd = 13;
-    // private static final long syncCmd = 14;
-    // private static final long availableCmd = 24;
-    // private static final long versionCmd = 25;
-    // private static final long freqDurationCmd = 40;
-    // private static final long ampCmd = 43;
-    // private static final long volumeCmd  = 46;
-    // private static final long getVolumeCmd = 47;
+    //
+    //private static final long nullCmd = 0;
+    //private static final long quietCmd = 3;
+    //private static final long flushCmd = 4;
+    //private static final long reInitCmd = 5;
+    //private static final long waitCmd = 10;
+    //private static final long pauseCmd = 11;
+    //private static final long resumeCmd = 12;
+    //private static final long callBackCmd = 13;
+    //private static final long syncCmd = 14;
+    //private static final long availableCmd = 24;
+    //private static final long versionCmd = 25;
+    //private static final long freqDurationCmd = 40;
+    //private static final long ampCmd = 43;
+    //private static final long volumeCmd  = 46;
+    //private static final long getVolumeCmd = 47;
     private static final long soundCmd = 80;
     private static final long bufferCmd = 81;
-    // private static final long rateMultiplierCmd = 86;
-    // private static final long getRateMultiplierCmd = 87;
-
+    //private static final long rateMultiplierCmd = 86;
+    //private static final long getRateMultiplierCmd = 87;
 
     private static final long sampledSynth = 5;
-    // private static final long squareWaveSynth = 1;
-    // private static final long waveTableSynth = 3;
-    // private static final long MACE3snthID = 11;
-    // private static final long MACE6snthID = 13;
+    //private static final long squareWaveSynth = 1;
+    //private static final long waveTableSynth = 3;
+    //private static final long MACE3snthID = 11;
+    //private static final long MACE6snthID = 13;
 
     private static final long initMono = 0x0080;
     private static final long initStereo = 0x00C0;
     private static final long initMACE3 = 0x0300;
     private static final long initMACE6 = 0x0400;
 
-
     private static String convertSND2AIFF(byte[] b, String parentPath, int id) {
-        // System.out.println("SND_"+id+".aiff");
+        //logger.log(Level.DEBUG, "SND_"+id+".aiff");
 
         // Create FileInputStream
         FileOutputStream stream = null;
@@ -719,23 +690,22 @@ public class HCResource {
         try {
             stream = new FileOutputStream(ofile);
         } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
+            logger.log(Level.ERROR, e1.getMessage(), e1);
         }
         if (stream == null) {
             return null;
         }
 
-
         // Debug display
-        /*for(int i=0; i<b.length; ){
-            String str1="";
-            String str2="";
-            for(int i2=0; i2<4; i++,i2++){
-                str1 += " "+ b[i];
-                str2 += (char) b[i];
-            }
-            System.out.println(str1+"    "+str2);
-        }*/
+//        for (int i = 0; i < b.length; ) {
+//            String str1 = "";
+//            String str2 = "";
+//            for (int i2 = 0; i2 < 4; i++, i2++) {
+//                str1 += " " + b[i];
+//                str2 += (char) b[i];
+//            }
+//            logger.log(Level.DEBUG, str1 + "    " + str2);
+//        }
 
         int offset = 0;
 
@@ -744,94 +714,88 @@ public class HCResource {
         }
 
         int format = u2(b, offset);
-        // System.out.println("format:"+format);
+        //logger.log(Level.DEBUG, "format: " + format);
         offset += 2;
         if (format == 1) {
             int initMACE = 0;
-            /*int numModifiers =*/
-            u2(b, offset);
-            // System.out.println("numModifiers:"+numModifiers);
+            /* int numModifiers = */ u2(b, offset);
+            //logger.log(Level.DEBUG, "numModifiers: " + numModifiers);
             offset += 2;
             int modNumber = u2(b, offset);
-            // System.out.println("modNumber:"+modNumber);
+            //logger.log(Level.DEBUG, "modNumber: " + modNumber);
             offset += 2;
             if (modNumber == sampledSynth) {
-                // System.out.println("sampledSynth!");
+                //logger.log(Level.DEBUG, "sampledSynth!");
             }
             int modInit = u4(b, offset);
-            // System.out.println("modInit:"+modInit);
+            //logger.log(Level.DEBUG, "modInit: " + modInit);
             offset += 4;
             int channel = 1;
             if ((modInit & initMono) == initMono) {
-                // System.out.println("initMono!");
+                //logger.log(Level.DEBUG, "initMono!");
                 channel = 1;
             }
             if ((modInit & initStereo) == initStereo) {
-                // System.out.println("initStereo!");
+                //logger.log(Level.DEBUG, "initStereo!");
                 channel = 2;
             }
             if ((modInit & initMACE3) == initMACE3) {
-                // System.out.println("initMAC3!");
+                //logger.log(Level.DEBUG, "initMAC3!");
                 initMACE = 3;
             }
             if ((modInit & initMACE6) == initMACE6) {
-                // System.out.println("initMAC6!");
+                //logger.log(Level.DEBUG, "initMAC6!");
                 initMACE = 6;
             }
             int numCommands = u2(b, offset);
-            System.out.println("numCommands:" + numCommands);
+            logger.log(Level.DEBUG, "numCommands:" + numCommands);
             offset += 2;
 
             // SndCommand & data
             for (int n = 0; n < numCommands; n++) {
-                System.out.println("b[0]:" + b[offset]);
-                System.out.println("b[1]:" + b[offset + 1]);
+                logger.log(Level.DEBUG, "b[0]:" + b[offset]);
+                logger.log(Level.DEBUG, "b[1]:" + b[offset + 1]);
                 int sndcmd_cmd = s2(b, offset);
-                System.out.println("sndcmd_cmd:" + sndcmd_cmd);
+                logger.log(Level.DEBUG, "sndcmd_cmd:" + sndcmd_cmd);
                 offset += 2;
                 if ((0x00FF & sndcmd_cmd) == bufferCmd) {
-                    // System.out.println("bufferCmd!");
+                    //logger.log(Level.DEBUG, "bufferCmd!");
                 }
                 int sndcmd_param1 = u2(b, offset);
-                System.out.println("sndcmd_param1:" + sndcmd_param1);
+                logger.log(Level.DEBUG, "sndcmd_param1:" + sndcmd_param1);
                 offset += 2;
                 int sndcmd_param2 = u4(b, offset);
-                System.out.println("sndcmd_param2:" + sndcmd_param2);
+                logger.log(Level.DEBUG, "sndcmd_param2:" + sndcmd_param2);
                 offset += 4;
 
                 if ((0x00FF & sndcmd_cmd) == bufferCmd) {
                     int in_offset = sndcmd_param2;
-                    /*int samplePtr =*/
-                    u4(b, in_offset);
+                    /* int samplePtr = */ u4(b, in_offset);
                     in_offset += 4;
-                    // System.out.println("samplePtr:"+samplePtr);
+                    //logger.log(Level.DEBUG, "samplePtr: " + samplePtr);
                     int length = u4(b, in_offset);
                     in_offset += 4;
-                    // System.out.println("length:"+length);
+                    //logger.log(Level.DEBUG, "length: " + length);
                     int sampleRate = u4(b, in_offset);
                     in_offset += 4;
-                    // System.out.println("sampleRate:"+sampleRate);
-                    /*int loopStart =*/
-                    u4(b, in_offset);
+                    //logger.log(Level.DEBUG, "sampleRate: " + sampleRate);
+                    /* int loopStart = */ u4(b, in_offset);
                     in_offset += 4;
-                    // System.out.println("loopStart:"+loopStart);
-                    /*int loopEnd =*/
-                    u4(b, in_offset);
+                    //logger.log(Level.DEBUG, "loopStart: " + loopStart);
+                    /* int loopEnd = */ u4(b, in_offset);
                     in_offset += 4;
-                    // System.out.println("loopEnd:"+loopEnd);
-                    /*int encode =*/
-                    u1(b, in_offset);
+                    //logger.log(Level.DEBUG, "loopEnd: " + loopEnd);
+                    /* int encode = */ u1(b, in_offset);
                     in_offset += 1;
-                    // System.out.println("encode:"+encode);
-                    /*int baseFrequency =*/
-                    u1(b, in_offset);
+                    //logger.log(Level.DEBUG, "encode: " + encode);
+                    /* int baseFrequency = */ u1(b, in_offset);
                     in_offset += 1;
-                    // System.out.println("baseFrequency:"+baseFrequency);
+                    //logger.log(Level.DEBUG, "baseFrequency: " + baseFrequency);
                     int dataOffset = in_offset;
 
                     // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,
-                            false/*signed*/, true/*big-endian*/);
+                            false, true);
                     InputStream in = new ByteArrayInputStream(b, dataOffset, length);
                     AudioInputStream ais = new AudioInputStream(in, af, length);
                     AudioFileFormat.Type type = AudioFileFormat.Type.AIFF;
@@ -839,7 +803,7 @@ public class HCResource {
                         AudioSystem.write(ais, type, ofile);
                         ais.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
 
@@ -849,7 +813,7 @@ public class HCResource {
                     int length = b.length - dataOffset;
                     // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,
-                            false/*signed*/, true/*big-endian*/);
+                            false, true);
                     InputStream in = new ByteArrayInputStream(b, dataOffset, length);
                     AudioInputStream ais = new AudioInputStream(in, af, length);
                     AudioFileFormat.Type type = AudioFileFormat.Type.AIFF;
@@ -857,7 +821,7 @@ public class HCResource {
                         AudioSystem.write(ais, type, ofile);
                         ais.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
 
                     // Rewrite data for compressed audio
@@ -868,17 +832,18 @@ public class HCResource {
                         raf.seek(4);
                         byte[] ckSizeByte = new byte[4];
                         raf.read(ckSizeByte, 0, 4);
-                        System.out.println("ckSizeByte:" + ckSizeByte[0] + "," + ckSizeByte[1] + "," + ckSizeByte[2] + "," + ckSizeByte[3]);
+                        logger.log(Level.DEBUG, "ckSizeByte:" + ckSizeByte[0] + "," + ckSizeByte[1] + "," + ckSizeByte[2] + "," + ckSizeByte[3]);
                         int ckSize = ((0x00FF & ckSizeByte[0]) << 24) +
                                 ((0x00FF & ckSizeByte[1]) << 16) +
                                 ((0x00FF & ckSizeByte[2]) << 8) +
                                 ((0x00FF & ckSizeByte[3]) << 0);
-                        System.out.println("ckSize:" + ckSize);
+                        logger.log(Level.DEBUG, "ckSize:" + ckSize);
                         ckSize += 16;
                         raf.seek(4);
-                        byte[] ckSizeByte2 = new byte[] {
-                                (byte) (0xFF & (ckSize >> 24)), (byte) (0xFF & (ckSize >> 16)), (byte) (0xFF & (ckSize >> 8)), (byte) (0xFF & ckSize)};
-                        System.out.println("ckSizeByte2:" + ckSizeByte2[0] + "," + ckSizeByte2[1] + "," + ckSizeByte2[2] + "," + ckSizeByte2[3]);
+                        byte[] ckSizeByte2 = {
+                                (byte) (0xFF & (ckSize >> 24)), (byte) (0xFF & (ckSize >> 16)), (byte) (0xFF & (ckSize >> 8)), (byte) (0xFF & ckSize)
+                        };
+                        logger.log(Level.DEBUG, "ckSizeByte2:" + ckSizeByte2[0] + "," + ckSizeByte2[1] + "," + ckSizeByte2[2] + "," + ckSizeByte2[3]);
                         raf.write(ckSizeByte2, 0, 4);
 
                         // 'AIFF'->'AIFC'
@@ -889,17 +854,18 @@ public class HCResource {
                         raf.seek(12 + 4);
                         byte[] cmSizeByte = new byte[4];
                         raf.read(cmSizeByte, 0, 4);
-                        System.out.println("cmSizeByte:" + cmSizeByte[0] + "," + cmSizeByte[1] + "," + cmSizeByte[2] + "," + cmSizeByte[3]);
+                        logger.log(Level.DEBUG, "cmSizeByte:" + cmSizeByte[0] + "," + cmSizeByte[1] + "," + cmSizeByte[2] + "," + cmSizeByte[3]);
                         int cmSize = ((0x00FF & cmSizeByte[0]) << 24) +
                                 ((0x00FF & cmSizeByte[1]) << 16) +
                                 ((0x00FF & cmSizeByte[2]) << 8) +
                                 ((0x00FF & cmSizeByte[3]) << 0);
-                        System.out.println("cmSize:" + cmSize);
+                        logger.log(Level.DEBUG, "cmSize:" + cmSize);
                         cmSize += 16;
                         raf.seek(12 + 4);
-                        byte[] cmSizeByte2 = new byte[] {
-                                (byte) (0xFF & (cmSize >> 24)), (byte) (0xFF & (cmSize >> 16)), (byte) (0xFF & (cmSize >> 8)), (byte) (0xFF & cmSize)};
-                        System.out.println("cmSizeByte2:" + cmSizeByte2[0] + "," + cmSizeByte2[1] + "," + cmSizeByte2[2] + "," + cmSizeByte2[3]);
+                        byte[] cmSizeByte2 = {
+                                (byte) (0xFF & (cmSize >> 24)), (byte) (0xFF & (cmSize >> 16)), (byte) (0xFF & (cmSize >> 8)), (byte) (0xFF & cmSize)
+                        };
+                        logger.log(Level.DEBUG, "cmSizeByte2:" + cmSizeByte2[0] + "," + cmSizeByte2[1] + "," + cmSizeByte2[2] + "," + cmSizeByte2[3]);
                         raf.write(cmSizeByte2, 0, 4);
 
                         // Insert compression info before 'SSND'
@@ -921,61 +887,56 @@ public class HCResource {
                         raf.write(b, dataOffset, b.length - dataOffset);
                         raf.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
             }
         } else {
-            // System.out.println("snd resource version 2.");
+            //logger.log(Level.DEBUG, "snd resource version 2.");
 
-            /*int referenceCnt =*/
-            u2(b, offset);
-            // System.out.println("reference cnt:"+referenceCnt);
+            /* int referenceCnt = */ u2(b, offset);
+            //logger.log(Level.DEBUG, "reference cnt: " + referenceCnt);
             offset += 2;
             int numCommands = u2(b, offset);
-            // System.out.println("numCommands:"+numCommands);
+            //logger.log(Level.DEBUG, "numCommands: " + numCommands);
             offset += 2;
 
             // SndCommand & data
             for (int n = 0; n < numCommands; n++) {
-                // System.out.println("b[0]:"+b[offset]);
-                // System.out.println("b[1]:"+b[offset+1]);
+                //logger.log(Level.DEBUG, "b[0]: " + b[offset]);
+                //logger.log(Level.DEBUG, "b[1]: " + b[offset + 1]);
                 int sndcmd_cmd = s2(b, offset);
-                // System.out.println("sndcmd_cmd:"+sndcmd_cmd);
+                //logger.log(Level.DEBUG, "sndcmd_cmd: " + sndcmd_cmd);
                 offset += 2;
                 if ((0x00FF & sndcmd_cmd) == soundCmd) {
-                    // System.out.println("soundCmd!");
+                    //logger.log(Level.DEBUG, "soundCmd!");
                 }
-                /*int nil =*/
-                u2(b, offset);
-                // System.out.println("nil:"+nil);
+                /* int nil = */ u2(b, offset);
+                //logger.log(Level.DEBUG, "nil: " + nil);
                 offset += 2;
 
                 if ((0x00FF & sndcmd_cmd) == soundCmd) {
-                    /*int samplePtr =*/
-                    u4(b, offset);
+                    /* int samplePtr = */ u4(b, offset);
                     offset += 4;
-                    // System.out.println("samplePtr:"+samplePtr);
-                    /*int ptrtodata =*/
-                    u4(b, offset);
+                    //logger.log(Level.DEBUG, "samplePtr: " + samplePtr);
+                    /* int ptrtodata = */ u4(b, offset);
                     offset += 4;
-                    // System.out.println("ptrtodata:"+ptrtodata);
+                    //logger.log(Level.DEBUG, "ptrtodata: " + ptrtodata);
                     int numofSamples = u4(b, offset);
                     offset += 4;
-                    // System.out.println("numofSamples:"+numofSamples);
+                    //logger.log(Level.DEBUG, "numofSamples: " + numofSamples);
                     int sampleRate = u4(b, offset);
                     offset += 4;
-                    // System.out.println("sampleRate:"+sampleRate);
-                    /*int startByte =*/
-                    u4(b, offset);
+                    //logger.log(Level.DEBUG, "sampleRate: " + sampleRate);
+                    /* int startByte = */ u4(b, offset);
                     offset += 4;
-                    // System.out.println("startByte:"+startByte);
+                    //logger.log(Level.DEBUG, "startByte: " + startByte);
                     int endByte = u4(b, offset);
                     offset += 4;
-                    // System.out.println("endByte:"+endByte);
+                    //logger.log(Level.DEBUG, "endByte: " + endByte);
                     int baseNote = u2(b, offset);
                     offset += 2;
-                    // System.out.println("baseNote:"+baseNote);
+                    //logger.log(Level.DEBUG, "baseNote: " + baseNote);
                     if (baseNote > 32767) {
                         numofSamples = endByte;
                     }
@@ -987,18 +948,18 @@ public class HCResource {
 
                     // Convert to AIFF format
                     AudioFormat af = new AudioFormat(sampleRate / 65536.0f, 8, channel,
-                            false/*signed*/, true/*big-endian*/);
+                            false, true);
                     InputStream in = new ByteArrayInputStream(b, dataOffset, length);
                     AudioInputStream ais = new AudioInputStream(in, af, length);
                     AudioFileFormat.Type type = AudioFileFormat.Type.AIFF;
                     if (baseNote > 32767) {
-                        // type = AudioFileFormat.Type.AIFC;
+                        //type = AudioFileFormat.Type.AIFC;
                     }
                     try {
                         AudioSystem.write(ais, type, ofile);
                         ais.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
 
                     if (baseNote > 32767) {
@@ -1010,17 +971,17 @@ public class HCResource {
                             raf.seek(4);
                             byte[] ckSizeByte = new byte[4];
                             raf.read(ckSizeByte, 0, 4);
-                            // System.out.println("ckSizeByte:"+ckSizeByte[0]+","+ckSizeByte[1]+","+ckSizeByte[2]+","+ckSizeByte[3]);
+                            //logger.log(Level.DEBUG, "ckSizeByte: " + ckSizeByte[0] + ", " + ckSizeByte[1] + ", " + ckSizeByte[2] + ", " + ckSizeByte[3]);
                             int ckSize = ((0x00FF & ckSizeByte[0]) << 24) +
                                     ((0x00FF & ckSizeByte[1]) << 16) +
                                     ((0x00FF & ckSizeByte[2]) << 8) +
                                     ((0x00FF & ckSizeByte[3]) << 0);
-                            // System.out.println("ckSize:"+ckSize);
+                            //logger.log(Level.DEBUG, "ckSize: " + ckSize);
                             ckSize += 16;
                             raf.seek(4);
                             byte[] ckSizeByte2 = new byte[] {
                                     (byte) (0xFF & (ckSize >> 24)), (byte) (0xFF & (ckSize >> 16)), (byte) (0xFF & (ckSize >> 8)), (byte) (0xFF & ckSize)};
-                            // System.out.println("ckSizeByte2:"+ckSizeByte2[0]+","+ckSizeByte2[1]+","+ckSizeByte2[2]+","+ckSizeByte2[3]);
+                            //logger.log(Level.DEBUG, "ckSizeByte2: " + ckSizeByte2[0] + ", " + ckSizeByte2[1] + ", " + ckSizeByte2[2] + ", " + ckSizeByte2[3]);
                             raf.write(ckSizeByte2, 0, 4);
 
                             // 'AIFF'->'AIFC'
@@ -1031,17 +992,17 @@ public class HCResource {
                             raf.seek(12 + 4);
                             byte[] cmSizeByte = new byte[4];
                             raf.read(cmSizeByte, 0, 4);
-                            // System.out.println("cmSizeByte:"+cmSizeByte[0]+","+cmSizeByte[1]+","+cmSizeByte[2]+","+cmSizeByte[3]);
+                            //logger.log(Level.DEBUG, "cmSizeByte: " + cmSizeByte[0] + ", " + cmSizeByte[1] + ", " + cmSizeByte[2] + ", " + cmSizeByte[3]);
                             int cmSize = ((0x00FF & cmSizeByte[0]) << 24) +
                                     ((0x00FF & cmSizeByte[1]) << 16) +
                                     ((0x00FF & cmSizeByte[2]) << 8) +
                                     ((0x00FF & cmSizeByte[3]) << 0);
-                            // System.out.println("cmSize:"+cmSize);
+                            //logger.log(Level.DEBUG, "cmSize: " + cmSize);
                             cmSize += 16;
                             raf.seek(12 + 4);
                             byte[] cmSizeByte2 = new byte[] {
                                     (byte) (0xFF & (cmSize >> 24)), (byte) (0xFF & (cmSize >> 16)), (byte) (0xFF & (cmSize >> 8)), (byte) (0xFF & cmSize)};
-                            // System.out.println("cmSizeByte2:"+cmSizeByte2[0]+","+cmSizeByte2[1]+","+cmSizeByte2[2]+","+cmSizeByte2[3]);
+                            //logger.log(Level.DEBUG, "cmSizeByte2: " + cmSizeByte2[0] + ", " + cmSizeByte2[1] + ", " + cmSizeByte2[2] + ", " + cmSizeByte2[3]);
                             raf.write(cmSizeByte2, 0, 4);
 
                             // Insert compression info before 'SSND'
@@ -1063,7 +1024,7 @@ public class HCResource {
                             raf.write(b, dataOffset, length);
                             raf.close();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     }
                 }
@@ -1073,7 +1034,7 @@ public class HCResource {
         try {
             stream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (ofile.exists()) {
@@ -1084,12 +1045,10 @@ public class HCResource {
         return null;
     }
 
-
-    // -----------
-    // CURS
-    // -----------
-    private static void convertCURS2Cursor(byte[] b, String parentPath, int id,
-                                           String name, Rsrc rsrc) {
+    /**
+     * CURS
+     */
+    private static void convertCURS2Cursor(byte[] b, String parentPath, int id, String name, Rsrc rsrc) {
         // Load cursor data
         // 16*16-bit image, mask, Point type
 
@@ -1115,23 +1074,20 @@ public class HCResource {
         try {
             ImageIO.write(bi, "png", ofile);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (ofile.exists()) {
             // Conversion successful
             int y = u2(b, (16 * 16 * 2) / 8);
             int x = u2(b, (16 * 16 * 2) / 8);
-            rsrc.addResource(id, "cursor", name, ofile.getName(),
-                    Integer.toString(x), Integer.toString(y));
+            rsrc.addResource(id, "cursor", name, ofile.getName(), Integer.toString(x), Integer.toString(y));
         }
-
     }
 
-
-    // -----------
-    // FONT,NFNT
-    // -----------
+    /**
+     * FONT,NFNT
+     */
     @SuppressWarnings("unused")
     private static void convertFONT2PNG(byte[] b, String parentPath, int id, String name, Rsrc rsrc) {
         // Load font data
@@ -1147,46 +1103,46 @@ public class HCResource {
 
         fontinfo.fontType = u2(b, offset);
         offset += 2;
-        // System.out.println("fontType:"+fontType);
+        //logger.log(Level.DEBUG, "fontType: " + fontType);
         int firstChar = u2(b, offset);
         fontinfo.firstChar = (char) firstChar;
         offset += 2;
-        // System.out.println("firstChar:"+firstChar);
+        //logger.log(Level.DEBUG, "firstChar: " + firstChar);
         int lastChar = u2(b, offset);
         fontinfo.lastChar = (char) lastChar;
         offset += 2;
-        // System.out.println("lastChar:"+lastChar);
+        //logger.log(Level.DEBUG, "lastChar: " + lastChar);
         fontinfo.widMax = u2(b, offset);
         offset += 2;
-        // System.out.println("widMax:"+widMax);
+        //logger.log(Level.DEBUG, "widMax: " + widMax);
         fontinfo.kernMax = u2(b, offset);
         offset += 2;
-        // System.out.println("kernMax:"+kernMax);
+        //logger.log(Level.DEBUG, "kernMax: " + kernMax);
         fontinfo.nDescent = u2(b, offset);
         offset += 2;
-        // System.out.println("nDescent:"+nDescent);
+        //logger.log(Level.DEBUG, "nDescent: " + nDescent);
         fontinfo.fRectWidth = u2(b, offset);
         offset += 2;
-        // System.out.println("fRectWidth:"+fRectWidth);
+        //logger.log(Level.DEBUG, "fRectWidth: " + fRectWidth);
         int fRectHeight = u2(b, offset);
         fontinfo.fRectHeight = fRectHeight;
         offset += 2;
-        // System.out.println("fRectHeight:"+fRectHeight);
+        //logger.log(Level.DEBUG, "fRectHeight: " + fRectHeight);
         fontinfo.owTLoc = u2(b, offset);
         offset += 2;
-        // System.out.println("owTLoc:"+owTLoc);
+        //logger.log(Level.DEBUG, "owTLoc: " + owTLoc);
         fontinfo.ascent = u2(b, offset);
         offset += 2;
-        // System.out.println("ascent:"+ascent);
+        //logger.log(Level.DEBUG, "ascent: " + ascent);
         fontinfo.descent = u2(b, offset);
         offset += 2;
-        // System.out.println("descent:"+descent);
+        //logger.log(Level.DEBUG, "descent: " + descent);
         fontinfo.leading = u2(b, offset);
         offset += 2;
-        // System.out.println("leading:"+leading);
+        //logger.log(Level.DEBUG, "leading: " + leading);
         int rowWords = u2(b, offset);
         offset += 2;
-        // System.out.println("rowWords:"+rowWords);
+        //logger.log(Level.DEBUG, "rowWords: " + rowWords);
         int bitimageOffset = offset;
         offset += rowWords * 2 * fRectHeight;
         int loctableOffset = offset;
@@ -1205,7 +1161,7 @@ public class HCResource {
             fontinfo.widthes[i] = b[loctableOffset + i * 2 + 1];
         }
 
-        // System.out.println("compare:"+(b.length - offset));
+        //logger.log(Level.DEBUG, "compare: " + (b.length - offset));
 
         if (rowWords == 0) return;
 
@@ -1224,25 +1180,21 @@ public class HCResource {
         try {
             ImageIO.write(bi, "png", ofile);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (ofile.exists()) {
             // Conversion successful
             int x = firstChar;
             int y = lastChar;
-            rsrc.addFontResource(id, "font", name, ofile.getName(),
-                    fontinfo);
+            rsrc.addFontResource(id, "font", name, ofile.getName(), fontinfo);
         }
-
     }
 
-
-    // -----------
-    // XCMD,XFCN
-    // -----------
-    private static void convertXCMD2file(byte[] b,
-                                         String type, int id, String name, OStack stack) {
+    /**
+     * XCMD,XFCN
+     */
+    private static void convertXCMD2file(byte[] b, String type, int id, String name, OStack stack) {
         String funcStr = "";
         if (type.equals("XCMD") || type.equals("xcmd")) {
             funcStr = "command";
@@ -1264,21 +1216,19 @@ public class HCResource {
             stream.write(b);
             stream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         // Add to XCMD map
-        Rsrc.xcmdClass xcmd = new Rsrc.xcmdClass(
+        XcmdClass xcmd = new XcmdClass(
                 Integer.toString(id), funcStr, name, path, "mac" + platform, Integer.toString(b.length));
         stack.rsrc.addXcmd(xcmd);
     }
 
-
-    // -----------
-    // AddColor
-    // -----------
-    private static void convertAddColorResource(Rsrc.addcolorClass parent,
-                                                byte[] b) {
+    /**
+     * AddColor
+     */
+    private static void convertAddColorResource(AddColorClass parent, byte[] b) {
         int offset = 0;
 
         while (offset + 2 < b.length) {
@@ -1352,10 +1302,7 @@ public class HCResource {
         }
     }
 
-
-    // -----------
-    // PLTE
-    // -----------
+    /** PLTE */
     private static void convertPLTEResource(Rsrc.PlteClass plteOwner, byte[] b, Rsrc rsrc) {
         int offset = 0;
 
@@ -1413,12 +1360,8 @@ public class HCResource {
         }
     }
 
-
-    // -----------
-    // Other Resources
-    // -----------
-    private static String convertRsrc2file(byte[] b,
-                                           String type, String parentPath, int id, String name) {
+    /** Other Resources */
+    private static String convertRsrc2file(byte[] b, String type, String parentPath, int id, String name) {
         String path = parentPath + File.separatorChar + type + "_" + id + ".data";
         File file = null;
         try {
@@ -1427,7 +1370,7 @@ public class HCResource {
             stream.write(b);
             stream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         if (file.exists()) {
@@ -1438,4 +1381,3 @@ public class HCResource {
         return null;
     }
 }
-

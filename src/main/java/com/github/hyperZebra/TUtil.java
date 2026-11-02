@@ -13,6 +13,8 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -36,8 +38,9 @@ import com.github.hyperZebra.Rsrc.PlteBtnObject;
 
 public class TUtil {
 
-    static TUtil tutil = new TUtil();
+    private static final Logger logger = System.getLogger(TUtil.class.getName());
 
+    static TUtil tutil = new TUtil();
 
     // HyperTalk built-in functions
     public static Result CallSystemFunction(String message, String[] params, OObject target, MemoryData memData, boolean isFunc)
@@ -274,9 +277,12 @@ public class TUtil {
         } else if (0 == message.compareTo("param")) {
             // param of i
             if (params.length < 1) throw new XTalkException("Argument is required");
-            int i = Integer.parseInt(params[0]) - 1;
-            if (i >= 0 && i < memData.params.length) {
-                result.theResult = memData.params[i];
+            int i = Integer.parseInt(params[0].trim());
+            result.theResult = "";
+            if (i == 0) {
+                result.theResult = memData.message != null ? memData.message : "";
+            } else if (memData.params != null && i >= 1 && i <= memData.params.length && memData.params[i - 1] != null) {
+                result.theResult = memData.params[i - 1];
             }
             result.ret = 0;
         } else if (0 == message.compareTo("annuity")) {
@@ -423,27 +429,27 @@ public class TUtil {
             try {
                 result.theResult = Integer.toString((int) Files.getFileStore(PCARD.pc.stack.file).getUsableSpace());
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         } else if (0 == message.compareTo("screenrect")) {
             Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
             result.theResult = "0,0," + d.width + "," + d.height;
         } else if (0 == message.compareTo("windows")) {
             StringBuilder windowsStr = new StringBuilder();
-            /*Frame[] frame = PCARD.getFrames();
-            for(int i=0; i<frame.length; i++){
-                if(GMsg.class == frame[i].getClass()){
-                    if(!windowsStr.equals("")) windowsStr+="\n";
-                    windowsStr += "Message";
-                }
-                if(!windowsStr.equals("")) windowsStr+="\n";
-                windowsStr += frame[i].getName();
-            }*/
-            /*Window[] win = PCARD.getWindows();
-            for(int i=0; i<win.length; i++){
-                if(!windowsStr.equals("")) windowsStr+="\n";
-                windowsStr += win[i].getName();
-            }*/
+//            Frame[] frame = PCARD.getFrames();
+//            for (int i = 0; i < frame.length; i++) {
+//                if (GMsg.class == frame[i].getClass()) {
+//                    if (!windowsStr.equals("")) windowsStr += "\n";
+//                    windowsStr += "Message";
+//                }
+//                if (!windowsStr.equals("")) windowsStr += "\n";
+//                windowsStr += frame[i].getName();
+//            }
+//            Window[] win = PCARD.getWindows();
+//            for (int i = 0; i < win.length; i++) {
+//                if (!windowsStr.equals("")) windowsStr += "\n";
+//                windowsStr += win[i].getName();
+//            }
             for (int i = 0; i < OWindow.list.size(); i++) {
                 if (!windowsStr.isEmpty()) windowsStr.append("\n");
                 windowsStr.append(OWindow.list.get(i).name);
@@ -534,7 +540,7 @@ public class TUtil {
         } else if (0 == message.compareTo("stacks")) {
             result.theResult = PCARD.pc.stack.path; // Only one can be started
         } else if (0 == message.compareTo("suspended")) {
-            result.theResult = PCARD.pc.isFocused() ? "false" : "true";
+            result.theResult = Boolean.toString(!PCARD.pc.isFocused());
         } else if (0 == message.compareTo("foundline")) {
             int offset = PCARD.pc.foundIndex;
             if (PCARD.pc.foundObject == null) {
@@ -644,7 +650,7 @@ public class TUtil {
             result.theResult = ""; // Anyway return empty
             result.ret = 0;
         } else {
-            System.out.println("Undefined function/property: " + message);
+            logger.log(Level.DEBUG, "Undefined function/property: " + message);
         }
 
         return result;
@@ -724,7 +730,7 @@ public class TUtil {
                         bi = ImageIO.read(new File(params[0]));
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
             }
             if (bi != null) {
@@ -780,13 +786,17 @@ public class TUtil {
             }
             result.ret = 0;
         } else {
-            if (!isFunc && PCARD.pc.stack.rsrc.getxcmdId(message, "command") > 0 ||
-                    isFunc && PCARD.pc.stack.rsrc.getxcmdId(message, "function") > 0) {
+            if (!isFunc && PCARD.pc.stack.rsrc.getxcmdIdAll(message, "command") > 0 ||
+                    isFunc && PCARD.pc.stack.rsrc.getxcmdIdAll(message, "function") > 0 ||
+                    TXcmd.isBuiltin(message)) {
                 return TXcmd.CallExternalCommand(message, params, target, memData, isFunc, result);
             } else {
                 result = CallSystemFunction(message.toLowerCase(), params, target, memData, isFunc);
-                if (result.theResult == null || result.theResult.isEmpty()) {
-                    System.out.println("Undefined function: " + message);
+                if (result.theResult == null && result.ret == 0) {
+                    result.theResult = "";
+                }
+                if (result.theResult == null || result.theResult.isEmpty() && result.ret != 0) {
+                    logger.log(Level.DEBUG, "Undefined function: " + message);
                     throw new XTalkException(message + " is unknown");
                 }
             }
@@ -794,7 +804,6 @@ public class TUtil {
 
         return result;
     }
-
 
     static SendMsgListener sendMsgListener = new SendMsgListener();
 
@@ -826,15 +835,35 @@ public class TUtil {
     public static String getProperty(
             String inProperty, OObject obj, OObject target, MemoryData memData) throws XTalkException {
         String prpty = inProperty.toLowerCase();
+        if (obj instanceof OWindow w && w.movie != null) {
+            String v = w.movie.getProperty(prpty);
+            if (v != null) return v;
+        }
+        if (obj instanceof OMenuItem mi) {
+            String v = HCMenus.getProperty(mi.item, prpty);
+            if (v != null) return v;
+        }
+        if (obj == OWindow.cdwindow && PCARD.pc.stack != null && PCARD.pc.mainPane != null) {
+            java.awt.Point p = PCARD.pc.mainPane.isShowing() ? PCARD.pc.mainPane.getLocationOnScreen() : new java.awt.Point(0, 0);
+            int w = PCARD.pc.stack.width, h = PCARD.pc.stack.height;
+            switch (prpty) {
+                case "rect" -> { return p.x + "," + p.y + "," + (p.x + w) + "," + (p.y + h); }
+                case "loc" -> { return (p.x + w / 2) + "," + (p.y + h / 2); }
+                case "topleft" -> { return p.x + "," + p.y; }
+                case "width" -> { return Integer.toString(w); }
+                case "height" -> { return Integer.toString(h); }
+                default -> { }
+            }
+        }
         OButton btn = null;
         OField fld = null;
         OCard cd = null;
         OBackground bg = null;
-        // OStack stk=null;
+        //OStack stk = null;
 
-        /*if(obj==null) {
-            return CallSystemFunction(prpty, null, target, memData, true).theResult;
-        }*/
+//        if (obj == null) {
+//            return CallSystemFunction(prpty, null, target, memData, true).theResult;
+//        }
 
         if (0 == obj.objectType.compareTo("button"))
             btn = (OButton) obj;
@@ -855,16 +884,16 @@ public class TUtil {
         } else if (0 == prpty.compareTo("hilite") || 0 == prpty.compareTo("highlight") || 0 == prpty.compareTo("highlite") || 0 == prpty.compareTo("hilight")) {
             if (btn != null) {
                 if (btn.btn != null) {
-                    return (btn.btn.hilite) ? "true" : "false";
+                    return Boolean.toString(btn.btn.highlight);
                 } else {
-                    return (btn.check_hilite) ? "true" : "false";
+                    return btn.checkHilite.toString();
                 }
             } else return "";
         } else if (0 == prpty.compareTo("enabled")) {
             if (btn != null) {
-                return (btn.enabled) ? "true" : "false";
+                return Boolean.toString(btn.enabled);
             } else if (fld != null) {
-                return (fld.enabled) ? "true" : "false";
+                return Boolean.toString(fld.enabled);
             } else return "";
         } else if (0 == prpty.compareTo("selectedtext")) {
             if (fld != null) return fld.getSelectedText();
@@ -893,13 +922,12 @@ public class TUtil {
                 }
             }
             return "";
+//        } else if (0 == prpty.compareTo("selectedbutton")) {
+//            // Button selected within family
+//            return "";
         }
-        /*else if(0==prpty.compareTo("selectedbutton")){
-            // Button selected within family
-            return "";
-        }*/
         else if (0 == prpty.compareTo("autohilite")) {
-            if (btn != null) return (btn.btn.autoHilite) ? "true" : "false";
+            if (btn != null) return Boolean.toString(btn.btn.autoHighlight);
             else return "";
         } else if (0 == prpty.compareTo("left")) {
             return Integer.toString(obj.left);
@@ -920,14 +948,14 @@ public class TUtil {
         } else if (0 == prpty.compareTo("height")) {
             return Integer.toString(obj.height);
         } else if (0 == prpty.compareTo("visible")) {
-            return (obj.getVisible() == true) ? "true" : "false";
+            return Boolean.toString(obj.getVisible());
         } else if (0 == prpty.compareTo("locktext")) {
             if (obj.objectType.equals("field")) {
-                return (obj.enabled) ? "true" : "false";
+                return Boolean.toString(obj.enabled);
             } else throw new XTalkException("lockText can only be referenced by fields");
         } else if (0 == prpty.compareTo("showpict")) {
             if (obj.objectType.equals("card") || obj.objectType.equals("background")) {
-                return (((OCardBase) obj).showPict == true) ? "true" : "false";
+                return Boolean.toString(((OCardBase) obj).showPict == true);
             } else throw new XTalkException("showPict can only be referenced by cards and backgrounds");
         } else if (0 == prpty.compareTo("short name")) {
             if (!obj.name.isEmpty()) return obj.name;
@@ -952,10 +980,10 @@ public class TUtil {
         } else if (0 == prpty.compareTo("number")) {
             if (fld != null) return Integer.toString(((OCardBase) fld.parent).GetNumberof(fld));
             if (btn != null) return Integer.toString(((OCardBase) btn.parent).GetNumberof(btn));
-            if (cd != null) return Integer.toString(cd.stack.GetNumberof(cd));
-            if (bg != null) return Integer.toString(bg.stack.GetNumberof(bg));
+            if (cd != null) return Integer.toString(cd.stack.getNumberOf(cd));
+            if (bg != null) return Integer.toString(bg.stack.getNumberOf(bg));
             else {
-                System.out.println("Undefined object property: " + prpty);
+                logger.log(Level.DEBUG, "Undefined object property: " + prpty);
                 return "";
             }
         } else if (0 == prpty.compareTo("script")) {
@@ -968,7 +996,7 @@ public class TUtil {
         } else if (0 == prpty.compareTo("freesize")) {
             if (obj.objectType.equals("stack")) {
                 return "0";
-            } else System.out.println("Undefined object property: " + prpty);
+            } else logger.log(Level.DEBUG, "Undefined object property: " + prpty);
         } else if (0 == prpty.compareTo("style")) {
             if (fld != null) {
                 return switch (fld.style) {
@@ -995,7 +1023,7 @@ public class TUtil {
                     case 10 -> "radio";
                     default -> "???";
                 };
-            } else System.out.println("This object does not have property " + prpty);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("textstyle")) {
             String styleStr = "";
             if (fld != null) {
@@ -1022,25 +1050,25 @@ public class TUtil {
                 if (styleStr.isEmpty()) styleStr = "plain";
                 else styleStr = styleStr.substring(0, styleStr.length() - 1);
                 return styleStr;
-            } else System.out.println("This object does not have property " + prpty);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("cantmodify")) {
             if (obj.objectType.equals("stack")) {
-                return (((OStack) obj).cantModify == true) ? "true" : "false";
-            } else System.out.println("This object does not have property " + prpty);
+                return Boolean.toString(((OStack) obj).cantModify);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("cantabort")) {
             if (obj.objectType.equals("stack")) {
-                return (((OStack) obj).cantAbort == true) ? "true" : "false";
-            } else System.out.println("This object does not have property " + prpty);
+                return Boolean.toString(((OStack) obj).cantAbort);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("blendingmode")) {
             if (obj.objectType.equals("button")) {
                 if (((OButton) obj).blendMode == 0) return "copy";
                 else if (((OButton) obj).blendMode == 1) return "blend";
                 else return "";
-            } else System.out.println("This object does not have property " + prpty);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("blendinglevel")) {
             if (obj.objectType.equals("button")) {
                 return Integer.toString(((OButton) obj).blendLevel);
-            } else System.out.println("This object does not have property " + prpty);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("color")) {
             if (obj.objectType.equals("button")) {
                 Color col = ((OButton) obj).color;
@@ -1049,7 +1077,7 @@ public class TUtil {
             if (obj.objectType.equals("field")) {
                 Color col = ((OField) obj).color;
                 return col.getRed() * 256 + "," + col.getGreen() * 256 + "," + col.getBlue() * 256;
-            } else System.out.println("This object does not have property " + prpty);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("backcolor")) {
             if (obj.objectType.equals("button")) {
                 Color col = ((OButton) obj).bgColor;
@@ -1058,7 +1086,7 @@ public class TUtil {
             if (obj.objectType.equals("field")) {
                 Color col = ((OField) obj).bgColor;
                 return col.getRed() * 256 + "," + col.getGreen() * 256 + "," + col.getBlue() * 256;
-            } else System.out.println("This object does not have property " + prpty);
+            } else logger.log(Level.DEBUG, "This object does not have property " + prpty);
         } else if (0 == prpty.compareTo("size")) {
             File parent = PCARD.pc.stack.file.getParent().toFile();
             int size = 0;
@@ -1070,7 +1098,7 @@ public class TUtil {
             }
             return Integer.toString(size);
         } else {
-            System.out.println("Undefined object property: " + prpty);
+            logger.log(Level.DEBUG, "Undefined object property: " + prpty);
         }
         return "";
     }
@@ -1079,6 +1107,18 @@ public class TUtil {
             OObject obj, String inProperty, String value)
             throws XTalkException {
         String prpty = inProperty.toLowerCase();
+        if (obj instanceof OMenuItem mi && HCMenus.setProperty(mi.item, prpty, value)) {
+            return;
+        }
+        if (obj instanceof OWindow w) {
+            if (w.movie != null && w.movie.setProperty(prpty, value)) return;
+            if (w == OWindow.cdwindow && prpty.matches("loc|rect|topleft|width|height|scroll")) {
+                return; // the card window is laid out by HyperZebra
+            }
+            if (w.frame == null && w.dlog == null && w.mp3 == null && w.gpw == null && w.movie == null) {
+                return; // a window HyperZebra does not have
+            }
+        }
         OButton btn = null;
         OField fld = null;
         OCard cd = null;
@@ -1135,20 +1175,20 @@ public class TUtil {
                 }
             } else if (0 == prpty.compareTo("cursor")) {
                 Cursor cr = null;
-                        /*new Cursor(Cursor.CROSSHAIR_CURSOR) ,
-                        new Cursor(Cursor.DEFAULT_CURSOR) ,
-                        new Cursor(Cursor.HAND_CURSOR) ,
-                        new Cursor(Cursor.MOVE_CURSOR) ,
-                        new Cursor(Cursor.WAIT_CURSOR) ,
-                        new Cursor(Cursor.TEXT_CURSOR) ,
-                        new Cursor(Cursor.SW_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.SE_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.NW_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.NE_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.N_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.S_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.W_RESIZE_CURSOR) ,
-                        new Cursor(Cursor.E_RESIZE_CURSOR) ,*/
+//                new Cursor(Cursor.CROSSHAIR_CURSOR),
+//                        new Cursor(Cursor.DEFAULT_CURSOR),
+//                        new Cursor(Cursor.HAND_CURSOR),
+//                        new Cursor(Cursor.MOVE_CURSOR),
+//                        new Cursor(Cursor.WAIT_CURSOR),
+//                        new Cursor(Cursor.TEXT_CURSOR),
+//                        new Cursor(Cursor.SW_RESIZE_CURSOR),
+//                        new Cursor(Cursor.SE_RESIZE_CURSOR),
+//                        new Cursor(Cursor.NW_RESIZE_CURSOR),
+//                        new Cursor(Cursor.NE_RESIZE_CURSOR),
+//                        new Cursor(Cursor.N_RESIZE_CURSOR),
+//                        new Cursor(Cursor.S_RESIZE_CURSOR),
+//                        new Cursor(Cursor.W_RESIZE_CURSOR),
+//                        new Cursor(Cursor.E_RESIZE_CURSOR) ,
                 if (value.equalsIgnoreCase("hand") || value.equalsIgnoreCase("browse")) {
                     cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
                 } else if (value.equalsIgnoreCase("watch")) {
@@ -1161,7 +1201,7 @@ public class TUtil {
                     cr = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
                 } else if (value.equalsIgnoreCase("ibeam")) {
                     cr = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
-                } else if (value.equalsIgnoreCase("none")) {
+                } else if (value.equalsIgnoreCase("none") || value.equalsIgnoreCase("blank")) {
                     BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
                     Point hotSpot = new Point(0, 0);
                     String name = "none-cursor";
@@ -1181,10 +1221,11 @@ public class TUtil {
                             Toolkit kit = Toolkit.getDefaultToolkit();
                             cr = kit.createCustomCursor(bi, hotSpot, name);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.ERROR, e.getMessage(), e);
                         }
                     } else {
-                        throw new XTalkException("Cursor " + value + " does not exist");
+                        logger.log(Level.DEBUG, "Cursor " + value + " does not exist");
+                        cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
                     }
                 }
                 if (cr != null)
@@ -1221,6 +1262,8 @@ public class TUtil {
                 } else if (value.equalsIgnoreCase("false")) {
                     PaintTool.editBackground = false;
                 } else throw new XTalkException("A boolean value is required here");
+            } else if (prpty.matches("blindtyping|powerkeys|textarrows|usermodify|lockrecent|printmargins|printtextalign|printtextfont|printtextsize|printtextstyle|printtextheight|soundchannel")) {
+                logger.log(Level.DEBUG, "ignored property: " + prpty);
             } else throw new XTalkException("Property " + prpty + " is unknown");
             return;
         }
@@ -1231,10 +1274,10 @@ public class TUtil {
             fld = (OField) obj;
         if (0 == obj.objectType.compareTo("card"))
             cd = (OCard) obj;
-        /*if(0==obj.objectType.compareTo("background"))
-            bg=(OBackground)obj;
-        if(0==obj.objectType.compareTo("stack"))
-            stk=(OStack)obj;*/
+//        if (0 == obj.objectType.compareTo("background"))
+//            bg = (OBackground) obj;
+//        if (0 == obj.objectType.compareTo("stack"))
+//            stk = (OStack) obj;
 
         if (0 == prpty.compareTo("icon")) {
             if (btn != null) {
@@ -1258,24 +1301,24 @@ public class TUtil {
             } else if (fld != null) {
                 fld.setVisible(0 == value.compareToIgnoreCase("true"));
             } else if (0 == obj.objectType.compareTo("titlebar")) {
-                // PCARD.pc.setVisible(false);
-                // PCARD.pc.setUndecorated(0!=value.compareToIgnoreCase("true"));
-                // PCARD.pc.setVisible(true);
+                //PCARD.pc.setVisible(false);
+                //PCARD.pc.setUndecorated(0!=value.compareToIgnoreCase("true"));
+                //PCARD.pc.setVisible(true);
             } else if (0 == obj.objectType.compareTo("menubar")) {
-                /*GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                GraphicsDevice device = ge.getDefaultScreenDevice();  // Get GraphicsDevice
-
-                if (device.isFullScreenSupported()) {
-                    // Fullscreen!
-                    device.setFullScreenWindow(PCARD.pc);
-                }*/
+//                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//                GraphicsDevice device = ge.getDefaultScreenDevice();  // Get GraphicsDevice
+//
+//                if (device.isFullScreenSupported()) {
+//                    // Fullscreen!
+//                    device.setFullScreenWindow(PCARD.pc);
+//                }
 
                 // Cannot hide menu with this, so create a window without menu and move there? Meaningless on Mac.
-                /*if(0==value.compareToIgnoreCase("true")){
-                    PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
-                }else{
-                    PCARD.pc.setJMenuBar(new JMenuBar());
-                }*/
+//                if (0 == value.compareToIgnoreCase("true")) {
+//                    PCARD.pc.setJMenuBar(PCARD.pc.menu.mb);
+//                } else {
+//                    PCARD.pc.setJMenuBar(new JMenuBar());
+//                }
             } else if (0 == obj.objectType.compareTo("msg")) {
                 boolean b = 0 == value.compareToIgnoreCase("true");
                 GMsg.msg.setVisible(b);
@@ -1315,7 +1358,7 @@ public class TUtil {
             if (btn != null) {
                 btn.setHilite(0 == value.compareToIgnoreCase("true"));
             } else if (fld != null) {
-                fld.setHilite(0 == value.compareToIgnoreCase("true"));
+                fld.setHighLight(0 == value.compareToIgnoreCase("true"));
             } else throw new XTalkException("Cannot set hilite for this object");
         } else if (0 == prpty.compareTo("text")) {
             if (btn != null) btn.setText(value);
@@ -1444,26 +1487,21 @@ public class TUtil {
                 if (GMsg.msg != null) {
                     GMsg.msg.setBounds(PCARD.pc.getX() + v1, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2, GMsg.msg.getWidth(), GMsg.msg.getHeight());
                 }
+//            } else {
+//                throw new XTalkException("Cannot set loc for this object??");
+//            } else if (0 == obj.objectType.compareTo("window")) {
+//                if (((OWindow) obj).frame != null) {
+//                    ((OWindow) obj).frame.setBounds(PCARD.pc.getX() + v1 - ((OWindow) obj).frame.getWidth() / 2, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2 - ((OWindow) obj).frame.getHeight() / 2, ((OWindow) obj).frame.getWidth(), ((OWindow) obj).frame.getHeight());
+//                } else if (((OWindow) obj).gpw != null) {
+//                    ((OWindow) obj).gpw.setBounds(PCARD.pc.getX() + v1 - ((OWindow) obj).gpw.getWidth() / 2, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2 - ((OWindow) obj).gpw.getHeight() / 2, ((OWindow) obj).gpw.getWidth(), ((OWindow) obj).gpw.getHeight());
+//                } else {
+//                    throw new XTalkException("Cannot set loc for this object??");
+//                }
+//            } else if (0 == obj.objectType.compareTo("msg")) {
+//                if (GMsg.msg != null) {
+//                    GMsg.msg.setBounds(PCARD.pc.getX() + v1 - GMsg.msg.getWidth() / 2, PCARD.pc.getY() + PCARD.pc.getInsets().top + v2 - GMsg.msg.getHeight() / 2, GMsg.msg.getWidth(), GMsg.msg.getHeight());
+//                }
             }
-            /*else{
-                throw new XTalkException("Cannot set loc for this object??");
-            }*/
-            /*else if(0==obj.objectType.compareTo("window")){
-                if(((OWindow)obj).frame!=null){
-                    ((OWindow)obj).frame.setBounds(PCARD.pc.getX()+v1-((OWindow)obj).frame.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-((OWindow)obj).frame.getHeight()/2, ((OWindow)obj).frame.getWidth(), ((OWindow)obj).frame.getHeight());
-                }
-                else if(((OWindow)obj).gpw!=null){
-                    ((OWindow)obj).gpw.setBounds(PCARD.pc.getX()+v1-((OWindow)obj).gpw.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-((OWindow)obj).gpw.getHeight()/2, ((OWindow)obj).gpw.getWidth(), ((OWindow)obj).gpw.getHeight());
-                }
-                else{
-                    throw new XTalkException("Cannot set loc for this object??");
-                }
-            }
-            else if(0==obj.objectType.compareTo("msg")){
-                if(GMsg.msg!=null){
-                    GMsg.msg.setBounds(PCARD.pc.getX()+v1-GMsg.msg.getWidth()/2, PCARD.pc.getY()+PCARD.pc.getInsets().top+v2-GMsg.msg.getHeight()/2, GMsg.msg.getWidth(), GMsg.msg.getHeight());
-                }
-            }*/
             else throw new XTalkException("Cannot set loc for this object");
         } else if (0 == prpty.compareTo("rect") || 0 == prpty.compareTo("rectangle")) {
             int v1, v2, v3, v4;

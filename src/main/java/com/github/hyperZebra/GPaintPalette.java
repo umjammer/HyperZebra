@@ -13,6 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -23,11 +26,10 @@ import javax.swing.JPopupMenu;
 
 class CPButton extends JButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static CPButtonListener listener = new CPButtonListener();
     JPopupMenu popup = new JPopupMenu(); // Generate popup menu
@@ -42,16 +44,16 @@ class CPButton extends JButton {
         g.fillRect(0, 0, 16, 12);
         this.setIcon(new ImageIcon(bi));
         this.color = in_color;
-        // this.setForeground(color);
-        // this.setBackground(color);
-        // this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
+        //this.setForeground(color);
+        //this.setBackground(color);
+        //this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
         this.setBounds(x * 26, y * 28 + 16, 26, 26);
         setMargin(new Insets(0, 0, 0, 0));
         this.addActionListener(listener);
         this.addMouseListener(listener);
 
         if (isback) {
-            addPopupMenuItem(PCARDFrame.pc.intl.getToolText("Transparency"), e -> {
+            addPopupMenuItem(rb.getString("main.Transparency"), e -> {
                 Color c = PaintTool.owner.back.color;
                 int alpha = c.getAlpha() == 0 ? 0xFF : 0x00;
                 PaintTool.owner.back.color = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
@@ -85,9 +87,9 @@ class CPButton extends JButton {
     }
 
     // Overriding paintComponent causes display to break
-    /*@Override
-    protected void paintComponent(Graphics g) {
-    }*/
+//    @Override
+//    protected void paintComponent(Graphics g) {
+//    }
 }
 
 
@@ -96,14 +98,14 @@ class CPButtonListener implements ActionListener, MouseListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         CPButton btn = (CPButton) e.getSource();
-        /*if(e.getActionCommand().equals("color1"))*/
+//        if (e.getActionCommand().equals("color1"))
         {
             // Color col = JColor.showDialog(PaintTool.owner, "Color", btn.color );
-            /*Color col = GColorDialog.getColor(PaintTool.owner, btn.color, new Point(btn.getX(), btn.getY()), true);
-
-            if(col != null){
-                btn.makeIcon(col);
-            }*/
+//            Color col = GColorDialog.getColor(PaintTool.owner, btn.color, new Point(btn.getX(), btn.getY()), true);
+//
+//            if (col != null) {
+//                btn.makeIcon(col);
+//            }
             new CPButtonThread(btn, e).start();
         }
     }
@@ -161,11 +163,10 @@ class CPButtonListener implements ActionListener, MouseListener {
 
 class GradButton extends JButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static GradButtonListener listener = new GradButtonListener();
     JPopupMenu popup = new JPopupMenu(); // Generate popup menu
@@ -177,25 +178,29 @@ class GradButton extends JButton {
     GradButton(Color color1, Color color2, int y, int x) {
         super("Gradation");
         this.setFocusable(false);
-        // BufferedImage bi = new BufferedImage(16,12,BufferedImage.TYPE_INT_RGB);
-        // Graphics g = bi.createGraphics();
-        // g.setColor(color1);
-        // g.fillRect(0,0,16,12);
-        // this.setIcon(new ImageIcon(bi));
-        this.setText(/*PCARDFrame.pc.intl.getToolText("Gradation")+" "+*/(this.use ? "" : "off"));
+        //BufferedImage bi = new BufferedImage(16,12,BufferedImage.TYPE_INT_RGB);
+        //Graphics g = bi.createGraphics();
+        //g.setColor(color1);
+        //g.fillRect(0,0,16,12);
+        //this.setIcon(new ImageIcon(bi));
+        this.setText(/*rb.getString("main.Gradation")+" "+*/(this.use ? "" : "off"));
         this.color1 = color1;
         this.color2 = color2;
         this.angle = 0;
-        // this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
+        //this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
         this.setBounds(x * 26, y * 28 + 16, 26, 26);
         setMargin(new Insets(0, 0, 0, 0));
         this.addActionListener(listener);
         this.addMouseListener(listener);
 
         {
-            int[] angles = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 310, 320, 330, 340, 350};
+            int[] angles = {
+                    0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150,
+                    160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 310,
+                    320, 330, 340, 350
+            };
             for (int j : angles) {
-                addPopupMenuItem(PCARDFrame.pc.intl.getToolText("Angle") + " " + j, e -> {
+                addPopupMenuItem(rb.getString("main.Angle") + " " + j, e -> {
                     PCARDFrame.pc.grad.angle = Math.PI / 180.0 * Integer.parseInt(((JMenuItem) (e.getSource())).getText().split(" ")[1]);
                     PCARDFrame.pc.grad.makeIcon();
                 });
@@ -225,9 +230,9 @@ class GradButton extends JButton {
     }
 
     // Overriding paintComponent causes display to break
-    /*@Override
-    protected void paintComponent(Graphics g) {
-    }*/
+//    @Override
+//    protected void paintComponent(Graphics g) {
+//    }
 }
 
 
@@ -236,21 +241,21 @@ class GradButtonListener implements ActionListener, MouseListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         GradButton btn = (GradButton) e.getSource();
-        /*if(e.getActionCommand().equals("color1"))*/
+//        if (e.getActionCommand().equals("color1"))
         {
             btn.use = !btn.use;
-            btn.setText(/*PCARDFrame.pc.intl.getToolText("Gradation")+" "+*/(btn.use ? "" : "off"));
+            btn.setText(/* rb.getString("main.Gradation") + " " + */ (btn.use ? "" : "off"));
             btn.makeIcon();
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent arg0) {
-        // String cmd = ((GradButton)arg0.getSource()).getText();
+//        String cmd = ((GradButton) arg0.getSource()).getText();
         if (javax.swing.SwingUtilities.isRightMouseButton(arg0)) {
-            // if(PCARDFrame.pc.intl.getToolText("Gradation").equals(cmd.split(" ")[0])){
-            ((GradButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
-            // }
+//            if (rb.getString("main.Gradation").equals(cmd.split(" ")[0])) {
+                ((GradButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
+//            }
         }
     }
 
@@ -274,11 +279,12 @@ class GradButtonListener implements ActionListener, MouseListener {
 
 class PatButton extends JButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = System.getLogger(PatButton.class.getName());
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     static PatButtonListener listener = new PatButtonListener();
     JPopupMenu popup = new JPopupMenu(); // Generate popup menu
@@ -286,13 +292,13 @@ class PatButton extends JButton {
     BufferedImage[] patterns = new BufferedImage[40];
 
     PatButton(int in_pattern, int y, int x) {
-        super(/*"Pattern"*/);
+        super(/* "Pattern" */);
         this.setFocusable(false);
         this.pattern = in_pattern;
-        // this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
+//        this.setBounds((y * 3 + x) * 24, 0 /* y * 20 */, 24, 20);
         this.setBounds(x * 26, y * 28 + 16, 26, 26);
         setMargin(new Insets(0, 0, 0, 0));
-        // this.addActionListener(listener);
+        //this.addActionListener(listener);
         this.addMouseListener(listener);
 
         for (int i = 0; i < patterns.length; i++) {
@@ -300,20 +306,20 @@ class PatButton extends JButton {
                 try {
                     patterns[i] = ImageIO.read(PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.Pattern[i]).toFile());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
                 if (patterns[i] == null && !PCARDFrame.pc.stack.Pattern[i].isEmpty()) {
                     try {
                         patterns[i] = ImageIO.read(PCARDFrame.pc.stack.file.getParent().resolve(PCARDFrame.pc.stack.Pattern[i]).toFile());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
                 if (patterns[i] == null && !PCARDFrame.pc.stack.Pattern[i].isEmpty()) {
                     try {
                         patterns[i] = ImageIO.read(new File("resource" + File.separatorChar + "PAT_" + i + ".pbm"));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
                 if (patterns[i] == null) {
@@ -355,10 +361,10 @@ class PatButton extends JButton {
                         patterns[i] = ImageIO.read(ifile);
                         icon = new ImageIcon(patterns[i]);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.log(Level.ERROR, e.getMessage(), e);
                     }
                 }
-                JCheckBoxMenuItem item = addPopupMenuItem(PCARDFrame.pc.intl.getToolText("Pattern") + " " + i, icon, e -> {
+                JCheckBoxMenuItem item = addPopupMenuItem(rb.getString("main.Pattern") + " " + i, icon, e -> {
                     PaintTool.owner.pat.pattern = Integer.parseInt(((JMenuItem) (e.getSource())).getText().split(" ")[1]);
                     BufferedImage patbi = PaintTool.owner.pat.patterns[PaintTool.owner.pat.pattern];
                     if (patbi != null) {
@@ -395,7 +401,7 @@ class PatButtonListener implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent arg0) {
         // String cmd = ((PatButton)arg0.getSource()).getText();
-        // if(PCARDFrame.pc.intl.getToolText("Pattern").equals(cmd.split(" ")[0])){
+        // if(rb.getString("main.Pattern").equals(cmd.split(" ")[0])){
         ((PatButton) arg0.getSource()).popup.show(arg0.getComponent(), arg0.getX(), arg0.getY());
         // }
     }
@@ -420,22 +426,22 @@ class PatButtonListener implements MouseListener {
 
 class TransButton extends JButton {
 
-    /**
-     *
-     */
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
     JPopupMenu popup = new JPopupMenu(); // Generate popup menu
 
     TransButton(String in_text, int y, int x) {
         super();
         this.setFocusable(false);
-        // this.setBounds((y*3+x)*24,0/*y*20*/,24,20);
+//        this.setBounds((y * 3 + x) * 24, 0 /* y * 20 */, 24, 20);
         this.setBounds(x * 26, y * 28 + 16, 26, 26);
         this.setName(in_text);
         setMargin(new Insets(0, 0, 0, 0));
 
-        if (PCARD.pc.intl.getToolText("Transparency").equals(in_text)) {
+        if (rb.getString("main.Transparency").equals(in_text)) {
             int[] alpha = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95};
             for (int j : alpha) {
                 addPopupMenuItem(j + " %", e -> {
@@ -455,7 +461,7 @@ class TransButton extends JButton {
         }
 
         setText(100 - PaintTool.alpha + "%");
-        setFont(new Font("", 0, 10));
+        setFont(new Font("", Font.PLAIN, 10));
     }
 
     // Add menu item
@@ -463,7 +469,7 @@ class TransButton extends JButton {
         JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
         item.addActionListener(al);
         item.setSelected(check);
-        // item.setBounds(0,0,getPreferredSize().width, getPreferredSize().height);
+//        item.setBounds(0, 0, getPreferredSize().width, getPreferredSize().height);
         popup.add(item);
         return item;
     }

@@ -17,17 +17,26 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ResourceBundle;
 
 import javax.swing.JFileChooser;
 
 
 public class PictureFile {
 
-    // -------------------------------
-    // Save PPM file
-    // -------------------------------
-    // Do not use - images break when saved then reloaded
+    private static final Logger logger = System.getLogger(PictureFile.class.getName());
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * Save PPM file
+     *
+     * Do not use - images break when saved then reloaded
+     */
     public static void saveAsPpm(BufferedImage img, String path) {
         if (img.getType() == BufferedImage.TYPE_INT_ARGB) {
             // main
@@ -37,7 +46,7 @@ public class PictureFile {
 
         if (path == null) {
             JFileChooser chooser = new JFileChooser(new File("./"));
-            chooser.setDialogTitle(PCARDFrame.pc.intl.getDialogText("Save File"));
+            chooser.setDialogTitle(rb.getString("dialog.Save_File"));
             chooser.setSelectedFile(new File("./.ppm"));
             int ret = chooser.showSaveDialog(PCARDFrame.pc);
             if (ret != JFileChooser.APPROVE_OPTION) {
@@ -118,14 +127,12 @@ public class PictureFile {
 
             stream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
 
-    // -------------------------------
-    // Load PBM/PPM file
-    // -------------------------------
+    /** Load PBM/PPM file */
     public static BufferedImage loadPbm(String path) {
         File file = new File(path);
         if (!file.exists() || file.isDirectory()) return null;
@@ -134,7 +141,7 @@ public class PictureFile {
         try {
             stream = new BufferedInputStream(new FileInputStream(path));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
             return null;
         }
 
@@ -158,7 +165,7 @@ public class PictureFile {
                 }
                 stream.read();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         } else if (ver == 6) {
             // PPM image data
@@ -169,7 +176,7 @@ public class PictureFile {
                 }
                 stream.read();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
@@ -195,7 +202,7 @@ public class PictureFile {
                 }
                 stream.read();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         } else if (maskver == 5) {
             // PPM image data
@@ -206,7 +213,7 @@ public class PictureFile {
                 }
                 stream.read();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
@@ -287,7 +294,7 @@ public class PictureFile {
             if (tmpstr.toString().equals("P6")) ver = 6;
             stream.read();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return ver;
@@ -317,7 +324,7 @@ public class PictureFile {
             }
             height = Integer.parseInt(tmpstr.toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return new Dimension(width, height);
@@ -336,16 +343,14 @@ public class PictureFile {
             if (tmpstr.toString().equals("255")) depth = 255;
             stream.read();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         return depth;
     }
 
 
-    // -------------------------------
-    // Load PICT file
-    // -------------------------------
+    /** Load PICT file */
     public static BufferedImage loadPICT(String path) {
         File file = new File(path);
         if (!file.exists()) return null;
@@ -354,7 +359,7 @@ public class PictureFile {
         try {
             stream = new BufferedInputStream(new FileInputStream(path));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
             return null;
         }
 
@@ -364,7 +369,7 @@ public class PictureFile {
         if (version == 2) size = readPICTv2Size(stream, version);
         if (size == null) return null;
         if (size.width <= 0 || size.height <= 0) {
-            System.out.println("PICT size error");
+            logger.log(Level.DEBUG, "PICT size error");
             return null;
         }
 
@@ -378,7 +383,7 @@ public class PictureFile {
         int py = 10;
         int fontsize = 12;
 
-        System.out.println("-------");
+        logger.log(Level.DEBUG, "-------");
         while (true) {
             int opcode;
             try {
@@ -393,17 +398,15 @@ public class PictureFile {
             boolean packbits_flag = false;
             boolean fullcolor_flag = false;
             boolean rgnmask_flag = false;
-            System.out.println("opcode:0x" + Integer.toHexString(opcode));
+            logger.log(Level.DEBUG, "opcode:0x" + Integer.toHexString(opcode));
             if (opcode == 0x8200 || opcode == 0x8201) {
                 // JPEG
                 int filelen = (readOpcode(stream, 2) << 16) + readOpcode(stream, 2); // 00 00 53 60
                 for (int i = 0; i < 100; i++) { // mac file header
                     readOpcode(stream, 1);
                 }
-                /*int width2 =*/
-                readOpcode(stream, 2);
-                /*int height2 =*/
-                readOpcode(stream, 2);
+                /* int width2 = */ readOpcode(stream, 2);
+                /* int height2 = */ readOpcode(stream, 2);
                 for (int i = 0; i < 50; i++) { // mac file header 2
                     readOpcode(stream, 1);
                 }
@@ -411,13 +414,13 @@ public class PictureFile {
                 try {
                     stream.read(b, 0, filelen - 154);
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    logger.log(Level.ERROR, e1.getMessage(), e1);
                 }
                 try {
                     jpegimg = javax.imageio.ImageIO.read(new ByteArrayInputStream(b));
                     jpgHeight += jpegimg.getHeight();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.log(Level.ERROR, e.getMessage(), e);
                 }
                 continue;
             } else if (opcode == 0x0090 || opcode == 0x0091) {
@@ -437,7 +440,7 @@ public class PictureFile {
                 }
                 String s = "";
                 s = new String(b, StandardCharsets.US_ASCII);
-                System.out.println("long comment:" + s);
+                logger.log(Level.DEBUG, "long comment:" + s);
                 continue;
             } else if (opcode == 0x00ff || opcode == 0xffff) {
                 break; // End code
@@ -476,7 +479,7 @@ public class PictureFile {
                 int penY = (short) readOpcode(stream, 2);
                 byte penX2 = (byte) readOpcode(stream, 1);
                 byte penY2 = (byte) readOpcode(stream, 1);
-                System.out.println("penX:" + penX + " penY:" + penY + " penX2:" + penX2 + " penY2:" + penY2);
+                logger.log(Level.DEBUG, "penX:" + penX + " penY:" + penY + " penX2:" + penX2 + " penY2:" + penY2);
                 if (img == null) {
                     img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
                     g = img.createGraphics();
@@ -517,7 +520,7 @@ public class PictureFile {
                     s = new String(b, "SJIS");
                 } catch (UnsupportedEncodingException e) {
                 }
-                System.out.println("font:'" + s + "' at " + px + "," + py);
+                logger.log(Level.DEBUG, "font:'" + s + "' at " + px + "," + py);
                 // g.drawString(s,px,py);
                 continue;
             } else if (opcode == 0x0003) {
@@ -531,7 +534,7 @@ public class PictureFile {
             } else if (opcode == 0x000d) {
                 // Character size
                 fontsize = readOpcode(stream, 2);
-                g.setFont(new Font("", 0, fontsize));
+                g.setFont(new Font("", Font.PLAIN, fontsize));
                 continue;
             } else if (opcode == 0x002e) {
                 // ? Something related to characters
@@ -551,12 +554,8 @@ public class PictureFile {
                 for (int i = 0; i < count; i++) {
                     b[i] = (byte) readOpcode(stream, 1);
                 }
-                String s = "";
-                try {
-                    s = new String(b, "SJIS");
-                } catch (UnsupportedEncodingException e) {
-                }
-                System.out.println("drawString28:'" + s + "' at " + (ddx) + "," + (ddy));
+                String s = new String(b, Charset.forName("SJIS"));
+                logger.log(Level.DEBUG, "drawString28: '" + s + "' at " + ddx + "," + ddy);
                 do {
                     String s2 = s;
                     if ((s.indexOf('\r') > -1)) s2 = s.substring(0, s.indexOf('\r'));
@@ -578,7 +577,7 @@ public class PictureFile {
                     s = new String(b, "SJIS");
                 } catch (UnsupportedEncodingException e) {
                 }
-                System.out.println("drawString29:'" + s + "' at " + (px + dx) + "," + (py));
+                logger.log(Level.DEBUG, "drawString29:'" + s + "' at " + (px + dx) + "," + (py));
                 do {
                     String s2 = s;
                     if ((s.indexOf('\r') > -1)) s2 = s.substring(0, s.indexOf('\r'));
@@ -595,12 +594,8 @@ public class PictureFile {
                 for (int i = 0; i < count; i++) {
                     b[i] = (byte) readOpcode(stream, 1);
                 }
-                String s = "";
-                try {
-                    s = new String(b, "SJIS");
-                } catch (UnsupportedEncodingException e) {
-                }
-                System.out.println("drawString2a:'" + s + "' at " + (px) + "," + (py + dy));
+                String s = new String(b, Charset.forName("SJIS"));
+                logger.log(Level.DEBUG, "drawString2a: '" + s + "' at " + (px) + ", " + (py + dy));
                 do {
                     String s2 = s;
                     if ((s.indexOf('\r') > -1)) s2 = s.substring(0, s.indexOf('\r'));
@@ -618,12 +613,8 @@ public class PictureFile {
                 for (int i = 0; i < count; i++) {
                     b[i] = (byte) readOpcode(stream, 1);
                 }
-                String s = "";
-                try {
-                    s = new String(b, "SJIS");
-                } catch (UnsupportedEncodingException e) {
-                }
-                System.out.println("drawString2b:'" + s + "' at " + (px + dx) + "," + (py + dy));
+                String s = new String(b, Charset.forName("SJIS"));
+                logger.log(Level.DEBUG, "drawString2b:'" + s + "' at " + (px + dx) + "," + (py + dy));
                 do {
                     String s2 = s;
                     if ((s.indexOf('\r') > -1)) s2 = s.substring(0, s.indexOf('\r'));
@@ -649,7 +640,7 @@ public class PictureFile {
                 g.fillRect(0, 0, size.width, size.height);
             }
             if (jpegimg != null) {
-                // Graphics2D g = img.createGraphics();
+                //Graphics2D g = img.createGraphics();
                 g.drawImage(jpegimg, 0, jpgHeight - jpegimg.getHeight(), null);
             }
             DataBuffer db = img.getRaster().getDataBuffer();
@@ -683,10 +674,8 @@ public class PictureFile {
                 readOpcode(stream, 2); // Vertical resolution
                 readOpcode(stream, 2); // Pixel type
                 bpp = readOpcode(stream, 2); // Bits per pixel
-                /*int byteoff =*/
-                readOpcode(stream, 2); // Byte offset to next pixel
-                /*int pixelbytes =*/
-                readOpcode(stream, 2); // Component size
+                /* int byteoff = */ readOpcode(stream, 2); // Byte offset to next pixel
+                /* int pixelbytes = */ readOpcode(stream, 2); // Component size
                 readOpcode(stream, 2); // Offset to next color plane
                 readOpcode(stream, 2); // Offset to next color plane
                 readOpcode(stream, 2); // Inversion
@@ -698,11 +687,10 @@ public class PictureFile {
                     readOpcode(stream, 2); // Color table ID
                     readOpcode(stream, 2); // Color table flag
                     int palette_cnt = 1 + readOpcode(stream, 2); // Number of registered palettes
-                    // if(palette_cnt > 256) return null;
+                    //if (palette_cnt > 256) return null;
                     palette = new int[palette_cnt];
                     for (int i = 0; i < palette_cnt; i++) {
-                        /*int pidx =*/
-                        readOpcode(stream, 2); // Palette number
+                        /* int pidx = */ readOpcode(stream, 2); // Palette number
                         int cr = readOpcode(stream, 2) >> 8; // Palette color data R
                         int cg = readOpcode(stream, 2) >> 8; // Palette color data G
                         int cb = readOpcode(stream, 2) >> 8; // Palette color data B
@@ -736,11 +724,11 @@ public class PictureFile {
 
             int trans_mode = readOpcode(stream, 2); // Transfer mode
             if (trans_mode != 0) {
-                // System.out.println("trans_mode:"+trans_mode);
+                //logger.log(Level.DEBUG, "trans_mode: " + trans_mode);
             }
 
             if (rgnmask_flag) {
-                // System.out.println("rgnmask_flag:"+rgnmask_flag);
+                //logger.log(Level.DEBUG, "rgnmask_flag: " + rgnmask_flag);
                 int len = readOpcode(stream, 2);
                 int rtop = readOpcode(stream, 2); // top
                 int rleft = readOpcode(stream, 2); // left
@@ -753,7 +741,7 @@ public class PictureFile {
                         }
                     }
                 }
-                // for(int i=0; i<len-10;i++){readOpcode(stream,1);}
+                //for (int i = 0; i < len - 10; i++) { readOpcode(stream, 1); }
 
                 // Region format
                 //
@@ -895,26 +883,26 @@ public class PictureFile {
                     }
                 }
             } else if (!bitmap_flag && packbits_flag) {
-                System.out.println("packbits-pixmap");
-                System.out.println("bpp:" + bpp);
-                System.out.println("ispalette:" + (palette != null));
-                System.out.println("rowBytes:" + rowBytes);
+                logger.log(Level.DEBUG, "packbits-pixmap");
+                logger.log(Level.DEBUG, "bpp:" + bpp);
+                logger.log(Level.DEBUG, "ispalette:" + (palette != null));
+                logger.log(Level.DEBUG, "rowBytes:" + rowBytes);
                 // Compressed PixMap
                 int dlen = 1;
                 if (rowBytes >= 251) dlen = 2;
                 for (int v = 0; v < bbottom - btop; v++) {
-                    // System.out.println(v+"<"+(bbottom-btop));
+                    //logger.log(Level.DEBUG, v+"<"+(bbottom-btop));
                     byte[] data = new byte[rowBytes];
                     int offset = 0;
                     // Expand packBits
                     int packsize = readOpcode(stream, dlen);
-                    // System.out.println("packsize:"+packsize);
+                    //logger.log(Level.DEBUG, "packsize: " + packsize);
                     if (bpp == 16) { // 16-bit packbits seems different
                         for (int i = 0; i < packsize; i++) {
                             int dsize = readOpcode(stream, 1);
                             if (dsize >= 128) {
                                 // When same data repeats
-                                // System.out.println("renzoku dsize:"+dsize);
+                                //logger.log(Level.DEBUG, "renzoku dsize: " + dsize);
                                 dsize = 256 - dsize + 1;
                                 int src1 = readOpcode(stream, 1);
                                 int src2 = readOpcode(stream, 1);
@@ -927,11 +915,11 @@ public class PictureFile {
                                 offset += dsize * 2;
                             } else {
                                 // Data as-is
-                                // System.out.println("sonomama dsize:"+dsize);
+                                //logger.log(Level.DEBUG, "sonomama dsize: " + dsize);
                                 dsize++;
                                 for (int j = 0; j < dsize * 2; j++) {
                                     if (rowBytes <= j + offset) {
-                                        // System.out.println("over rowBytes2!");
+                                        //logger.log(Level.DEBUG, "over rowBytes2!");
                                         continue;
                                     }
                                     try {
@@ -939,7 +927,7 @@ public class PictureFile {
                                         i++;
                                     } catch (IOException e) {
                                     }
-                                    // System.out.println("data["+(j+offset)+"]:"+data[j+offset]);
+                                    //logger.log(Level.DEBUG, "data["+(j+offset)+"]: " + data[j+offset]);
                                 }
                                 offset += dsize * 2;
                             }
@@ -948,14 +936,14 @@ public class PictureFile {
                         for (int i = 0; i < packsize; i++) {
                             int dsize = readOpcode(stream, 1);
                             if (dsize >= 128) {
-                                // System.out.println("renzoku dsize:"+dsize);
+                                //logger.log(Level.DEBUG, "renzoku dsize: " + dsize);
                                 // When same data repeats
                                 dsize = 256 - dsize + 1;
                                 int src = readOpcode(stream, 1);
-                                // System.out.println("src:"+src);
+                                //logger.log(Level.DEBUG, "src: " + src);
                                 i++;
                                 if (rowBytes < dsize + offset) {
-                                    // System.out.println("over rowBytes1!");
+                                    //logger.log(Level.DEBUG, "over rowBytes1!");
                                     continue;
                                 }
                                 for (int j = 0; j < dsize && j + offset < data.length; j++) {
@@ -964,11 +952,11 @@ public class PictureFile {
                                 offset += dsize;
                             } else {
                                 // Data as-is
-                                // System.out.println("sonomama dsize:"+dsize);
+                                //logger.log(Level.DEBUG, "sonomama dsize: " + dsize);
                                 dsize++;
                                 for (int j = 0; j < dsize; j++) {
                                     if (rowBytes <= j + offset) {
-                                        // System.out.println("over rowBytes2!");
+                                        //logger.log(Level.DEBUG, "over rowBytes2!");
                                         continue;
                                     }
                                     try {
@@ -976,7 +964,7 @@ public class PictureFile {
                                         i++;
                                     } catch (IOException e) {
                                     }
-                                    // System.out.println("data["+(j+offset)+"]:"+data[j+offset]);
+                                    //logger.log(Level.DEBUG, "data["+(j+offset)+"]: " + data[j+offset]);
                                 }
                                 offset += dsize;
                             }
@@ -984,7 +972,7 @@ public class PictureFile {
                     } // packbits end
 
                     if (v + dtop >= size.height) {
-                        // System.out.println("v+dtop("+(v+dtop)+") > "+size.height);
+                        //logger.log(Level.DEBUG, "v+dtop("+(v+dtop)+") > "+size.height);
                         break;
                     }
                     for (int h = 0; h < bright - bleft; h++) {
@@ -1040,7 +1028,7 @@ public class PictureFile {
                         }
                         if (jpegimg == null) {
                             // if((v+dtop)%100==5){
-                            // System.out.println((h+dleft)+","+(v+dtop)+" "+Integer.toHexString(pix));
+                            //logger.log(Level.DEBUG, (h+dleft)+","+(v+dtop)+" "+Integer.toHexString(pix));
                             // }
                             db.setElem((v + dtop) * size.width + (h + dleft), pix);
                         }
@@ -1070,7 +1058,7 @@ public class PictureFile {
             height = readOpcode(stream, 2);
             width = readOpcode(stream, 2);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
             return null;
         }
 
@@ -1139,7 +1127,7 @@ public class PictureFile {
         int iop = 0;
         if (version == 1) iop = (opcode[0]) & 0xff;
         else if (version == 2) iop = ((opcode[0] & 0xff) << 8) + (opcode[1] & 0xff);
-        // System.out.println(". "+iop);
+        //logger.log(Level.DEBUG, ". "+iop);
         return iop;
     }
 

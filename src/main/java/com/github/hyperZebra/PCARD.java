@@ -22,11 +22,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serial;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -65,6 +67,7 @@ class PCARDFrame extends JFrame {
         int offset = (pc != null) ? pc.fontSizeOffset : -2;
         return Math.max(6, origSize + offset);
     }
+
     float bitLeft;
     float bitTop;
     ToolInterface tool;
@@ -124,12 +127,40 @@ class PCARDFrame extends JFrame {
 }
 
 
-public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
+public class PCARD extends PCARDFrame /* implements MRJOpenDocumentHandler */ {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    static Logger logger = Logger.getLogger(PCARD.class.getName());
+    static Logger logger = System.getLogger(PCARD.class.getName());
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+    private static final ResourceBundle erb = ResourceBundle.getBundle("messages", Locale.ROOT);
+
+    /**
+     * @param ns key namespace, "main" or "dialog"
+     * @param name english text
+     * @return localized text, or {@code name} itself when it is not defined
+     */
+    static String getText(String ns, String name) {
+        String key = ns + "." + name.replace(' ', '_');
+        return rb.containsKey(key) ? rb.getString(key) : name;
+    }
+
+    /**
+     * @param ns key namespace, "main" or "dialog"
+     * @param text localized text
+     * @return english text, or {@code text} itself when it is not defined
+     */
+    static String getEngText(String ns, String text) {
+        String prefix = ns + ".";
+        for (String key : rb.keySet()) {
+            if (key.startsWith(prefix) && rb.getString(key).equals(text)) {
+                return erb.getString(key);
+            }
+        }
+        return text;
+    }
 
     static String AppName = "HyperZebra";
 
@@ -138,28 +169,29 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     GMenu menu;
     GMenu paintMenu;
     GMsg msg;
-    International intl;
     static boolean useDoubleBuffer = false; // Can we save memory by turning off the buffer?
     Pidle pidle;
-    PaintIdle paidle;
+    PaintIdle paIdle;
     DropTarget drop;
     MyDropTargetListener droplistener;
     GToolBar toolbar;
 
-
     // Properties
     static boolean lockedScreen = false;
     static int visual = 0;
-    static int toVisual = 0; /* to black1 white2 grey3 inverse4 */
-    static int visSpd = 3; /* very fast1 fast2 normal3 slow4 veryslow5 */
-    static int editMode = 0; // 0:browse  1:outline emphasis
+    /** to black1 white2 grey3 inverse4 */
+    static int toVisual = 0;
+    /** very fast1 fast2 normal3 slow4 veryslow5 */
+    static int visSpd = 3;
+    /** 0:browse  1:outline emphasis */
+    static int editMode = 0;
     static String scriptFont = "";
     static int scriptFontSize = 12;
     static int userLevel = 5;
     String textFont = "";
     int textSize = 12;
     int textStyle = 0;
-    // int textAlign = 0;
+    //int textAlign = 0;
     int foundIndex = 0;
     String foundText;
     String foundObject;
@@ -203,6 +235,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
             logger.log(Level.INFO, "." + File.separatorChar + "resource" + File.separatorChar + "icon.png");
         }
 
+        GUI.installClickTracker();
         new OWindow(pc, true);
         pc.rootPane.setDoubleBuffered(true);
         pc.getRootPane().setOpaque(false);
@@ -216,12 +249,6 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
 
         Cursor cr = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
         pc.setCursor(cr);
-
-        try {
-            pc.intl = new International();
-        } catch (Exception e) {
-            logger.log(Level.INFO, e.getMessage(), e);
-        }
 
         pc.addWindowListener(new WindowAdapter() {
             @Override
@@ -272,12 +299,34 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
 
         HyperZebra.installMacHandler();
 
+        // debug: "-DhyperZebra.snapshot=file.png" writes the window image every 2 seconds
+        String snapshot = System.getProperty("hyperZebra.snapshot");
+        if (snapshot != null) {
+            new javax.swing.Timer(2000, e -> {
+                try {
+                    javax.swing.JRootPane rp = pc.getRootPane();
+                    if (rp.getWidth() <= 0 || rp.getHeight() <= 0 || !rp.isShowing()) return;
+                    java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(rp.getWidth(), rp.getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB);
+                    java.awt.Graphics2D g = img.createGraphics();
+                    rp.paint(g);
+                    g.dispose();
+                    ImageIO.write(img, "png", new File(snapshot));
+                    // what is on the screen (window area only)
+                    java.awt.Point p = rp.getLocationOnScreen();
+                    java.awt.image.BufferedImage screen = new java.awt.Robot().createScreenCapture(new java.awt.Rectangle(p.x, p.y, rp.getWidth(), rp.getHeight()));
+                    ImageIO.write(screen, "png", new File(snapshot.replaceAll("\\.png$", "") + "-screen.png"));
+                } catch (Exception ex) {
+                    logger.log(Level.DEBUG, ex.toString());
+                }
+            }).start();
+        }
+
         // Idle processing
         pc.pidle = new Pidle();
         pc.pidle.start();
 
-        pc.paidle = new PaintIdle();
-        pc.paidle.start();
+        pc.paIdle = new PaintIdle();
+        pc.paIdle.start();
     }
 
     static void successOpenFile() throws IOException {
@@ -312,7 +361,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
 
         // Write to file
         {
-            OutputStream fos = null;
+            OutputStream fos;
             try {
                 if (!Files.exists(recentFile.getParent())) {
                     Files.createDirectories(recentFile.getParent());
@@ -326,7 +375,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
                 }
                 fos.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
         GMenu.BuildRecentMenu((JMenu) PCARD.pc.getJMenuBar().getComponent(0));
@@ -339,13 +388,13 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
         }
         pc.emptyWindow();
         if (!path.equals("./home")) {
-            new GDialog(pc, PCARDFrame.pc.intl.getDialogText("Could't open the file."),
+            new GDialog(pc, rb.getString("dialog.Could't_open_the_file."),
                     null, "OK", null, null);
         }
     }
 
     public void emptyWindow() {
-        setTitle(PCARDFrame.pc.intl.getDialogText("Drop file here"));
+        setTitle(rb.getString("dialog.Drop_file_here"));
 
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         if (d != null) {
@@ -354,16 +403,13 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
             setBounds(0, 0 - 320 - 20, 400, 320 + 20);
         }
         setVisible(true);
-        // setLocationRelativeTo(null);
+        //setLocationRelativeTo(null);
         droplistener = new MyDropTargetListener();
         drop = new DropTarget(pc.mainPane, droplistener);
     }
 
     private static class MyDropTargetListener extends DropTargetAdapter {
 
-        /*
-         * @see java.awt.dnd.DropTargetListener#drop(java.awt.dnd.DropTargetDropEvent)
-         */
         @Override
         public void drop(DropTargetDropEvent e) {
             try {
@@ -382,7 +428,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
                     }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.log(Level.ERROR, ex.getMessage(), ex);
             }
         }
     }
@@ -390,7 +436,7 @@ public class PCARD extends PCARDFrame /*implements MRJOpenDocumentHandler*/ {
     PCARD() {
         GUI.gui.addMouseListener(this);
         this.addKeyListener(GUI.gui);
-        // this.addWindowListener(paintGUI.gui);
+        //this.addWindowListener(paintGUI.gui);
         this.addWindowListener(new PCARDWindowListener(this));
     }
 }
@@ -442,18 +488,21 @@ class PCARDWindowListener implements WindowListener {
 
 class Pidle extends Thread {
 
+    /** "-DhyperZebra.idleInBackground=true" sends idle messages while the window is not active */
+    static final boolean IDLE_IN_BACKGROUND = Boolean.getBoolean("hyperZebra.idleInBackground");
+
     @Override
     public void run() {
         this.setName("idle thread");
         while (true) {
             if (PCARDFrame.pc.stack != null && PCARDFrame.pc.stack.curCard != null && PCARDFrame.pc.tool == null) {
-                if (TTalk.idle && PCARD.pc.isActive()) {
+                if (TTalk.idle && !TTalk.stackOpening && (PCARD.pc.isActive() || IDLE_IN_BACKGROUND)) {
                     if (System.currentTimeMillis() - TTalk.lastErrorTime > 10 * 1000) {
                         TTalk.CallMessage("idle", "", PCARDFrame.pc.stack.curCard, true, false);
                     }
                 }
                 GUI.keyEventCheck();
-                // PCARD.pc.stack.pcard.requestFocusInWindow(); // This prevents typing in fields
+                //PCARD.pc.stack.pcard.requestFocusInWindow(); // This prevents typing in fields
             }
             try {
                 sleep(100); // 10 times per 1000msec
