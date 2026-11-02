@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import com.github.hyperZebra.PCARD;
 import vavi.util.properties.annotation.Property;
@@ -42,6 +43,7 @@ class TestCase {
 
     @Test
     @EnabledIf("localPropertiesExists")
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test1() throws Exception {
         PCARD.main(new String[] { file });
 
