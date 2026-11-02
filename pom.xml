@@ -21,6 +21,8 @@
         <configuration>
           <argLine>
             -Djava.util.logging.config.file=${project.build.testOutputDirectory}/logging.properties
+            -Dapple.laf.useScreenMenuBar=true
+            -Dapple.awt.application.name=HyperZebra
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
@@ -57,13 +59,19 @@
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>vavi-commons</artifactId>
-      <version>1.1.24</version>
+      <version>1.1.25</version>
     </dependency>
 
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>jlayer</artifactId>
       <version>1.0.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.umjammer</groupId>
+      <artifactId>vavi-media-quicktime</artifactId>
+      <version>6.1.1</version>
     </dependency>
 
     <dependency>
